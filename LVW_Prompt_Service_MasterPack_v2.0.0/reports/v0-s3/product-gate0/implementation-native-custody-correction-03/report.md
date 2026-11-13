@@ -178,3 +178,66 @@ EOF 语义、真实 Win32 ABI 运行时行为：**全部 NOT_PROVEN**。`grant_a
    `verify_pins` 现在**遵守计划里声明的 `dependency_excludes`**（纠偏 02 的实现者副本没有遵守，
    它从未被执行）。除此之外逐字未改。真正的 guard 与 runner 由 root 控制；实现者提交的
    runner/guard 只作为输入保留。
+
+## 10. 追加勘误与第一批的逐组结果（root 纠正包 02 授权之后追加；§1–§9 的正文不改）
+
+### 10.1 第一批的逐组结果（机器逐 node 复算，取自 root 冻结批次 receipt 的 `reports`）
+
+第一批：133 calls / **115 通过 / 18 失败 / 0 跳过**，pytest exit 1，
+`cleanup_proven_for_batch = false`，批末 14 个 `lvw-native-custody-channel-pump` daemon 线程。
+按 receipt 的 `reports`（`when == "call"`）逐 node 复算：**旧 117 组 104 通过 / 13 失败**，
+**新增 16 组 11 通过 / 5 失败**。
+
+| 冻结义务 | 用例 | 第一批结果 |
+|---|---|---|
+| N03-R01 | `test_n03_r01_a_failed_birth_keeps_the_original_handles_with_the_api` | 通过 |
+| N03-R02 | `test_n03_r02_a_failed_cleanup_of_the_creation_still_releases_everything` | 通过 |
+| N03-R03 | `test_n03_r03_the_job_query_is_unknown_whenever_a_fact_does_not_agree` | 通过 |
+| N03-R04 | `test_n03_r04_a_job_that_could_not_be_closed_keeps_its_original_handle` | **失败** |
+| N03-R05 | `test_n03_r05_the_stop_runs_every_cleanup_after_an_ordinary_failure` | **失败** |
+| N03-R06 | `test_n03_r06_the_start_cleans_up_everything_that_it_acquired` | **失败** |
+| N03-R07 | `test_n03_r07_the_startup_is_bounded_by_the_absolute_deadline` | 通过 |
+| N03-R08 | `test_n03_r08_the_cleanup_of_the_broker_uses_one_absolute_deadline` | 通过 |
+| N03-R09 | `test_n03_r09_a_partial_windows_write_is_never_a_success` | 通过 |
+| N03-R10 | `test_n03_r10_the_cancellation_of_a_worker_stops_it_from_entering_io` | 通过 |
+| N03-R11 | `test_n03_r11_a_failure_of_the_background_latches_the_unknown_state` | **失败** |
+| N03-R12 | `test_n03_r12_the_frame_budget_is_the_total_of_both_directions` | 通过 |
+| N03-R13 | `test_n03_r13_the_buffer_of_the_channel_is_bounded_and_a_partial_frame_is_named` | 通过 |
+| N03-R14 | `test_n03_r14_a_close_without_facts_keeps_the_original_broker` | **失败** |
+| N03-R15 | `test_n03_r15_the_default_launcher_refuses_with_its_own_code` | 通过 |
+| N03-R16 | `test_n03_r16_the_positive_lifecycle_still_closes_everything` | 通过 |
+
+失败 5 条与 root 的 `regression_failed_nodes` 逐项相同。**没有任何一条失败由放宽断言造成**：
+A 是真实的 `TypeError`（生产），B 是真实的到期判定（时钟场景），C 与 D 是本包测试自身的
+期望错误。第一批 115/18 是唯一事实，不改写、不回填、不迁移。
+
+### 10.2 本轮（纠正包 02）的最小静态纠正范围
+
+root 纠正包 02 只授权**静态最小纠正**，不是执行 ACK。允许改动的源只有
+`tools/v0_s3_native_custody.py`、`tools/test_v0_s3_native_custody.py`、
+`tools/test_v0_s3_native_custody_regressions.py` 与本 NEW 目录的 `attempt02-preparation`；
+`tools/v0_s3_native_broker.py` **保持 46af977 的字节不变**。
+
+* **A（生产）**：`NativeCustodySession._remaining`（deadline 剩余方法）与既有整数属性
+  `self._remaining`（父侧剩余预算）同名，实例属性遮蔽方法 → 任何关闭路径都抛
+  `TypeError: 'int' object is not callable`。纠正：deadline 剩余方法改名为
+  `_cleanup_remaining`（含两个 join 路径的调用点），**保留** `self._remaining` 的整数语义与
+  `evidence` 字段不变。按合同要求做了**静态排查**：对三个 N1 模块与新回归模块做
+  "实例属性赋值与同名可调用方法重名" 与 "Thread 子类与 `threading.Thread` 内部名冲突"
+  的 AST 扫描，首批**只有 1 处真实命中**（即本处），Thread 内部名冲突 **0 处**；
+  纠正后复扫 **0 处**。
+* **B（测试场景，不改生产）**：`Clock(step=0.6)` 每次调用都推进模拟时间，两次读表自然越过
+  1 秒租约，**尚未证明生产误判**，因此**不**删减监督侧的到期检查。纠正：
+  `test_the_absolute_lease_stops_the_round` 改用手动时钟 + 受控 transport 事件
+  （启动完成后的第一次 `read` 推进时钟）确定性驱动 `LEASE_EXPIRED`/exit 4；
+  N03-R07 继续**独立**覆盖"启动动作返回时已到期 → 拒绝、禁止后续 create/Resume/STATUS 成功"。
+  两种场景分开，未把"启动前拒绝"改成"运行中 exit 4"。
+* **C（测试）**：`RecordingWin32` 支持**失败点集合**（单点兼容保留），R04 改为
+  `('job_limit','close')` 同时触发，并断言**两个失败点都真的触发**（`win32.fired`）。
+* **D（测试）**：R05 的第二次 stop **不再要求重复抛同一 RuntimeError**：第一次 stop 已释放
+  并关闭 job，第二次不再 terminate/close 它；断言改为「状态仍 UNKNOWN + 第一错记录仍在 +
+  已成功关闭的句柄 close 次数不增加」，并补一段「未关闭资源仍由原 owner 在原 cleanup 预算内
+  再次协调」的断言（`close_handle` 调用次数增加、pending 仍具名原句柄、`_released` 仍为 False）。
+
+本轮**未**运行候选导入、collection、pytest 或任何真实 Windows/GPU/服务动作；
+真实 Windows 仍 NOT_PROVEN，仍只报告 READY_FOR_REVIEW，不签 Stage PASS。

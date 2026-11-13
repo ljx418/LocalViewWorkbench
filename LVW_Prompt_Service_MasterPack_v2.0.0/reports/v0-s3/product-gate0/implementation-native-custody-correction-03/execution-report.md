@@ -111,3 +111,32 @@ R06、R11、R14 因根因 A 失败。R01、R02、R03、R07、R08、R09、R10、R
 * 在此之前**不**复跑、不重试、不换路线、不改断言、不降低门槛。
 * 真实 Windows / Job / GPU / 端口 / 父崩溃 / EOF / I24 / 产品 12 / A06 / 原账本余额 /
   质量与人签：**仍未证**；本包仍只报告 `READY_FOR_REVIEW`，**不签 Stage PASS**。
+
+## 6. 勘误（root 纠正包 02 授权之后追加；本报告 §1–§5 的正文不改）
+
+root 的纠正包 02（`…/native-custody-correction-03/correction-plan-02/contract.md` 与
+`decision.json`，message_id `msg_1f5a9dd23491`）指出本报告 §4 的一处计数与机器事实矛盾。
+现按 **receipt 的 `reports` 逐 node 机器复算**追加勘误：
+
+| 事实 | §4 的原写法 | 机器复算（receipt `reports`，`when == "call"`） |
+|---|---|---|
+| 新增 16 组用例 | “14 条新用例通过” | **11 通过 / 5 失败** |
+| 旧 117 组用例 | 未单列 | **104 通过 / 13 失败** |
+| 合计 | — | **133 calls / 115 pass / 18 fail / 0 skip** |
+
+逐 node 的复算结果与 root 的 `regression_failed_nodes` **逐项相同**：
+
+* 失败 5 条：`test_n03_r04_a_job_that_could_not_be_closed_keeps_its_original_handle`、
+  `test_n03_r05_the_stop_runs_every_cleanup_after_an_ordinary_failure`、
+  `test_n03_r06_the_start_cleans_up_everything_that_it_acquired`、
+  `test_n03_r11_a_failure_of_the_background_latches_the_unknown_state`、
+  `test_n03_r14_a_close_without_facts_keeps_the_original_broker`。
+* 通过 11 条：R01、R02、R03、R07、R08、R09、R10、R12、R13、R15、R16 对应的节点。
+
+§3 的根因分类与实测一致，未改：A（生产，`_remaining` 遮蔽）**15** 个失败、
+B（生产/时钟场景）**1** 个、C（测试 façade 触发点）**1** 个、D（测试重复 stop 期望）**1** 个，
+合计 **18** ✓。批末 **14** 个 `lvw-native-custody-channel-pump` daemon 线程与
+`cleanup_proven_for_batch = false` 是 A 的**产品事实**，不是环境噪声：进程退出回收了它们，
+但产品没有 join 它们，因此不得写清理通过。
+
+首批 133/115/18/0 与 cleanup=false 是**唯一事实**，不改写、不回填。

@@ -285,6 +285,34 @@ class MemoryChannel:
                 'reader_finished': True}
 
 
+class DeadlineChannel(MemoryChannel):
+    """The transport that moves the clock of the round at one moment.
+
+    The moment is the **first read** of the channel.  It happens after
+    the start of the round completed and it moves the clock of the round
+    past its absolute deadline.
+
+    The clock of a round is moved by an event of the round and not by
+    the number of the reads of the clock that the supervision happens
+    to make: a clock that advances on every read would turn the number
+    of the checks of the supervision into the simulated time of the
+    round, and the schedule of the round would be an artefact of the
+    implementation instead of a fact of the round.
+    """
+
+    def __init__(self, clock, *, advance_seconds=2.0):
+        super().__init__()
+        self._clock = clock
+        self._advance_seconds = advance_seconds
+        self.reads = 0
+
+    def read(self, timeout):
+        self.reads += 1
+        if self.reads == 1:
+            self._clock.value += self._advance_seconds
+        return super().read(0.0)
+
+
 class FakeBrokerProcess:
     """The in-process stand-in of the original handle of the broker.
 
@@ -1579,15 +1607,22 @@ def test_a_channel_eof_stops_the_round(tmp_path):
 
 def test_the_absolute_lease_stops_the_round(tmp_path):
     document = plan_document(lease_expires_at=1001.0, max_runtime_seconds=600)
-    channel = MemoryChannel()
-    # The clock of the loop moves on its own, so that the whole schedule
-    # of the round is checked without a long sleep.
-    clock = Clock(0.0, step=0.6)
+    # The clock of the round is manual and it is moved by one controlled
+    # event of the transport: the first read of the channel happens after
+    # the start of the round completed and it moves the clock past the
+    # absolute deadline of the round.  The number of the reads of the
+    # clock that the supervision happens to make is never the simulated
+    # time of the round.
+    clock = Clock(0.0)
+    channel = DeadlineChannel(clock)
     loop, core = _loop(tmp_path, channel=channel, document=document, now=1000.0,
                        clock=clock)
     assert loop.run() == 4
     assert core.stop_reason == 'LEASE_EXPIRED'
     assert core.state == 'UNKNOWN_RETAINED'
+    # The event that moved the clock really happened and it happened
+    # after the round was armed and launched.
+    assert channel.reads == 1
 
 
 def test_a_foreign_command_stops_the_round(tmp_path):

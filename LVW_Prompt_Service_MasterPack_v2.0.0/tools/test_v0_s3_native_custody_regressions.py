@@ -237,6 +237,16 @@ class RecordingWin32:
 
     def __init__(self, *, fail_at=None, job_process_ids=None, reader_gate=None):
         self.fail_at = fail_at
+        # The failure points are a **set**: one round may drive two
+        # named failures at once, and the check has to prove that every
+        # one of them really fired.  A single name keeps working.
+        if fail_at is None:
+            self.failures_requested = frozenset()
+        elif isinstance(fail_at, str):
+            self.failures_requested = frozenset({fail_at})
+        else:
+            self.failures_requested = frozenset(fail_at)
+        self.fired = set()
         self.job_ids = list(job_process_ids or [])
         self.reader_gate = reader_gate
         self.calls = []
@@ -256,6 +266,15 @@ class RecordingWin32:
         return self.next_handle
 
     def _fail(self, name, error):
+        """Fail at one named point with the code of the production source.
+
+        The point is recorded: a check that asked for a failure can
+        prove that the failure really happened and that it did not pass
+        because the point was never reached.
+        """
+        if name not in self.failures_requested:
+            return
+        self.fired.add(name)
         self.failure_fired = True
         raise error
 
@@ -270,33 +289,29 @@ class RecordingWin32:
 
     def set_job_kill_on_close(self, job):
         self.calls.append(('set_job_kill_on_close', job))
-        if self.fail_at == 'job_limit':
-            self._fail('job_limit', BrokerError('BROKER_JOB_LIMIT_FAILED'))
+        self._fail('job_limit', BrokerError('BROKER_JOB_LIMIT_FAILED'))
 
     def terminate_job(self, job, exit_code):
         self.calls.append(('terminate_job', job, exit_code))
-        if self.fail_at == 'terminate_job_ordinary':
-            # An **ordinary** failure of the termination of the job.  The
-            # core has to keep the primary error and it still has to run
-            # every later cleanup.
-            self._fail('terminate_job_ordinary', RuntimeError('ordinary_terminate_job'))
-        if self.fail_at == 'terminate_job':
-            self._fail('terminate_job', BrokerError('BROKER_TERMINATE_FAILED'))
+        # An **ordinary** failure of the termination of the job.  The
+        # core has to keep the primary error and it still has to run
+        # every later cleanup.
+        self._fail('terminate_job_ordinary',
+                   RuntimeError('ordinary_terminate_job'))
+        self._fail('terminate_job', BrokerError('BROKER_TERMINATE_FAILED'))
         for entry in self.created:
             entry['exited'] = True
 
     def job_process_ids(self, job):
         self.calls.append(('job_process_ids', job))
-        if self.fail_at == 'query_job':
-            self._fail('query_job', BrokerError('BROKER_JOB_QUERY_UNKNOWN'))
+        self._fail('query_job', BrokerError('BROKER_JOB_QUERY_UNKNOWN'))
         return list(self.job_ids)
 
     # -- the processes -----------------------------------------------------
     def create_process_suspended(self, *, executable, arguments, working_directory,
                                   stdout_handle, stderr_handle, environment=None):
         self.calls.append(('create_process_suspended', executable))
-        if self.fail_at == 'create':
-            self._fail('create', BrokerError('BROKER_PROCESS_CREATE_FAILED'))
+        self._fail('create', BrokerError('BROKER_PROCESS_CREATE_FAILED'))
         self.next_pid += 1
         entry = {'pid': self.next_pid, 'exited': False, 'handle': self._handle(),
                  'thread': self._handle()}
@@ -306,20 +321,17 @@ class RecordingWin32:
 
     def assign_process_to_job(self, job, process):
         self.calls.append(('assign_process_to_job', job, process))
-        if self.fail_at == 'assign':
-            self._fail('assign', BrokerError('BROKER_ASSIGN_FAILED'))
+        self._fail('assign', BrokerError('BROKER_ASSIGN_FAILED'))
         self.assigned.append((job, process))
 
     def resume_thread(self, thread):
         self.calls.append(('resume_thread', thread))
-        if self.fail_at == 'resume':
-            self._fail('resume', BrokerError('BROKER_RESUME_FAILED'))
+        self._fail('resume', BrokerError('BROKER_RESUME_FAILED'))
         self.resumed.append(thread)
 
     def terminate_process(self, process, exit_code):
         self.calls.append(('terminate_process', process, exit_code))
-        if self.fail_at == 'terminate':
-            self._fail('terminate', BrokerError('BROKER_TERMINATE_FAILED'))
+        self._fail('terminate', BrokerError('BROKER_TERMINATE_FAILED'))
         self.terminated.append(process)
         for entry in self.created:
             if entry['handle'] == process:
@@ -338,8 +350,7 @@ class RecordingWin32:
 
     def close_handle(self, handle):
         self.calls.append(('close_handle', handle))
-        if self.fail_at == 'close':
-            self._fail('close', BrokerError('BROKER_HANDLE_CLOSE_FAILED'))
+        self._fail('close', BrokerError('BROKER_HANDLE_CLOSE_FAILED'))
         self.closed.append(handle)
         if handle in self.live:
             del self.live[handle]
@@ -605,11 +616,14 @@ def test_n03_r04_a_job_that_could_not_be_closed_keeps_its_original_handle(tmp_pa
     and the evidence names it.  Nothing is taken and nothing is set to
     ``None``.
     """
-    win32 = RecordingWin32(fail_at='close')
+    win32 = RecordingWin32(fail_at=('job_limit', 'close'))
     core = BrokerCore(win32=win32, plan=sealed_plan(), run_root=tmp_path)
-    job = None
-    with pytest.raises(BrokerError):
+    with pytest.raises(BrokerError) as info:
         core.arm()
+    # Both named failures really happened: the check never passes
+    # because a failure point was never reached.
+    assert win32.fired == {'job_limit', 'close'}
+    assert info.value.code == 'BROKER_JOB_LIMIT_FAILED'
     job = core.job
     # The original job handle is still with its owner.
     assert job is not None
@@ -651,9 +665,35 @@ def test_n03_r05_the_stop_runs_every_cleanup_after_an_ordinary_failure(tmp_path)
     # set: a repeated stop may try the rest again.
     assert core.state == 'UNKNOWN_RETAINED'
     assert core._released is False
-    with pytest.raises(RuntimeError):
-        core.stop('STOP')
+    # The repeated stop does not terminate or close the job that was
+    # already released, and it does not have to raise the first error
+    # again: the job of the round is gone, so there is nothing left to
+    # terminate.  The round stays unknown and the record of the first
+    # failure stays.
+    closed_before = list(win32.closed)
+    terminated_before = list(win32.terminated)
+    repeated = core.stop('STOP')
+    assert repeated['state'] == 'UNKNOWN_RETAINED'
+    assert list(win32.closed) == closed_before
+    assert list(win32.terminated) == terminated_before
+    assert any(item.get('stage') == 'terminate_job' for item in core.failures)
+    assert core._released is False
+
+    # A resource that could not be closed keeps its owner and the
+    # original owner may still coordinate it inside the cleanup budget:
+    # the repeated stop tries it again and it never claims a release.
+    win32 = RecordingWin32(fail_at=('job_limit', 'close'))
+    core = BrokerCore(win32=win32, plan=sealed_plan(), run_root=tmp_path)
+    with pytest.raises(BrokerError):
+        core.arm()
+    job = core.job
+    closes_before = win32.names().count('close_handle')
+    core.stop('STOP')
     assert core.state == 'UNKNOWN_RETAINED'
+    assert core.job is job
+    assert [item['handle'] for item in core._pending.pending()] == [job]
+    assert win32.names().count('close_handle') > closes_before
+    assert core._released is False
 
     # A failure of the diagnosis is the primary failure of the round and
     # it is not replaced by the failure of the cleanup that follows it.

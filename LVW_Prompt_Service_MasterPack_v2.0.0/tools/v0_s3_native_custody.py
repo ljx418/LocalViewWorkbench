@@ -1087,7 +1087,7 @@ class NativeCustodySession:
         if self._heartbeat is not None:
             self._heartbeat_stop.set()
             if self._heartbeat.ident is not None:
-                self._heartbeat.join(self._remaining(deadline))
+                self._heartbeat.join(self._cleanup_remaining(deadline))
             if self._heartbeat.is_alive():
                 self._failures.append('CUSTODY_HEARTBEAT_NOT_STOPPED')
                 self.state = 'UNKNOWN_RETAINED'
@@ -1095,14 +1095,21 @@ class NativeCustodySession:
                 self._heartbeat = None
         if self._pump is not None:
             self._pump.stop()
-            if not self._pump.join_bounded(self._remaining(deadline)):
+            if not self._pump.join_bounded(self._cleanup_remaining(deadline)):
                 self._failures.append('CUSTODY_PUMP_NOT_STOPPED')
                 self.state = 'UNKNOWN_RETAINED'
             else:
                 self._pump = None
 
-    def _remaining(self, deadline=None):
-        """The seconds that are left until the deadline of the cleanup."""
+    def _cleanup_remaining(self, deadline=None):
+        """The seconds that are left until the deadline of the cleanup.
+
+        The name of this helper is **not** ``_remaining``: the session
+        owns ``_remaining`` as the remaining budget of the parent child
+        and an instance attribute of the same name would shadow this
+        method.  A shadowed helper is a ``TypeError`` in every close
+        path of the round.
+        """
         if deadline is None:
             return THREAD_JOIN_SECONDS
         return max(0.0, deadline - self._clock())
