@@ -1,4 +1,4 @@
-# N1 纠偏 01：一次集中修复（静态完成，批次未执行）
+# N1 纠偏 01：一次集中修复 + 一次 root 冻结执行器下的有限批次
 
 > 实现者：Claude Code（唯一实现者，**未派生任何 Agent**）
 > 根裁决来源：`reports/v0-s3/product-gate0/native-custody-correction-01/contract.md`
@@ -32,7 +32,7 @@
 |---|---|---|
 | `tools/v0_s3_native_custody.py` | **是** | 只有 `_require_log_reference` 一个函数 |
 | `tools/test_v0_s3_native_custody.py` | **是** | Fake façade 的句柄记录与错误码映射、STOP 幂等性期望、旧 owner 摘要字面量；另新增 12 个节点 |
-| `reports/v0-s3/product-gate0/implementation-native-custody-correction-01/` | **是（NEW）** | 本报告 + `plan.json` + root 冻结 runner/guard 的**逐字节副本** |
+| `reports/v0-s3/product-gate0/implementation-native-custody-correction-01/` | **是（NEW）** | 本报告 + `plan.json`（作者提交快照）+ **作者件副本**（见 §1.1，非 root 执行件）+ 本批的 receipt/guard.json/commands.json/counter 快照与原始日志 |
 | `tools/v0_s3_native_broker.py`（生产 broker 源码） | **否** | 一个字节未动；digest 仍为 `f2c10e6625e06aeb4da70506d5e75903ff28ecba3492017f06b4867d7d394a6f` |
 | 全部旧 owner / 合同 / 质量门限 / control / MANIFEST / 旧报告 | **否** | 见 §8 |
 
@@ -333,7 +333,14 @@ def create_job(self):
 root 本包采用**上一批真正被执行的那套执行器**，只换了 NEW 产物路径 / 32 节点 /
 新 source pins；**3 条精确 argv 与 cwd 在 root 的 `plan.commands` 里**。
 我提交的 `plan.json`（`9e47a53f…`）**只作为选集与源码输入**，其 argv / runner /
-guard **未被执行**。
+guard **未被执行**；它与 root 的 plan 并存，**原提交文件全部保留**，
+不为这次勘误再发一次 ask（按 root 的指示）。
+
+该作者 plan **逐字节保持提交时的样子**（digest 仍是 `9e47a53f…`），因此它里面那条
+`report.md` 的 source pin 是**本报告写入批次结果与勘误之前**的 digest，与现在的
+`report.md` 不再一致——这是**提交快照**的必然结果，不是漂移事故：本批的执行绑定
+在 **root 的 plan**（`93284e0c…`）上，本目录的产物与日志由 `commands.json`
+逐字节登记。
 
 * **选中集合：32 个节点**（67 个里的严格子集），不是 54 全套：
 
