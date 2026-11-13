@@ -1,0 +1,82 @@
+{
+  "kind": "SAME_UNUSED_FIXTURE_GRANT_RESUMED_FOR_REGISTERED_CLAUDE",
+  "at_utc": "2026-11-13T01:48:40.614495+00:00",
+  "question_id": "msg_0bf2e8436efe",
+  "dispatch_id": "ctx_cf7beed6bf8c",
+  "task_id": "task_360906a3514b",
+  "terminal": "term_039127b8-232f-48d6-b77e-5dc944452896",
+  "candidate_sha": "763f3d561772ec8efa7aafe597b62ac77a3b7969",
+  "binding_path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation.binding.json",
+  "binding_sha256": "3594b3a30d12e1fbfe54d71118d06b996a5e21872679e4af25bc9818d41dfee1",
+  "source_pins_verified": 11,
+  "runtime_retry_evidence": {
+    "reported_by_worker": "msg_0bf2e8436efe",
+    "natural_tool_child_values": [
+      "0",
+      "0"
+    ],
+    "installed_code_read": "Settings env applies to process.env; lazy getter reads it per request; effective maxRetries=0 per worker code inspection. /proc startup env not used as hot-reload proof.",
+    "temporary_settings_sha256": "7e6320a52b689bfe6ff1441909c74d04f1a9620f75684d6d4bbff6508010c1b0",
+    "settings_permissions_unchanged": true
+  },
+  "counter_before": {
+    "kind": "lvw.s3-cpu-budget/1",
+    "budget_id": "s3-p4-9618f7c7bf12403b8877c90b92ed99a7",
+    "starts_total": 0,
+    "starts_by_role": {
+      "implementation": 0,
+      "independent_review": 0
+    },
+    "spent_wall_seconds": 0.0,
+    "reserved_wall_seconds": 0.0,
+    "active": false,
+    "charges": [],
+    "sessions": [],
+    "suspended_at_utc": "2026-11-13T00:48:52.436257+00:00",
+    "resumed_at_utc": "2026-11-13T01:05:39.101502+00:00",
+    "resume_basis": "Explicit user confirmation of one direct exact13 attempt after classifier rejection",
+    "suspension_reason": "ORCA_ORIGINAL_AGENT_DELIVERY_BLOCKED"
+  },
+  "counter_after": {
+    "kind": "lvw.s3-cpu-budget/1",
+    "budget_id": "s3-p4-9618f7c7bf12403b8877c90b92ed99a7",
+    "starts_total": 0,
+    "starts_by_role": {
+      "implementation": 0,
+      "independent_review": 0
+    },
+    "spent_wall_seconds": 0.0,
+    "reserved_wall_seconds": 0.0,
+    "active": true,
+    "charges": [],
+    "sessions": [],
+    "suspended_at_utc": "2026-11-13T00:48:52.436257+00:00",
+    "resumed_at_utc": "2026-11-13T01:48:40.614495+00:00",
+    "resume_basis": "Explicit user single direct attempt; registered Claude runtime retry env hot reload verified"
+  },
+  "argv": [
+    "/usr/bin/python3.12",
+    "-B",
+    "reports/v0-s3/product-gate0/implementation-integration-01/run_guarded_checks.py",
+    "--mode",
+    "suite",
+    "--label",
+    "finite-fixture-implementation-01",
+    "--binding",
+    "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/implementation.binding.json",
+    "--binding-sha256",
+    "3594b3a30d12e1fbfe54d71118d06b996a5e21872679e4af25bc9818d41dfee1",
+    "--role",
+    "implementation",
+    "--candidate-sha",
+    "763f3d561772ec8efa7aafe597b62ac77a3b7969",
+    "--modules",
+    "tools/test_v0_s3_supervisor.py::test_the_fixture_clean_terminal_is_verified_by_the_parent,tools/test_v0_s3_supervisor.py::test_a_blocking_callback_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_blocking_persistence_is_actually_stopped,tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[history_replay],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[sequence_reversal],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[duplicate_sequence],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[oversize_message],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[foreign_identity],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[unexpected_field],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[nonfinite_number],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[early_exit],tools/test_v0_s3_supervisor.py::test_a_protocol_violation_is_refused[message_flood],tools/test_v0_s3_supervisor.py::test_a_bad_terminal_reference_is_refused",
+    "--outdir",
+    "reports/v0-s3/product-gate0/implementation-integration-01"
+  ],
+  "allowed_direct_attempts": 1,
+  "new_budget_or_starts": 0,
+  "stage_pass_claim": false,
+  "product_gate0": false
+}
