@@ -1,0 +1,116 @@
+{
+  "schema": "lvw.n1-correction07-obligations/1",
+  "baseline_candidate": "4287090b464d16f398b92797d8f5595359fcb442",
+  "scope": "APPEND_LOCAL_REGRESSION_NOT_PRODUCT_DENOMINATOR",
+  "inherits": "native-custody-correction-05/regression-obligations.json",
+  "items": [
+    {
+      "id": "N07-R01",
+      "major": "M03",
+      "trigger": "birth失败+Terminate失败+Wait超期+CloseHandle本可成功",
+      "oracle": "未确认process退出保留最后original process控制HANDLE与API恢复入口，不Close+forget；thread独立安全处理，主次错保存"
+    },
+    {
+      "id": "N07-R02",
+      "major": "M03",
+      "trigger": "release_retained的process退出仍未证、随后在原期限内真正退出",
+      "oracle": "首次UNKNOWN持原控制handle；再协调确认退出后才关并forget，超期不创建新预算；KI/SystemExit安全清理后上传取消对象"
+    },
+    {
+      "id": "N07-R03",
+      "major": "M05",
+      "trigger": "WindowsApi.create_pipe成功交Core再交活reader",
+      "oracle": "API失败表不再能关闭已移交两端；只有原owner可关闭，handle live/pending/API/reader表一致，成功路径调用API恢复不误关"
+    },
+    {
+      "id": "N07-R04",
+      "major": "M05",
+      "trigger": "SetHandleInformation抛取消或失败后read close抛取消",
+      "oracle": "两端独立安全清理；未关闭原引用留API；取消对象传播且primary并存，不变成字符串或普通BrokerError掩盖"
+    },
+    {
+      "id": "N07-R05",
+      "major": "M06",
+      "trigger": "活reader.finished.wait/join分别抛取消或普通异常，后续pending pass",
+      "oracle": "每个reader原read端在所有异常分支继续受活IO保护；后续reader仍清理，不能close_all无视READER owner"
+    },
+    {
+      "id": "N07-R06",
+      "major": "M06",
+      "trigger": "wait_process/exit_code分别抛KI/SystemExit",
+      "oracle": "后续process安全收尾，取消到顶层传播；不被_wait_one_process变普通error_type吞掉"
+    },
+    {
+      "id": "N07-R07",
+      "major": "M06",
+      "trigger": "record/reader首次close失败，第二次直接record/reader恢复成功",
+      "oracle": "实际关闭同步原pending/record/retained表，只关一次，不遗留已关handle或丢未关handle"
+    },
+    {
+      "id": "N07-R08",
+      "major": "M07",
+      "trigger": "实际Windows endpoint read/write的worker.start未返回/启动后抛错/wait_ready取消",
+      "oracle": "启动前原worker即由endpoint持有，close不能在启动中/活IO下关file；晚到只收口，非只测Session fake"
+    },
+    {
+      "id": "N07-R09",
+      "major": "M07",
+      "trigger": "Popen成功后hash读取取消、channel构造部分失败、BrokerProcess构造失败",
+      "oracle": "原Popen/HANDLE/pipe/endpoint/channel从取得起持久登记，先安全channel收口不先直关活IO file，不完整facts留可恢复owner"
+    },
+    {
+      "id": "N07-R10",
+      "major": "M07",
+      "trigger": "closer Thread.start未返回、join抛not-started RuntimeError",
+      "oracle": "STARTING仍未知且原owner保留；不把RuntimeError当已退出；晚到有限收口，与真实Thread实际退出分开"
+    },
+    {
+      "id": "N07-R11",
+      "major": "M08",
+      "trigger": "worker.cancel check后到IN_IO前被取消、CancelSynchronousIo NOT_FOUND",
+      "oracle": "锁内原子check+发布本代IN_IO/启动意图，取消持续有界复核原代直到完成/线程退出/共享截止；不等自己刚set的stop事件即跳出，禁止取消后新业务IO"
+    },
+    {
+      "id": "N07-R12",
+      "major": "M08",
+      "trigger": "partialwrite在第一段后bind更短cleanup deadline",
+      "oracle": "每段读取最新共享context/有效deadline，截止后无下一段WriteFile；取消/旧代done分开"
+    },
+    {
+      "id": "N07-R13",
+      "major": "M08",
+      "trigger": "endpoint ready/await、Core.arm与两次create_pipe、launcher恢复发生在期限前/中/后",
+      "oracle": "每个副作用前后核实际共享context，过期先拒不先submit/create；启动等待/失败恢复均用原截止，无固定新5s"
+    },
+    {
+      "id": "N07-R14",
+      "major": "M08",
+      "trigger": "StartupOwner action完成事件已set但线程尚未put/退出",
+      "oracle": "正常/超期路径都区分attempt与真实线程退出，有限join后才release_inflight；未退出原owner保留，无新预算"
+    },
+    {
+      "id": "N07-R15",
+      "major": "M09",
+      "trigger": "真实Session.stop→BrokerProcess.close→StreamChannel→Windows endpoint部分失败后同owner再次恢复",
+      "oracle": "调用已返回不等于资源closed，高层不得cached channel_closed=True跳过未完成下层；条件恢复后实际file/workerHANDLE可收敛，成功项不双关"
+    },
+    {
+      "id": "N07-R16",
+      "major": "M09",
+      "trigger": "worker退出但原thread HANDLE关闭失败，之后恢复成功",
+      "oracle": "endpoint每次重算真实live/retained状态、去重/清理已完成项，调用原worker恢复HANDLE；不能file_closed先锁死HANDLE恢复"
+    },
+    {
+      "id": "N07-R17",
+      "major": "M09",
+      "trigger": "第一次不完整close完成→恢复第二代IN_PROGRESS，竞争者到达",
+      "oracle": "当前attempt独立event/generation，旧close_done不能放行新代等待者；不持锁等待、不自join、不重置原deadline"
+    },
+    {
+      "id": "N07-R18",
+      "major": "M09",
+      "trigger": "后台closer已发布finish但真实未退出、首次公共stop到达",
+      "oracle": "真实public stop所有正常/取消/异常出口协调当前owner及真实closer，不能只helper/重复stop正确；超期UNKNOWN保留，成功资源不双关"
+    }
+  ]
+}

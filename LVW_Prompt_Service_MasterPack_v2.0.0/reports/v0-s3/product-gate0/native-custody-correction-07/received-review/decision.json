@@ -1,0 +1,138 @@
+{
+  "candidate": "4287090b464d16f398b92797d8f5595359fcb442",
+  "evidence_commit": "e03648631ed855bcb89245b07f698386859a62a4",
+  "decision": "CHANGES_REQUIRED",
+  "fatal": 0,
+  "major": 6,
+  "minor": 0,
+  "dynamic_imports": 0,
+  "dynamic_probes": 0,
+  "pytest_runs": 0,
+  "collection_runs": 0,
+  "major_decisions": {
+    "M03": "OPEN",
+    "M05": "OPEN",
+    "M06": "OPEN",
+    "M07": "OPEN",
+    "M08": "OPEN",
+    "M09": "OPEN"
+  },
+  "compatibility": {
+    "M01": "CLOSED_STATIC_COMPONENT_SCOPE",
+    "M02": "CLOSED_STATIC_COMPONENT_SCOPE",
+    "M04": "CLOSED_STATIC_COMPONENT_SCOPE",
+    "M10": "CLOSED_STATIC_COMPONENT_SCOPE",
+    "M11": "CLOSED_STATIC_COMPONENT_SCOPE",
+    "m01": "CLOSED_STATIC_COMPONENT_SCOPE"
+  },
+  "source_pins": {
+    "v0_s3_native_custody.py": {
+      "sha256": "5a38bd1b3308494b0cbb044194b3242759acbff82efcda6644ee241f2ccaa8b7",
+      "blob": "b0cb95b16c2c71e185ab5faf5831cf14bb6809df",
+      "lines": 2271
+    },
+    "v0_s3_native_broker.py": {
+      "sha256": "bac2ad81158832da55f7af63245c8bb3d34585f7cca9e059f4dd8e8fea6d3fc6",
+      "blob": "caa2b327a835bb726220f584a507c90a1bb57650",
+      "lines": 4659
+    },
+    "test_v0_s3_native_custody.py": {
+      "sha256": "fe96d2ffd353d3f3f6df4da2b023dd6cfaf58fe730ab6655afbca723ed507d32",
+      "blob": "0a7bfdd5d76cc8402b9a793073314f1ae5b5b691",
+      "lines": 2502
+    },
+    "test_v0_s3_native_custody_regressions.py": {
+      "sha256": "9df937308fa50435752a580d0f453d1f38c63aede42e9d54b788665ee2a4748c",
+      "blob": "1a1400677ad87bbcfb6725dfd91a7a769f19b794",
+      "lines": 1678
+    },
+    "test_v0_s3_native_custody_correction05.py": {
+      "sha256": "618002256d14d85029b695b2121c8cd7610caaf75b45c922ebc6ef7c222e23a8",
+      "blob": "929c1614342f72a7d5db755d331be17ff845e015",
+      "lines": 1732
+    }
+  },
+  "findings": [
+    {
+      "id": "M03",
+      "owner": "WindowsApi._release_created / release_retained",
+      "location": "B1181-1231; B806-869",
+      "trigger": "termination fails, exit wait times out, handle closes succeed",
+      "expected": "Unconfirmed live process retains original control owner",
+      "actual": "process handle forgotten and caller receives no CreatedProcess",
+      "severity": "Major",
+      "evidence": "candidate original Git blobs, numbered source and review.md; static deduction, not executed"
+    },
+    {
+      "id": "M05",
+      "owner": "WindowsApi.create_pipe / release_retained",
+      "location": "B1298-1335; B806-869",
+      "trigger": "successful pipe handover or cancellation during partial cleanup",
+      "expected": "Single original owner after handover; independent cleanup and cancellation propagation",
+      "actual": "API retains transferred handles and may close active reader; cancellation swallowed or safe finalizers skipped",
+      "severity": "Major",
+      "evidence": "candidate original Git blobs, numbered source and review.md; static deduction, not executed"
+    },
+    {
+      "id": "M06",
+      "owner": "BrokerCore.stop / _close_one_reader / _wait_one_process",
+      "location": "B2148-2392; B2435-2514",
+      "trigger": "live reader wait cancelled; process wait cancelled; later record close succeeds",
+      "expected": "Never close live-reader handle; propagate cancellation; actual close and retained facts agree",
+      "actual": "pending pass closes live-reader handle; wait cancellation swallowed; retained record can remain after close",
+      "severity": "Major",
+      "evidence": "candidate original Git blobs, numbered source and review.md; static deduction, not executed"
+    },
+    {
+      "id": "M07",
+      "owner": "WindowsPipeEndpoint.read/write; launch_broker; closer start",
+      "location": "B3282-3340; B4504-4585; C1417-1459,2095-2140",
+      "trigger": "worker start actually begins then raises; launcher cancelled; closer start not yet returned",
+      "expected": "Persistent original thread/Popen/HANDLE/endpoint ownership before fallible handover",
+      "actual": "endpoint worker not registered; Popen/HANDLE/partial channel lost or GC-dependent; closer pending start treated finished",
+      "severity": "Major",
+      "evidence": "candidate original Git blobs, numbered source and review.md; static deduction, not executed"
+    },
+    {
+      "id": "M08",
+      "owner": "WindowsPipeWorker.run/request_cancel; endpoint _write_block/start",
+      "location": "B3001-3156; B3282-3379; B4472-4501",
+      "trigger": "cancel between cancelled-check and IN_IO; tightened deadline during partial write; expired read/start",
+      "expected": "No new IO after cancel; every segment and wait uses shared finite original deadline",
+      "actual": "NOT_FOUND retry exits immediately; IO can start late; stale write deadline and independent 5-second waits",
+      "severity": "Major",
+      "evidence": "candidate original Git blobs, numbered source and review.md; static deduction, not executed"
+    },
+    {
+      "id": "M09",
+      "owner": "BrokerProcess.close; Session.stop/_recover_close/_await_close",
+      "location": "B4229-4339; B3381-3430; C1746-1824,1931-2140",
+      "trigger": "channel returns incomplete facts then explicit public stop retries; recovery concurrent waiter; first public stop after FINISHED",
+      "expected": "Unconfirmed resources recover through actual owners; current attempt and real thread exit awaited",
+      "actual": "channel_closed True skips unfinished endpoints; stale event wakes current waiter; first stop omits closer join",
+      "severity": "Major",
+      "evidence": "candidate original Git blobs, numbered source and review.md; static deduction, not executed"
+    }
+  ],
+  "author_batch": {
+    "calls": 157,
+    "pass": 157,
+    "functional_pass": 155,
+    "integrity_pass": 2,
+    "proof_scope": "AUTHOR_SELF_TEST_ONLY"
+  },
+  "historical_batch": {
+    "calls": 157,
+    "pass": 151,
+    "fail": 6,
+    "functional_pass": 149,
+    "cleanup": false,
+    "remaining_threads": [
+      "late real fixture thread",
+      "production closer"
+    ]
+  },
+  "stage_pass_claim": false,
+  "native_proven": false,
+  "workspace_preserved": true
+}

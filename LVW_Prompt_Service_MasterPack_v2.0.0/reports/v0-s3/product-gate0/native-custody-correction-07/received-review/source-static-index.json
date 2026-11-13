@@ -1,0 +1,3867 @@
+{
+  "test_v0_s3_native_custody_regressions.py": {
+    "lines": 1678,
+    "definitions": [
+      {
+        "name": "plan_document",
+        "line": 73,
+        "end": 95
+      },
+      {
+        "name": "sealed_plan",
+        "line": 98,
+        "end": 100
+      },
+      {
+        "name": "_Primitive",
+        "line": 105,
+        "end": 120
+      },
+      {
+        "name": "SyntheticKernel32",
+        "line": 123,
+        "end": 215
+      },
+      {
+        "name": "synthetic_table",
+        "line": 218,
+        "end": 223
+      },
+      {
+        "name": "RecordingWin32",
+        "line": 228,
+        "end": 375
+      },
+      {
+        "name": "RecordingPeer",
+        "line": 380,
+        "end": 453
+      },
+      {
+        "name": "ManualClock",
+        "line": 456,
+        "end": 466
+      },
+      {
+        "name": "make_session",
+        "line": 469,
+        "end": 487
+      },
+      {
+        "name": "test_n03_r01_a_failed_birth_keeps_the_original_handles_with_the_api",
+        "line": 492,
+        "end": 549
+      },
+      {
+        "name": "test_n03_r02_a_failed_cleanup_of_the_creation_still_releases_everything",
+        "line": 552,
+        "end": 581
+      },
+      {
+        "name": "test_n03_r03_the_job_query_is_unknown_whenever_a_fact_does_not_agree",
+        "line": 584,
+        "end": 617
+      },
+      {
+        "name": "test_n03_r04_a_job_that_could_not_be_closed_keeps_its_original_handle",
+        "line": 620,
+        "end": 647
+      },
+      {
+        "name": "test_n03_r05_the_stop_runs_every_cleanup_after_an_ordinary_failure",
+        "line": 650,
+        "end": 719
+      },
+      {
+        "name": "test_n03_r06_the_start_cleans_up_everything_that_it_acquired",
+        "line": 722,
+        "end": 983
+      },
+      {
+        "name": "test_n03_r07_the_startup_is_bounded_by_the_absolute_deadline",
+        "line": 986,
+        "end": 1035
+      },
+      {
+        "name": "test_n03_r08_the_cleanup_of_the_broker_uses_one_absolute_deadline",
+        "line": 1038,
+        "end": 1085
+      },
+      {
+        "name": "test_n03_r09_a_partial_windows_write_is_never_a_success",
+        "line": 1088,
+        "end": 1133
+      },
+      {
+        "name": "test_n03_r10_the_cancellation_of_a_worker_stops_it_from_entering_io",
+        "line": 1136,
+        "end": 1238
+      },
+      {
+        "name": "test_n03_r11_a_failure_of_the_background_latches_the_unknown_state",
+        "line": 1241,
+        "end": 1313
+      },
+      {
+        "name": "test_n03_r12_the_frame_budget_is_the_total_of_both_directions",
+        "line": 1316,
+        "end": 1358
+      },
+      {
+        "name": "test_n03_r13_the_buffer_of_the_channel_is_bounded_and_a_partial_frame_is_named",
+        "line": 1361,
+        "end": 1405
+      },
+      {
+        "name": "test_n03_r14_a_close_without_facts_keeps_the_original_broker",
+        "line": 1408,
+        "end": 1551
+      },
+      {
+        "name": "test_n03_r15_the_default_launcher_refuses_with_its_own_code",
+        "line": 1554,
+        "end": 1573
+      },
+      {
+        "name": "test_n03_r16_the_positive_lifecycle_still_closes_everything",
+        "line": 1576,
+        "end": 1678
+      },
+      {
+        "name": "__init__",
+        "line": 113,
+        "end": 117
+      },
+      {
+        "name": "__call__",
+        "line": 119,
+        "end": 120
+      },
+      {
+        "name": "__init__",
+        "line": 133,
+        "end": 142
+      },
+      {
+        "name": "__getattr__",
+        "line": 144,
+        "end": 150
+      },
+      {
+        "name": "allocate",
+        "line": 152,
+        "end": 155
+      },
+      {
+        "name": "call",
+        "line": 157,
+        "end": 162
+      },
+      {
+        "name": "_default",
+        "line": 164,
+        "end": 201
+      },
+      {
+        "name": "_query_job",
+        "line": 203,
+        "end": 212
+      },
+      {
+        "name": "names",
+        "line": 214,
+        "end": 215
+      },
+      {
+        "name": "__init__",
+        "line": 238,
+        "end": 261
+      },
+      {
+        "name": "_handle",
+        "line": 263,
+        "end": 266
+      },
+      {
+        "name": "_fail",
+        "line": 268,
+        "end": 279
+      },
+      {
+        "name": "names",
+        "line": 281,
+        "end": 282
+      },
+      {
+        "name": "create_job",
+        "line": 285,
+        "end": 288
+      },
+      {
+        "name": "set_job_kill_on_close",
+        "line": 290,
+        "end": 292
+      },
+      {
+        "name": "terminate_job",
+        "line": 294,
+        "end": 303
+      },
+      {
+        "name": "job_process_ids",
+        "line": 305,
+        "end": 308
+      },
+      {
+        "name": "create_process_suspended",
+        "line": 311,
+        "end": 320
+      },
+      {
+        "name": "assign_process_to_job",
+        "line": 322,
+        "end": 325
+      },
+      {
+        "name": "resume_thread",
+        "line": 327,
+        "end": 330
+      },
+      {
+        "name": "terminate_process",
+        "line": 332,
+        "end": 338
+      },
+      {
+        "name": "wait_process",
+        "line": 340,
+        "end": 345
+      },
+      {
+        "name": "exit_code",
+        "line": 347,
+        "end": 349
+      },
+      {
+        "name": "close_handle",
+        "line": 351,
+        "end": 356
+      },
+      {
+        "name": "create_pipe",
+        "line": 359,
+        "end": 363
+      },
+      {
+        "name": "read_stream",
+        "line": 365,
+        "end": 371
+      },
+      {
+        "name": "write_stream",
+        "line": 373,
+        "end": 375
+      },
+      {
+        "name": "__init__",
+        "line": 392,
+        "end": 414
+      },
+      {
+        "name": "emit",
+        "line": 416,
+        "end": 426
+      },
+      {
+        "name": "bind_channel_deadline",
+        "line": 428,
+        "end": 432
+      },
+      {
+        "name": "write",
+        "line": 434,
+        "end": 440
+      },
+      {
+        "name": "read",
+        "line": 442,
+        "end": 448
+      },
+      {
+        "name": "close",
+        "line": 450,
+        "end": 453
+      },
+      {
+        "name": "__init__",
+        "line": 459,
+        "end": 460
+      },
+      {
+        "name": "__call__",
+        "line": 462,
+        "end": 463
+      },
+      {
+        "name": "advance",
+        "line": 465,
+        "end": 466
+      },
+      {
+        "name": "launcher",
+        "line": 477,
+        "end": 481
+      },
+      {
+        "name": "fail_birth",
+        "line": 501,
+        "end": 502
+      },
+      {
+        "name": "timeout_wait",
+        "line": 504,
+        "end": 505
+      },
+      {
+        "name": "fail_close",
+        "line": 507,
+        "end": 517
+      },
+      {
+        "name": "fail_delete",
+        "line": 560,
+        "end": 561
+      },
+      {
+        "name": "query",
+        "line": 592,
+        "end": 602
+      },
+      {
+        "name": "cancelling_read",
+        "line": 742,
+        "end": 743
+      },
+      {
+        "name": "launcher",
+        "line": 745,
+        "end": 749
+      },
+      {
+        "name": "FakeProcess",
+        "line": 758,
+        "end": 773
+      },
+      {
+        "name": "broken_channel",
+        "line": 777,
+        "end": 778
+      },
+      {
+        "name": "blocking_close",
+        "line": 807,
+        "end": 811
+      },
+      {
+        "name": "competitor",
+        "line": 819,
+        "end": 821
+      },
+      {
+        "name": "blocking_close",
+        "line": 853,
+        "end": 857
+      },
+      {
+        "name": "failing_close",
+        "line": 886,
+        "end": 891
+      },
+      {
+        "name": "competitor",
+        "line": 898,
+        "end": 900
+      },
+      {
+        "name": "launcher",
+        "line": 928,
+        "end": 937
+      },
+      {
+        "name": "late_heartbeat",
+        "line": 942,
+        "end": 946
+      },
+      {
+        "name": "run_close",
+        "line": 964,
+        "end": 974
+      },
+      {
+        "name": "Transport",
+        "line": 999,
+        "end": 1010
+      },
+      {
+        "name": "slow_job",
+        "line": 1014,
+        "end": 1018
+      },
+      {
+        "name": "Channel",
+        "line": 1048,
+        "end": 1058
+      },
+      {
+        "name": "Process",
+        "line": 1060,
+        "end": 1072
+      },
+      {
+        "name": "Api",
+        "line": 1099,
+        "end": 1111
+      },
+      {
+        "name": "action",
+        "line": 1149,
+        "end": 1152
+      },
+      {
+        "name": "Api",
+        "line": 1154,
+        "end": 1162
+      },
+      {
+        "name": "BrokenApi",
+        "line": 1192,
+        "end": 1194
+      },
+      {
+        "name": "SlowApi",
+        "line": 1207,
+        "end": 1215
+      },
+      {
+        "name": "Endpoint",
+        "line": 1369,
+        "end": 1384
+      },
+      {
+        "name": "BrokenSyscalls",
+        "line": 1506,
+        "end": 1517
+      },
+      {
+        "name": "WorkingSyscalls",
+        "line": 1531,
+        "end": 1542
+      },
+      {
+        "name": "handler",
+        "line": 593,
+        "end": 601
+      },
+      {
+        "name": "__init__",
+        "line": 762,
+        "end": 766
+      },
+      {
+        "name": "terminate",
+        "line": 768,
+        "end": 769
+      },
+      {
+        "name": "wait",
+        "line": 771,
+        "end": 773
+      },
+      {
+        "name": "close_and_signal",
+        "line": 932,
+        "end": 934
+      },
+      {
+        "name": "__init__",
+        "line": 1000,
+        "end": 1001
+      },
+      {
+        "name": "bind_deadline",
+        "line": 1003,
+        "end": 1004
+      },
+      {
+        "name": "write",
+        "line": 1006,
+        "end": 1007
+      },
+      {
+        "name": "read",
+        "line": 1009,
+        "end": 1010
+      },
+      {
+        "name": "bind_deadline",
+        "line": 1051,
+        "end": 1052
+      },
+      {
+        "name": "close",
+        "line": 1054,
+        "end": 1058
+      },
+      {
+        "name": "wait",
+        "line": 1066,
+        "end": 1069
+      },
+      {
+        "name": "terminate",
+        "line": 1071,
+        "end": 1072
+      },
+      {
+        "name": "duplicate_current_thread_handle",
+        "line": 1100,
+        "end": 1101
+      },
+      {
+        "name": "write_stream",
+        "line": 1103,
+        "end": 1105
+      },
+      {
+        "name": "cancel_synchronous_io",
+        "line": 1107,
+        "end": 1108
+      },
+      {
+        "name": "close_handle",
+        "line": 1110,
+        "end": 1111
+      },
+      {
+        "name": "duplicate_current_thread_handle",
+        "line": 1155,
+        "end": 1156
+      },
+      {
+        "name": "cancel_synchronous_io",
+        "line": 1158,
+        "end": 1159
+      },
+      {
+        "name": "close_handle",
+        "line": 1161,
+        "end": 1162
+      },
+      {
+        "name": "duplicate_current_thread_handle",
+        "line": 1193,
+        "end": 1194
+      },
+      {
+        "name": "duplicate_current_thread_handle",
+        "line": 1208,
+        "end": 1209
+      },
+      {
+        "name": "cancel_synchronous_io",
+        "line": 1211,
+        "end": 1212
+      },
+      {
+        "name": "close_handle",
+        "line": 1214,
+        "end": 1215
+      },
+      {
+        "name": "__init__",
+        "line": 1370,
+        "end": 1372
+      },
+      {
+        "name": "read",
+        "line": 1374,
+        "end": 1377
+      },
+      {
+        "name": "write",
+        "line": 1379,
+        "end": 1380
+      },
+      {
+        "name": "close",
+        "line": 1382,
+        "end": 1384
+      },
+      {
+        "name": "__init__",
+        "line": 1507,
+        "end": 1508
+      },
+      {
+        "name": "fileno",
+        "line": 1510,
+        "end": 1511
+      },
+      {
+        "name": "set_blocking",
+        "line": 1513,
+        "end": 1514
+      },
+      {
+        "name": "close",
+        "line": 1516,
+        "end": 1517
+      },
+      {
+        "name": "__init__",
+        "line": 1532,
+        "end": 1533
+      },
+      {
+        "name": "fileno",
+        "line": 1535,
+        "end": 1536
+      },
+      {
+        "name": "set_blocking",
+        "line": 1538,
+        "end": 1539
+      },
+      {
+        "name": "close",
+        "line": 1541,
+        "end": 1542
+      }
+    ]
+  },
+  "test_v0_s3_native_custody.py": {
+    "lines": 2502,
+    "definitions": [
+      {
+        "name": "_failure_points",
+        "line": 91,
+        "end": 104
+      },
+      {
+        "name": "FakeWin32",
+        "line": 107,
+        "end": 253
+      },
+      {
+        "name": "MemoryChannel",
+        "line": 256,
+        "end": 285
+      },
+      {
+        "name": "DeadlineChannel",
+        "line": 288,
+        "end": 313
+      },
+      {
+        "name": "FakeBrokerProcess",
+        "line": 316,
+        "end": 394
+      },
+      {
+        "name": "Clock",
+        "line": 397,
+        "end": 411
+      },
+      {
+        "name": "RecordingPrimitive",
+        "line": 416,
+        "end": 432
+      },
+      {
+        "name": "RecordingTable",
+        "line": 435,
+        "end": 456
+      },
+      {
+        "name": "plan_document",
+        "line": 461,
+        "end": 484
+      },
+      {
+        "name": "sampler_role",
+        "line": 487,
+        "end": 494
+      },
+      {
+        "name": "_reply_frame",
+        "line": 497,
+        "end": 504
+      },
+      {
+        "name": "_core",
+        "line": 507,
+        "end": 509
+      },
+      {
+        "name": "test_a_valid_plan_is_accepted_and_closed",
+        "line": 514,
+        "end": 521
+      },
+      {
+        "name": "test_a_bool_runtime_is_refused",
+        "line": 524,
+        "end": 532
+      },
+      {
+        "name": "test_a_float_runtime_is_refused",
+        "line": 535,
+        "end": 543
+      },
+      {
+        "name": "test_a_nonfinite_lease_is_refused",
+        "line": 546,
+        "end": 554
+      },
+      {
+        "name": "test_an_expired_lease_is_refused",
+        "line": 557,
+        "end": 564
+      },
+      {
+        "name": "test_a_runtime_above_the_hard_cap_is_refused",
+        "line": 567,
+        "end": 575
+      },
+      {
+        "name": "test_an_unknown_role_is_refused",
+        "line": 578,
+        "end": 586
+      },
+      {
+        "name": "test_a_missing_required_role_is_refused",
+        "line": 589,
+        "end": 597
+      },
+      {
+        "name": "test_a_duplicate_role_is_refused",
+        "line": 600,
+        "end": 608
+      },
+      {
+        "name": "test_an_extra_plan_key_is_refused",
+        "line": 611,
+        "end": 619
+      },
+      {
+        "name": "test_an_arbitrary_argv_key_is_refused",
+        "line": 622,
+        "end": 630
+      },
+      {
+        "name": "test_a_shell_key_in_a_role_is_refused",
+        "line": 633,
+        "end": 641
+      },
+      {
+        "name": "test_a_relative_tool_path_is_refused",
+        "line": 644,
+        "end": 652
+      },
+      {
+        "name": "test_an_escaping_tool_path_is_refused",
+        "line": 655,
+        "end": 663
+      },
+      {
+        "name": "test_a_tool_digest_is_refused",
+        "line": 666,
+        "end": 674
+      },
+      {
+        "name": "test_an_escaping_log_reference_is_refused",
+        "line": 677,
+        "end": 685
+      },
+      {
+        "name": "test_an_absolute_log_reference_is_refused",
+        "line": 688,
+        "end": 696
+      },
+      {
+        "name": "test_a_drive_relative_log_reference_is_refused",
+        "line": 699,
+        "end": 707
+      },
+      {
+        "name": "test_an_alternate_data_stream_log_reference_is_refused",
+        "line": 710,
+        "end": 718
+      },
+      {
+        "name": "test_a_unc_or_backslash_log_reference_is_refused",
+        "line": 721,
+        "end": 730
+      },
+      {
+        "name": "test_a_posix_absolute_log_reference_is_refused",
+        "line": 733,
+        "end": 741
+      },
+      {
+        "name": "test_a_legal_relative_log_reference_is_accepted",
+        "line": 744,
+        "end": 749
+      },
+      {
+        "name": "test_an_illegal_log_reference_creates_nothing",
+        "line": 752,
+        "end": 773
+      },
+      {
+        "name": "test_the_broker_validates_the_plan_before_it_consumes_it",
+        "line": 776,
+        "end": 785
+      },
+      {
+        "name": "test_a_role_data_key_is_refused",
+        "line": 788,
+        "end": 796
+      },
+      {
+        "name": "test_no_remaining_child_budget_is_refused",
+        "line": 799,
+        "end": 806
+      },
+      {
+        "name": "test_a_runtime_above_the_child_budget_is_refused",
+        "line": 809,
+        "end": 817
+      },
+      {
+        "name": "test_the_user_directory_is_one_closed_segment",
+        "line": 822,
+        "end": 836
+      },
+      {
+        "name": "test_the_legal_user_directory_is_accepted",
+        "line": 839,
+        "end": 844
+      },
+      {
+        "name": "test_the_user_directory_refusal_creates_nothing",
+        "line": 847,
+        "end": 863
+      },
+      {
+        "name": "test_the_presented_seal_cannot_change_the_command_of_a_role",
+        "line": 868,
+        "end": 876
+      },
+      {
+        "name": "test_the_roles_of_the_plan_cannot_be_changed_by_the_caller",
+        "line": 879,
+        "end": 888
+      },
+      {
+        "name": "test_the_seal_bytes_and_the_digest_are_one_definition",
+        "line": 891,
+        "end": 899
+      },
+      {
+        "name": "test_the_default_nonce_is_the_closed_form",
+        "line": 904,
+        "end": 909
+      },
+      {
+        "name": "test_an_illegal_nonce_is_refused_before_anything_exists",
+        "line": 912,
+        "end": 922
+      },
+      {
+        "name": "test_the_broker_command_refuses_an_illegal_nonce",
+        "line": 925,
+        "end": 934
+      },
+      {
+        "name": "test_the_broker_command_keeps_the_fixed_private_parameter",
+        "line": 937,
+        "end": 949
+      },
+      {
+        "name": "test_the_launcher_refuses_before_it_creates_a_directory",
+        "line": 952,
+        "end": 961
+      },
+      {
+        "name": "test_a_foreign_nonce_is_refused",
+        "line": 966,
+        "end": 978
+      },
+      {
+        "name": "test_a_repeated_sequence_is_refused",
+        "line": 981,
+        "end": 993
+      },
+      {
+        "name": "test_an_extra_key_in_a_command_is_refused",
+        "line": 996,
+        "end": 1010
+      },
+      {
+        "name": "test_a_frame_at_the_limit_is_accepted_and_one_over_is_refused",
+        "line": 1013,
+        "end": 1026
+      },
+      {
+        "name": "test_an_oversize_command_is_refused",
+        "line": 1029,
+        "end": 1038
+      },
+      {
+        "name": "test_a_reply_with_a_foreign_identity_is_refused",
+        "line": 1041,
+        "end": 1051
+      },
+      {
+        "name": "test_the_success_path_is_suspend_assign_resume",
+        "line": 1056,
+        "end": 1070
+      },
+      {
+        "name": "test_the_child_inherits_only_its_own_streams",
+        "line": 1073,
+        "end": 1083
+      },
+      {
+        "name": "test_a_create_failure_creates_nothing",
+        "line": 1086,
+        "end": 1099
+      },
+      {
+        "name": "test_an_assign_failure_stops_only_the_new_suspended_process",
+        "line": 1102,
+        "end": 1122
+      },
+      {
+        "name": "test_a_resume_failure_keeps_the_round_unknown",
+        "line": 1125,
+        "end": 1138
+      },
+      {
+        "name": "test_a_job_creation_failure_creates_nothing",
+        "line": 1141,
+        "end": 1155
+      },
+      {
+        "name": "test_a_job_limit_failure_closes_the_job_handle",
+        "line": 1158,
+        "end": 1172
+      },
+      {
+        "name": "test_a_pipe_failure_creates_nothing",
+        "line": 1175,
+        "end": 1189
+      },
+      {
+        "name": "test_a_failed_termination_stays_visible",
+        "line": 1192,
+        "end": 1210
+      },
+      {
+        "name": "test_a_job_termination_failure_is_not_a_release",
+        "line": 1213,
+        "end": 1225
+      },
+      {
+        "name": "test_an_unknown_failure_point_is_refused",
+        "line": 1228,
+        "end": 1234
+      },
+      {
+        "name": "test_a_foreign_process_is_never_stopped",
+        "line": 1237,
+        "end": 1250
+      },
+      {
+        "name": "test_a_partial_role_failure_stops_the_earlier_roles",
+        "line": 1253,
+        "end": 1278
+      },
+      {
+        "name": "test_an_unknown_job_query_is_not_zero",
+        "line": 1281,
+        "end": 1292
+      },
+      {
+        "name": "test_an_over_limit_job_query_is_not_zero",
+        "line": 1295,
+        "end": 1303
+      },
+      {
+        "name": "test_a_close_failure_keeps_the_round_unknown",
+        "line": 1306,
+        "end": 1319
+      },
+      {
+        "name": "test_a_stop_is_idempotent",
+        "line": 1322,
+        "end": 1335
+      },
+      {
+        "name": "test_the_job_is_closed_with_kill_on_close",
+        "line": 1338,
+        "end": 1348
+      },
+      {
+        "name": "test_the_sampler_is_created_last_with_the_pids_of_the_services",
+        "line": 1353,
+        "end": 1367
+      },
+      {
+        "name": "test_the_sampler_command_matches_the_parser_of_the_sampler",
+        "line": 1370,
+        "end": 1374
+      },
+      {
+        "name": "test_every_created_handle_enters_the_pending_table",
+        "line": 1379,
+        "end": 1405
+      },
+      {
+        "name": "test_an_assign_failure_closes_the_read_ends_of_the_role",
+        "line": 1408,
+        "end": 1422
+      },
+      {
+        "name": "test_a_handle_of_another_owner_is_never_touched",
+        "line": 1425,
+        "end": 1436
+      },
+      {
+        "name": "test_a_cancellation_during_the_launch_releases_the_round",
+        "line": 1441,
+        "end": 1462
+      },
+      {
+        "name": "test_a_diagnostic_failure_does_not_block_the_cleanup",
+        "line": 1465,
+        "end": 1483
+      },
+      {
+        "name": "test_a_write_failure_of_the_first_reply_releases_the_round",
+        "line": 1486,
+        "end": 1507
+      },
+      {
+        "name": "test_a_release_needs_the_readers_to_be_joined",
+        "line": 1512,
+        "end": 1540
+      },
+      {
+        "name": "test_a_read_error_is_not_the_end_of_a_stream",
+        "line": 1543,
+        "end": 1560
+      },
+      {
+        "name": "test_a_repeated_stop_does_not_close_twice",
+        "line": 1563,
+        "end": 1571
+      },
+      {
+        "name": "_loop",
+        "line": 1576,
+        "end": 1583
+      },
+      {
+        "name": "test_a_stop_command_answers_once",
+        "line": 1586,
+        "end": 1598
+      },
+      {
+        "name": "test_a_status_command_is_answered",
+        "line": 1601,
+        "end": 1615
+      },
+      {
+        "name": "test_a_channel_eof_stops_the_round",
+        "line": 1618,
+        "end": 1624
+      },
+      {
+        "name": "test_the_absolute_lease_stops_the_round",
+        "line": 1627,
+        "end": 1644
+      },
+      {
+        "name": "test_a_foreign_command_stops_the_round",
+        "line": 1647,
+        "end": 1657
+      },
+      {
+        "name": "test_the_frame_count_limit_is_enforced",
+        "line": 1660,
+        "end": 1670
+      },
+      {
+        "name": "test_the_deadline_of_the_round_is_frozen_before_the_job",
+        "line": 1673,
+        "end": 1683
+      },
+      {
+        "name": "_session",
+        "line": 1688,
+        "end": 1704
+      },
+      {
+        "name": "test_the_session_refuses_a_plan_without_a_remaining_budget",
+        "line": 1707,
+        "end": 1715
+      },
+      {
+        "name": "test_the_session_holds_the_original_broker_handle",
+        "line": 1718,
+        "end": 1727
+      },
+      {
+        "name": "test_the_session_does_not_extend_the_deadline",
+        "line": 1730,
+        "end": 1743
+      },
+      {
+        "name": "test_a_repeated_stop_is_idempotent",
+        "line": 1746,
+        "end": 1769
+      },
+      {
+        "name": "test_the_evidence_keeps_every_native_claim_not_proven",
+        "line": 1772,
+        "end": 1787
+      },
+      {
+        "name": "test_the_broker_launch_is_refused_off_windows",
+        "line": 1790,
+        "end": 1799
+      },
+      {
+        "name": "test_the_windows_facade_is_not_loaded_off_windows",
+        "line": 1802,
+        "end": 1810
+      },
+      {
+        "name": "test_the_session_closes_the_broker_on_a_refusal",
+        "line": 1815,
+        "end": 1825
+      },
+      {
+        "name": "test_the_session_closes_the_broker_on_a_cancellation",
+        "line": 1828,
+        "end": 1843
+      },
+      {
+        "name": "test_the_session_closes_the_broker_on_a_parse_error",
+        "line": 1846,
+        "end": 1874
+      },
+      {
+        "name": "test_the_session_refuses_a_peer_that_is_not_deadline_aware",
+        "line": 1877,
+        "end": 1904
+      },
+      {
+        "name": "test_the_stop_uses_one_shared_cleanup_budget",
+        "line": 1909,
+        "end": 1920
+      },
+      {
+        "name": "test_the_heartbeat_keeps_a_long_round_alive",
+        "line": 1923,
+        "end": 1953
+      },
+      {
+        "name": "test_the_heartbeat_does_not_extend_the_absolute_deadline",
+        "line": 1956,
+        "end": 1969
+      },
+      {
+        "name": "test_a_heartbeat_failure_is_a_named_failure_of_the_round",
+        "line": 1972,
+        "end": 1984
+      },
+      {
+        "name": "test_the_frame_budget_fails_closed",
+        "line": 1987,
+        "end": 1997
+      },
+      {
+        "name": "test_the_heartbeat_period_and_the_missing_window_are_the_closed_ones",
+        "line": 2000,
+        "end": 2002
+      },
+      {
+        "name": "CtypesProxy",
+        "line": 2007,
+        "end": 2024
+      },
+      {
+        "name": "FakeKernel32",
+        "line": 2027,
+        "end": 2137
+      },
+      {
+        "name": "_declared_table",
+        "line": 2140,
+        "end": 2151
+      },
+      {
+        "name": "test_the_windows_types_use_the_windows_widths",
+        "line": 2154,
+        "end": 2168
+      },
+      {
+        "name": "test_every_primitive_of_the_broker_has_a_declared_prototype",
+        "line": 2171,
+        "end": 2186
+      },
+      {
+        "name": "test_the_prototypes_use_the_windows_widths",
+        "line": 2189,
+        "end": 2213
+      },
+      {
+        "name": "test_the_start_up_information_of_the_extended_structure_is_bigger",
+        "line": 2216,
+        "end": 2225
+      },
+      {
+        "name": "test_the_process_id_list_of_a_job_is_an_inline_array",
+        "line": 2228,
+        "end": 2237
+      },
+      {
+        "name": "test_the_child_is_created_with_the_extended_start_up_information",
+        "line": 2240,
+        "end": 2265
+      },
+      {
+        "name": "test_the_last_error_is_named_before_the_cleanup",
+        "line": 2268,
+        "end": 2282
+      },
+      {
+        "name": "test_the_invalid_handle_value_has_the_width_of_a_pointer",
+        "line": 2285,
+        "end": 2289
+      },
+      {
+        "name": "test_the_job_process_ids_are_read_from_the_inline_array",
+        "line": 2292,
+        "end": 2296
+      },
+      {
+        "name": "test_a_truncated_job_process_id_list_is_unknown",
+        "line": 2299,
+        "end": 2315
+      },
+      {
+        "name": "test_a_job_process_id_list_over_the_cap_is_unknown",
+        "line": 2318,
+        "end": 2324
+      },
+      {
+        "name": "FakeFileObject",
+        "line": 2329,
+        "end": 2340
+      },
+      {
+        "name": "FakeSyscalls",
+        "line": 2343,
+        "end": 2382
+      },
+      {
+        "name": "test_the_pipe_is_non_blocking_and_never_waits_for_the_lock",
+        "line": 2385,
+        "end": 2393
+      },
+      {
+        "name": "test_the_pipe_read_is_bounded_by_the_deadline",
+        "line": 2396,
+        "end": 2407
+      },
+      {
+        "name": "test_the_pipe_read_observes_the_cancel_flag",
+        "line": 2410,
+        "end": 2418
+      },
+      {
+        "name": "test_the_pipe_reports_the_end_of_the_stream",
+        "line": 2421,
+        "end": 2425
+      },
+      {
+        "name": "test_the_pipe_write_retries_a_partial_write",
+        "line": 2428,
+        "end": 2435
+      },
+      {
+        "name": "test_the_pipe_write_is_bounded_by_the_deadline",
+        "line": 2438,
+        "end": 2444
+      },
+      {
+        "name": "test_the_pipe_closes_only_its_own_descriptor",
+        "line": 2447,
+        "end": 2457
+      },
+      {
+        "name": "test_the_old_owners_are_unchanged",
+        "line": 2486,
+        "end": 2490
+      },
+      {
+        "name": "test_the_old_refusal_points_are_still_declared",
+        "line": 2493,
+        "end": 2502
+      },
+      {
+        "name": "__init__",
+        "line": 122,
+        "end": 138
+      },
+      {
+        "name": "_handle",
+        "line": 141,
+        "end": 144
+      },
+      {
+        "name": "_fail",
+        "line": 146,
+        "end": 156
+      },
+      {
+        "name": "names",
+        "line": 158,
+        "end": 159
+      },
+      {
+        "name": "create_job",
+        "line": 162,
+        "end": 169
+      },
+      {
+        "name": "set_job_kill_on_close",
+        "line": 171,
+        "end": 173
+      },
+      {
+        "name": "terminate_job",
+        "line": 175,
+        "end": 179
+      },
+      {
+        "name": "job_process_ids",
+        "line": 181,
+        "end": 186
+      },
+      {
+        "name": "create_process_suspended",
+        "line": 189,
+        "end": 199
+      },
+      {
+        "name": "assign_process_to_job",
+        "line": 201,
+        "end": 204
+      },
+      {
+        "name": "resume_thread",
+        "line": 206,
+        "end": 209
+      },
+      {
+        "name": "terminate_process",
+        "line": 211,
+        "end": 217
+      },
+      {
+        "name": "wait_process",
+        "line": 219,
+        "end": 224
+      },
+      {
+        "name": "exit_code",
+        "line": 226,
+        "end": 228
+      },
+      {
+        "name": "close_handle",
+        "line": 230,
+        "end": 233
+      },
+      {
+        "name": "create_pipe",
+        "line": 236,
+        "end": 243
+      },
+      {
+        "name": "read_stream",
+        "line": 245,
+        "end": 250
+      },
+      {
+        "name": "write_stream",
+        "line": 252,
+        "end": 253
+      },
+      {
+        "name": "__init__",
+        "line": 263,
+        "end": 268
+      },
+      {
+        "name": "bind_deadline",
+        "line": 270,
+        "end": 271
+      },
+      {
+        "name": "read",
+        "line": 273,
+        "end": 277
+      },
+      {
+        "name": "write",
+        "line": 279,
+        "end": 280
+      },
+      {
+        "name": "close",
+        "line": 282,
+        "end": 285
+      },
+      {
+        "name": "__init__",
+        "line": 303,
+        "end": 307
+      },
+      {
+        "name": "read",
+        "line": 309,
+        "end": 313
+      },
+      {
+        "name": "__init__",
+        "line": 328,
+        "end": 354
+      },
+      {
+        "name": "bind_channel_deadline",
+        "line": 356,
+        "end": 360
+      },
+      {
+        "name": "write",
+        "line": 362,
+        "end": 366
+      },
+      {
+        "name": "read",
+        "line": 368,
+        "end": 374
+      },
+      {
+        "name": "close",
+        "line": 376,
+        "end": 394
+      },
+      {
+        "name": "__init__",
+        "line": 400,
+        "end": 402
+      },
+      {
+        "name": "__call__",
+        "line": 404,
+        "end": 408
+      },
+      {
+        "name": "advance",
+        "line": 410,
+        "end": 411
+      },
+      {
+        "name": "__init__",
+        "line": 424,
+        "end": 428
+      },
+      {
+        "name": "__call__",
+        "line": 430,
+        "end": 432
+      },
+      {
+        "name": "__init__",
+        "line": 443,
+        "end": 444
+      },
+      {
+        "name": "__getattr__",
+        "line": 446,
+        "end": 453
+      },
+      {
+        "name": "names",
+        "line": 455,
+        "end": 456
+      },
+      {
+        "name": "failing",
+        "line": 1260,
+        "end": 1264
+      },
+      {
+        "name": "cancelling",
+        "line": 1445,
+        "end": 1447
+      },
+      {
+        "name": "broken",
+        "line": 1471,
+        "end": 1472
+      },
+      {
+        "name": "Broken",
+        "line": 1491,
+        "end": 1493
+      },
+      {
+        "name": "blocking_read",
+        "line": 1517,
+        "end": 1523
+      },
+      {
+        "name": "failing",
+        "line": 1546,
+        "end": 1547
+      },
+      {
+        "name": "launcher",
+        "line": 1694,
+        "end": 1699
+      },
+      {
+        "name": "launcher",
+        "line": 1852,
+        "end": 1856
+      },
+      {
+        "name": "NotDeadlineAware",
+        "line": 1878,
+        "end": 1879
+      },
+      {
+        "name": "launcher",
+        "line": 1884,
+        "end": 1887
+      },
+      {
+        "name": "__init__",
+        "line": 2016,
+        "end": 2018
+      },
+      {
+        "name": "__getattr__",
+        "line": 2020,
+        "end": 2021
+      },
+      {
+        "name": "get_last_error",
+        "line": 2023,
+        "end": 2024
+      },
+      {
+        "name": "__init__",
+        "line": 2036,
+        "end": 2049
+      },
+      {
+        "name": "_handle",
+        "line": 2051,
+        "end": 2053
+      },
+      {
+        "name": "CreateFileW",
+        "line": 2056,
+        "end": 2061
+      },
+      {
+        "name": "InitializeProcThreadAttributeList",
+        "line": 2063,
+        "end": 2069
+      },
+      {
+        "name": "UpdateProcThreadAttribute",
+        "line": 2071,
+        "end": 2075
+      },
+      {
+        "name": "DeleteProcThreadAttributeList",
+        "line": 2077,
+        "end": 2078
+      },
+      {
+        "name": "CreateProcessW",
+        "line": 2080,
+        "end": 2097
+      },
+      {
+        "name": "GetProcessTimes",
+        "line": 2099,
+        "end": 2104
+      },
+      {
+        "name": "CloseHandle",
+        "line": 2106,
+        "end": 2109
+      },
+      {
+        "name": "TerminateProcess",
+        "line": 2111,
+        "end": 2113
+      },
+      {
+        "name": "WaitForSingleObject",
+        "line": 2115,
+        "end": 2117
+      },
+      {
+        "name": "QueryInformationJobObject",
+        "line": 2120,
+        "end": 2137
+      },
+      {
+        "name": "truncating",
+        "line": 2304,
+        "end": 2310
+      },
+      {
+        "name": "__init__",
+        "line": 2332,
+        "end": 2334
+      },
+      {
+        "name": "fileno",
+        "line": 2336,
+        "end": 2337
+      },
+      {
+        "name": "close",
+        "line": 2339,
+        "end": 2340
+      },
+      {
+        "name": "__init__",
+        "line": 2351,
+        "end": 2356
+      },
+      {
+        "name": "fileno",
+        "line": 2358,
+        "end": 2359
+      },
+      {
+        "name": "set_blocking",
+        "line": 2361,
+        "end": 2362
+      },
+      {
+        "name": "poll",
+        "line": 2364,
+        "end": 2366
+      },
+      {
+        "name": "read",
+        "line": 2368,
+        "end": 2372
+      },
+      {
+        "name": "write",
+        "line": 2374,
+        "end": 2378
+      },
+      {
+        "name": "close",
+        "line": 2380,
+        "end": 2382
+      },
+      {
+        "name": "write",
+        "line": 1492,
+        "end": 1493
+      }
+    ]
+  },
+  "v0_s3_native_broker.py": {
+    "lines": 4659,
+    "definitions": [
+      {
+        "name": "BrokerError",
+        "line": 104,
+        "end": 110
+      },
+      {
+        "name": "_RoundContext",
+        "line": 115,
+        "end": 259
+      },
+      {
+        "name": "_windows_command_line",
+        "line": 264,
+        "end": 274
+      },
+      {
+        "name": "_quote_windows_argument",
+        "line": 277,
+        "end": 298
+      },
+      {
+        "name": "_environment_block",
+        "line": 301,
+        "end": 308
+      },
+      {
+        "name": "_windows_api_types",
+        "line": 311,
+        "end": 473
+      },
+      {
+        "name": "_declare_windows_primitives",
+        "line": 476,
+        "end": 567
+      },
+      {
+        "name": "_WindowsApiTable",
+        "line": 570,
+        "end": 591
+      },
+      {
+        "name": "_load_windows_api",
+        "line": 594,
+        "end": 614
+      },
+      {
+        "name": "CreatedProcess",
+        "line": 617,
+        "end": 627
+      },
+      {
+        "name": "WindowsApi",
+        "line": 630,
+        "end": 1403
+      },
+      {
+        "name": "_base_environment",
+        "line": 1408,
+        "end": 1414
+      },
+      {
+        "name": "_comfy_environment",
+        "line": 1417,
+        "end": 1430
+      },
+      {
+        "name": "_ollama_environment",
+        "line": 1433,
+        "end": 1437
+      },
+      {
+        "name": "role_command",
+        "line": 1440,
+        "end": 1490
+      },
+      {
+        "name": "_BoundedStreamReader",
+        "line": 1495,
+        "end": 1533
+      },
+      {
+        "name": "_PendingResources",
+        "line": 1538,
+        "end": 1640
+      },
+      {
+        "name": "BrokerCore",
+        "line": 1645,
+        "end": 2697
+      },
+      {
+        "name": "_require_deadline",
+        "line": 2702,
+        "end": 2717
+      },
+      {
+        "name": "_PosixSyscalls",
+        "line": 2720,
+        "end": 2770
+      },
+      {
+        "name": "_PosixPipeEndpoint",
+        "line": 2773,
+        "end": 2923
+      },
+      {
+        "name": "_WindowsPipeWorker",
+        "line": 2926,
+        "end": 3193
+      },
+      {
+        "name": "_WindowsPipeEndpoint",
+        "line": 3196,
+        "end": 3430
+      },
+      {
+        "name": "_make_endpoint",
+        "line": 3433,
+        "end": 3451
+      },
+      {
+        "name": "StreamChannel",
+        "line": 3456,
+        "end": 3691
+      },
+      {
+        "name": "_StartupOwner",
+        "line": 3696,
+        "end": 3790
+      },
+      {
+        "name": "BrokerLoop",
+        "line": 3793,
+        "end": 4132
+      },
+      {
+        "name": "build_broker_command",
+        "line": 4137,
+        "end": 4155
+      },
+      {
+        "name": "BrokerProcess",
+        "line": 4158,
+        "end": 4379
+      },
+      {
+        "name": "_LauncherCustody",
+        "line": 4382,
+        "end": 4444
+      },
+      {
+        "name": "release_retained_launches",
+        "line": 4453,
+        "end": 4460
+      },
+      {
+        "name": "_launcher_custody_items",
+        "line": 4463,
+        "end": 4469
+      },
+      {
+        "name": "_terminate_and_close_process",
+        "line": 4472,
+        "end": 4501
+      },
+      {
+        "name": "_adopt_broker_process",
+        "line": 4504,
+        "end": 4545
+      },
+      {
+        "name": "launch_broker",
+        "line": 4548,
+        "end": 4585
+      },
+      {
+        "name": "read_sealed_plan",
+        "line": 4588,
+        "end": 4603
+      },
+      {
+        "name": "main",
+        "line": 4606,
+        "end": 4655
+      },
+      {
+        "name": "__init__",
+        "line": 107,
+        "end": 110
+      },
+      {
+        "name": "__init__",
+        "line": 145,
+        "end": 156
+      },
+      {
+        "name": "bind_absolute_deadline",
+        "line": 159,
+        "end": 167
+      },
+      {
+        "name": "absolute_deadline",
+        "line": 170,
+        "end": 172
+      },
+      {
+        "name": "cleanup_deadline_value",
+        "line": 174,
+        "end": 177
+      },
+      {
+        "name": "cleanup_deadline",
+        "line": 179,
+        "end": 197
+      },
+      {
+        "name": "remaining_cleanup",
+        "line": 199,
+        "end": 207
+      },
+      {
+        "name": "cleanup_expired",
+        "line": 209,
+        "end": 215
+      },
+      {
+        "name": "request_cancel",
+        "line": 218,
+        "end": 220
+      },
+      {
+        "name": "request_stop",
+        "line": 222,
+        "end": 224
+      },
+      {
+        "name": "latch_unknown",
+        "line": 226,
+        "end": 236
+      },
+      {
+        "name": "is_unknown",
+        "line": 238,
+        "end": 240
+      },
+      {
+        "name": "register_inflight",
+        "line": 243,
+        "end": 248
+      },
+      {
+        "name": "release_inflight",
+        "line": 250,
+        "end": 254
+      },
+      {
+        "name": "inflight",
+        "line": 256,
+        "end": 259
+      },
+      {
+        "name": "STARTUPINFOW",
+        "line": 350,
+        "end": 370
+      },
+      {
+        "name": "STARTUPINFOEXW",
+        "line": 372,
+        "end": 374
+      },
+      {
+        "name": "PROCESS_INFORMATION",
+        "line": 376,
+        "end": 380
+      },
+      {
+        "name": "SECURITY_ATTRIBUTES",
+        "line": 382,
+        "end": 391
+      },
+      {
+        "name": "FILETIME",
+        "line": 393,
+        "end": 395
+      },
+      {
+        "name": "OVERLAPPED",
+        "line": 397,
+        "end": 408
+      },
+      {
+        "name": "IO_COUNTERS",
+        "line": 410,
+        "end": 416
+      },
+      {
+        "name": "JOBOBJECT_BASIC_LIMIT_INFORMATION",
+        "line": 418,
+        "end": 427
+      },
+      {
+        "name": "JOBOBJECT_EXTENDED_LIMIT_INFORMATION",
+        "line": 429,
+        "end": 435
+      },
+      {
+        "name": "JOBOBJECT_BASIC_PROCESS_ID_LIST",
+        "line": 437,
+        "end": 448
+      },
+      {
+        "name": "__init__",
+        "line": 580,
+        "end": 588
+      },
+      {
+        "name": "__repr__",
+        "line": 590,
+        "end": 591
+      },
+      {
+        "name": "__init__",
+        "line": 622,
+        "end": 627
+      },
+      {
+        "name": "__init__",
+        "line": 671,
+        "end": 700
+      },
+      {
+        "name": "bind_deadline",
+        "line": 702,
+        "end": 717
+      },
+      {
+        "name": "_wait_timeout_ms",
+        "line": 719,
+        "end": 731
+      },
+      {
+        "name": "_last_error",
+        "line": 733,
+        "end": 744
+      },
+      {
+        "name": "_security_attributes",
+        "line": 746,
+        "end": 759
+      },
+      {
+        "name": "_retain",
+        "line": 762,
+        "end": 777
+      },
+      {
+        "name": "_forget",
+        "line": 779,
+        "end": 787
+      },
+      {
+        "name": "_note",
+        "line": 789,
+        "end": 795
+      },
+      {
+        "name": "retained_handles",
+        "line": 797,
+        "end": 804
+      },
+      {
+        "name": "release_retained",
+        "line": 806,
+        "end": 870
+      },
+      {
+        "name": "create_job",
+        "line": 873,
+        "end": 878
+      },
+      {
+        "name": "set_job_kill_on_close",
+        "line": 880,
+        "end": 894
+      },
+      {
+        "name": "terminate_job",
+        "line": 896,
+        "end": 900
+      },
+      {
+        "name": "job_process_ids",
+        "line": 902,
+        "end": 978
+      },
+      {
+        "name": "create_process_suspended",
+        "line": 981,
+        "end": 1158
+      },
+      {
+        "name": "_close_quietly",
+        "line": 1160,
+        "end": 1179
+      },
+      {
+        "name": "_release_created",
+        "line": 1181,
+        "end": 1231
+      },
+      {
+        "name": "_process_creation_time",
+        "line": 1233,
+        "end": 1250
+      },
+      {
+        "name": "assign_process_to_job",
+        "line": 1252,
+        "end": 1256
+      },
+      {
+        "name": "resume_thread",
+        "line": 1258,
+        "end": 1263
+      },
+      {
+        "name": "terminate_process",
+        "line": 1265,
+        "end": 1269
+      },
+      {
+        "name": "wait_process",
+        "line": 1271,
+        "end": 1277
+      },
+      {
+        "name": "exit_code",
+        "line": 1279,
+        "end": 1285
+      },
+      {
+        "name": "close_handle",
+        "line": 1287,
+        "end": 1295
+      },
+      {
+        "name": "create_pipe",
+        "line": 1298,
+        "end": 1335
+      },
+      {
+        "name": "read_stream",
+        "line": 1337,
+        "end": 1356
+      },
+      {
+        "name": "write_stream",
+        "line": 1358,
+        "end": 1366
+      },
+      {
+        "name": "duplicate_current_thread_handle",
+        "line": 1369,
+        "end": 1386
+      },
+      {
+        "name": "cancel_synchronous_io",
+        "line": 1388,
+        "end": 1403
+      },
+      {
+        "name": "__init__",
+        "line": 1508,
+        "end": 1517
+      },
+      {
+        "name": "run",
+        "line": 1519,
+        "end": 1533
+      },
+      {
+        "name": "__init__",
+        "line": 1555,
+        "end": 1557
+      },
+      {
+        "name": "add",
+        "line": 1559,
+        "end": 1563
+      },
+      {
+        "name": "take",
+        "line": 1565,
+        "end": 1571
+      },
+      {
+        "name": "transfer",
+        "line": 1573,
+        "end": 1586
+      },
+      {
+        "name": "pending",
+        "line": 1588,
+        "end": 1590
+      },
+      {
+        "name": "close_all",
+        "line": 1592,
+        "end": 1640
+      },
+      {
+        "name": "__init__",
+        "line": 1659,
+        "end": 1717
+      },
+      {
+        "name": "bind_clock",
+        "line": 1720,
+        "end": 1731
+      },
+      {
+        "name": "bind_absolute_deadline",
+        "line": 1733,
+        "end": 1751
+      },
+      {
+        "name": "cleanup_deadline",
+        "line": 1753,
+        "end": 1770
+      },
+      {
+        "name": "remaining_cleanup_seconds",
+        "line": 1772,
+        "end": 1778
+      },
+      {
+        "name": "check_startup_budget",
+        "line": 1780,
+        "end": 1798
+      },
+      {
+        "name": "_retain_resource",
+        "line": 1800,
+        "end": 1807
+      },
+      {
+        "name": "_release_resource",
+        "line": 1809,
+        "end": 1813
+      },
+      {
+        "name": "_api_retained",
+        "line": 1815,
+        "end": 1836
+      },
+      {
+        "name": "arm",
+        "line": 1839,
+        "end": 1875
+      },
+      {
+        "name": "launch",
+        "line": 1878,
+        "end": 1903
+      },
+      {
+        "name": "_launch_role",
+        "line": 1905,
+        "end": 2049
+      },
+      {
+        "name": "_release_pending",
+        "line": 2051,
+        "end": 2079
+      },
+      {
+        "name": "_prepare_directories",
+        "line": 2081,
+        "end": 2100
+      },
+      {
+        "name": "_start_reader",
+        "line": 2102,
+        "end": 2116
+      },
+      {
+        "name": "_close_handle",
+        "line": 2118,
+        "end": 2146
+      },
+      {
+        "name": "_close_readers",
+        "line": 2148,
+        "end": 2181
+      },
+      {
+        "name": "_close_one_reader",
+        "line": 2183,
+        "end": 2239
+      },
+      {
+        "name": "_terminate_owned",
+        "line": 2241,
+        "end": 2271
+      },
+      {
+        "name": "stop",
+        "line": 2274,
+        "end": 2351
+      },
+      {
+        "name": "_close_pending",
+        "line": 2353,
+        "end": 2368
+      },
+      {
+        "name": "_note_closed_handle",
+        "line": 2370,
+        "end": 2392
+      },
+      {
+        "name": "_terminate_the_job",
+        "line": 2394,
+        "end": 2406
+      },
+      {
+        "name": "_wait_the_processes",
+        "line": 2408,
+        "end": 2433
+      },
+      {
+        "name": "_wait_one_process",
+        "line": 2435,
+        "end": 2467
+      },
+      {
+        "name": "_wait_timeout_ms",
+        "line": 2469,
+        "end": 2474
+      },
+      {
+        "name": "_release_the_records",
+        "line": 2476,
+        "end": 2514
+      },
+      {
+        "name": "_release_the_job",
+        "line": 2516,
+        "end": 2531
+      },
+      {
+        "name": "_is_released",
+        "line": 2533,
+        "end": 2559
+      },
+      {
+        "name": "_query_job",
+        "line": 2561,
+        "end": 2587
+      },
+      {
+        "name": "_collect_stream_counts",
+        "line": 2589,
+        "end": 2609
+      },
+      {
+        "name": "overflowed",
+        "line": 2611,
+        "end": 2617
+      },
+      {
+        "name": "_abort_round",
+        "line": 2619,
+        "end": 2637
+      },
+      {
+        "name": "summary",
+        "line": 2640,
+        "end": 2649
+      },
+      {
+        "name": "evidence",
+        "line": 2651,
+        "end": 2697
+      },
+      {
+        "name": "__init__",
+        "line": 2730,
+        "end": 2731
+      },
+      {
+        "name": "fileno",
+        "line": 2733,
+        "end": 2734
+      },
+      {
+        "name": "set_blocking",
+        "line": 2736,
+        "end": 2737
+      },
+      {
+        "name": "_poller",
+        "line": 2739,
+        "end": 2747
+      },
+      {
+        "name": "poll",
+        "line": 2749,
+        "end": 2761
+      },
+      {
+        "name": "read",
+        "line": 2763,
+        "end": 2764
+      },
+      {
+        "name": "write",
+        "line": 2766,
+        "end": 2767
+      },
+      {
+        "name": "close",
+        "line": 2769,
+        "end": 2770
+      },
+      {
+        "name": "__init__",
+        "line": 2791,
+        "end": 2805
+      },
+      {
+        "name": "bind_deadline",
+        "line": 2807,
+        "end": 2821
+      },
+      {
+        "name": "_effective_deadline",
+        "line": 2823,
+        "end": 2830
+      },
+      {
+        "name": "prepare",
+        "line": 2832,
+        "end": 2838
+      },
+      {
+        "name": "_check",
+        "line": 2840,
+        "end": 2844
+      },
+      {
+        "name": "read",
+        "line": 2846,
+        "end": 2864
+      },
+      {
+        "name": "write",
+        "line": 2866,
+        "end": 2887
+      },
+      {
+        "name": "close",
+        "line": 2889,
+        "end": 2923
+      },
+      {
+        "name": "__init__",
+        "line": 2963,
+        "end": 2998
+      },
+      {
+        "name": "run",
+        "line": 3001,
+        "end": 3051
+      },
+      {
+        "name": "_complete",
+        "line": 3053,
+        "end": 3059
+      },
+      {
+        "name": "wait_ready",
+        "line": 3061,
+        "end": 3063
+      },
+      {
+        "name": "submit",
+        "line": 3065,
+        "end": 3104
+      },
+      {
+        "name": "wait_done",
+        "line": 3106,
+        "end": 3110
+      },
+      {
+        "name": "request_cancel",
+        "line": 3112,
+        "end": 3156
+      },
+      {
+        "name": "stop",
+        "line": 3158,
+        "end": 3160
+      },
+      {
+        "name": "stop_accepting",
+        "line": 3162,
+        "end": 3165
+      },
+      {
+        "name": "release_thread_handle",
+        "line": 3167,
+        "end": 3187
+      },
+      {
+        "name": "join_bounded",
+        "line": 3189,
+        "end": 3193
+      },
+      {
+        "name": "__init__",
+        "line": 3236,
+        "end": 3250
+      },
+      {
+        "name": "bind_deadline",
+        "line": 3252,
+        "end": 3264
+      },
+      {
+        "name": "_effective_deadline",
+        "line": 3266,
+        "end": 3273
+      },
+      {
+        "name": "_remaining",
+        "line": 3275,
+        "end": 3280
+      },
+      {
+        "name": "_start",
+        "line": 3282,
+        "end": 3291
+      },
+      {
+        "name": "_await",
+        "line": 3293,
+        "end": 3315
+      },
+      {
+        "name": "_cancel",
+        "line": 3317,
+        "end": 3332
+      },
+      {
+        "name": "read",
+        "line": 3334,
+        "end": 3338
+      },
+      {
+        "name": "write",
+        "line": 3340,
+        "end": 3351
+      },
+      {
+        "name": "_read_block",
+        "line": 3353,
+        "end": 3354
+      },
+      {
+        "name": "_write_block",
+        "line": 3356,
+        "end": 3379
+      },
+      {
+        "name": "close",
+        "line": 3381,
+        "end": 3430
+      },
+      {
+        "name": "__init__",
+        "line": 3474,
+        "end": 3496
+      },
+      {
+        "name": "bind_deadline",
+        "line": 3498,
+        "end": 3519
+      },
+      {
+        "name": "_remaining",
+        "line": 3521,
+        "end": 3526
+      },
+      {
+        "name": "_drain",
+        "line": 3528,
+        "end": 3576
+      },
+      {
+        "name": "_check_wait",
+        "line": 3578,
+        "end": 3584
+      },
+      {
+        "name": "read",
+        "line": 3586,
+        "end": 3597
+      },
+      {
+        "name": "write",
+        "line": 3599,
+        "end": 3612
+      },
+      {
+        "name": "close",
+        "line": 3614,
+        "end": 3679
+      },
+      {
+        "name": "eof",
+        "line": 3682,
+        "end": 3683
+      },
+      {
+        "name": "overflow",
+        "line": 3686,
+        "end": 3687
+      },
+      {
+        "name": "frames",
+        "line": 3690,
+        "end": 3691
+      },
+      {
+        "name": "__init__",
+        "line": 3712,
+        "end": 3721
+      },
+      {
+        "name": "start",
+        "line": 3723,
+        "end": 3729
+      },
+      {
+        "name": "_run",
+        "line": 3731,
+        "end": 3744
+      },
+      {
+        "name": "_put",
+        "line": 3746,
+        "end": 3752
+      },
+      {
+        "name": "await_result",
+        "line": 3754,
+        "end": 3766
+      },
+      {
+        "name": "settle",
+        "line": 3768,
+        "end": 3780
+      },
+      {
+        "name": "expired",
+        "line": 3783,
+        "end": 3785
+      },
+      {
+        "name": "in_flight",
+        "line": 3788,
+        "end": 3790
+      },
+      {
+        "name": "__init__",
+        "line": 3812,
+        "end": 3837
+      },
+      {
+        "name": "_fix_deadline",
+        "line": 3840,
+        "end": 3854
+      },
+      {
+        "name": "remaining_seconds",
+        "line": 3856,
+        "end": 3859
+      },
+      {
+        "name": "_check_frame_budget",
+        "line": 3862,
+        "end": 3879
+      },
+      {
+        "name": "_reply",
+        "line": 3881,
+        "end": 3899
+      },
+      {
+        "name": "_guarded_startup",
+        "line": 3902,
+        "end": 3920
+      },
+      {
+        "name": "_check_startup_budget",
+        "line": 3922,
+        "end": 3931
+      },
+      {
+        "name": "_abort_started_round",
+        "line": 3933,
+        "end": 3939
+      },
+      {
+        "name": "_run_startup",
+        "line": 3941,
+        "end": 3968
+      },
+      {
+        "name": "run",
+        "line": 3971,
+        "end": 4013
+      },
+      {
+        "name": "_ensure_stopped",
+        "line": 4015,
+        "end": 4038
+      },
+      {
+        "name": "_loop",
+        "line": 4040,
+        "end": 4097
+      },
+      {
+        "name": "_stop",
+        "line": 4099,
+        "end": 4103
+      },
+      {
+        "name": "_write_receipt",
+        "line": 4105,
+        "end": 4132
+      },
+      {
+        "name": "__init__",
+        "line": 4175,
+        "end": 4190
+      },
+      {
+        "name": "bind_channel_deadline",
+        "line": 4192,
+        "end": 4208
+      },
+      {
+        "name": "write",
+        "line": 4210,
+        "end": 4224
+      },
+      {
+        "name": "read",
+        "line": 4226,
+        "end": 4227
+      },
+      {
+        "name": "close",
+        "line": 4229,
+        "end": 4339
+      },
+      {
+        "name": "_cleanup_deadline",
+        "line": 4341,
+        "end": 4355
+      },
+      {
+        "name": "_release_process_handle",
+        "line": 4357,
+        "end": 4379
+      },
+      {
+        "name": "__init__",
+        "line": 4400,
+        "end": 4402
+      },
+      {
+        "name": "retain",
+        "line": 4404,
+        "end": 4409
+      },
+      {
+        "name": "items",
+        "line": 4411,
+        "end": 4414
+      },
+      {
+        "name": "release",
+        "line": 4416,
+        "end": 4444
+      },
+      {
+        "name": "step",
+        "line": 2312,
+        "end": 2330
+      },
+      {
+        "name": "guarded",
+        "line": 3915,
+        "end": 3919
+      }
+    ]
+  },
+  "v0_s3_native_custody.py": {
+    "lines": 2271,
+    "definitions": [
+      {
+        "name": "CustodyError",
+        "line": 194,
+        "end": 200
+      },
+      {
+        "name": "_CustodyContext",
+        "line": 205,
+        "end": 309
+      },
+      {
+        "name": "_require_text",
+        "line": 326,
+        "end": 329
+      },
+      {
+        "name": "_require_exact_int",
+        "line": 332,
+        "end": 345
+      },
+      {
+        "name": "_require_number",
+        "line": 348,
+        "end": 353
+      },
+      {
+        "name": "_windows_parts",
+        "line": 356,
+        "end": 357
+      },
+      {
+        "name": "_require_absolute_windows_path",
+        "line": 360,
+        "end": 367
+      },
+      {
+        "name": "_require_log_reference",
+        "line": 370,
+        "end": 419
+      },
+      {
+        "name": "_require_directory_name",
+        "line": 422,
+        "end": 453
+      },
+      {
+        "name": "_validate_role_data",
+        "line": 456,
+        "end": 467
+      },
+      {
+        "name": "_freeze",
+        "line": 470,
+        "end": 481
+      },
+      {
+        "name": "LaunchPlan",
+        "line": 484,
+        "end": 546
+      },
+      {
+        "name": "validate_launch_plan",
+        "line": 549,
+        "end": 615
+      },
+      {
+        "name": "enforce_child_budget",
+        "line": 618,
+        "end": 629
+      },
+      {
+        "name": "_strict_pairs",
+        "line": 634,
+        "end": 640
+      },
+      {
+        "name": "_reject_constant",
+        "line": 643,
+        "end": 644
+      },
+      {
+        "name": "decode_frame",
+        "line": 647,
+        "end": 666
+      },
+      {
+        "name": "encode_command",
+        "line": 669,
+        "end": 683
+      },
+      {
+        "name": "decode_command",
+        "line": 686,
+        "end": 705
+      },
+      {
+        "name": "decode_reply",
+        "line": 708,
+        "end": 731
+      },
+      {
+        "name": "_ReplyWaiter",
+        "line": 736,
+        "end": 744
+      },
+      {
+        "name": "_ChannelPump",
+        "line": 747,
+        "end": 884
+      },
+      {
+        "name": "NativeCustodySession",
+        "line": 889,
+        "end": 2258
+      },
+      {
+        "name": "_default_launcher",
+        "line": 2261,
+        "end": 2271
+      },
+      {
+        "name": "__init__",
+        "line": 197,
+        "end": 200
+      },
+      {
+        "name": "__init__",
+        "line": 235,
+        "end": 244
+      },
+      {
+        "name": "bind_absolute_deadline",
+        "line": 247,
+        "end": 254
+      },
+      {
+        "name": "absolute_deadline",
+        "line": 257,
+        "end": 259
+      },
+      {
+        "name": "cleanup_deadline_value",
+        "line": 261,
+        "end": 264
+      },
+      {
+        "name": "publish_cleanup_deadline",
+        "line": 266,
+        "end": 276
+      },
+      {
+        "name": "remaining_cleanup",
+        "line": 278,
+        "end": 289
+      },
+      {
+        "name": "request_cancel",
+        "line": 292,
+        "end": 294
+      },
+      {
+        "name": "request_stop",
+        "line": 296,
+        "end": 298
+      },
+      {
+        "name": "latch_unknown",
+        "line": 300,
+        "end": 305
+      },
+      {
+        "name": "is_unknown",
+        "line": 307,
+        "end": 309
+      },
+      {
+        "name": "__init__",
+        "line": 507,
+        "end": 523
+      },
+      {
+        "name": "sealed",
+        "line": 526,
+        "end": 532
+      },
+      {
+        "name": "sealed_bytes",
+        "line": 534,
+        "end": 542
+      },
+      {
+        "name": "sealed_sha256",
+        "line": 544,
+        "end": 546
+      },
+      {
+        "name": "__init__",
+        "line": 741,
+        "end": 744
+      },
+      {
+        "name": "__init__",
+        "line": 761,
+        "end": 781
+      },
+      {
+        "name": "run",
+        "line": 784,
+        "end": 808
+      },
+      {
+        "name": "_deliver",
+        "line": 810,
+        "end": 825
+      },
+      {
+        "name": "take",
+        "line": 828,
+        "end": 857
+      },
+      {
+        "name": "stop",
+        "line": 860,
+        "end": 862
+      },
+      {
+        "name": "join_bounded",
+        "line": 864,
+        "end": 868
+      },
+      {
+        "name": "frames",
+        "line": 871,
+        "end": 872
+      },
+      {
+        "name": "error",
+        "line": 875,
+        "end": 876
+      },
+      {
+        "name": "finished",
+        "line": 879,
+        "end": 880
+      },
+      {
+        "name": "alive",
+        "line": 883,
+        "end": 884
+      },
+      {
+        "name": "__init__",
+        "line": 909,
+        "end": 1005
+      },
+      {
+        "name": "_resolve_nonce",
+        "line": 1009,
+        "end": 1022
+      },
+      {
+        "name": "_fix_deadline",
+        "line": 1025,
+        "end": 1045
+      },
+      {
+        "name": "remaining_seconds",
+        "line": 1047,
+        "end": 1050
+      },
+      {
+        "name": "validate",
+        "line": 1053,
+        "end": 1061
+      },
+      {
+        "name": "_send",
+        "line": 1064,
+        "end": 1105
+      },
+      {
+        "name": "_reserve_frame",
+        "line": 1107,
+        "end": 1130
+      },
+      {
+        "name": "_check_frame_budget",
+        "line": 1132,
+        "end": 1149
+      },
+      {
+        "name": "_write_to_broker",
+        "line": 1151,
+        "end": 1164
+      },
+      {
+        "name": "_bind_deadline",
+        "line": 1166,
+        "end": 1178
+      },
+      {
+        "name": "_read_reply",
+        "line": 1180,
+        "end": 1204
+      },
+      {
+        "name": "_decode_reply",
+        "line": 1206,
+        "end": 1224
+      },
+      {
+        "name": "_heartbeat_step",
+        "line": 1227,
+        "end": 1265
+      },
+      {
+        "name": "_start_heartbeat",
+        "line": 1267,
+        "end": 1301
+      },
+      {
+        "name": "_start_background_thread",
+        "line": 1303,
+        "end": 1367
+      },
+      {
+        "name": "_latch_unknown_state",
+        "line": 1369,
+        "end": 1382
+      },
+      {
+        "name": "_latch_background_failure",
+        "line": 1384,
+        "end": 1395
+      },
+      {
+        "name": "_apply_state",
+        "line": 1397,
+        "end": 1415
+      },
+      {
+        "name": "_start_bounded_close",
+        "line": 1417,
+        "end": 1459
+      },
+      {
+        "name": "_closer_main",
+        "line": 1461,
+        "end": 1471
+      },
+      {
+        "name": "_on_pump_error",
+        "line": 1473,
+        "end": 1488
+      },
+      {
+        "name": "_stop_background",
+        "line": 1490,
+        "end": 1569
+      },
+      {
+        "name": "_cleanup_remaining",
+        "line": 1571,
+        "end": 1582
+      },
+      {
+        "name": "_cleanup_deadline_for",
+        "line": 1584,
+        "end": 1611
+      },
+      {
+        "name": "start",
+        "line": 1614,
+        "end": 1722
+      },
+      {
+        "name": "_launch_failure_code",
+        "line": 1725,
+        "end": 1736
+      },
+      {
+        "name": "_failure_code",
+        "line": 1739,
+        "end": 1744
+      },
+      {
+        "name": "stop",
+        "line": 1746,
+        "end": 1824
+      },
+      {
+        "name": "_close_broker",
+        "line": 1826,
+        "end": 1893
+      },
+      {
+        "name": "_public_stop_recovery",
+        "line": 1895,
+        "end": 1929
+      },
+      {
+        "name": "_recover_close",
+        "line": 1931,
+        "end": 1959
+      },
+      {
+        "name": "_perform_close",
+        "line": 1961,
+        "end": 2034
+      },
+      {
+        "name": "_finish_close",
+        "line": 2036,
+        "end": 2045
+      },
+      {
+        "name": "_await_close",
+        "line": 2047,
+        "end": 2093
+      },
+      {
+        "name": "_await_closer_exit",
+        "line": 2095,
+        "end": 2140
+      },
+      {
+        "name": "__enter__",
+        "line": 2142,
+        "end": 2143
+      },
+      {
+        "name": "__exit__",
+        "line": 2145,
+        "end": 2150
+      },
+      {
+        "name": "evidence",
+        "line": 2153,
+        "end": 2258
+      },
+      {
+        "name": "beat",
+        "line": 1289,
+        "end": 1297
+      }
+    ]
+  },
+  "test_v0_s3_native_custody_correction05.py": {
+    "lines": 1732,
+    "definitions": [
+      {
+        "name": "SteppingClock",
+        "line": 93,
+        "end": 113
+      },
+      {
+        "name": "_RecordingEvent",
+        "line": 116,
+        "end": 134
+      },
+      {
+        "name": "RecordingReader",
+        "line": 137,
+        "end": 164
+      },
+      {
+        "name": "test_n05_r01_the_null_device_has_an_owner_from_the_moment_of_its_creation",
+        "line": 169,
+        "end": 222
+      },
+      {
+        "name": "test_n05_r02_a_cancellation_in_the_cleanup_never_skips_the_other_finalizers",
+        "line": 227,
+        "end": 284
+      },
+      {
+        "name": "test_n05_r03_the_ends_of_a_pipe_are_owned_from_the_moment_of_their_creation",
+        "line": 289,
+        "end": 356
+      },
+      {
+        "name": "test_n05_r04_a_cancellation_in_the_release_propagates_after_the_cleanup",
+        "line": 361,
+        "end": 494
+      },
+      {
+        "name": "test_n05_r05_one_process_never_skips_the_wait_of_the_next_one",
+        "line": 499,
+        "end": 539
+      },
+      {
+        "name": "test_n05_r06_a_reader_that_never_started_is_never_joined",
+        "line": 544,
+        "end": 607
+      },
+      {
+        "name": "test_n05_r07_a_background_start_that_did_not_return_keeps_its_owner",
+        "line": 612,
+        "end": 674
+      },
+      {
+        "name": "test_n05_r08_a_start_that_raised_after_the_thread_started_keeps_the_thread",
+        "line": 679,
+        "end": 766
+      },
+      {
+        "name": "test_n05_r09_a_closer_that_could_not_start_does_not_latch_the_round",
+        "line": 771,
+        "end": 810
+      },
+      {
+        "name": "test_n05_r10_a_launch_that_could_not_be_handed_over_keeps_its_resources",
+        "line": 815,
+        "end": 874
+      },
+      {
+        "name": "test_n05_r11_no_role_is_created_or_resumed_after_the_deadline",
+        "line": 879,
+        "end": 929
+      },
+      {
+        "name": "test_n05_r12_the_cleanup_deadline_is_published_once_and_never_extended",
+        "line": 934,
+        "end": 986
+      },
+      {
+        "name": "test_n05_r13_the_remaining_budget_is_recomputed_before_every_wait",
+        "line": 991,
+        "end": 1035
+      },
+      {
+        "name": "test_n05_r14_an_await_that_is_running_reads_the_tightened_deadline",
+        "line": 1040,
+        "end": 1121
+      },
+      {
+        "name": "test_n05_r15_the_worker_coordinates_by_generation_and_keeps_its_handle",
+        "line": 1126,
+        "end": 1190
+      },
+      {
+        "name": "test_n05_r16_the_unknown_state_is_latched_atomically",
+        "line": 1195,
+        "end": 1236
+      },
+      {
+        "name": "test_n05_r17_the_frame_budget_has_one_owner_in_both_directions",
+        "line": 1241,
+        "end": 1277
+      },
+      {
+        "name": "test_n05_r18_the_terminal_exchange_consumes_its_reservation",
+        "line": 1282,
+        "end": 1318
+      },
+      {
+        "name": "test_n05_r19_the_unconfirmed_items_are_coordinated_again",
+        "line": 1323,
+        "end": 1368
+      },
+      {
+        "name": "test_n05_r20_the_closed_fact_is_committed_only_when_it_is_confirmed",
+        "line": 1373,
+        "end": 1435
+      },
+      {
+        "name": "test_n05_r21_the_endpoint_is_the_only_owner_of_the_files_of_the_channel",
+        "line": 1440,
+        "end": 1502
+      },
+      {
+        "name": "test_n05_r22_the_strict_facts_of_the_close_are_required",
+        "line": 1507,
+        "end": 1542
+      },
+      {
+        "name": "test_n05_r23_the_end_of_the_attempt_and_the_end_of_the_closer_are_two_facts",
+        "line": 1547,
+        "end": 1660
+      },
+      {
+        "name": "test_n05_r24_the_closed_items_and_the_frozen_groups_are_kept",
+        "line": 1665,
+        "end": 1732
+      },
+      {
+        "name": "__init__",
+        "line": 103,
+        "end": 105
+      },
+      {
+        "name": "__call__",
+        "line": 107,
+        "end": 110
+      },
+      {
+        "name": "advance",
+        "line": 112,
+        "end": 113
+      },
+      {
+        "name": "__init__",
+        "line": 119,
+        "end": 122
+      },
+      {
+        "name": "is_set",
+        "line": 124,
+        "end": 125
+      },
+      {
+        "name": "set",
+        "line": 127,
+        "end": 128
+      },
+      {
+        "name": "wait",
+        "line": 130,
+        "end": 134
+      },
+      {
+        "name": "__init__",
+        "line": 145,
+        "end": 154
+      },
+      {
+        "name": "is_alive",
+        "line": 156,
+        "end": 157
+      },
+      {
+        "name": "join",
+        "line": 159,
+        "end": 161
+      },
+      {
+        "name": "stop",
+        "line": 163,
+        "end": 164
+      },
+      {
+        "name": "fail_null_close",
+        "line": 184,
+        "end": 194
+      },
+      {
+        "name": "cancel_delete",
+        "line": 241,
+        "end": 242
+      },
+      {
+        "name": "fail_birth",
+        "line": 264,
+        "end": 265
+      },
+      {
+        "name": "cancel_terminate",
+        "line": 267,
+        "end": 268
+      },
+      {
+        "name": "create_pipe",
+        "line": 303,
+        "end": 309
+      },
+      {
+        "name": "refuse_inherit",
+        "line": 311,
+        "end": 312
+      },
+      {
+        "name": "fail_first_read_close",
+        "line": 314,
+        "end": 324
+      },
+      {
+        "name": "CancellingWin32",
+        "line": 374,
+        "end": 387
+      },
+      {
+        "name": "TransientWin32",
+        "line": 418,
+        "end": 430
+      },
+      {
+        "name": "PersistentWin32",
+        "line": 462,
+        "end": 467
+      },
+      {
+        "name": "FailingWaitWin32",
+        "line": 511,
+        "end": 524
+      },
+      {
+        "name": "FailingReader",
+        "line": 561,
+        "end": 583
+      },
+      {
+        "name": "LatePump",
+        "line": 626,
+        "end": 637
+      },
+      {
+        "name": "RecordingBroker",
+        "line": 639,
+        "end": 645
+      },
+      {
+        "name": "StartedThenFailed",
+        "line": 692,
+        "end": 733
+      },
+      {
+        "name": "FailingThread",
+        "line": 784,
+        "end": 786
+      },
+      {
+        "name": "BrokenProcess",
+        "line": 829,
+        "end": 848
+      },
+      {
+        "name": "broken_channel",
+        "line": 852,
+        "end": 853
+      },
+      {
+        "name": "slow_create",
+        "line": 901,
+        "end": 905
+      },
+      {
+        "name": "enter",
+        "line": 951,
+        "end": 953
+      },
+      {
+        "name": "enter_core",
+        "line": 977,
+        "end": 979
+      },
+      {
+        "name": "Api",
+        "line": 1057,
+        "end": 1065
+      },
+      {
+        "name": "action",
+        "line": 1083,
+        "end": 1086
+      },
+      {
+        "name": "run_read",
+        "line": 1093,
+        "end": 1099
+      },
+      {
+        "name": "Api",
+        "line": 1145,
+        "end": 1153
+      },
+      {
+        "name": "action",
+        "line": 1155,
+        "end": 1158
+      },
+      {
+        "name": "reserve",
+        "line": 1260,
+        "end": 1266
+      },
+      {
+        "name": "Api",
+        "line": 1387,
+        "end": 1395
+      },
+      {
+        "name": "BrokenFile",
+        "line": 1397,
+        "end": 1404
+      },
+      {
+        "name": "Channel",
+        "line": 1455,
+        "end": 1469
+      },
+      {
+        "name": "Process",
+        "line": 1471,
+        "end": 1483
+      },
+      {
+        "name": "slow_finish",
+        "line": 1567,
+        "end": 1572
+      },
+      {
+        "name": "slow_attempt",
+        "line": 1618,
+        "end": 1623
+      },
+      {
+        "name": "refuse_query",
+        "line": 1693,
+        "end": 1694
+      },
+      {
+        "name": "__init__",
+        "line": 375,
+        "end": 378
+      },
+      {
+        "name": "close_handle",
+        "line": 380,
+        "end": 387
+      },
+      {
+        "name": "__init__",
+        "line": 421,
+        "end": 423
+      },
+      {
+        "name": "close_handle",
+        "line": 425,
+        "end": 430
+      },
+      {
+        "name": "close_handle",
+        "line": 465,
+        "end": 467
+      },
+      {
+        "name": "__init__",
+        "line": 512,
+        "end": 514
+      },
+      {
+        "name": "wait_process",
+        "line": 516,
+        "end": 524
+      },
+      {
+        "name": "__init__",
+        "line": 564,
+        "end": 574
+      },
+      {
+        "name": "start",
+        "line": 576,
+        "end": 577
+      },
+      {
+        "name": "is_alive",
+        "line": 579,
+        "end": 580
+      },
+      {
+        "name": "join",
+        "line": 582,
+        "end": 583
+      },
+      {
+        "name": "__init__",
+        "line": 629,
+        "end": 632
+      },
+      {
+        "name": "start",
+        "line": 634,
+        "end": 637
+      },
+      {
+        "name": "__init__",
+        "line": 640,
+        "end": 641
+      },
+      {
+        "name": "read",
+        "line": 643,
+        "end": 645
+      },
+      {
+        "name": "__init__",
+        "line": 703,
+        "end": 709
+      },
+      {
+        "name": "run",
+        "line": 711,
+        "end": 713
+      },
+      {
+        "name": "start",
+        "line": 715,
+        "end": 717
+      },
+      {
+        "name": "alive",
+        "line": 720,
+        "end": 721
+      },
+      {
+        "name": "stop",
+        "line": 723,
+        "end": 725
+      },
+      {
+        "name": "join",
+        "line": 727,
+        "end": 729
+      },
+      {
+        "name": "join_bounded",
+        "line": 731,
+        "end": 733
+      },
+      {
+        "name": "__init__",
+        "line": 785,
+        "end": 786
+      },
+      {
+        "name": "__init__",
+        "line": 833,
+        "end": 837
+      },
+      {
+        "name": "_fail_close",
+        "line": 839,
+        "end": 840
+      },
+      {
+        "name": "terminate",
+        "line": 842,
+        "end": 844
+      },
+      {
+        "name": "wait",
+        "line": 846,
+        "end": 848
+      },
+      {
+        "name": "duplicate_current_thread_handle",
+        "line": 1058,
+        "end": 1059
+      },
+      {
+        "name": "cancel_synchronous_io",
+        "line": 1061,
+        "end": 1062
+      },
+      {
+        "name": "close_handle",
+        "line": 1064,
+        "end": 1065
+      },
+      {
+        "name": "duplicate_current_thread_handle",
+        "line": 1146,
+        "end": 1147
+      },
+      {
+        "name": "cancel_synchronous_io",
+        "line": 1149,
+        "end": 1150
+      },
+      {
+        "name": "close_handle",
+        "line": 1152,
+        "end": 1153
+      },
+      {
+        "name": "late_reply",
+        "line": 1215,
+        "end": 1217
+      },
+      {
+        "name": "duplicate_current_thread_handle",
+        "line": 1388,
+        "end": 1389
+      },
+      {
+        "name": "cancel_synchronous_io",
+        "line": 1391,
+        "end": 1392
+      },
+      {
+        "name": "close_handle",
+        "line": 1394,
+        "end": 1395
+      },
+      {
+        "name": "__init__",
+        "line": 1398,
+        "end": 1399
+      },
+      {
+        "name": "close",
+        "line": 1401,
+        "end": 1404
+      },
+      {
+        "name": "__init__",
+        "line": 1458,
+        "end": 1459
+      },
+      {
+        "name": "bind_deadline",
+        "line": 1461,
+        "end": 1462
+      },
+      {
+        "name": "close",
+        "line": 1464,
+        "end": 1469
+      },
+      {
+        "name": "__init__",
+        "line": 1475,
+        "end": 1477
+      },
+      {
+        "name": "wait",
+        "line": 1479,
+        "end": 1480
+      },
+      {
+        "name": "terminate",
+        "line": 1482,
+        "end": 1483
+      },
+      {
+        "name": "waiter",
+        "line": 1586,
+        "end": 1587
+      },
+      {
+        "name": "waiter",
+        "line": 1631,
+        "end": 1632
+      }
+    ]
+  }
+}

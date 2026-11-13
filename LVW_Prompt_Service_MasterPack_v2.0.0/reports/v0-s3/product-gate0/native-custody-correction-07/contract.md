@@ -1,0 +1,29 @@
+# N1 correction07：按生命周期闭合六Major，集中交付
+
+接受独审F0/M6/m0，原报告received-review/review.md完整保留。源基线4287090b464d16f398b92797d8f5595359fcb442，证据e03648631ed855bcb89245b07f698386859a62a4。157/157、155功能+2完整性及批末清理true仍是真实自检；不能外推未覆盖交错。M03/M05/M06/M07/M08/M09仍开放。UNKNOWN锁、双向预算/终态预留、late Create先接管、NUL普通失败保留等已改善，不重新推翻或借机重构无关功能。连续修正存在新证据，允许集中纠正；不允许继续同一无证据尝试。
+
+## root详细设计裁决
+这次按完整资源生命周期，而非逐条匹配旧断言。每个资源只能处于API_OWNED→CORE/ENDPOINT/READER_OWNED→EXIT_CONFIRMED（若进程/线程）→CLOSE_CONFIRMED；失败不假转终态。只有实际移交才从原owner表删除，接收owner登记与handover在同一可证明交接内完成，任何异常仍至少有一个具名恢复owner、绝不能两个独立关闭owner。原process控制HANDLE在退出未证实时不得先close+forget，即便CloseHandle会成功；被挂起进程同样可能仍活，不能以句柄表空证明退出。job/record/API/reader的状态表必须来自同一事实更新，不以字符串冒充owner。
+
+同进程内一个实际上下文贯穿startup owner/Core/Loop/WindowsApi/launcher/Channel/endpoint/worker；父与子进程各有其本地上下文，不要求跨进程同Python对象。原lease和cleanup deadline只可按既有规则收紧/原子首发布，不能层层新预算。旧内部入口可兼容默认context用于单元构造，但正式生产调用链必须明确传同context，不把缺context当无限预算。任何副作用(create/arm/pipe/submit/start/assign/resume)前后检查；尚未拿到业务资源但线程启动也受同有限准入。每次wait/join/cancel/launcher恢复读取当前剩余，不固定ready5秒/每恢复5秒。Worker partialwrite每段读取最新有效context，不复制旧deadline。
+
+所有启动中对象在Thread.start或Popen成功的瞬间就有原owner；endpoint不能等_start正常返回才赋reader/writer。StreamChannel部分构造抛错时启动器也必须持原channel/endpoint恢复owner，可用内部预登记/两阶段初始化薄改造，不新建一般任务平台。Popen成功后hash读取/构造/取消空窗也有owner。关闭由endpoint协调正在用的file，launcher不得先直接关Popen stdin/stdout再问channel。Windows原Popen HANDLE在退出确认后显式关闭并留事实，不靠GC；未确认退出或关闭失败则留原对象/控制HANDLE。KI/SystemExit在各安全finalizer运行后继续传播，若已有主错须保留主错和取消对象的关联，不能仅记录cancelled字符串使上层不知道。
+
+worker取消的状态检查与本代IN_IO意图发布在同一锁内；不能持锁跨阻塞Win32调用。解决check→系统IO之间的取消竞态，需有界重试精确原thread取消与本代完成复核，直到本代done、真正thread退出或共享截止。NOT_FOUND不是完成，不等待刚由自己set的_stop_event作为重试睡眠；不得用旧代done放行。超期原thread/HANDLE/file owner全保留。worker线程已退出但thread HANDLE Close失败仍有恢复入口，不能file closed后永不恢复。
+
+每个reader即使finished.wait/join抛普通错或取消，原read端保护仍由reader owner强制执行；末尾pending pass必须按实际owner/IO存活拒绝关闭受活reader占用端，不能靠某个成功分支_pending.take维护安全。所有record/reader/API/Job路径成功恢复都同步retained/pending/record，待恢复表去重并真实收敛。
+
+Session/BrokerProcess/StreamChannel/endpoint同owner恢复真实贯穿：channel.close方法return不等于资源全closed。高层只跳过已确认成功子项，每次仍协调未完成端点、worker及原HANDLE。底层状态facts每次重算，不复制旧worker_alive/retained数。close attempt按代独立完成event或generation；旧event不能证明新一代结束，保留一套原deadline且等待者针对当前owner。attempt FINISHED与真实closer/startup线程退出分别核，真实join后才释放inflight；RuntimeError not-started但STARTING未返回是UNKNOWN不是已退出。首次公共stop、重复stop、取消/普通异常出口都必须协调当前owner及真实closer，不能只有内部helper或第二次stop正确。已确认资源绝不双关，恢复每次公共意图有界，禁止无限尝试。
+
+## 允许范围与连续Workpack
+唯一Claude owner，三个有序同Stage Workpack连续执行：A资源交接/取消/清理事实；B启动/endpoint/worker/context；C端到端恢复/按代等待与真实类组合回归。每包静态收据记录改变/风险，不逐包完整测试或StagePASS；三包完成一次集中测试及独审。
+只可改tools/v0_s3_native_custody.py、tools/v0_s3_native_broker.py、tools/test_v0_s3_native_custody.py、tools/test_v0_s3_native_custody_regressions.py、tools/test_v0_s3_native_custody_correction05.py，可NEW tools/test_v0_s3_native_custody_correction07.py，以及NEW reports/v0-s3/product-gate0/implementation-native-custody-correction-07/。旧controller/worker/runtime/driver/supervisor/授权/公共schema/阈值/control/MANIFEST/历史证据不可改；native拒绝点保留，N2不启动。若确需范围变化集中askroot。
+
+## 反假绿与覆盖要求
+继承原24组和原16组不改，再冻结本包18组。保留原157nodeids的身份和顺序，不删弱断言；可为真实context新增必要初始化/为明确owner事实补夹具，但每个变化列原因且不能默认补True。新增18组可在新文件精确18个test函数，真实多子场景在组内有界驱动，root最终冻结具体nodeids。
+必须至少一条故障→恢复走真实Session→BrokerProcess→StreamChannel→WindowsEndpoint→worker组合，注入纯Win32原语而非直接改变RecordingPeer.close_facts。API→Core→reader的成功移交/失败恢复要贯穿真实类，不能只测试API普通失败；worker取消强制check/IN_IO交错，不以barrier概率循环冒充。process alive与HANDLE live分开建oracle，CloseHandle成功不得让fake process自动退出。记录产品返回时原resource/thread状态，再测试owner finally有界salvage，失败断言也必须收尾；批末MainThread不能替代返回时状态。
+实现完成静态自审须附18行gap-closure-matrix：原独审位置/真实owner迁移/新源码位置/实际入口测试/负例/返回事实/恢复入口。对照完整独审报告所有子缺口，无覆盖项不能标已闭；不要仅给“六Major已实现”的摘要。
+
+## 执行与停止
+当前只静态实现/AST，不import候选/collection/pytest。完整精确提交允许源后，askroot一次有限计划：候选SHA、全部source/tool pins、原223文件级依赖/3stdlib、旧157+新增节点有序固定集合、root前置guard/runner/outercounter、绝对argv/cwd、<=300s单批/逐node/raw/退出码/真实FD身份/全部线程。ask后结束turn等待reply，不同时worker_done关闭问题。ACK前禁止动态；ACK后唯一一次，失败保留新候选与原证据，不自行修到绿/复跑/删case。
+硬guard后候选/pytest前唯一ctypes.dlopen(None)可信stdlib预装并永久关闭；其他dlopen/dlsym/真实Win32API/Job/业务进程/GPU/模型/服务/socket/sqlite/网络/下载/用户媒体/原ledger拒绝。counter仅未来ACK外层前后一次只读acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98，不写/退款/清零/复活。FIRST429立即WAIT_BUDGET不retry/切路由/root接手；FIRST审批拒绝/超时停不包装绕过。只READY_FOR_REVIEW，不StagePASS，独审/真实Windows/native/I24/产品12/A06/质量/余额/人签未证。
