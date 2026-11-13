@@ -233,7 +233,7 @@ def verify_pins(plan):
                                  'reason': 'METADATA_DRIFT',
                                  'expected': item['metadata_sha256'],
                                  'actual': actual['metadata_sha256']})
-        extra = sorted(set(found) - set(expected))
+        extra = sorted(set(found) - set(expected) - set(plan.get('dependency_excludes', [])))
         if extra:
             failures.append({'kind': 'dependency_set', 'reason': 'UNEXPECTED_MEMBERS',
                              'count': len(extra), 'names': extra[:20]})
@@ -457,7 +457,7 @@ def main(argv=None):
     else:
         outcome = 'FAIL'
     receipt = {
-        'kind': 'S3_N3_NATIVE_CUSTODY_CORRECTION_02_GUARDED_CHECK_RECEIPT',
+        'kind': 'S3_N3_NATIVE_CUSTODY_CORRECTION_03_GUARDED_CHECK_RECEIPT',
         'label': label,
         'plan_path': str(plan_path),
         'plan_sha256': sha256_bytes(plan_raw),
