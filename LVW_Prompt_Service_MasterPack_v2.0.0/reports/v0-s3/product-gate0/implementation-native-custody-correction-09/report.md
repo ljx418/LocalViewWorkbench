@@ -3,7 +3,7 @@
 Stage: R1.  Workpack: WP-R1-U3 / S3-P4-N1.  Gate:
 `S3_P4_N1_CORRECTION_09_DETERMINISTIC_EXTERNAL_CANCEL_PUBLICATION`.
 
-Candidate of this delivery: `PENDING_BINDING_COMMIT`.
+Candidate of this delivery: `39f803730e09673eb1b74fa51e1f0919f2606a71`.
 Production baseline (frozen by the root): `66600a1bd692c0149fc7724b624997bf2f40dcc1`.
 Evidence of the failed batch (frozen by the root):
 `fb44ff7ac9ffa52163236fc1eb7ecc85ea6682aa`
