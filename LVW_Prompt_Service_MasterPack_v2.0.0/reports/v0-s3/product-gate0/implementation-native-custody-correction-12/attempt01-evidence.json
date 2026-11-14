@@ -1,0 +1,399 @@
+{
+  "ack_decision": "ACK_ONE189_NODE_GUARDED_OFFLINE_BATCH",
+  "artifacts": {
+    "commands_audit": "attempt01/commands.json",
+    "commands_audit_sha256": "3f9455414458a142e5d871201083412e5c3cd42eb26777ef7851a5a49d071686",
+    "counter_absence_after_sha256": "bfe4e7b1a3f9d9d912e432a13d16313f40e3857e0895a556bd73e2f08bcffc23",
+    "counter_absence_before_sha256": "bfe4e7b1a3f9d9d912e432a13d16313f40e3857e0895a556bd73e2f08bcffc23",
+    "guard": "attempt01/native-custody-correction-12.guard.json",
+    "guard_sha256": "b2ced031cc7729575faa4e622f3113bf1fb022892196cbabc7ae08f468762853",
+    "receipt": "attempt01/native-custody-correction-03.receipt.json",
+    "receipt_sha256": "7bbdacba8e81da8558443eae70ec395957a512c4d2448f70696fe094a8300689",
+    "report": "attempt01-evidence.md"
+  },
+  "batch": {
+    "batches_max": 1,
+    "call_count": 189,
+    "cleanup_proven_for_batch": true,
+    "collected": 189,
+    "collected_equals_selected": true,
+    "fail_count": 6,
+    "functional_pass_count": 181,
+    "guard_wall_seconds": 52.430588483810425,
+    "max_seconds": 300,
+    "outcome": "FAILED",
+    "pass_count": 183,
+    "pytest_exit": 1,
+    "runner_duration_seconds": 52.31741404533386,
+    "selected": 189,
+    "skip_count": 0,
+    "wall_seconds": 52.48
+  },
+  "boundary": {
+    "fd_rows_after": 3,
+    "fd_rows_before": 3,
+    "fd_unknown_after": [],
+    "fd_unknown_before": [],
+    "guard_precedes_candidate_and_pytest": true,
+    "guard_runtime_denials": [],
+    "guard_selftest_denials": [
+      "subprocess.Popen",
+      "socket.__new__",
+      "os.fork",
+      "os.exec",
+      "os.system",
+      "sqlite3.connect",
+      "ctypes.dlopen",
+      "ctypes.dlsym"
+    ],
+    "limitations": "The guard denies the eight prohibited events and its runtime denials were empty.  It does not prove anything about a native execution and every native claim stays NOT_PROVEN.",
+    "new_or_reused_fds": [],
+    "stdlib_preload_events": [
+      {
+        "event": "ctypes.dlopen",
+        "name": null
+      }
+    ],
+    "stdlib_preload_window_final_state": "CLOSED",
+    "threads_after": [
+      "MainThread"
+    ],
+    "threads_before": [
+      "MainThread"
+    ]
+  },
+  "candidate_sha": "29c5215ad44721c60145bad61165b99580cc1898",
+  "claims": {
+    "admission_produced": false,
+    "major_closure_claimed": false,
+    "native_proven": false,
+    "product_gate0": false,
+    "stage_pass_claim": false
+  },
+  "commands": [
+    {
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-12/validation-plan-01/outer_counter_observe.py",
+        "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-12/attempt01/counter-absence-before.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "environment": {
+        "LVW_N1_F5_EVIDENCE_DIR": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-12/f5-evidence",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "environment_note": "the command was executed with exactly the two bound variables of the plan and with nothing else inherited (env -i + the two variables)",
+      "executed": "exactly once, in the order of the plan, in this batch; nothing else was executed",
+      "exit_code": 0,
+      "label": "counter-absence-before",
+      "raw_stderr": "attempt01/counter-absence-before.stderr.log",
+      "raw_stdout": "attempt01/counter-absence-before.stdout.log",
+      "result": "the parent AND the counter are MISSING (errno 2) in both observations; accepted_absence true; the content was never read and the grant was not revived"
+    },
+    {
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-12/validation-plan-01/guard.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-12/validation-plan-01/runner.py",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-12/attempt01/native-custody-correction-12.guard.json"
+      ],
+      "batch_bound_seconds": 300,
+      "batch_wall_seconds": 52.48,
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "environment": {
+        "LVW_N1_F5_EVIDENCE_DIR": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-12/f5-evidence",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "environment_note": "the command was executed with exactly the two bound variables of the plan and with nothing else inherited (env -i + the two variables)",
+      "executed": "exactly once, in the order of the plan, in this batch; nothing else was executed",
+      "exit_code": 1,
+      "guard_wall_seconds": 52.430588483810425,
+      "label": "guarded-validation",
+      "pytest_exit": 1,
+      "raw_stderr": "attempt01/guarded-validation.stderr.log",
+      "raw_stdout": "attempt01/guarded-validation.stdout.log",
+      "result": "the batch of 189 nodes ran once: 189 collected == selected, 183 pass, 6 fail, 0 skip, pytest exit 1, the guard preceded the candidate and pytest and its runtime denials are empty",
+      "runner_duration_seconds": 52.31741404533386
+    },
+    {
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-12/validation-plan-01/outer_counter_observe.py",
+        "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-12/attempt01/counter-absence-after.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "environment": {
+        "LVW_N1_F5_EVIDENCE_DIR": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-12/f5-evidence",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "environment_note": "the command was executed with exactly the two bound variables of the plan and with nothing else inherited (env -i + the two variables)",
+      "executed": "exactly once, in the order of the plan, in this batch; nothing else was executed",
+      "exit_code": 0,
+      "label": "counter-absence-after",
+      "raw_stderr": "attempt01/counter-absence-after.stderr.log",
+      "raw_stdout": "attempt01/counter-absence-after.stdout.log",
+      "result": "the parent AND the counter are MISSING (errno 2) in both observations; accepted_absence true; the content was never read and the grant was not revived"
+    }
+  ],
+  "counter": {
+    "accepted_absence": true,
+    "after": {
+      "accepted_absence": true,
+      "counter_content_read": false,
+      "counter_created": false,
+      "counter_refunded": false,
+      "counter_reset": false,
+      "counter_state": "MISSING",
+      "counter_written": false,
+      "historical_counter_continuity": "UNAVAILABLE_NOT_PROVEN",
+      "historical_expected_sha256": "acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98",
+      "historical_grant_revived": false,
+      "kind": "LVW_EXPIRED_FIXTURE_COUNTER_ABSENCE_OBSERVATION",
+      "observations": [
+        {
+          "errno": 2,
+          "path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s",
+          "status": "MISSING"
+        },
+        {
+          "errno": 2,
+          "path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+          "status": "MISSING"
+        }
+      ]
+    },
+    "before": {
+      "accepted_absence": true,
+      "counter_content_read": false,
+      "counter_created": false,
+      "counter_refunded": false,
+      "counter_reset": false,
+      "counter_state": "MISSING",
+      "counter_written": false,
+      "historical_counter_continuity": "UNAVAILABLE_NOT_PROVEN",
+      "historical_expected_sha256": "acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98",
+      "historical_grant_revived": false,
+      "kind": "LVW_EXPIRED_FIXTURE_COUNTER_ABSENCE_OBSERVATION",
+      "observations": [
+        {
+          "errno": 2,
+          "path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s",
+          "status": "MISSING"
+        },
+        {
+          "errno": 2,
+          "path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+          "status": "MISSING"
+        }
+      ]
+    },
+    "counter_content_read": false,
+    "counter_created": false,
+    "counter_refunded": false,
+    "counter_reset": false,
+    "counter_written": false,
+    "historical_counter_continuity": "UNAVAILABLE_NOT_PROVEN",
+    "historical_grant_revived": false,
+    "limitation": "Two exact lstat observations prove continued absence only.  They do not prove the historical content, a ledger balance or the absence of a past grant, and they reconstruct, refund and reset nothing."
+  },
+  "delivery": "EVIDENCE_ONLY: the three commands ran exactly once; nothing was replayed, repaired or re-run; no source byte and no pinned report was changed",
+  "failures": [
+    {
+      "assertion": "assert len(puts) >= 2, 'the reader of the channel never put a frame'",
+      "classification": "TEST_FIXTURE_DEFECT",
+      "detail": "The fixture of the subcase delivers its second frame only after the release of the owner and the owner sets that release after the tightening; the reader of the fixture can therefore return the end of the stream instead of the second frame and the drain ends before the second put.  The instrumentation of the put was installed after the channel had already autostarted.  The premise of the subcase was not established and the assertion is right to fail.",
+      "nodeid": "tools/test_v0_s3_native_custody_correction05.py::test_n05_r14_an_await_that_is_running_reads_the_tightened_deadline",
+      "observed": "puts == [0.5]: exactly one put, the unbounded one",
+      "phase_documents": "none (the correction 05 group writes no phase document)"
+    },
+    {
+      "assertion": "assert not [item for item in _launcher_custody_items() if item['kind'] == 'aggregate']",
+      "classification": "TEST_ASSERTION_SCOPE_DEFECT; the remaining entry is UNKNOWN",
+      "detail": "The assertion is about the global table of the launcher, which the whole session shares with the nodes of the corrections 03 and 05; it does not inspect which entries belong to this node and the evidence of the batch does not name the entry that remained.  The M08-E behaviour of the node itself is proven by f5-r13-launch-stop.json and f5-r13-launch-cleanup.json.",
+      "nodeid": "tools/test_v0_s3_native_custody_correction07.py::test_n07_r13_every_side_effect_checks_the_shared_context",
+      "observed": "one aggregate of the GLOBAL table of the launcher remained; the two M08-E subcases of the node passed",
+      "phase_documents": "f5-r13-launch-stop.json, f5-r13-launch-cleanup.json (RUN)"
+    },
+    {
+      "assertion": "assert channel is not None, 'the partial channel lost its owner'",
+      "classification": "UNKNOWN_FROM_THIS_BATCH",
+      "detail": "The fixture injects the interruption of the return of Thread.start after the thread really started; that does not prove that the reader of the channel is still inside its read, and the thread of the channel may complete and release the channel correctly before the cleanup runs.  The node wrote no phase document, so the artefacts of this batch do not show whether the reader was alive at the close.  A fixture premise defect and a production behaviour of the aggregate cannot be distinguished by this evidence.  The production review of the same blobs finds M07 OPEN (M07-A.1, M07-A.2, M07-A.3) and this evidence closes none of them.",
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r04_the_launch_aggregate_finds_the_partial_channel",
+      "observed": "the aggregate did not hold the half-built channel after the adoption: the close of the partial channel returned complete facts",
+      "phase_documents": "n10-r04-partial, n10-r04-release (NOT_RUN)"
+    },
+    {
+      "assertion": "with pytest.raises(KeyboardInterrupt): release_retained_launches()",
+      "classification": "UNKNOWN_FROM_THIS_BATCH",
+      "detail": "The second release should have retried the raw stream and propagated the original KeyboardInterrupt and it returned normally.  The node wrote no phase document, so the exact error path through the helper, the aggregate and the table is not established by this batch.  Two production paths are candidates and neither is proven: the refusal of a new raw close when the current bound is expired (the bound of that release is the global table's context, which an earlier node had already published and whose cleanup deadline had expired by then) and the M07-A.2 residual of the production review (a cancellation inside the helper discards the already confirmed facts).",
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel",
+      "observed": "DID NOT RAISE; the first release of the raw stream really happened (attempts 1, confirmed 0)",
+      "phase_documents": "n10-r05-adoption, n10-r05-recovery, n10-r05-retained-recovery (RUN); the new subcase wrote none"
+    },
+    {
+      "assertion": "TypeError: recording_get() got an unexpected keyword argument 'block'",
+      "classification": "TEST_FIXTURE_DEFECT",
+      "detail": "The production calls get_nowait(), which calls get(block=False); the wrapper of the test broke the non-blocking observation of the queue of the startup owner.  The wrapper must forward the block argument and distinguish the non-blocking observation from a bounded positive wait.  The production was not changed.",
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread",
+      "observed": "the wrapper of queue.Queue.get did not implement the signature of the queue",
+      "phase_documents": "n10-r09-brokererror, n10-r09-keyboardinterrupt, n10-r09-systemexit (RUN); n10-r09-await-wait, n10-r09-interrupted-start (NOT_RUN)"
+    },
+    {
+      "assertion": "assert isinstance(parallel, dict), 'the timeout did not stay a parallel fact of the failure'",
+      "classification": "TEST_FIXTURE_DEFECT",
+      "detail": "The published outcome of the worker is earlier than the moment at which the endpoint attaches the parallel fact, so waiting for the outcome is not a consumption barrier.  The consumption of the outcome by the endpoint and the end of the reader of the channel must be established before the attached facts are asserted.",
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation",
+      "observed": "the parallel fact was read before the endpoint had consumed the outcome",
+      "phase_documents": "n10-r10-first, n10-r10-second, n10-r10-coordination (RUN); the three dynamic M09 schedules (NOT_RUN)"
+    }
+  ],
+  "kind": "LVW_N1_CORRECTION12_BATCH_EVIDENCE/1",
+  "not_proved_by_this_batch": [
+    "The M09 dynamic schedules (the required publication-before-timeout order, the confirmed coordination and the failed coordination) are NOT_RUN.",
+    "The M08-C wait inventory of the startup owner (n10-r09-await-wait) and the M08-D interrupted-start join (n10-r09-interrupted-start) are NOT_RUN.",
+    "The N10-R04 partial channel phases (n10-r04-partial, n10-r04-release) are NOT_RUN.",
+    "Every native claim stays NOT_PROVEN and the dynamic status of every atom of the production review stays NOT_RUN where this batch did not execute it."
+  ],
+  "open_findings_unchanged": {
+    "closed_static_in_that_review": [
+      "M08-A",
+      "M08-B",
+      "M08-D",
+      "M05",
+      "M09",
+      "m03",
+      "M06",
+      "M03_exit_safety"
+    ],
+    "fatal": 0,
+    "independent_production_review": "native-custody-correction-12/production-review-01/review-result/review.md",
+    "major": 2,
+    "majors": [
+      "M07",
+      "M08"
+    ],
+    "minor": 0,
+    "note": "This evidence closes nothing.  The consolidated design draft of the root is architecture input only and no implementation admission follows from this batch.",
+    "open_in_that_review": [
+      "M07-A.1",
+      "M07-A.2",
+      "M07-A.3",
+      "M08-C.1",
+      "M08-C.2",
+      "M08-E"
+    ],
+    "verdict": "CHANGES_REQUIRED"
+  },
+  "phases": {
+    "f5_expected_by_the_plan": [
+      "f5-first.json",
+      "f5-second.json",
+      "f5-salvage.json",
+      "f5-close-cancellation.json",
+      "f5-unrelated-cancellation.json",
+      "f5-unrelated-cancellation-second.json",
+      "f5-read-fault.json",
+      "f5-read-fault-second.json",
+      "f5-partial-frame.json",
+      "f5-partial-frame-second.json"
+    ],
+    "f5_extra_run": [
+      "f5-close-cancellation",
+      "f5-first",
+      "f5-partial-frame",
+      "f5-partial-frame-second",
+      "f5-r09-raw-stream-first",
+      "f5-r09-raw-stream-second",
+      "f5-r13-launch-cleanup",
+      "f5-r13-launch-stop",
+      "f5-read-fault",
+      "f5-read-fault-second",
+      "f5-salvage",
+      "f5-second",
+      "f5-unrelated-cancellation",
+      "f5-unrelated-cancellation-second"
+    ],
+    "f5_not_run": [
+      "f5-first.json",
+      "f5-second.json",
+      "f5-salvage.json",
+      "f5-close-cancellation.json",
+      "f5-unrelated-cancellation.json",
+      "f5-unrelated-cancellation-second.json",
+      "f5-read-fault.json",
+      "f5-read-fault-second.json",
+      "f5-partial-frame.json",
+      "f5-partial-frame-second.json"
+    ],
+    "f5_run": [],
+    "n10_not_run": [
+      "n10-r04-partial",
+      "n10-r04-release",
+      "n10-r09-await-wait",
+      "n10-r09-interrupted-start",
+      "n10-r10-timeout-confirmed",
+      "n10-r10-timeout-confirmed-first",
+      "n10-r10-timeout-confirmed-second",
+      "n10-r10-timeout-failed",
+      "n10-r10-timeout-failed-first",
+      "n10-r10-timeout-failed-second",
+      "n10-r10-published-before-timeout",
+      "n10-r10-published-before-timeout-first",
+      "n10-r10-published-before-timeout-second"
+    ],
+    "n10_run": [
+      "n10-r01-first",
+      "n10-r01-second",
+      "n10-r02-claim",
+      "n10-r02-creation",
+      "n10-r02-handed-over",
+      "n10-r02-report",
+      "n10-r03-first",
+      "n10-r03-second",
+      "n10-r05-adoption",
+      "n10-r05-recovery",
+      "n10-r05-retained-recovery",
+      "n10-r06-admission",
+      "n10-r06-expiry",
+      "n10-r06-linearization",
+      "n10-r07-launcher",
+      "n10-r07-child",
+      "n10-r07-dispatch-cancel",
+      "n10-r07-dispatch-expire",
+      "n10-r07-await-context",
+      "n10-r08-retry",
+      "n10-r09-brokererror",
+      "n10-r09-keyboardinterrupt",
+      "n10-r09-systemexit",
+      "n10-r10-first",
+      "n10-r10-second",
+      "n10-r10-coordination",
+      "n10-r11-oversize",
+      "n10-r11-first",
+      "n10-r11-second",
+      "n10-r11-exact",
+      "n10-r11-frames",
+      "n10-r12-owner",
+      "n10-r12-stop",
+      "n10-r13-fault",
+      "n10-r13-partial",
+      "n10-r14-compatibility"
+    ],
+    "not_run_reason": "A phase is NOT_RUN when the assertion that precedes it in its node failed.  No phase JSON was written by hand and no expected phase was synthesized."
+  },
+  "plan_sha256": "098e8e9394be5e98fa7d44b47acba17fac49e09bebd5fadd8f5cd7f63711c369",
+  "proved_by_this_batch": [
+    "M07-A ordinary no-channel path: the first release returns the retained original reference of the raw stream and the same owner retries it and closes it exactly once without repeating the successful process work (f5-r09-raw-stream-first/second).",
+    "M08-A dispatch: a cancellation of the original context and an expired published cleanup both refuse the admission of the generation with zero real primitive calls (n10-r07-dispatch-cancel/expire).",
+    "M08-A await: the await of the endpoint notices the cancellation of the original context with zero primitive calls (n10-r07-await-context).",
+    "M08-E public stop and expired cleanup: no process is created in either schedule (f5-r13-launch-stop, f5-r13-launch-cleanup)."
+  ]
+}

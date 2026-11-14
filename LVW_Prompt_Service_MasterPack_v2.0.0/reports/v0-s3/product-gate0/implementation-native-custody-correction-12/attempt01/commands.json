@@ -1,0 +1,103 @@
+{
+  "ack_decision": "ACK_ONE189_NODE_GUARDED_OFFLINE_BATCH",
+  "ack_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-12/validation-plan-01/ack.json",
+  "artifacts": {
+    "counter_absence_after": "attempt01/counter-absence-after.json",
+    "counter_absence_after_sha256": "bfe4e7b1a3f9d9d912e432a13d16313f40e3857e0895a556bd73e2f08bcffc23",
+    "counter_absence_before": "attempt01/counter-absence-before.json",
+    "counter_absence_before_sha256": "bfe4e7b1a3f9d9d912e432a13d16313f40e3857e0895a556bd73e2f08bcffc23",
+    "guard": "attempt01/native-custody-correction-12.guard.json",
+    "guard_sha256": "b2ced031cc7729575faa4e622f3113bf1fb022892196cbabc7ae08f468762853",
+    "receipt": "attempt01/native-custody-correction-03.receipt.json",
+    "receipt_sha256": "7bbdacba8e81da8558443eae70ec395957a512c4d2448f70696fe094a8300689"
+  },
+  "auxiliary_probes": false,
+  "batch_bound_seconds": 300,
+  "batch_outcome": "FAILED: pytest exit 1 with six failed nodes; the batch is reported as a failed batch",
+  "batch_wall_seconds": 52.48,
+  "batches_max": 1,
+  "candidate_sha": "29c5215ad44721c60145bad61165b99580cc1898",
+  "commands": [
+    {
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-12/validation-plan-01/outer_counter_observe.py",
+        "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-12/attempt01/counter-absence-before.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "environment": {
+        "LVW_N1_F5_EVIDENCE_DIR": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-12/f5-evidence",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "environment_note": "the command was executed with exactly the two bound variables of the plan and with nothing else inherited (env -i + the two variables)",
+      "executed": "exactly once, in the order of the plan, in this batch; nothing else was executed",
+      "exit_code": 0,
+      "label": "counter-absence-before",
+      "raw_stderr": "attempt01/counter-absence-before.stderr.log",
+      "raw_stdout": "attempt01/counter-absence-before.stdout.log",
+      "result": "the parent AND the counter are MISSING (errno 2) in both observations; accepted_absence true; the content was never read and the grant was not revived"
+    },
+    {
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-12/validation-plan-01/guard.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-12/validation-plan-01/runner.py",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-12/attempt01/native-custody-correction-12.guard.json"
+      ],
+      "batch_bound_seconds": 300,
+      "batch_wall_seconds": 52.48,
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "environment": {
+        "LVW_N1_F5_EVIDENCE_DIR": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-12/f5-evidence",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "environment_note": "the command was executed with exactly the two bound variables of the plan and with nothing else inherited (env -i + the two variables)",
+      "executed": "exactly once, in the order of the plan, in this batch; nothing else was executed",
+      "exit_code": 1,
+      "guard_wall_seconds": 52.430588483810425,
+      "label": "guarded-validation",
+      "pytest_exit": 1,
+      "raw_stderr": "attempt01/guarded-validation.stderr.log",
+      "raw_stdout": "attempt01/guarded-validation.stdout.log",
+      "result": "the batch of 189 nodes ran once: 189 collected == selected, 183 pass, 6 fail, 0 skip, pytest exit 1, the guard preceded the candidate and pytest and its runtime denials are empty",
+      "runner_duration_seconds": 52.31741404533386
+    },
+    {
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-12/validation-plan-01/outer_counter_observe.py",
+        "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-12/attempt01/counter-absence-after.json"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "environment": {
+        "LVW_N1_F5_EVIDENCE_DIR": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-12/f5-evidence",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "environment_note": "the command was executed with exactly the two bound variables of the plan and with nothing else inherited (env -i + the two variables)",
+      "executed": "exactly once, in the order of the plan, in this batch; nothing else was executed",
+      "exit_code": 0,
+      "label": "counter-absence-after",
+      "raw_stderr": "attempt01/counter-absence-after.stderr.log",
+      "raw_stdout": "attempt01/counter-absence-after.stdout.log",
+      "result": "the parent AND the counter are MISSING (errno 2) in both observations; accepted_absence true; the content was never read and the grant was not revived"
+    }
+  ],
+  "executed_once": true,
+  "extra_tests": false,
+  "implementation_delivery_commit": "29c5215ad44721c60145bad61165b99580cc1898",
+  "interruption_note": "A 429 interruption of the session happened after the three commands had run exactly once and before this audit was written.  The user resumed the task and no command was replayed: the raw logs, the receipt, the guard document and the two counter observations of that single batch are the only inputs of this audit.",
+  "kind": "LVW_N1_CORRECTION12_BATCH_COMMAND_AUDIT/1",
+  "plan_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-12/validation-plan-01/plan.json",
+  "plan_sha256": "098e8e9394be5e98fa7d44b47acba17fac49e09bebd5fadd8f5cd7f63711c369",
+  "reruns": 0,
+  "self_repair": false,
+  "wrapper": false
+}

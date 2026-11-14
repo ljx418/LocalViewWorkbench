@@ -1,0 +1,49 @@
+..................................................................................................................................................F......................F........FF...FF....
+=================================== FAILURES ===================================
+______ test_n05_r14_an_await_that_is_running_reads_the_tightened_deadline ______
+tools/test_v0_s3_native_custody_correction05.py:1498: in test_n05_r14_an_await_that_is_running_reads_the_tightened_deadline
+    assert len(puts) >= 2, 'the reader of the channel never put a frame'
+E   AssertionError: the reader of the channel never put a frame
+E   assert 1 >= 2
+E    +  where 1 = len([0.5])
+___________ test_n07_r13_every_side_effect_checks_the_shared_context ___________
+tools/test_v0_s3_native_custody_correction07.py:1909: in test_n07_r13_every_side_effect_checks_the_shared_context
+    assert not [item for item in _launcher_custody_items()
+E   AssertionError: the refused launch kept an owner in the table of the launcher
+E   assert not [{'detail': 'launch', 'kind': 'aggregate', 'launch': None, 'resource': <tools.v0_s3_native_broker._LaunchAggregate obj...kind': 'aggregate', 'launch': None, 'resource': <tools.v0_s3_native_broker._LaunchAggregate object at 0x785e4ab43080>}]
+_________ test_n10_r04_the_launch_aggregate_finds_the_partial_channel __________
+tools/test_v0_s3_native_custody_correction10.py:709: in test_n10_r04_the_launch_aggregate_finds_the_partial_channel
+    assert channel is not None, \
+E   AssertionError: the partial channel lost its owner
+E   assert None is not None
+______ test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel _______
+tools/test_v0_s3_native_custody_correction10.py:1037: in test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel
+    with pytest.raises(KeyboardInterrupt):
+E   Failed: DID NOT RAISE <class 'KeyboardInterrupt'>
+________ test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread _________
+tools/test_v0_s3_native_custody_correction10.py:1868: in test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread
+    owner.await_result()
+tools/v0_s3_native_broker.py:5804: in await_result
+    kind, value = self._results.get_nowait()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/queue.py:199: in get_nowait
+    return self.get(block=False)
+           ^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread.<locals>.recording_get() got an unexpected keyword argument 'block'
+____ test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation _____
+tools/test_v0_s3_native_custody_correction10.py:2657: in test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation
+    _m09_timeout_phase(document, plan, tmp_path,
+tools/test_v0_s3_native_custody_correction10.py:2144: in _m09_timeout_phase
+    assert isinstance(parallel, dict), \
+E   AssertionError: the timeout did not stay a parallel fact of the failure
+E   assert False
+E    +  where False = isinstance(None, dict)
+=========================== short test summary info ============================
+FAILED tools/test_v0_s3_native_custody_correction05.py::test_n05_r14_an_await_that_is_running_reads_the_tightened_deadline
+FAILED tools/test_v0_s3_native_custody_correction07.py::test_n07_r13_every_side_effect_checks_the_shared_context
+FAILED tools/test_v0_s3_native_custody_correction10.py::test_n10_r04_the_launch_aggregate_finds_the_partial_channel
+FAILED tools/test_v0_s3_native_custody_correction10.py::test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel
+FAILED tools/test_v0_s3_native_custody_correction10.py::test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread
+FAILED tools/test_v0_s3_native_custody_correction10.py::test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation
+6 failed, 183 passed in 51.17s
+{"pytest_exit": 1, "call_count": 189, "pass_count": 183, "fail_count": 6, "skip_count": 0, "functional_pass_count": 181, "cleanup_proven_for_batch": true}
