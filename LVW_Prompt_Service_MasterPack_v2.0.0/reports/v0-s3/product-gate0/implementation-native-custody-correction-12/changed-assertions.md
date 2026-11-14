@@ -48,6 +48,26 @@ changed.
 | ADDED | — | both dynamic subcases assert the history of the error across the channel and the handle of the broker, the **two public stops** of the round (`channel_reader_error == 'RuntimeError'`, the source `REPEATED_CLOSE`) and the state `UNKNOWN_RETAINED` |
 | ADDED | — | the phase documents `r10-timeout-confirmed`, `r10-timeout-confirmed-first`, `r10-timeout-confirmed-second`, `r10-timeout-failed`, `r10-timeout-failed-first`, `r10-timeout-failed-second` |
 
+### N10-R10 — the required order (root preflight PF12-01, correction 12 follow-up)
+
+The two coordination subcases above are **kept** and the distinct order that
+the contract requires is **added** inside the same node id.  The production
+blobs of the candidate `025146b` are **unchanged**: the follow-up is a test
+only correction.
+
+| Kind | Before | After |
+|---|---|---|
+| ADDED | — | the transparent gate `_M09Gate` wraps the **production** wait `_WindowsPipeWorker.wait_done`: it calls the **original** wait and it holds the endpoint **after** that wait returned and **before** the endpoint rechecks or consumes the outcome of its generation.  It never decides the outcome, never rewrites the history of the error and never returns a fact of its own |
+| ADDED | — | the gate holds **one named worker** (the read worker of the round) and only while the read is really in flight: the frames of the start of the round and the write of the round are never held |
+| ADDED | — | the helper `_wait_for_outcome` waits for the **specific** outcome of the **named** generation: the generic event of the worker is only a wake up, because it may be stale |
+| ADDED | — | the subcase `r10-published-before-timeout`: the ordinary failure of the read is published **independently** of the timeout, the immutable outcome of that generation really exists, **then** the effective timeout of the round arrives, **then** the endpoint is released and it consumes the published outcome |
+| ADDED | — | the recorded order: `GATE_ENTERED` → `FAULT_PUBLISHED` (with the generation and the sequence of the completion) → `TIMEOUT_ARRIVED` (with the clock and the effective deadline) → `RELEASED` → `OUTCOME_CONSUMED` (with the parallel fact) |
+| ADDED | — | the assertions of the order: the publication of the fault precedes the arrival of the timeout and the arrival of the timeout precedes the consumption of the outcome |
+| ADDED | — | the exact original error object is the error of the round and the timeout is a parallel fact of it (`lvw_parallel_timeout`, the code `BROKER_PIPE_TIMEOUT` and the generation of the outcome) |
+| ADDED | — | the history of the error keeps it across the channel, the handle of the broker and the **two public stops** of the round, and the round stays `UNKNOWN_RETAINED` |
+| ADDED | — | the teardown is bounded and unconditional: the gate is released, the read of the round is ended, the production wait of the worker is restored and the worker is joined with a bounded wait |
+| ADDED | — | the phase documents `r10-published-before-timeout`, `r10-published-before-timeout-first` and `r10-published-before-timeout-second` |
+
 ## 2. M07-A — the executable recovery of an unresolved original raw stream
 
 ### N07-R09 — `tools/test_v0_s3_native_custody_correction07.py::test_n07_r09_the_launcher_keeps_the_owner_of_the_process_and_the_channel`

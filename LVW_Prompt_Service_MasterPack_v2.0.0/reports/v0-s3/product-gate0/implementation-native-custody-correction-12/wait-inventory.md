@@ -50,3 +50,22 @@ contract and they were not audited by this batch.
   the operating system honoured it.
 * An expired round is refused **before** a wait starts.  There is no wait
   with a zero or a negative argument anywhere in the touched owners.
+
+## 5. The gate of the M09 schedule (a seam, not a bound)
+
+The required order of the M09 obligation (the root preflight PF12-01) is
+driven with a transparent wrapper of the **production** wait of the worker
+(`_WindowsPipeWorker.wait_done`):
+
+| Item | Value |
+|---|---|
+| What it wraps | the production wait of the worker — the original function is called and its result is returned unchanged |
+| What it changes | **when** the endpoint continues: it holds the endpoint after the wait returned and before the endpoint rechecks or consumes its generation |
+| What it never changes | the requested timeout (the original argument is passed through), the outcome of the generation, the selection of the error of the endpoint, the history of the error and the facts that the node asserts |
+| Which worker it holds | one named worker — the read worker of the round — and only while the read is really in flight |
+| Bounded | the hold is bounded (30 s) and the teardown of the node releases it unconditionally and restores the production wait |
+| Evidence | the ledger of the gated waits (`gate_calls`) and the trace of the publication, the timeout and the consumption are in the phase document `r10-published-before-timeout` |
+
+The gate does not touch any bound of the package: the timeout that the
+endpoint receives is the one that the production computed.
+

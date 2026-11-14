@@ -1,7 +1,8 @@
 {
   "admission_produced": false,
   "batches_max": 1,
-  "candidate_base_sha": "b05020a67f0e54d8584505e6ecac52be214ad7fd",
+  "candidate_base_sha": "025146bc41c914b870ffe991c2e0b6dd3a49c160",
+  "candidate_sha": "FROZEN_BY_THE_ROOT_AFTER_THIS_DELIVERY",
   "commands": [
     {
       "argv": [
@@ -338,7 +339,7 @@
     "tools/test_v0_s3_native_custody.py::test_the_old_owners_are_unchanged",
     "tools/test_v0_s3_native_custody.py::test_the_old_refusal_points_are_still_declared"
   ],
-  "kind": "LVW_N1_CORRECTION12_IMPLEMENTATION_PLAN_REQUEST/1",
+  "kind": "LVW_N1_CORRECTION12_IMPLEMENTATION_PLAN_REQUEST/2",
   "max_seconds": 300,
   "node_count": 189,
   "node_order_is_binding": true,
@@ -544,13 +545,30 @@
     "windows_stdin_eof"
   ],
   "observations_before_the_batch": "none: the batch did not run.  The implementation did NOT import, NOT collect and NOT run the candidate, it did NOT run the guard, it did NOT read the counter and it did NOT probe the runtime.  Only the source text was compiled in memory and only the AST and the symtable of the seven files were inspected.",
+  "preflight": {
+    "finding": "PF12-01",
+    "production_changed": false,
+    "resolution": "The M09 schedule of the candidate 025146b drove the late fault only.  The follow-up adds the required order as a third distinct dynamic subcase inside the same node id (test_n10_r10_...): the fault is published first, the effective timeout arrives afterwards and the endpoint consumes the published outcome after the timeout was decided.  The two coordination subcases are kept.  The production blobs are unchanged."
+  },
   "preparation_dir": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-12/attempt01-preparation",
+  "previous_candidate_sha": "b05020a67f0e54d8584505e6ecac52be214ad7fd",
   "previous_evidence_commit": "a9660eb99c8fb2c89737e69a18e37d29c98a3edf",
   "product_gate0": false,
   "real_execution_performed": false,
   "receipt_filename_note": "The inherited runner writes native-custody-correction-03.receipt.json inside the NEW attempt01 directory of the correction 12 only; it never reuses the evidence of an older attempt.",
   "report_dir": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-12/attempt01",
   "request_note": "This is the REQUEST of the implementation for the finite batch.  It is not a plan of the root and it grants no authority.  The root pins the candidate, writes its own plan.json in its own validation-plan-01 directory and runs the three commands below, once.",
+  "sourcepins": {
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody.py": "fe96d2ffd353d3f3f6df4da2b023dd6cfaf58fe730ab6655afbca723ed507d32",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction05.py": "65d5511829f3f27870eb3adecfd14fd9ce468908f696c169b3be8dd6c9064966",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction07.py": "d117150636c7edabc8272e855ff0a4227e7c4a4e07fbd1dbb8bcd6ab845fbe40",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py": "0de9eab4af22d33f0e56ca6f2d98c0b0aee4d149dc73632ab7715259ebfcf031",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_regressions.py": "cdc66b44a3251c2776893cd8211866491a5f843a154084820cdba1018ed0ce79",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_native_broker.py": "5527734702c83858eb147d3752cbc00224d62848ca80932082e22fe1345674f6",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_native_custody.py": "9b7e68969f2cbf8763664ba57fa3e5ee4133a0beed076a64f037e6344f336d8d"
+  },
+  "sourcepins_count": 7,
+  "sourcepins_note": "The digests of the seven allowed files of the new candidate.  The root pins them in its own plan.json and the inherited runner verifies them before it imports anything.",
   "stage": "R1",
   "stage_pass_claim": false,
   "stdlib_pins": {

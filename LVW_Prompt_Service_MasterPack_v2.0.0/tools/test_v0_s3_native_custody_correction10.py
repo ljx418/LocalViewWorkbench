@@ -2201,6 +2201,241 @@ def _m09_timeout_phase(document, plan, tmp_path, *, phase, confirm_the_worker,
                 'the worker of the read was left behind'
 
 
+class _M09Gate:
+    """The transparent gate of the wait of the worker.
+
+    The gate is a **wrapper** of the production wait of the worker: it
+    calls the **original** wait and it holds the endpoint **after** that
+    wait returned and **before** the endpoint rechecks or consumes the
+    outcome of its own generation.
+
+    The gate never decides the outcome, never rewrites the history of
+    the error, never touches the selection of the error of the endpoint
+    and never returns a fact of its own: it only decides **when** the
+    endpoint continues.  Every value that the node asserts afterwards is
+    a value that the production returned.
+
+    The gate holds **one named worker** and it holds it only while the
+    read of the round is really in flight: the frames of the start of
+    the round are never held and the write of the round is never held.
+    """
+
+    def __init__(self, api):
+        self.api = api
+        self.entered = threading.Event()
+        self.release = threading.Event()
+        self.calls = []
+        self.target = None
+        self.armed = True
+
+    def install(self, worker_class):
+        """Wrap the production wait of the worker class."""
+        original = worker_class.wait_done
+        gate = self
+
+        def gated_wait_done(worker, generation, timeout):
+            result = original(worker, generation, timeout)
+            gate.calls.append({'generation': generation,
+                               'timeout': timeout,
+                               'result': bool(result)})
+            if (gate.armed and not result and worker is gate.target
+                    and gate.api.read_waiting.is_set()):
+                # The endpoint is held **after** the production wait and
+                # **before** it rechecks its generation.
+                gate.entered.set()
+                gate.release.wait(30.0)
+            return result
+
+        worker_class.wait_done = gated_wait_done
+        return original
+
+
+def _wait_for_outcome(worker, generation, seconds):
+    """The immutable outcome of **that** generation of the worker.
+
+    The generic event of the worker may be stale: the event is only a
+    wake up and the **outcome of the named generation** is the fact that
+    the wait is really about.
+    """
+    deadline = time.monotonic() + seconds
+    while time.monotonic() < deadline:
+        outcome = worker.outcome(generation)
+        if outcome is not None and outcome.get('error') is not None:
+            return outcome
+        worker.outcome_published.wait(0.05)
+    return None
+
+
+def _m09_published_fault_phase(document, plan, tmp_path, *, phase):
+    """The schedule that the contract requires: the fault comes first.
+
+    The ordinary failure of the read is published **before** the
+    effective timeout of the round arrives and the endpoint consumes the
+    outcome of its generation only **after** the timeout was decided.
+
+    The order that is driven and recorded is therefore
+
+        the publication of the fault -> the immutable outcome of that
+        generation exists -> the effective timeout arrives -> the
+        endpoint consumes the outcome.
+
+    The gate of the schedule is a transparent wrapper of the production
+    wait of the worker: it calls the original wait and it holds the
+    endpoint between the wait and the recheck of its generation.  The
+    fault is published **independently** of the timeout, the outcome of
+    the **named** generation is waited for (the generic event of the
+    worker may be stale) and the timeout of the round is advanced only
+    after the outcome really exists.
+
+    The error of the round is the **exact original error object** and
+    the timeout is a **parallel** fact of it.  The history of the error
+    keeps it across the channel, the handle of the broker and the two
+    public stops of the round.
+    """
+    clock = ManualClock(1000.0)
+    api = _M09TimeoutApi()
+    session, holder, channel_closes, channel_facts = _chain(
+        api, document, plan, tmp_path, clock=clock)
+    fault = RuntimeError('read_fault')
+    api.fault = fault
+    api.fault_object = fault
+    gate = _M09Gate(api)
+    worker = None
+    trace = []
+    original_wait_done = gate.install(_WindowsPipeWorker)
+    try:
+        session.start()
+        # The reader of the chain is really inside its read and the
+        # generation of that read is the fact of the worker itself: it
+        # is never a number that the group hard codes.
+        assert api.read_waiting.wait(15.0), \
+            'the reader of the chain was never inside its read'
+        worker = holder['read_endpoint']._reader
+        assert worker is not None, 'the reader of the chain never started'
+        gate.target = worker
+        generation = worker._submitted
+        assert generation >= 1, 'the reader of the chain never submitted'
+        # The bound of the round is a real deadline: the timeout that
+        # arrives later is the expiry of **this** bound and the absolute
+        # lease of the round stays in the future.
+        holder['channel'].bind_deadline(clock.value + 0.5)
+        # The endpoint is held after its production wait and before it
+        # rechecks its generation.
+        assert gate.entered.wait(15.0), \
+            'the endpoint was never held at the wait of its generation'
+        trace.append({'step': 'GATE_ENTERED', 'generation': generation,
+                      'clock': clock.value})
+        # The ordinary failure of the read is published
+        # **independently** of the timeout of the round.
+        api.publish_read_fault()
+        assert api.fault_observed.wait(15.0), \
+            'the ordinary failure of the read never happened'
+        # The **specific** outcome of that generation is waited for: the
+        # generic event of the worker may be stale.
+        outcome = _wait_for_outcome(worker, generation, 15.0)
+        assert outcome is not None, \
+            'the outcome of the generation was never published'
+        trace.append({'step': 'FAULT_PUBLISHED', 'generation': generation,
+                      'sequence': outcome['sequence'],
+                      'error': outcome['error'],
+                      'clock': clock.value})
+        assert outcome['generation'] == generation, \
+            'the outcome of another generation was read'
+        assert outcome['error'] == 'RuntimeError', \
+            'the published failure of the round is not the ordinary one'
+        assert outcome['error_object'] is fault, \
+            'the outcome of the generation does not keep the original error'
+        # The effective timeout of the round arrives **now**: the fault
+        # is already published and the endpoint has not consumed it.
+        clock.advance(1.0)
+        trace.append({'step': 'TIMEOUT_ARRIVED', 'generation': generation,
+                      'clock': clock.value,
+                      'effective': holder['channel']._effective_deadline()})
+        # The endpoint continues: it rechecks the timeout and it finds
+        # the published outcome of its own generation.
+        gate.release.set()
+        trace.append({'step': 'RELEASED', 'generation': generation,
+                      'clock': clock.value})
+        # The endpoint consumed the outcome: the original error object
+        # carries the timeout as a **parallel** fact.
+        deadline = time.monotonic() + 15.0
+        parallel = None
+        while time.monotonic() < deadline:
+            parallel = getattr(fault, 'lvw_parallel_timeout', None)
+            if parallel is not None:
+                break
+            time.sleep(0.005)
+        assert isinstance(parallel, dict), \
+            'the endpoint did not consume the published outcome'
+        trace.append({'step': 'OUTCOME_CONSUMED', 'generation': generation,
+                      'clock': clock.value, 'parallel': parallel})
+        assert parallel.get('code') == 'BROKER_PIPE_TIMEOUT', \
+            'the timeout did not stay a parallel fact of the failure'
+        assert parallel.get('generation') == generation, \
+            'the parallel fact names another generation'
+        # The order of the three facts is the order of the contract:
+        # the publication of the fault, the arrival of the timeout and
+        # the consumption of the outcome.
+        steps = [item['step'] for item in trace]
+        assert steps.index('FAULT_PUBLISHED') < steps.index('TIMEOUT_ARRIVED'), \
+            'the timeout of the round arrived before the fault was published'
+        assert steps.index('TIMEOUT_ARRIVED') < steps.index('OUTCOME_CONSUMED'), \
+            'the outcome was consumed before the timeout of the round arrived'
+        facts = {'generation': generation, 'trace': trace,
+                 'outcome_error': outcome['error'],
+                 'outcome_object': type(outcome['error_object']).__name__,
+                 'parallel_timeout': parallel,
+                 'gate_calls': gate.calls,
+                 'state': session.state}
+        write_phase(phase, facts)
+        # The error of the reader of the channel is the error of the
+        # round: the history of the round keeps it and the two public
+        # stops of the round keep it.
+        first = session.stop()
+        first_facts = first['broker_close_facts'] or {}
+        write_phase(phase + '-first', {
+            'reader_error': first_facts.get('channel_reader_error'),
+            'state': first['state'],
+            'retained': first['broker_retained']})
+        assert first_facts.get('channel_reader_error') == 'RuntimeError', \
+            'the real fault of the round was replaced by a cancellation'
+        assert first['broker_retained'] is True
+        assert first['state'] == 'UNKNOWN_RETAINED'
+        second = session.stop()
+        second_facts = second['broker_close_facts'] or {}
+        write_phase(phase + '-second', {
+            'reader_error': second_facts.get('channel_reader_error'),
+            'source': second_facts.get('channel_reader_error_source'),
+            'state': second['state']})
+        assert second_facts.get('channel_reader_error') == 'RuntimeError', \
+            'the second attempt lost the error of the reader'
+        assert second_facts.get('channel_reader_error_source') \
+            == 'REPEATED_CLOSE'
+        assert second['state'] == 'UNKNOWN_RETAINED'
+    finally:
+        # The teardown of the owner of the test is bounded and it is
+        # unconditional: the gate is released, the read of the round is
+        # ended, the production wait of the worker is restored and the
+        # worker is stopped and joined.
+        gate.release.set()
+        api.release_the_worker.set()
+        api.publish_outcome('EOF')
+        _WindowsPipeWorker.wait_done = original_wait_done
+        try:
+            session.stop()
+        except Exception:  # noqa: BLE001 - the evidence keeps the failure
+            pass
+        if worker is not None:
+            # The worker is stopped explicitly: the coordination of the
+            # round was never reached in this schedule and the worker of
+            # the read would otherwise wait for a request that never
+            # comes.
+            worker.stop_accepting()
+            worker.join_bounded(10.0)
+            assert not worker.is_alive(), \
+                'the worker of the read was left behind'
+
+
 def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_path):
     """N10-R10 (M09): a real fault of the round is never a benign cancel.
 
@@ -2253,6 +2488,21 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
     stops of the round, and the round stays unknown.  The generation of
     the blocked read is the fact of the worker itself and it is never a
     number that the group hard codes.
+
+    CORRECTION 12 (root preflight PF12-01): the **required order** is
+    driven as well and it is driven **distinctly** from the two
+    coordination subcases above.  The ordinary failure of the read is
+    published **first** and the immutable outcome of **that** generation
+    really exists before the effective timeout of the round arrives;
+    the endpoint consumes the outcome only after the timeout was
+    decided.  The gate of that schedule is a transparent wrapper of the
+    production wait of the worker: it calls the original wait and it
+    holds the endpoint between that wait and the recheck of its
+    generation.  The publication, the timeout and the consumption are
+    recorded in their order and the current generation is named with
+    them.  The coordination subcases above remain: they are the ones
+    that drive a **confirmed** and a **failed** coordination of the
+    round, and the failure of the coordination is a parallel fact there.
     """
     document = _live_plan_document()
     plan = validate_launch_plan(document, now=time.time())
@@ -2410,6 +2660,17 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
     _m09_timeout_phase(document, plan, tmp_path,
                         phase='r10-timeout-failed',
                         confirm_the_worker=False, hold_the_worker=True)
+
+    # -- THE REQUIRED ORDER (N1 correction 12, root preflight PF12-01):
+    #    the ordinary failure of the read is published **before** the
+    #    effective timeout of the round arrives and the endpoint consumes
+    #    the outcome of its own generation only **after** the timeout
+    #    was decided.  The gate is a transparent wrapper of the
+    #    production wait of the worker: it calls the original wait and
+    #    it holds the endpoint between that wait and the recheck of its
+    #    generation.
+    _m09_published_fault_phase(document, plan, tmp_path,
+                               phase='r10-published-before-timeout')
 
 # -- N10-R11: the overflow of the channel is a named failure -------------
 

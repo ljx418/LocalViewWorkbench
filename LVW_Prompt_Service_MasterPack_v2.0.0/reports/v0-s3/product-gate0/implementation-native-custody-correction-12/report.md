@@ -179,6 +179,70 @@ by the dynamic schedule of the obligation, inside the same node id:
 The close-token and the exact/one-over overflow schedules stay separate
 subcases of N10-R11 and are unchanged.
 
+### 1.9 PF12-01 — the required order of the M09 schedule
+
+The static preflight of the root (PF12-01, candidate `025146b`) found that
+the dynamic schedule of the correction 12 drove the **late** fault: the
+effective timeout of the round was decided **first** and the ordinary failure
+of the read was published by the cancellation of the operating system
+**during** the coordination of that timeout.  The distinct order that the
+contract requires — the fault is **already published**, and the effective
+timeout arrives **before** the endpoint consumes the outcome — was not
+driven.
+
+The follow-up is a **test only** correction inside the same node id
+(`test_n10_r10_...`).  The production blobs of `025146b` are **unchanged**.
+
+The new subcase (`_m09_published_fault_phase`, phase
+`r10-published-before-timeout`) drives the required order with a transparent
+gate at the actual await wait/selection boundary:
+
+* the gate (`_M09Gate`) is a wrapper of the **production** wait of the
+  worker (`_WindowsPipeWorker.wait_done`): it calls the **original** wait and
+  it holds the endpoint **after** that wait returned and **before** the
+  endpoint rechecks or consumes the outcome of its own generation.  It never
+  decides the outcome, never rewrites the history of the error, never touches
+  the selection of the error of the endpoint and never returns a fact of its
+  own — it only decides **when** the endpoint continues.  It holds **one
+  named worker** (the read worker of the round) and only while the read is
+  really in flight: the frames of the start of the round and the write of the
+  round are never held.
+* the ordinary failure of the read is published **independently** of the
+  timeout of the round (`api.publish_read_fault()`), and the **specific**
+  outcome of the **named** generation is waited for (`_wait_for_outcome`): the
+  generic event of the worker is only a wake up, because it may be stale.
+* only then the effective timeout of the round arrives (the bound of the
+  round is advanced), and only then the endpoint is released: it rechecks the
+  timeout, it finds the **published** outcome of its own generation and it
+  raises the **exact original error object** with the timeout as a
+  **parallel** fact.
+* the order that was driven is recorded: `GATE_ENTERED` →
+  `FAULT_PUBLISHED` (with the generation and the sequence of the completion)
+  → `TIMEOUT_ARRIVED` (with the clock and the effective deadline) →
+  `RELEASED` → `OUTCOME_CONSUMED` (with the parallel fact), and the node
+  asserts that the publication precedes the timeout and that the timeout
+  precedes the consumption.
+* the history of the error is checked across the channel, the handle of the
+  broker and the **two public stops** of the round: `channel_reader_error`
+  is `RuntimeError`, the source of the second attempt is `REPEATED_CLOSE`
+  and the state is `UNKNOWN_RETAINED`.
+* the teardown is bounded and unconditional: the gate is released, the read
+  of the round is ended, the production wait of the worker is restored and
+  the worker is joined with a bounded wait.
+
+The two **coordination** subcases of the correction 12 are **kept**: they are
+the ones that drive a **confirmed** and a **failed** coordination of the
+round, and the failure of the coordination is a parallel fact there.  The
+required order and the coordination orders are now three **distinct**
+schedules inside the same node id:
+
+| Subcase | Order | Coordination |
+|---|---|---|
+| `r10-published-before-timeout` | the fault is published, **then** the timeout, **then** the consumption | none is needed: the outcome was already published when the timeout was decided |
+| `r10-timeout-confirmed` | the timeout is decided, **then** the fault is published **during** the coordination | confirmed: the worker really ended |
+| `r10-timeout-failed` | the timeout is decided, **then** the fault is published **during** the coordination | failed: the join was not confirmed and the failure of the coordination is a parallel fact |
+
+
 ## 2. What was preserved
 
 * The closed static obligations of the correction 11 stay closed: the M05

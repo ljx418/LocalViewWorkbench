@@ -1,12 +1,8 @@
 {
   "batch_executed": false,
   "batch_result": null,
-  "candidate_base_sha": "b05020a67f0e54d8584505e6ecac52be214ad7fd",
+  "candidate_base_sha": "025146bc41c914b870ffe991c2e0b6dd3a49c160",
   "changed_source_files": [
-    "tools/v0_s3_native_broker.py",
-    "tools/test_v0_s3_native_custody_regressions.py",
-    "tools/test_v0_s3_native_custody_correction05.py",
-    "tools/test_v0_s3_native_custody_correction07.py",
     "tools/test_v0_s3_native_custody_correction10.py"
   ],
   "closed_static_preserved": [
@@ -46,12 +42,12 @@
   ],
   "grant_authority": "NOT_VERIFIED",
   "historical_evidence": "The failed batch of the correction 11 (commit a9660eb) and the reports of the corrections 11/10/09/08 are unchanged.  No untracked artefact was removed and no historical report was edited.",
-  "kind": "LVW_N1_CORRECTION12_STATIC_IMPLEMENTATION_RECEIPT/1",
-  "m09_dynamic_coverage": "The auxiliary AST only proof of N10-R10 was replaced by the dynamic schedule of the obligation inside the same node id: a real ordinary fault for the current generation, the effective timeout before the endpoint consumes it, a confirmed and a failed coordination, the exact original error object, the parallel timeout and the two public stops.",
+  "kind": "LVW_N1_CORRECTION12_STATIC_IMPLEMENTATION_RECEIPT/2",
+  "m09_dynamic_coverage": "The auxiliary AST only proof of N10-R10 was replaced by three distinct dynamic schedules of the obligation inside the same node id: r10-published-before-timeout (the required order: the fault is published, THEN the effective timeout, THEN the consumption), r10-timeout-confirmed (the timeout is decided first and the fault is published during a CONFIRMED coordination) and r10-timeout-failed (the same with a FAILED coordination whose failure is a parallel fact).  The exact original error object, the parallel timeout facts, the channel/BrokerProcess history and the two public Session.stop calls are asserted in every subcase.",
   "major_closure_claimed": false,
-  "next_owner": "root / gate owner: the independent review, the pin of the candidate and the finite batch",
+  "next_owner": "root / gate owner: the re-review of the corrected M09 schedule, the pin of the new candidate and the finite batch of 189 nodes",
   "node_count": 189,
-  "node_identity_verified": "statically: the node ids of the five modules were extracted with the AST and compared with the frozen list of the plan of the root; the two lists are identical (189 = 189).",
+  "node_identity_verified": "statically, after the follow-up: the node ids of the five modules were extracted with the AST and compared with the frozen list of the plan of the root; the two lists are identical (189 = 189).  No node was added, renamed, removed or moved.",
   "node_order_is_binding": true,
   "not_executed": [
     "candidate import",
@@ -88,6 +84,7 @@
     "M08-D",
     "M08-E"
   ],
+  "previous_candidate_sha": "b05020a67f0e54d8584505e6ecac52be214ad7fd",
   "previous_evidence_commit": "a9660eb99c8fb2c89737e69a18e37d29c98a3edf",
   "product_gate0": false,
   "reports": {
@@ -98,6 +95,18 @@
     "validation_plan_request": "validation-plan-request.json",
     "wait_inventory": "wait-inventory.md"
   },
+  "root_preflight": {
+    "coordination_subcases_kept": [
+      "r10-timeout-confirmed",
+      "r10-timeout-failed"
+    ],
+    "finding": "PF12-01",
+    "finding_source": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-12/static-preflight-01/findings.md",
+    "production_changed": false,
+    "production_note": "The production blobs of the candidate 025146b are unchanged: the follow-up is a test only correction inside the seven allowed files.",
+    "resolution": "A third, distinct dynamic subcase was added inside the same node id (test_n10_r10_...): a transparent gate wraps the production wait of the worker, it calls the original wait and holds the endpoint between that wait and the recheck of its generation; the fault is published independently, the specific outcome of the named generation is waited for, the effective timeout is advanced afterwards and the endpoint is released.  The order publication -> timeout -> consumption is recorded and asserted with the current generation.",
+    "summary": "The dynamic schedule of the M09 obligation decided the effective timeout FIRST and published the fault from cancel_synchronous_io DURING the timeout coordination; the distinct order \"the fault is ALREADY published and the effective timeout arrives BEFORE the endpoint consumes the outcome\" was not driven."
+  },
   "stage": "R1",
   "stage_pass_claim": false,
   "test_defects_reconciled": [
@@ -106,8 +115,12 @@
     "N10-R10"
   ],
   "unchanged_allowed_files": [
+    "tools/v0_s3_native_broker.py",
     "tools/v0_s3_native_custody.py",
-    "tools/test_v0_s3_native_custody.py"
+    "tools/test_v0_s3_native_custody.py",
+    "tools/test_v0_s3_native_custody_regressions.py",
+    "tools/test_v0_s3_native_custody_correction05.py",
+    "tools/test_v0_s3_native_custody_correction07.py"
   ],
   "workpack": "S3-P4-N1"
 }
