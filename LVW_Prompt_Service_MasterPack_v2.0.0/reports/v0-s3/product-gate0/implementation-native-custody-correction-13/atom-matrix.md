@@ -63,3 +63,41 @@ are never repeated.
 | the common success notification clears the owner | `WindowsApi._note`, `BrokerCore._release_the_records` | untouched |
 | the original M09 outcome selection | `_WindowsPipeEndpoint._await`, `_parallel_timeout`, `_parallel_fault` | untouched; the three schedules of §3 exercise it |
 | the atomic frame budget and the overflow | `StreamChannel._record_overflow`, `BrokerLoop._loop` | untouched |
+
+---
+
+# Static follow-up 01 — the residual M07 and the PF13 drivers
+
+Baseline `a69170c`.  The independent review left **M07** OPEN with three
+residual paths; the root preflight added **PF13-01**, **PF13-02** and
+**PF13-03** as missing coverage.  Every row below names an **existing** node
+id; the exact 189 identities and their order are unchanged.
+
+## 1. The three residual paths of M07
+
+| Atom | Production owner (file:symbol) | Event | Oracle | Negative | Returned state | Salvage |
+|---|---|---|---|---|---|---|
+| M07-A.1 (the ownership history of the channel) | `v0_s3_native_broker.py:_LaunchAggregate.retain`/`bind_channel`/`_record_channel_ownership`, `_LaunchAggregate.release`, `_release_raw_streams` | a channel of a launch **completes** and the original HANDLE of the process fails its first close; the **same** owner is released again | the original files of the process are closed **once** by the channel; the HANDLE is attempted twice (one failure, one success); the exit is waited for once; the launch owns no raw stream | the presence of the channel in the active slot may never decide the eligibility of a raw close and the history is never revoked | the facts of the aggregate name the released and the retained resources; the identity of the original files is kept | the same owner retries the original HANDLE alone and the table of the launcher converges |
+| M07-A.2 (the ownership of every unconfirmed original) | `_LaunchAggregate._register_pending_raw`, `_LaunchAggregate._reconcile_pending_raw`, `_release_launch_process(retained_out=..., failures_out=...)` | an ordinary failure of the standard input, then the exact `KeyboardInterrupt` of the standard output; the companion with the `KeyboardInterrupt` at the **first** raw close | both originals keep their **identity** and their owner before the salvage; the original cancellation object is the error that leaves; the same owner really closes **both** originals afterwards | an ordinary failure that happened before the interruption may never be lost with the report of the helper and an original that was never visited may never be unknown | the facts of the aggregate name `close_failed` and `close_unconfirmed`; the identity is the authority and not the label | the same owner closes the unresolved originals and the table of the launcher converges |
+| M07-A.3 (the current minimum before every initial close) | `_release_minimum`, `_release_launch_process`, `_release_raw_streams` | the round is tightened during the wait of the process, and between two initial raw closes | the next close is **zero**: it is never attempted; the original keeps its owner and its identity; the positive case closes every original | an expired bound never starts a new close, never opens a fresh cleanup lease and never loosens the original context | the facts of the aggregate name `BROKER_RAW_STREAM_DEADLINE_EXCEEDED` and the retained original | the owned retry closes the original once the round is positive again |
+
+## 2. The cross-product of the original resources after the follow-up
+
+| Schedule | The surviving facts before the salvage | The same-owner recovery |
+|---|---|---|
+| the channel completed, the original HANDLE failed | the channel is forgotten, the history of the ownership stays, the exit is confirmed, the process is retained for its HANDLE | the retry closes the HANDLE alone; the original files are not closed again |
+| no channel, the input failed and the output was cancelled | the exit and the HANDLE are confirmed, the input is retained with its identity, the output is retained with its identity, the original cancellation object is the error that leaves | the retry closes both originals and the table converges |
+| no channel, the first raw close was cancelled | the exit and the HANDLE are confirmed, the input is retained, the output was never visited and is retained with its identity | the retry closes both originals and the table converges |
+| no channel, the input succeeded and the output failed, the HANDLE failed | the input close is confirmed and forgotten, the output is retained, the process is retained for its HANDLE | the retry closes the HANDLE and the output; the confirmed input is never closed again |
+| the round expired during the wait of the process | the originals are registered with the owner and the process exit is confirmed | no close is started; the originals stay owned and the owned retry closes them when the round is positive again |
+
+## 3. The PF13 drivers inside the existing node ids
+
+| Preflight | Node | Event | Oracle | Negative | Returned state | Salvage |
+|---|---|---|---|---|---|---|
+| PF13-01 | `N07-R09` | the completed channel with the failing original HANDLE and the same-owner retry | the counts of the closes, of the HANDLE attempts and of the terminate and wait calls | no second close of a confirmed original and no second wait for a confirmed exit | the documents `r09-completed-channel-first` and `r09-completed-channel-second` | the channel is closed and its thread is joined |
+| PF13-01 | `N05-R10` | the ordinary failure followed by the exact cancellation, the companion with the cancellation at the first raw close, and the cross-product with the earlier success and the failing HANDLE | the persistent references before the salvage, the identity of the original error, the counts of the successful operations, the release fault and the recovery of all the originals | no dependence on a standard error (the default `Popen` has none) and no dependence on the bound of another round | the documents `n05-r10-ordinary-then-cancel-first`/`-recovery`, `n05-r10-cancel-first-first`/`-recovery` and `n05-r10-success-then-handle-first`/`-recovery` | the scoped table of the launcher converges |
+| PF13-01 | `N10-R05` | the round is tightened during the wait and between two initial closes | the next close is zero and the original is retained with its identity; the positive case closes every original; the owned retry closes the refused originals | the already-owned retry of the closed path is not broken by the refusal | the documents `r05-bound-during-wait`, `r05-bound-between-closes`, `r05-bound-positive` and `r05-bound-owned-retry` | the same owner closes the refused originals |
+| PF13-02 | `N07-R02` | the four exact remainders through the API, the recovery and the Core adapters with a common **zero** clock origin | the requested primitive arguments are the floor of the **actual** remaining and they never exceed it | no ceiling or floor of the rule is weakened and a written label never overrides the actual float | the documents `r02-millisecond-floor`, `r02-millisecond-floor-recovery` and `r02-millisecond-floor-core` | the façade releases its handles |
+| PF13-03 | `N10-R07` | the real parent pump, the BrokerProcess, the queue of the channel and the reply event of the parent after the original context was tightened | the actual requested arguments of the queue wait and of the event wait, and the zero expiry | the recorders are transparent: they call the original owner of the wait and they never replace the result or the history | the documents `r07-pump-current-minimum` and `r07-pump-zero-expiry` | the owner of the test stops the round in every case |
+| PF13-03 | `N07-R13` | the public `Session.stop` while the process of the round is **admitted** | no read of the executable, no digest and **zero** channel constructor attempts | the absence of a channel is never a proof that no constructor was attempted | the document `r13-stop-while-popen` | the admitted process keeps its owner and the bounded recovery releases it |

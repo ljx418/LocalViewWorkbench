@@ -385,3 +385,139 @@ changed and no product threshold changed.
   was reconstructed, refunded or reset and the counter was never read.
 * The historical reports, the pinned evidence of the corrections 08 to 12, the
   root packets, the execution control and the MANIFEST were not touched.
+
+---
+
+# Static follow-up 01 of the correction 13 (the residual M07 and the PF13 drivers)
+
+Baseline `a69170c446ff4af2955ddac1707af91d00c5dfcd`.  Independent review:
+**F0 / M1 / m0**, 58 CLOSED_STATIC / 5 OPEN / 9 UNCERTAIN, **M08 CLOSED_STATIC**,
+M07 OPEN with the three residual paths A.1, A.2 and A.3.  Root static preflight:
+**PF13-01**, **PF13-02** and **PF13-03**.  This section is the delivery of the
+static follow-up of the root packet
+`native-custody-correction-13/static-correction-01/contract-addendum.md`.
+The exact `a69170c` static delivery is archived in
+`native-custody-correction-13/static-correction-01/static-candidate-a69170c.zip`
+and the git history preserves it.  **STATIC only**: no import, no collection,
+no pytest, no ctypes, no native call, no counter and no helper probe.
+
+## 6. The three residual paths of M07
+
+### 6.1 M07-A.1 — the durable ownership history of the channel
+
+Before: the eligibility of a raw close was decided from the **presence** of
+the channel in the active slot.  A channel that **completed** was forgotten
+and the slot was cleared, so the next release of the same owner became the
+raw closer of the original files that the channel had really closed: the
+process exit was skipped correctly and the original HANDLE was retried, but
+the original standard input and the original standard output were closed a
+second time.
+
+Now (`tools/v0_s3_native_broker.py`):
+
+* `_LaunchAggregate._channel_owns_raw` and `_LaunchAggregate._channel_owned_raw`
+  are the **durable ownership history** of the launch.  They are written at the
+  **actual registration** of the channel - `retain('channel', ...)` and
+  `bind_channel(...)` - and they are **never revoked**: clearing the active
+  slot does not give the ownership back and it never creates a new raw closer.
+* The history keeps the **identity** of the original files that the channel
+  took (the name and the object), not a label and not a summary.
+* `release()` decides the eligibility of a raw close with the history and not
+  with the presence of the channel: `close_pipes = channel is None and not
+  self._channel_owns_raw`.
+* `_release_raw_streams` refuses the raw close of an original that the
+  channel took (`BROKER_RAW_STREAM_OWNED_BY_CHANNEL`).
+
+A failed original HANDLE is now retried **alone**: the confirmed exit is
+skipped, the original HANDLE is the only thing that is closed again, no
+original file is closed a second time and no new owner or PID is looked up.
+
+### 6.2 M07-A.2 — every unconfirmed original keeps an executable owner
+
+Before: the ordinary failure of a raw close was kept in the **local** report
+of the helper.  A `KeyboardInterrupt`/`SystemExit` at the next raw close
+escaped the helper, the report never arrived and the earlier ordinary failure
+was lost: the launch kept only the interrupted original and the original that
+was **never visited** was not known at all.  The confirmed exit and the
+confirmed HANDLE allowed the process to be removed, so the remaining original
+had no executable recovery route.
+
+Now:
+
+* `_LaunchAggregate._register_pending_raw` registers the **original
+  identities** of the process with the owner **before** the first
+  interruptible raw step.  An original that is never visited is known and it
+  keeps its owner.
+* `_release_launch_process` exports every ordinary failure **as it happens**
+  through `retained_out` and it writes the failures into the shared
+  `failures_out` dictionary of the owner.  A helper that is interrupted
+  before it returns no longer loses the failure that happened before the
+  interruption.
+* `_LaunchAggregate._reconcile_pending_raw` reconciles the registered
+  originals with the progress record after the helper: a confirmed close is
+  forgotten by the owner and by the table of the launcher, and every other
+  original - the one whose close **failed** and the one that was **never
+  visited** - keeps its identity and its owner (`close_failed` and
+  `close_unconfirmed` are labels; the identity is the authority).
+* The original `KeyboardInterrupt`/`SystemExit` object is still the error
+  that leaves, after the safe independent cleanup.
+
+### 6.3 M07-A.3 — the current minimum before every **initial** raw close
+
+Before: the aggregate computed the bound once before the helper and the
+helper compared every initial raw close with that earlier number.  A context
+that was tightened by the wait of the process or by a previous close of an
+original was not observed: the next close was admitted against a stale
+minimum.
+
+Now: `_release_minimum(deadline, context, clock)` returns the **current**
+minimum of the release - the deadline of the caller, the absolute deadline of
+the original context and the **published** cleanup deadline of the round -
+together with the clock of its domain.  `_release_launch_process` calls it
+**before every initial raw close**: an expired bound starts no new close, the
+original keeps its owner and its identity and the failure is named
+(`BROKER_RAW_STREAM_DEADLINE_EXCEEDED`).  The already-owned retry loop reads
+the bound again on every iteration and it is unchanged.  The finite
+no-context facade keeps its bounded wait.
+
+## 7. The executable test drivers of PF13
+
+Every driver is inside an **existing** node id.  No node was added, renamed,
+removed or moved and the exact 189 identities and their order are unchanged.
+
+| Preflight | Driver | Node | What it drives |
+|---|---|---|---|
+| PF13-01 (1) | the completed channel owns and closes the originals, the original HANDLE fails once, the same owner retries | `N07-R09` | the channel really closes the original files once, the HANDLE is attempted twice (one failure, one success), the exit is waited for once and the table converges only when every fact is true |
+| PF13-01 (2) | the ordinary failure of the input followed by the exact `KeyboardInterrupt` of the output, and the companion with the `KeyboardInterrupt` at the **first** raw close | `N05-R10` | the persistent original references before the salvage, the original error identity, the counts of the successful operations, the release fault and the same-owner recovery of **all** the originals; the process has **no** standard error, exactly like the default `Popen` |
+| PF13-01 (3) | the earlier success with a failing original HANDLE | `N05-R10` | the confirmed close is never repeated, the exit is never confirmed again and only the HANDLE and the unresolved original are retried |
+| PF13-01 (4) | the round is tightened during the wait of the process and between two initial raw closes, with the exact expired and positive cases and the already-owned retry | `N10-R05` | the next close is **zero** (it is never attempted), the original is retained with its identity and the owned retry closes it once the round is positive again |
+| PF13-02 | the millisecond boundary with a common **zero** clock origin through the API adapter, the **recovery** adapter and the Core adapter | `N07-R02` | the requested primitive arguments at the exact zero, below the unit, at the unit and one over it; the expected values are derived from the **actual** remaining; the finite no-positive-floor rule is unchanged |
+| PF13-03 (a) | the real parent pump through the BrokerProcess and the queue of the channel, and the parent reply event, after the original context was tightened | `N10-R07` | the **actual** requested arguments of the queue wait and of the event wait, with the zero expiry included; the recorders are transparent and they call the original owner of the wait |
+| PF13-03 (b) | the public `Session.stop` while the process of the round is **admitted** | `N07-R13` | no read of the executable, no digest and **zero** channel constructor attempts, while the admitted process keeps its owner and stays recoverable; the separate stop-during-hash schedule is preserved |
+
+The fixtures are honest about what they observe: the counters of the seams
+(the digest, the read of the executable and the constructor of the channel)
+are the evidence - the absence of a channel is never a proof that no
+constructor was attempted - and the millisecond fixture no longer depends on
+the subtraction of an epoch.
+
+## 8. What is preserved
+
+* **M08-A, M08-B, M08-C.1, M08-C.2, M08-D and M08-E** stay CLOSED_STATIC:
+  none of the paths that the independent review closed was altered.  The
+  production delta of this follow-up touches the ownership of the original
+  resources of a launch and the admission of their closes.
+* **M05, M06, M09, m03** and the **M03 exit-before-HANDLE-close** safety stay
+  CLOSED_STATIC.
+* The six obligations of the failed nodes of the correction 12 and the three
+  M09 schedules with the interrupted-start join stay inside the same node ids.
+* The exact 189 node identities and their order, the product thresholds, the
+  public schema and the denominator are unchanged.
+
+## 9. What is still not claimed
+
+* No Major is closed by this implementation, no Stage PASS, no native proof
+  and no human signature.
+* The dynamic coverage of the batch is `NOT_RUN`: the implementation did not
+  import, collect or run the candidate.
+* The historical counter continuity stays `UNAVAILABLE_NOT_PROVEN`.

@@ -91,3 +91,31 @@ read the resources of another check of the batch).
 | `v0_s3_native_broker.py:launch_broker` | the admission is asked again before the hash and before the channel |
 | `v0_s3_native_broker.py:_is_startup_refusal` (new) | a refusal of the admission keeps the admitted process owned and recoverable |
 | `v0_s3_native_custody.py:_ChannelPump` | the ONE context of the round; the reply event re-reads it before the wait; the pump ends when the bound arrived |
+
+---
+
+# Static follow-up 01 — the changed assertions of the residual M07 and of PF13
+
+Baseline `a69170c`.  Every change is **inside an existing node id**: the exact
+189 node ids and their order are unchanged (`node-identity.json`).
+
+| # | Node | Kind | Before | After | Why |
+|---|---|---|---|---|---|
+| 1 | N07-R09 | strengthening | the ordinary raw-failure path of a launch that never built its channel | a new phase: a **real** channel of the launch completes and closes the original files of the process, the original HANDLE fails once and the **same** owner is released again | M07-A.1: the ownership history of the channel must survive its completion; the assertions are the counts of the closes (`== 1`), of the HANDLE attempts (`== 2`), of the successful HANDLE closes (`== 1`), of the terminate and wait calls (`== 1`) and the convergence of the owner |
+| 2 | N05-R10 | strengthening | the ordinary raw-failure path of a launch that could not be handed over | three new scenarios on a **scoped** production table: the ordinary failure of the input followed by the exact `KeyboardInterrupt` of the output, the companion with the `KeyboardInterrupt` at the **first** raw close and the cross-product with the earlier success and a failing original HANDLE | M07-A.2: the persistent references before the salvage, the identity of the original error, the counts of the successful operations and the same-owner recovery of **all** the originals; the process has **no** standard error, exactly like the default `Popen` |
+| 3 | N10-R05 | strengthening | the cancelled retry of an unresolved original raw stream | a new phase with four cases: the round tightened during the wait of the process, the round tightened between two initial closes, the positive case and the already-owned retry | M07-A.3: the next close is **zero** (it is never attempted), the original is retained with its identity and the owned retry closes it once the round is positive again |
+| 4 | N07-R02 | premise repair | the millisecond boundary used `1000.0 + remaining` and subtracted `1000.0`: a float labelled one millisecond need not remain exactly one millisecond after the subtraction of an epoch | the boundary uses a common **zero** clock origin and the expected values are derived from the **actual** remaining; the **recovery** adapter joins the API and the Core adapters | PF13-02: the fixture may not demand a value that the production floor may refuse correctly; the finite no-positive-floor rule is unchanged |
+| 5 | N10-R07 | strengthening | the context of the round reached every layer of the chain | a new phase: the **real** parent pump reads the channel through the BrokerProcess and the queue of the channel, and the parent waits for its replies on the event of the round, after the original context was tightened; the zero expiry is included | PF13-03: the actual requested arguments of the queue wait and of the event wait; the recorders are transparent and they call the original owner of the wait |
+| 6 | N07-R13 | strengthening | the stop during the hash refuses the channel | a new phase: the public `Session.stop` while the process of the round is **admitted**; the counters of the seams prove that the executable was never read, never digested and that the channel was never constructed | PF13-03: the absence of a channel is never a proof that no constructor was attempted; the admitted process keeps its owner and stays recoverable |
+| 7 | the shared fixture | extension | `m07a_interrupted_launch` always built its own process | it accepts a **process** argument: the production launch is used unchanged and the group hands its own process with its named fault seams over | the groups that drive a named fault of the original files need the production launch and their own originals |
+| 8 | correction05 | extension | the module had no evidence writer | the module writes its bounded facts in the **NEW** directory of the correction 13 | the new diagnostics of the module are written in the root of this correction and never in the historical directories |
+
+## The production owners that changed in this follow-up
+
+| Owner | The change |
+|---|---|
+| `v0_s3_native_broker.py:_LaunchAggregate` | the durable ownership history of the channel, the registration of the pending originals, the reconciliation of the registered originals and the eligibility of a raw close |
+| `v0_s3_native_broker.py:_release_launch_process` | the export of the ordinary failures as they happen, the shared failures of the owner and the current minimum before every initial raw close |
+| `v0_s3_native_broker.py:_release_minimum` (new) | the current minimum of a release and the clock of its domain |
+| `v0_s3_native_broker.py:_release_budget` | it reads the minimum through `_release_minimum` |
+| `v0_s3_native_broker.py:_release_raw_streams` | the originals that the channel took are never closed by the launch |

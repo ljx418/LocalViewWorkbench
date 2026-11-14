@@ -462,7 +462,7 @@ class LaunchProcess:
 
 
 def m07a_interrupted_launch(run_root, plan, *, failures=1, cancel=False,
-                            nonce='a' * 32):
+                            nonce='a' * 32, process=None):
     """The production launch whose hash is interrupted before its channel.
 
     The scenario is the one of the residual M07: the process of the
@@ -478,11 +478,17 @@ def m07a_interrupted_launch(run_root, plan, *, failures=1, cancel=False,
 
     The holder that is returned names the original process, the original
     raw stream of its standard output and the table of the launcher.
+
+    The ``process`` argument replaces the process of the fixture: a
+    group that drives a **named** fault seam of the original files of
+    the process hands its own process over and the production launch is
+    used unchanged.
     """
     import hashlib
     import unittest.mock
 
-    process = LaunchProcess(failures=failures, cancel=cancel)
+    if process is None:
+        process = LaunchProcess(failures=failures, cancel=cancel)
     holder = {'process': process, 'stdout': process.stdout,
               'popen': 0, 'command': None}
 

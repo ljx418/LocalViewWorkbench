@@ -88,3 +88,35 @@ recording is `NOT_RUN` until the root runs the batch.
   exit.  `native_execution` and `native_cleanup` stay `NOT_PROVEN`.
 * The dynamic recordings of the requested values are `NOT_RUN` in this
   delivery: the implementation did not import, collect or run the candidate.
+
+---
+
+# Static follow-up 01 — the wait sites that this follow-up touched
+
+Baseline `a69170c`.  Only the admission of the **closes** of the original
+resources of a launch changed.  No wait of the round changed its argument, its
+cap or its positive floor, and no wait of the closed paths (M08-A, M08-B,
+M08-C.1, M08-C.2, M08-D and M08-E) was altered.
+
+| Wait site | The requested argument now | The boundary it is cropped by | What changed |
+|---|---|---|---|
+| `_release_launch_process` → the **initial** raw close of an original | the close is **admitted** only when the **current** minimum of the release is positive | the deadline of the caller, the absolute deadline of the original context and the **published** cleanup deadline of the round, read again **before each** close, in the clock of their domain | the helper compared every initial close with the numeric bound that the aggregate had computed **once** before the helper; a context that was tightened by the wait of the process or by a previous close was not observed |
+| `_release_launch_process` → the wait of the process | `_release_budget(deadline, context, clock=)` | the same current minimum, now read through `_release_minimum` with the clock of its domain | the value and the clock of the domain now travel together; the finite fallback of the package is unchanged |
+| `_release_raw_streams` → the **owned** retry close | the current minimum, read again before every retry (unchanged) | the same current minimum | the loop was already repaired by the correction 12; it is unchanged and it is guarded by a new negative case |
+| `_release_raw_streams` → an original that the channel took | **no close at all**: `BROKER_RAW_STREAM_OWNED_BY_CHANNEL` | the durable ownership history of the launch | the eligibility was decided from the presence of the channel in the active slot |
+
+## The dynamic current-wait boundaries that the new drivers observe
+
+| Boundary | The group that drives it | The requested value that must be observed | The node |
+|---|---|---|---|
+| the initial close of an original after the round expired during the wait of the process | the round publishes an expired cleanup deadline inside the wait of the process | **no close is attempted** (the attempt counter stays zero) and the original is retained with its identity | N10-R05 |
+| the initial close of an original after the round expired between two closes | the first close of an original shortens the original deadline | the **second** close is not attempted and the first one is confirmed | N10-R05 |
+| the owned retry of a refused original | the round becomes positive again | the refused original is closed exactly once by its owner | N10-R05 |
+| the requested argument of the primitive at the millisecond boundary | the zero clock origin with the four exact remainders, through the API, the **recovery** and the Core adapters | `0`, `0`, `1`, `1`; **no** primitive call for the two zeros | N07-R02 |
+| the queue wait of the real parent pump after the original context was tightened | the round publishes a cleanup deadline that is shorter than the poll of the pump | the requested argument of the queue wait is the current minimum (0.05 s in the fixture) | N10-R07 |
+| the reply event of the parent after the original context was tightened | the same schedule with the real pump and a fresh pump of the same owner | the requested argument of the event wait is the current minimum | N10-R07 |
+| the queue wait and the reply event at the zero expiry | the absolute deadline of the round is shortened | the queue wait asks for **0** and the event wait asks for **0**; the pump of the round ends instead of spinning | N10-R07 |
+| the read of the executable, its digest and the constructor of the channel after the public stop while the process is admitted | the stop is published while the creation of the process is paused | **zero** reads, **zero** digests and **zero** constructor attempts | N07-R13 |
+
+The written code is not counted as coverage: every one of these facts is
+`NOT_RUN` until the root runs the finite batch of the 189 nodes.

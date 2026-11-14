@@ -52,6 +52,7 @@ The boundary of the process is not installed here: the guard of the
 batch lives in the report directory of the batch and the runner of the
 batch is its only authorised entry.
 """
+import json
 import os
 import sys
 import threading
@@ -65,9 +66,10 @@ PACK_ROOT = Path(__file__).resolve().parents[1]
 if str(PACK_ROOT) not in sys.path:
     sys.path.insert(0, str(PACK_ROOT))
 
+import tools.v0_s3_native_broker as broker_module  # noqa: E402 - the path is set above
 from tools.v0_s3_native_broker import (  # noqa: E402 - the path is set above
     BrokerCore, BrokerError, BrokerLoop, BrokerProcess, StreamChannel,
-    WindowsApi, _WindowsPipeEndpoint, _WindowsPipeWorker,
+    WindowsApi, _LauncherCustody, _WindowsPipeEndpoint, _WindowsPipeWorker,
     _adopt_broker_process, _launcher_custody_items, release_retained_launches,
     role_command)
 from tools.v0_s3_native_custody import (  # noqa: E402 - the path is set above
@@ -76,6 +78,27 @@ from tools.v0_s3_native_custody import (  # noqa: E402 - the path is set above
 from tools.test_v0_s3_native_custody_regressions import (  # noqa: E402
     ManualClock, RecordingWin32, SyntheticKernel32, make_session,
     m07a_interrupted_launch, plan_document, sealed_plan, synthetic_table)
+
+#: The bounded facts of this module are written in the **NEW** directory
+#: of the correction 13.  The real documents of the failed batch of the
+#: correction 12 stay in the directory of the correction 12 and they
+#: are never overwritten, never deleted and never replaced by a summary.
+EVIDENCE_DIR = (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'
+                / 'implementation-native-custody-correction-13' / 'evidence')
+
+
+def write_phase(phase, document):
+    """Write the bounded facts of one phase of this module.
+
+    The document is written **before** the assertions of its phase and
+    every value of it is a value that the production returned.
+    """
+    EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
+    path = EVIDENCE_DIR / ('n05-%s.json' % phase)
+    path.write_text(json.dumps(document, indent=1, sort_keys=True,
+                                default=repr), encoding='utf-8')
+    return str(path)
+
 
 #: The facts of a close that proves a release.  Every fact is derived
 #: from the stand-in that produced it and it is never added by default.
@@ -997,6 +1020,233 @@ def test_n05_r10_a_launch_that_could_not_be_handed_over_keeps_its_resources(tmp_
     assert owned, 'the failed retry forgot the owner of the raw stream'
     assert [item['name'] for item in aggregate.raw_streams] == ['stdout'], \
         'the launch forgot a raw stream that was never closed'
+
+    # -- N1 correction 13 (M07-A.2): every original that is not
+    #    confirmed keeps an executable **same-owner** recovery route.  An
+    #    ordinary failure of one original followed by an exact
+    #    KeyboardInterrupt of the next one may not lose the first one,
+    #    and an original that was **never visited** keeps its identity
+    #    and its owner.  The default ``Popen`` of the package creates a
+    #    standard error of ``None``: the process of this group has no
+    #    standard error at all and the group never depends on one.
+    class FaultStream:
+        """One original raw file with a named fault seam."""
+
+        def __init__(self, name, *, failure=None, cancel=None):
+            self.name = name
+            self.attempts = 0
+            self.closed = False
+            self._failure = failure
+            self._cancel = cancel
+
+        def close(self):
+            self.attempts += 1
+            if self._failure is not None:
+                error = self._failure
+                self._failure = None
+                raise error
+            if self._cancel is not None:
+                error = self._cancel
+                self._cancel = None
+                raise error
+            self.closed = True
+            return True
+
+    class FaultHandle:
+        """The original HANDLE of a process with a named fault seam."""
+
+        def __init__(self, failures=0):
+            self.failures = failures
+            self.attempts = 0
+            self.closed = 0
+
+        def Close(self):
+            self.attempts += 1
+            if self.failures > 0:
+                self.failures -= 1
+                raise RuntimeError('handle_close_failed')
+            self.closed += 1
+            return True
+
+    class FaultProcess:
+        """The original process of a launch with a controlled fault seam.
+
+        The process has **no** standard error: the default ``Popen`` of
+        the package creates one of ``None`` and the group never depends
+        on a standard error of its own.
+        """
+
+        pid = 4245
+        returncode = 0
+
+        def __init__(self, *, stdin=None, stdout=None, handle_failures=0):
+            self.stdin = stdin
+            self.stdout = stdout
+            self._handle = FaultHandle(failures=handle_failures)
+            self.terminated = 0
+            self.waited = 0
+
+        def terminate(self):
+            self.terminated += 1
+
+        def wait(self, timeout=None):
+            self.waited += 1
+            return 0
+
+    class FaultOsView:
+        """A view of the module os that reports the platform."""
+
+        name = 'nt'
+
+        def __getattr__(self, item):
+            return getattr(os, item)
+
+    def run_fault_scenario(run_root, process, phase):
+        """One no-channel scenario: the release, the facts, the recovery.
+
+        The scenario runs on a **scoped** table of the launcher: the
+        table of the package is shared by the whole batch and the
+        context that another check of the batch bound to it is not the
+        context of this launch.  The production table is used and it is
+        never emptied by hand.
+        """
+        scoped = _LauncherCustody()
+        with unittest.mock.patch.object(broker_module, '_LAUNCHER_CUSTODY',
+                                        scoped):
+            holder = m07a_interrupted_launch(run_root, sealed_plan(),
+                                             process=process)
+            assert holder['interrupted'] is True, \
+                'the hash of the launch was not interrupted'
+            aggregate = holder['aggregate'][0] if holder['aggregate'] else None
+            assert aggregate is not None, \
+                'the interrupted launch lost its owner'
+            cancellation = None
+            report = None
+            with unittest.mock.patch.object(broker_module, 'os',
+                                            FaultOsView()):
+                try:
+                    report = scoped.release()
+                except (KeyboardInterrupt, SystemExit) as error:
+                    # The **original** cancellation object is the error
+                    # that leaves.
+                    cancellation = error
+            first_facts = {'cancellation': (type(cancellation).__name__
+                                            if cancellation is not None
+                                            else None),
+                           'report': report,
+                           'raw_streams': [(item['name'], repr(item['stream']))
+                                           for item in aggregate.raw_streams],
+                           'owned': sorted((item['kind'],
+                                            repr(item['resource']))
+                                           for item in scoped.items()),
+                           'process_owned': aggregate.process is process,
+                           'terminated': process.terminated,
+                           'waited': process.waited,
+                           'handle_attempts': process._handle.attempts,
+                           'handle_closed': process._handle.closed,
+                           'stdin_attempts': process.stdin.attempts,
+                           'stdout_attempts': process.stdout.attempts}
+            write_phase('%s-first' % phase, first_facts)
+            # The recovery of the **same** owner: every unresolved
+            # original is really closed and the table converges.
+            with unittest.mock.patch.object(broker_module, 'os',
+                                            FaultOsView()):
+                recovered = scoped.release()
+            recovered_facts = {'recovered': recovered,
+                           'raw_streams': [(item['name'], repr(item['stream']))
+                                           for item in aggregate.raw_streams],
+                           'owned': sorted((item['kind'],
+                                            repr(item['resource']))
+                                           for item in scoped.items()),
+                           'stdin_attempts': process.stdin.attempts,
+                           'stdout_attempts': process.stdout.attempts,
+                           'stdin_closed': process.stdin.closed,
+                           'stdout_closed': process.stdout.closed,
+                           'handle_attempts': process._handle.attempts,
+                           'handle_closed': process._handle.closed,
+                           'terminated': process.terminated,
+                           'waited': process.waited}
+            write_phase('%s-recovery' % phase, recovered_facts)
+            # The table of the launcher converges: every original of
+            # the launch was really released by its owner.
+            assert scoped.items() == [], \
+                'the table of the launcher kept an item of the launch'
+        return aggregate, cancellation, first_facts, recovered_facts
+
+    # -- the cross-product one: an ordinary failure of the standard
+    #    input, then the **exact** KeyboardInterrupt of the standard
+    #    output.  The ordinary failure happened before the
+    #    interruption and it may not be lost with the report of the
+    #    helper.
+    stdin_a = FaultStream('stdin', failure=RuntimeError('stdin_close_failed'))
+    cancel_a = KeyboardInterrupt('stdout_close_cancelled')
+    stdout_a = FaultStream('stdout', cancel=cancel_a)
+    process_a = FaultProcess(stdin=stdin_a, stdout=stdout_a)
+    aggregate_a, cancellation_a, first_a, facts = run_fault_scenario(
+        tmp_path / 'ordinary-then-cancel', process_a,
+        'r10-ordinary-then-cancel')
+    assert cancellation_a is cancel_a, \
+        'the original cancellation object was replaced'
+    assert [name for name, _ref in first_a['raw_streams']] == \
+        ['stdin', 'stdout'], \
+        'the launch lost an unresolved original of the interrupted release'
+    assert facts['stdin_closed'] is True, \
+        'the same owner did not recover the ordinary failure of the input'
+    assert facts['stdout_closed'] is True, \
+        'the same owner did not recover the interrupted output'
+    assert stdin_a.attempts == 2, \
+        'the failed input of the launch was not retried by its owner'
+    assert stdout_a.attempts == 2, \
+        'the interrupted output of the launch was not retried by its owner'
+
+    # -- the companion schedule: the **first** raw close is the exact
+    #    KeyboardInterrupt and the standard output is never visited.
+    stdin_b = FaultStream('stdin', cancel=KeyboardInterrupt('stdin_cancelled'))
+    stdout_b = FaultStream('stdout')
+    process_b = FaultProcess(stdin=stdin_b, stdout=stdout_b)
+    aggregate_b, cancellation_b, first_b, facts = run_fault_scenario(
+        tmp_path / 'cancel-first', process_b, 'r10-cancel-first')
+    assert isinstance(cancellation_b, KeyboardInterrupt), \
+        'the cancellation of the first raw close was swallowed'
+    assert first_b['stdout_attempts'] == 0, \
+        'the output of the launch was closed although it was never visited'
+    assert [name for name, _ref in first_b['raw_streams']] == \
+        ['stdin', 'stdout'], \
+        'the launch lost the original that was never visited'
+    assert facts['stdin_closed'] is True, \
+        'the same owner did not recover the interrupted input'
+    assert facts['stdout_closed'] is True, \
+        'the same owner did not recover the original that was never visited'
+
+    # -- the cross-product with an earlier **success** and a failing
+    #    original HANDLE: the confirmed close is never repeated, the
+    #    exit is never confirmed again and only the HANDLE and the
+    #    unresolved original are retried.
+    stdin_c = FaultStream('stdin')
+    stdout_c = FaultStream('stdout', failure=RuntimeError('stdout_failed'))
+    process_c = FaultProcess(stdin=stdin_c, stdout=stdout_c,
+                             handle_failures=1)
+    aggregate_c, cancellation_c, first_c, facts = run_fault_scenario(
+        tmp_path / 'success-then-handle', process_c,
+        'r10-success-then-handle')
+    assert cancellation_c is None, \
+        'the release raised a cancellation that never happened'
+    assert [name for name, _ref in first_c['raw_streams']] == ['stdout'], \
+        'the launch owns an original whose close was confirmed'
+    assert stdin_c.attempts == 1, \
+        'the confirmed close of the input was repeated'
+    assert stdout_c.attempts == 2, \
+        'the failed output of the launch was not retried by its owner'
+    assert process_c._handle.attempts == 2, \
+        'the original handle of the process was not retried'
+    assert process_c._handle.closed == 1, \
+        'the original handle of the process was not really closed'
+    assert process_c.terminated == 1, \
+        'the process of the launch was terminated a second time'
+    assert process_c.waited == 1, \
+        'the process of the launch was waited for a second time'
+    assert facts['stdout_closed'] is True, \
+        'the same owner did not recover the failed output'
 
 
 # -- N05-R11: the shared budget of the startup ---------------------------

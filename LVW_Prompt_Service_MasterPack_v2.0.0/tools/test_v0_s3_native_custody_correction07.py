@@ -44,6 +44,7 @@ import hashlib
 import json
 import os
 import queue
+import subprocess
 import sys
 import threading
 import time
@@ -59,9 +60,9 @@ if str(PACK_ROOT) not in sys.path:
 import tools.v0_s3_native_broker as broker_module  # noqa: E402 - the path is set above
 from tools.v0_s3_native_broker import (  # noqa: E402 - the path is set above
     BrokerCore, BrokerError, BrokerLoop, BrokerProcess, StreamChannel,
-    WindowsApi, _LauncherCustody, _RoundContext, _StartupOwner,
-    _WindowsPipeEndpoint, _WindowsPipeWorker, _adopt_broker_process,
-    _launcher_custody_items, release_retained_launches)
+    WindowsApi, _LauncherCustody, _LaunchAggregate, _RoundContext,
+    _StartupOwner, _WindowsPipeEndpoint, _WindowsPipeWorker,
+    _adopt_broker_process, _launcher_custody_items, release_retained_launches)
 from tools.v0_s3_native_custody import (  # noqa: E402 - the path is set above
     CHANNEL_SCHEMA, NativeCustodySession, validate_launch_plan)
 from tools.test_v0_s3_native_custody_correction05 import (  # noqa: E402
@@ -715,15 +716,22 @@ def test_n07_r02_the_recovery_keeps_the_handle_until_the_exit_is_confirmed():
     assert api.retained_handles(), 'the control handle was forgotten'
     assert kernel32.process_handle in kernel32.live
 
-    # -- N1 correction 13 (M08-C.2): the millisecond adapters of the
-    #    production **floor** their value and they never round it **up**.
-    #    A remainder that is smaller than the representable unit asks for
-    #    **no** wait at all and the exit of a process is never inferred
-    #    from a requested zero.  The four exact values - the exact zero,
-    #    a remainder below one millisecond, exactly one millisecond and
-    #    a remainder just above one millisecond - are driven through the
-    #    production adapters of the façade and of the core and the
-    #    requested arguments of the primitives are recorded.
+    # -- N1 correction 13 (M08-C.2 and PF13-02): the millisecond
+    #    adapters of the production **floor** the **actual** remaining
+    #    and they never round it **up**.  A remainder that is smaller
+    #    than the representable unit asks for **no** wait at all and the
+    #    exit of a process is never inferred from a requested zero.
+    #
+    #    The fixture of the boundary uses a common **zero** clock
+    #    origin: the remaining that the production measures is then the
+    #    value that the group declares and not the difference of two
+    #    large numbers.  A float that is labelled one millisecond need
+    #    not remain exactly one millisecond after the subtraction of an
+    #    epoch, and the production floor may refuse it correctly while
+    #    the group demands one.  The expected values are therefore
+    #    derived from the **actual** remaining and the rule itself is
+    #    never weakened.
+    origin = 0.0
     recorded = []
 
     def record_wait(kernel32, handle, timeout):
@@ -733,22 +741,31 @@ def test_n07_r02_the_recovery_keeps_the_handle_until_the_exit_is_confirmed():
     kernel32 = SyntheticKernel32(
         script={'WaitForSingleObject': record_wait})
     table = synthetic_table(kernel32)
+    # The four exact cases: the exact zero, a remainder below the
+    # representable unit, exactly the unit and a remainder just above
+    # the unit.
+    cases = ((0.0, 'zero'), (0.0002, 'below-unit'), (0.001, 'exact-unit'),
+             (0.0011, 'one-over'))
     observed = []
-    for remaining, expected in ((0.0, 0), (0.0005, 0), (0.001, 1),
-                                (0.0011, 1)):
+    for remaining, label in cases:
+        actual = remaining - origin
+        expected = int(actual * 1000)
         api = WindowsApi(table=table)
-        api.bind_deadline(1000.0 + remaining, lambda: 1000.0)
+        api.bind_deadline(remaining, lambda: origin)
         failures = []
         cancellations = []
         requested = api._wait_timeout_ms()
         confirmed = api._confirm_process_exit(
             kernel32.process_handle, failures, cancellations,
             timeout_ms=requested)
-        observed.append({'remaining': remaining, 'requested': requested,
+        observed.append({'label': label, 'remaining': remaining,
+                         'actual': actual, 'requested': requested,
                          'confirmed': confirmed,
                          'failures': list(failures)})
         assert requested == expected, \
             'the millisecond adapter of the façade did not floor its value'
+        assert requested * 0.001 <= actual, \
+            'the requested wait of the façade exceeded the remaining'
         assert confirmed is False, \
             'the exit of the process was inferred from a requested wait'
     facts = {'observed': observed, 'recorded': list(recorded)}
@@ -758,29 +775,64 @@ def test_n07_r02_the_recovery_keeps_the_handle_until_the_exit_is_confirmed():
     assert recorded == [1, 1], \
         'the façade asked the primitive for a wait that it did not have'
 
+    # The same boundary through the **recovery** adapter of the façade:
+    # the recovery of the owner publishes its deadline once and it
+    # floors the same actual remaining.
+    recovery_observed = []
+    for remaining, label in cases:
+        actual = remaining - origin
+        expected = int(actual * 1000)
+        api = WindowsApi(table=table)
+        api.bind_deadline(remaining, lambda: origin)
+        failures = []
+        cancellations = []
+        requested = api._recovery_timeout_ms()
+        confirmed = api._confirm_process_exit(
+            kernel32.process_handle, failures, cancellations,
+            timeout_ms=requested)
+        recovery_observed.append({'label': label, 'remaining': remaining,
+                                  'actual': actual, 'requested': requested,
+                                  'confirmed': confirmed,
+                                  'failures': list(failures)})
+        assert requested == expected, \
+            'the recovery adapter did not floor the actual remaining'
+        assert requested * 0.001 <= actual, \
+            'the requested wait of the recovery exceeded the remaining'
+        assert confirmed is False, \
+            'the exit of the process was inferred from a requested wait'
+    facts = {'recovery': recovery_observed, 'recorded': list(recorded)}
+    _f5_write('r02-millisecond-floor-recovery', facts)
+    # The recovery adapter asks the primitive for the two positive
+    # waits only: the two remainders below the unit ask for nothing.
+    assert recorded == [1, 1, 1, 1], \
+        'the recovery asked the primitive for a wait that it did not have'
+
     # The same boundary through the production adapter of the core: the
     # wait of a process is cropped to the **current** cleanup deadline
     # of the round and the exit is never inferred from a requested zero.
     core_observed = []
-    for remaining, expected in ((0.0, 0), (0.0005, 0), (0.001, 1),
-                                (0.0011, 1)):
-        clock = ManualClock(1000.0)
+    for remaining, label in cases:
+        actual = remaining - origin
+        expected = int(actual * 1000)
+        clock = ManualClock(origin)
         win32 = RecordingWin32()
         core = BrokerCore(win32=win32, plan=sealed_plan(), run_root=None,
                           clock=clock)
         core.context.bind_absolute_deadline(clock.value + 10.0)
-        core.cleanup_deadline(clock.value + remaining)
+        core.cleanup_deadline(remaining)
         requested = core._wait_timeout_ms()
         record = {'process_handle': 1234, 'exited': False, 'resumed': True,
                   'role': 'PROBE'}
         core._wait_one_process(record)
         calls = [call for call in win32.calls if call[0] == 'wait_process']
-        core_observed.append({'remaining': remaining,
-                              'requested': requested,
+        core_observed.append({'label': label, 'remaining': remaining,
+                              'actual': actual, 'requested': requested,
                               'calls': [call[2] for call in calls],
                               'exited': record['exited']})
         assert requested == expected, \
             'the millisecond adapter of the core did not floor its value'
+        assert requested * 0.001 <= actual, \
+            'the requested wait of the core exceeded the remaining'
         if expected == 0:
             assert not calls, \
                 'the core asked the primitive for a wait that it did not have'
@@ -1567,6 +1619,199 @@ def test_n07_r09_the_launcher_keeps_the_owner_of_the_process_and_the_channel(tmp
     assert process._handle.closes == handle_closes, \
         'the retry closed the original handle of the process a second time'
 
+    # -- N1 correction 13 (M07-A.1): the **ownership history** of the
+    #    original files survives the completion of the channel.  A
+    #    channel that really closed the original files of the process
+    #    keeps them: a later release of the same owner may not become
+    #    their raw closer, not even when the active slot of the channel
+    #    was cleared and the original HANDLE of the process still has
+    #    to be retried.
+    class CountingFile:
+        """One original file that counts its own closes."""
+
+        def __init__(self, name):
+            self.name = name
+            self.closes = 0
+
+        def close(self):
+            self.closes += 1
+            return True
+
+    class FailingHandle:
+        """The original HANDLE of a process: its first close fails."""
+
+        def __init__(self):
+            self.attempts = 0
+            self.closed = 0
+
+        def Close(self):
+            self.attempts += 1
+            if self.attempts == 1:
+                raise RuntimeError('handle_close_failed')
+            self.closed += 1
+            return True
+
+    class HistoryProcess:
+        """A process whose original files are taken by a real channel."""
+
+        pid = 4244
+        returncode = 0
+
+        def __init__(self):
+            self.stdin = CountingFile('stdin')
+            self.stdout = CountingFile('stdout')
+            self._handle = FailingHandle()
+            self.terminated = 0
+            self.waited = 0
+
+        def terminate(self):
+            self.terminated += 1
+
+        def wait(self, timeout=None):
+            self.waited += 1
+            return 0
+
+    class HistoryApi:
+        """The primitive table of the endpoints of the real channel."""
+
+        def duplicate_current_thread_handle(self):
+            return 704
+
+        def cancel_synchronous_io(self, handle):
+            return 'REQUESTED'
+
+        def close_handle(self, handle):
+            return None
+
+        def read_stream(self, handle, size):
+            # The reader of the channel really ends: the end of the
+            # file is the ordinary end of the read.
+            return b''
+
+    history_clock = ManualClock(1000.0)
+    history_context = _RoundContext(clock=history_clock)
+    class HistoryOsView:
+        """A view of the module os that reports the platform.
+
+        The original HANDLE of a process is a resource of the Windows
+        host only: the release of that HANDLE is driven on the platform
+        that owns it.
+        """
+
+        name = 'nt'
+
+        def __getattr__(self, item):
+            return getattr(os, item)
+    history_context.bind_absolute_deadline(history_clock.value + 60.0)
+    history_process = HistoryProcess()
+    history_custody = _LauncherCustody()
+    history_aggregate = _LaunchAggregate(custody=history_custody,
+                                         context=history_context)
+    history_aggregate.bind_process(history_process)
+    history_custody.retain('aggregate', history_aggregate, 'launch')
+    history_custody.retain('process', history_process, 'popened',
+                           launch=history_aggregate)
+    history_read = _WindowsPipeEndpoint(
+        file_object=history_process.stdout, name='channel-read',
+        api=HistoryApi(), clock=history_clock, handle=905,
+        context=history_context)
+    history_write = _WindowsPipeEndpoint(
+        file_object=history_process.stdin, name='channel-write',
+        api=HistoryApi(), clock=history_clock, handle=906,
+        context=history_context)
+    history_channel = StreamChannel(
+        None, None, read_endpoint=history_read, write_endpoint=history_write,
+        custody=history_aggregate, clock=history_clock,
+        context=history_context)
+    # The channel registered itself with the aggregate: the original
+    # files of the process were really transferred to it.
+    history_aggregate.bind_channel(history_channel)
+    history_thread = getattr(history_channel, '_thread', None)
+    if history_thread is not None:
+        history_thread.join(10.0)
+        assert not history_thread.is_alive(), \
+            'the reader thread of the channel was left behind'
+    try:
+        # The first release of the same owner: the channel is
+        # coordinated first and it really closes the original files of
+        # the process, the exit of the process is confirmed and the
+        # original HANDLE of the process fails its first close.
+        with unittest.mock.patch.object(broker_module, 'os',
+                                       HistoryOsView()):
+            first = history_custody.release()
+        facts = {'first': first,
+                 'stdin_closes': history_process.stdin.closes,
+                 'stdout_closes': history_process.stdout.closes,
+                 'handle_attempts': history_process._handle.attempts,
+                 'handle_closed': history_process._handle.closed,
+                 'terminated': history_process.terminated,
+                 'waited': history_process.waited,
+                 'raw_streams': [item['name']
+                                 for item in history_aggregate.raw_streams],
+                 'process_owned': history_aggregate.process is history_process}
+        _f5_write('r09-completed-channel-first', facts)
+        assert history_process.stdin.closes == 1, \
+            'the channel did not close the original input of the process'
+        assert history_process.stdout.closes == 1, \
+            'the channel did not close the original output of the process'
+        assert history_process._handle.attempts == 1, \
+            'the original handle of the process was not closed once'
+        assert history_process._handle.closed == 0, \
+            'the failing close of the original handle was read as a close'
+        assert history_process.terminated == 1
+        assert history_process.waited == 1
+        # The original process keeps its owner: the original HANDLE
+        # could not be released.
+        assert history_aggregate.process is history_process, \
+            'the process whose handle failed lost its owner'
+        # The launch owns **no** raw stream: the channel took the
+        # original files and it closed them.
+        assert history_aggregate.raw_streams == [], \
+            'the launch owns a raw stream that the channel took'
+        # The second release of the **same** owner: the exit is not
+        # confirmed again, the original HANDLE is retried and the
+        # original files of the process are **not** closed a second time.
+        with unittest.mock.patch.object(broker_module, 'os',
+                                       HistoryOsView()):
+            second = history_custody.release()
+        facts = {'second': second,
+                 'stdin_closes': history_process.stdin.closes,
+                 'stdout_closes': history_process.stdout.closes,
+                 'handle_attempts': history_process._handle.attempts,
+                 'handle_closed': history_process._handle.closed,
+                 'terminated': history_process.terminated,
+                 'waited': history_process.waited,
+                 'raw_streams': [item['name']
+                                 for item in history_aggregate.raw_streams],
+                 'process_owned': history_aggregate.process is history_process}
+        _f5_write('r09-completed-channel-second', facts)
+        assert history_process.stdin.closes == 1, \
+            'the retry of the launch closed the original input a second time'
+        assert history_process.stdout.closes == 1, \
+            'the retry of the launch closed the original output a second time'
+        assert history_process._handle.attempts == 2, \
+            'the retry of the launch did not retry the original handle'
+        assert history_process._handle.closed == 1, \
+            'the retry of the launch did not close the original handle'
+        assert history_process.terminated == 1, \
+            'the retry of the launch terminated the process a second time'
+        assert history_process.waited == 1, \
+            'the retry of the launch waited for the process a second time'
+        assert history_aggregate.process is None, \
+            'the process whose handle was released kept its owner'
+        assert history_aggregate.raw_streams == [], \
+            'the launch owns a raw stream that the channel closed'
+    finally:
+        # The teardown of the owner of the test is unconditional: the
+        # channel is closed and its thread is joined with a bounded
+        # wait.
+        try:
+            history_channel.close()
+        except Exception:  # noqa: BLE001 - the evidence keeps the failure
+            pass
+        if history_thread is not None:
+            history_thread.join(10.0)
+
 
 # -- N07-R10: a closer whose start did not return is unknown --------------
 
@@ -2120,6 +2365,132 @@ def test_n07_r13_every_side_effect_checks_the_shared_context(tmp_path):
     current = _RoundContext(clock=time.monotonic)
     current.bind_absolute_deadline(time.monotonic() + 3600.0)
     broker_module._LAUNCHER_CUSTODY.bind_context(current)
+
+    # -- N1 correction 13 (PF13-03): the **public stop** of the round
+    #    while the process of the round is **admitted** and the launch
+    #    is paused between the creation of the process and the read of
+    #    the executable.  The launch resumes after the stop: no
+    #    executable read of the executable happens and the channel of
+    #    the round is never constructed.  The counters of the seams are
+    #    the evidence: a channel that is absent is never a proof that
+    #    no constructor was attempted.
+    popen_paused = threading.Event()
+    popen_release = threading.Event()
+    popen_calls = []
+    hash_calls = []
+    read_calls = []
+    channel_calls = []
+    original_channel = broker_module.StreamChannel
+    original_read_bytes = Path.read_bytes
+
+    def counting_read_bytes(target):
+        # The **read** of the executable is counted as well as the
+        # digest: a digest that was never computed does not prove that
+        # the executable was never read.
+        read_calls.append(1)
+        return original_read_bytes(target)
+
+    class CountingChannel(original_channel):
+        """The production channel with a counter of its constructions.
+
+        The class is the production one and the counter only observes
+        that a construction was **attempted**: the absence of a channel
+        is never a proof that no constructor ran.
+        """
+
+        def __init__(self, *args, **kwargs):
+            channel_calls.append(1)
+            super().__init__(*args, **kwargs)
+
+    class _CountingHashView:
+        """A view of the module hashlib that counts the digests."""
+
+        def sha256(self, *args, **kwargs):
+            hash_calls.append(1)
+            return hashlib.sha256(*args, **kwargs)
+
+        def __getattr__(self, item):
+            return getattr(hashlib, item)
+
+    created = {}
+
+    def pausing_popen(command, **kwargs):
+        """The creation of the process pauses the launch of the round."""
+        popen_calls.append(1)
+        created['process'] = FakeProcess()
+        popen_paused.set()
+        popen_release.wait(20.0)
+        return created['process']
+
+    class _PausingSubprocessView:
+        """A view of the module subprocess whose Popen pauses."""
+
+        def Popen(self, command, **kwargs):
+            return pausing_popen(command, **kwargs)
+
+        def __getattr__(self, item):
+            return getattr(subprocess, item)
+
+    admitted = NativeCustodySession(plan=document,
+                                   run_root=tmp_path / 'stop-while-popen',
+                                   parent_child_remaining_seconds=21600,
+                                   launcher=None, clock=time.monotonic,
+                                   wall=time.time, nonce='a' * 32)
+    with unittest.mock.patch.object(broker_module, 'os', _OsView()), \
+            unittest.mock.patch.object(broker_module, 'subprocess',
+                                       _PausingSubprocessView()), \
+            unittest.mock.patch.object(broker_module, 'hashlib',
+                                       _CountingHashView()), \
+            unittest.mock.patch.object(broker_module, 'StreamChannel',
+                                       CountingChannel), \
+            unittest.mock.patch.object(Path, 'read_bytes',
+                                       counting_read_bytes):
+        starter = threading.Thread(target=admitted.start)
+        starter.start()
+        try:
+            assert popen_paused.wait(15.0), \
+                'the process of the round was never created'
+            # The **public stop** of the round is published while the
+            # process of the round is admitted and the launch is paused.
+            admitted.stop()
+            popen_release.set()
+            starter.join(20.0)
+            assert not starter.is_alive(), 'the launch was left behind'
+        finally:
+            popen_release.set()
+            starter.join(20.0)
+    facts = {'popen_calls': len(popen_calls),
+             'hash_calls': len(hash_calls),
+             'read_calls': len(read_calls),
+             'channel_calls': len(channel_calls),
+             'failures': list(admitted.evidence()['failures'])}
+    _f5_write('r13-stop-while-popen', facts)
+    assert len(popen_calls) == 1, \
+        'the process of the round was not created exactly once'
+    # The next **executable** effect of the launch was refused: the
+    # executable of the round was never read, it was never digested and
+    # the channel of the round was never constructed.  The counters of
+    # the seams are the evidence: the absence of a channel is never a
+    # proof that no constructor was attempted.
+    assert read_calls == [], \
+        'the executable of the round was read after the public stop'
+    assert hash_calls == [], \
+        'the executable of the round was digested after the public stop'
+    assert channel_calls == [], \
+        'the channel of the round was constructed after the public stop'
+    # The process of the round was already admitted: it keeps its owner
+    # in the table of the launcher and it stays reachable and
+    # recoverable by the recovery of the launcher.
+    owned_process = [item for item in _launcher_custody_items()
+                     if item['kind'] == 'process'
+                     and item['resource'] is created.get('process')]
+    assert owned_process, \
+        'the admitted process of the round lost its owner'
+    release_retained_launches()
+    assert not [item for item in _launcher_custody_items()
+                if item['kind'] == 'process'
+                and item['resource'] is created.get('process')], \
+        'the recovery of the launcher did not release the admitted process'
 
 
 # -- N07-R14: the startup owner releases its owner after the real exit -----

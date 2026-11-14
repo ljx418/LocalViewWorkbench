@@ -74,8 +74,10 @@ from tools.v0_s3_native_broker import (  # noqa: E402 - the path is set above
     WindowsApi, _ChannelCancel, _LauncherCustody, _LaunchAggregate,
     _RoundContext, _StartupOwner, _WindowsPipeEndpoint, _WindowsPipeWorker,
     _adopt_broker_process, _launcher_custody_items, release_retained_launches)
+import tools.v0_s3_native_custody as custody_module  # noqa: E402 - the path is set above
 from tools.v0_s3_native_custody import (  # noqa: E402 - the path is set above
-    CHANNEL_SCHEMA, NativeCustodySession, validate_launch_plan)
+    CHANNEL_POLL_SECONDS, CHANNEL_SCHEMA, CustodyError, NativeCustodySession,
+    validate_launch_plan)
 from tools.test_v0_s3_native_custody_correction07 import (  # noqa: E402
     _FakeFile, _F5Api, _F5ExternalCancelOwner, _f5_build_chain, _reply_bytes)
 from tools.test_v0_s3_native_custody_regressions import (  # noqa: E402
@@ -1106,6 +1108,175 @@ def test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel(tmp_path):
         assert aggregate.raw_streams == [], \
             'the launch still owns a raw stream that was really closed'
 
+    # -- N1 correction 13 (M07-A.3): the **current** minimum of the
+    #    original round is read again before **each** initial raw close.
+    #    A context that was tightened by the wait of the process or by a
+    #    previous close of an original refuses the next close: the
+    #    original keeps its owner and its identity, no new close is
+    #    started and no fresh cleanup lease is opened.
+    class BoundStream:
+        """One original raw file that counts its own closes."""
+
+        def __init__(self, name, on_close=None):
+            self.name = name
+            self.attempts = 0
+            self.closed = False
+            self.on_close = on_close
+
+        def close(self):
+            self.attempts += 1
+            if self.on_close is not None:
+                callback = self.on_close
+                self.on_close = None
+                callback()
+            self.closed = True
+            return True
+
+    class BoundProcess:
+        """A process whose wait may tighten the original round."""
+
+        pid = 4246
+        returncode = 0
+
+        def __init__(self, *, stdin, stdout, on_wait=None):
+            self.stdin = stdin
+            self.stdout = stdout
+            self.terminated = 0
+            self.waited = 0
+            self.on_wait = on_wait
+
+        def terminate(self):
+            self.terminated += 1
+
+        def wait(self, timeout=None):
+            self.waited += 1
+            if self.on_wait is not None:
+                callback = self.on_wait
+                self.on_wait = None
+                callback()
+            return 0
+
+    def bound_launch(context, process):
+        """One no-channel launch that the owner of the table coordinates."""
+        custody = _LauncherCustody()
+        aggregate = _LaunchAggregate(custody=custody, context=context)
+        aggregate.bind_process(process)
+        custody.retain('aggregate', aggregate, 'launch')
+        custody.retain('process', process, 'popened', launch=aggregate)
+        return custody, aggregate
+
+    # -- the case one: the round is tightened **during the wait** of the
+    #    process.  The initial raw closes are refused and the originals
+    #    keep their identity.
+    clock_one = ManualClock(1000.0)
+    context_one = _RoundContext(clock=clock_one)
+    context_one.bind_absolute_deadline(clock_one.value + 10.0)
+    stdin_one = BoundStream('stdin')
+    stdout_one = BoundStream('stdout')
+    process_one = BoundProcess(
+        stdin=stdin_one, stdout=stdout_one,
+        on_wait=lambda: context_one.bind_absolute_deadline(clock_one.value - 1.0))
+    custody_one, aggregate_one = bound_launch(context_one, process_one)
+    report_one = custody_one.release()
+    facts = {'report': report_one,
+             'stdin_attempts': stdin_one.attempts,
+             'stdout_attempts': stdout_one.attempts,
+             'raw_streams': [item['name']
+                             for item in aggregate_one.raw_streams],
+             'owned': [(item['kind'], repr(item['resource']))
+                       for item in custody_one.items()],
+             'terminated': process_one.terminated,
+             'waited': process_one.waited}
+    write_phase('r05-bound-during-wait', facts)
+    assert stdin_one.attempts == 0, \
+        'the input was closed although the round had expired'
+    assert stdout_one.attempts == 0, \
+        'the output was closed although the round had expired'
+    assert [item['name'] for item in aggregate_one.raw_streams] == \
+        ['stdin', 'stdout'], \
+        'the launch lost an original that it may not close any more'
+    owned_one = [item for item in custody_one.items()
+                 if item['kind'] in ('stdin', 'stdout')]
+    assert len(owned_one) == 2, \
+        'the table of the launcher lost the identity of an original'
+
+    # -- the case two: the round is tightened **between** two initial
+    #    raw closes.  The close that follows the tightening is refused.
+    clock_two = ManualClock(1000.0)
+    context_two = _RoundContext(clock=clock_two)
+    context_two.bind_absolute_deadline(clock_two.value + 10.0)
+    stdin_two = BoundStream(
+        'stdin',
+        on_close=lambda: context_two.bind_absolute_deadline(
+            clock_two.value - 1.0))
+    stdout_two = BoundStream('stdout')
+    process_two = BoundProcess(stdin=stdin_two, stdout=stdout_two)
+    custody_two, aggregate_two = bound_launch(context_two, process_two)
+    report_two = custody_two.release()
+    facts = {'report': report_two,
+             'stdin_attempts': stdin_two.attempts,
+             'stdout_attempts': stdout_two.attempts,
+             'raw_streams': [item['name']
+                             for item in aggregate_two.raw_streams],
+             'owned': [(item['kind'], repr(item['resource']))
+                       for item in custody_two.items()]}
+    write_phase('r05-bound-between-closes', facts)
+    assert stdin_two.attempts == 1, \
+        'the input was not closed although the round was still positive'
+    assert stdin_two.closed is True
+    assert stdout_two.attempts == 0, \
+        'the output was closed although the round had expired'
+    assert [item['name'] for item in aggregate_two.raw_streams] == ['stdout'], \
+        'the launch owns an original whose close was confirmed'
+
+    # -- the case three: the positive case.  Every initial close of a
+    #    launch with a positive remaining is really attempted.
+    clock_three = ManualClock(1000.0)
+    context_three = _RoundContext(clock=clock_three)
+    context_three.bind_absolute_deadline(clock_three.value + 10.0)
+    stdin_three = BoundStream('stdin')
+    stdout_three = BoundStream('stdout')
+    process_three = BoundProcess(stdin=stdin_three, stdout=stdout_three)
+    custody_three, aggregate_three = bound_launch(context_three, process_three)
+    report_three = custody_three.release()
+    facts = {'report': report_three,
+             'stdin_attempts': stdin_three.attempts,
+             'stdout_attempts': stdout_three.attempts,
+             'raw_streams': [item['name']
+                             for item in aggregate_three.raw_streams]}
+    write_phase('r05-bound-positive', facts)
+    assert stdin_three.attempts == 1
+    assert stdout_three.attempts == 1
+    assert aggregate_three.raw_streams == [], \
+        'the launch owns an original whose close was confirmed'
+
+    # -- the already-owned retry: the originals that the launch owns
+    #    are really closed by the **same** owner once the round is
+    #    positive again.  The path that the correction 12 closed is
+    #    guarded here and it is not broken by the refusal.
+    context_one.bind_absolute_deadline(clock_one.value + 10.0)
+    recovered_one = custody_one.release()
+    facts = {'recovered': recovered_one,
+             'stdin_attempts': stdin_one.attempts,
+             'stdout_attempts': stdout_one.attempts,
+             'stdin_closed': stdin_one.closed,
+             'stdout_closed': stdout_one.closed,
+             'raw_streams': [item['name']
+                             for item in aggregate_one.raw_streams],
+             'owned': [(item['kind'], repr(item['resource']))
+                       for item in custody_one.items()]}
+    write_phase('r05-bound-owned-retry', facts)
+    assert stdin_one.attempts == 1, \
+        'the owned retry of the input was not attempted'
+    assert stdout_one.attempts == 1, \
+        'the owned retry of the output was not attempted'
+    assert stdin_one.closed is True
+    assert stdout_one.closed is True
+    assert aggregate_one.raw_streams == [], \
+        'the launch still owns an original that was really closed'
+    assert custody_one.items() == [], \
+        'the table of the launcher kept an item of the launch'
+
 
 # -- N10-R06: the admission of a generation -------------------------------
 
@@ -1522,6 +1693,107 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         assert session.broker._channel._writer._context is session._context
         assert session.broker._context is session._context
         assert session.evidence()['launcher_context_propagated'] is True
+
+        # -- N1 correction 13 (PF13-03): the **real** parent pump reads
+        #    the channel of the round through the BrokerProcess and the
+        #    queue of the channel, and the parent waits for its replies
+        #    on the event of the round.  The recorders are transparent:
+        #    they call the original owner of the wait and they record the
+        #    **actual** argument of it.  The original context of the
+        #    round is tightened before the next admission and the next
+        #    requested argument is the **current** minimum; the zero
+        #    expiry is included.
+        queue_waits = []
+        original_get = session.broker._channel._queue.get
+
+        def recording_get(block=True, timeout=None):
+            queue_waits.append(timeout)
+            return original_get(block=block, timeout=timeout)
+
+        session.broker._channel._queue.get = recording_get
+        reply_waits = []
+        original_waiter = custody_module._ReplyWaiter
+
+        class RecordingWaiter(original_waiter):
+            """A waiter of a reply that records its actual wait."""
+
+            def __init__(self, kinds):
+                super().__init__(kinds)
+                event = self.event
+                original_wait = event.wait
+
+                def recording_wait(timeout=None):
+                    reply_waits.append(timeout)
+                    return original_wait(timeout)
+
+                event.wait = recording_wait
+
+        # The **published** cleanup deadline of the round shortens the
+        # next read of the parent: the round is not over yet.
+        session._context.publish_cleanup_deadline(clock.value + 0.05)
+        deadline = time.monotonic() + 15.0
+        while time.monotonic() < deadline:
+            if any(value is not None and 0.0 < value <= 0.05 + 1e-9
+                   for value in queue_waits):
+                break
+            time.sleep(0.005)
+        with unittest.mock.patch.object(custody_module, '_ReplyWaiter',
+                                        RecordingWaiter):
+            with pytest.raises(CustodyError):
+                session._read_reply(('READY',), timeout=0.05)
+        facts = {'queue_waits': list(queue_waits),
+                 'reply_waits': list(reply_waits),
+                 'cleanup': clock.value + 0.05}
+        write_phase('r07-pump-current-minimum', facts)
+        assert queue_waits, \
+            'the parent pump never waited for a frame of the round'
+        assert queue_waits[-1] == pytest.approx(0.05), \
+            'the read of the parent pump ignored the current minimum'
+        assert reply_waits, \
+            'the parent never waited for a reply of the round'
+        assert reply_waits[-1] == pytest.approx(0.05), \
+            'the reply event of the parent ignored the current minimum'
+        # The **zero expiry**: the absolute deadline of the round is
+        # shortened and every next wait of the parent asks for nothing.
+        # The pump of the round ends when the bound of the round
+        # arrived: it never spins on a round that is over.  The queue
+        # wait of the **same** production chain - the BrokerProcess and
+        # the channel of the round - is therefore observed through the
+        # handle of the broker.
+        session._context.bind_absolute_deadline(clock.value)
+        queue_waits[:] = []
+        reply_waits[:] = []
+        session.broker.read(CHANNEL_POLL_SECONDS)
+        deadline = time.monotonic() + 15.0
+        while time.monotonic() < deadline:
+            if session._pump is not None and session._pump.finished:
+                break
+            time.sleep(0.005)
+        # The reply event of the parent is observed on a **fresh** pump
+        # of the same production owner with the same original context:
+        # the pump of the round is over and it never waits again.
+        zero_pump = custody_module._ChannelPump(
+            session.broker, decode=session._decode_reply, clock=clock,
+            context=session._context)
+        with unittest.mock.patch.object(custody_module, '_ReplyWaiter',
+                                        RecordingWaiter):
+            with pytest.raises(CustodyError):
+                zero_pump.take(('READY',), clock.value + 0.05)
+        facts = {'queue_waits': list(queue_waits),
+                 'reply_waits': list(reply_waits),
+                 'pump_finished': bool(session._pump is not None
+                                       and session._pump.finished)}
+        write_phase('r07-pump-zero-expiry', facts)
+        assert queue_waits, \
+            'the parent never waited for a frame of the round'
+        assert queue_waits[-1] == 0.0, \
+            'the read of the parent asked for a wait after the expiry'
+        assert reply_waits, \
+            'the parent never waited for a reply of the round'
+        assert reply_waits[-1] == 0.0, \
+            'the reply event of the parent asked for a wait after the expiry'
+        assert facts['pump_finished'] is True, \
+            'the pump of the round did not end after the bound arrived'
 
         # -- the child: the core, the loop and the transport share one
         #    context and the cleanup deadline of the round -----------

@@ -6853,6 +6853,21 @@ class _LaunchAggregate:
         # retry of the raw streams read it and they never close the same
         # original twice.
         self.progress = _LaunchProgress()
+        # The **durable ownership history** of the original files of
+        # this launch.  It is written at the **actual** registration of
+        # the channel of the launch - the channel registers itself
+        # before it builds anything - and it is **never** revoked:
+        # clearing the active slot of the channel does not give the
+        # ownership of the original files back to the launch and it
+        # never creates a new raw closer.  A channel that completed
+        # really closed the original files of the process and a later
+        # recovery of the same owner may not close them a second time.
+        self._channel_owns_raw = False
+        # The **original identities** that the channel of this launch
+        # took.  They are recorded at the actual registration of the
+        # channel and they are never revoked: the aggregate may not
+        # close them, not even after the channel completed.
+        self._channel_owned_raw = {}
         # Whether the exit of the process of this launch was already
         # **confirmed**.  A retry of the same owner coordinates only the
         # parts that were not confirmed yet: it never terminates and
@@ -6867,10 +6882,17 @@ class _LaunchAggregate:
         return process
 
     def bind_channel(self, channel):
-        """Bind the channel of this launch."""
+        """Bind the channel of this launch.
+
+        The binding is the **transfer** of the original files of the
+        process to the channel: the channel is the only owner of them
+        from now on.  The transfer is recorded in the durable ownership
+        history of this launch and it is never revoked.
+        """
         with self._lock:
             if channel is not None:
                 self.channel = channel
+                self._record_channel_ownership()
         return channel
 
     def bind_endpoint(self, endpoint):
@@ -6899,15 +6921,46 @@ class _LaunchAggregate:
         The protocol is the protocol of the table of the launcher: the
         channel of a launch registers itself **before** it builds
         anything, so that a partial channel is always reachable.
+
+        The registration of the channel is also the **actual** transfer
+        of the original files of the process to the channel: the durable
+        ownership history of this launch records it and it is never
+        revoked, not even when the active slot of the channel is
+        cleared after a **completed** close.
         """
         with self._lock:
             if kind == 'channel' and resource is not None:
                 self.channel = resource
+                self._record_channel_ownership()
             elif kind == 'endpoint':
                 self.endpoints.append(resource)
             elif kind == 'worker':
                 self.workers.append(resource)
         return resource
+
+    def _record_channel_ownership(self):
+        """Record the **actual** transfer of the original files.
+
+        The channel of a launch takes the original standard files of the
+        process of the round: the process helper may never close them.
+        The identities that the channel took are recorded here, at the
+        actual registration of the channel, and they are never revoked:
+        a channel that completed really closed them and a later
+        recovery of the same owner may not close them a second time.
+
+        The **identity** of the original file is the authority and not
+        its name and not a summary of a failure.
+        """
+        with self._lock:
+            self._channel_owns_raw = True
+            process = self.process
+            if process is None:
+                return
+            for name in ('stdin', 'stdout', 'stderr'):
+                stream = getattr(process, name, None)
+                if stream is None:
+                    continue
+                self._channel_owned_raw.setdefault(name, stream)
 
     def forget(self, resource):
         """Leave the launch: the resource was handed over or released."""
@@ -6957,6 +7010,65 @@ class _LaunchAggregate:
         """The original raw streams that this launch still owns."""
         with self._lock:
             return list(self.raw_streams)
+
+    def _register_pending_raw(self, process):
+        """Register the originals that the helper is about to close.
+
+        The registration happens **before** the first interruptible step
+        of the helper: an interruption may not lose the identity of an
+        original and an original that is never visited keeps an
+        executable same-owner recovery route.
+
+        Only the originals that **this** launch may close are
+        registered: the originals that the channel took are never
+        registered, because the channel is their owner.
+        """
+        with self._lock:
+            for name in ('stdin', 'stdout', 'stderr'):
+                stream = getattr(process, name, None)
+                if stream is None:
+                    continue
+                if self._channel_owned_raw.get(name) is stream:
+                    # The channel took this original: it is not ours.
+                    continue
+                record = self.progress.fact('stream:' + name)
+                if record.get('stream') is stream and record.get('closed'):
+                    # The close was already confirmed: it is never
+                    # registered and it is never repeated.
+                    continue
+                self.retain_raw_stream(name, stream)
+
+    def _reconcile_pending_raw(self, process, close_pipes):
+        """Reconcile the registered originals with the facts of the helper.
+
+        An original whose close was confirmed is forgotten by its owner
+        and by the table of the launcher.  Every other original - the
+        one whose close failed and the one that was **never visited** -
+        keeps its **original identity** and its owner, so that the same
+        owner may really retry it.  The return value names the originals
+        that are still unresolved.
+        """
+        unresolved = []
+        if not close_pipes:
+            return unresolved
+        with self._lock:
+            owned = dict(self._channel_owned_raw)
+        for name in ('stdin', 'stdout', 'stderr'):
+            stream = getattr(process, name, None)
+            if stream is None:
+                continue
+            if owned.get(name) is stream:
+                continue
+            record = self.progress.fact('stream:' + name)
+            if record.get('stream') is stream and record.get('closed'):
+                # The close was confirmed: the original is forgotten by
+                # its owner and by the table of the launcher.
+                self.forget_raw_stream(stream)
+                if self.custody is not None:
+                    self.custody.forget(stream)
+                continue
+            unresolved.append((name, stream))
+        return unresolved
 
     # -- the coordinated release ------------------------------------------
     def _release_deadline(self, deadline=None):
@@ -7055,7 +7167,12 @@ class _LaunchAggregate:
         if process is not None:
             # The files of the process belong to the channel when the
             # channel took them: the process helper never closes them.
-            close_pipes = channel is None
+            # The **durable ownership history** of this launch is the
+            # authority and not the presence of the channel in the
+            # active slot: a channel that completed really closed the
+            # original files of the process and a later release of the
+            # same owner may not close them a second time.
+            close_pipes = channel is None and not self._channel_owns_raw
             outcome = {'failures': {}, 'exited': False, 'retained_streams': []}
             # The original raw streams that **this** launch owns are
             # closed by the retry of the raw streams below and by no
@@ -7067,6 +7184,13 @@ class _LaunchAggregate:
             # published in the meantime shortens the wait of the
             # process and it is never a number that was copied once.
             bound, bound_clock = self._release_bound(deadline, clock)
+            # The originals that the helper is about to close are
+            # registered with **this** owner **before** the first
+            # interruptible step: an interruption may not lose them and
+            # an original that was never visited keeps an executable
+            # same-owner recovery route.
+            if close_pipes:
+                self._register_pending_raw(process)
             # The original references that the helper could not confirm
             # are collected **outside** of its report: a helper that is
             # interrupted before it returns does not return its report
@@ -7079,7 +7203,7 @@ class _LaunchAggregate:
                     exited=self.process_exit_confirmed,
                     context=self.context, progress=self.progress,
                     owned_streams=owned, clock=bound_clock,
-                    retained_out=helper_retained)
+                    retained_out=helper_retained, failures_out=failures)
             except (KeyboardInterrupt, SystemExit) as error:
                 cancellations.append(error)
             except BaseException as error:  # noqa: BLE001 - the failure stays visible
@@ -7099,12 +7223,30 @@ class _LaunchAggregate:
             # launch is the owner of it and it retries it.
             retained_raw = list(outcome.get('retained_streams') or [])
             retained_raw.extend(helper_retained)
+            # The originals whose close **failed** are known: they were
+            # exported by the helper as it happened.  Every other
+            # original that is still unresolved was never visited.
+            failed_ids = {id(stream) for _name, stream in retained_raw}
+            # The originals that the helper was about to close are
+            # reconciled with the facts of the progress record: a
+            # confirmed close is forgotten and every other original -
+            # failed **or** never visited - keeps its identity and its
+            # owner, so that the same owner may really retry it.
+            for name, stream in self._reconcile_pending_raw(process,
+                                                             close_pipes):
+                if not any(known[1] is stream for known in retained_raw):
+                    retained_raw.append((name, stream))
             for name, stream in retained_raw:
                 retained.append(name)
                 self.retain_raw_stream(name, stream)
                 if self.custody is not None:
-                    self.custody.retain(name, stream, 'close_failed',
-                                        launch=self)
+                    # The detail is a label and never the authority:
+                    # the **identity** of the original is the authority.
+                    # A close that failed and a close that was never
+                    # attempted are named apart.
+                    detail = ('close_failed' if id(stream) in failed_ids
+                              else 'close_unconfirmed')
+                    self.custody.retain(name, stream, detail, launch=self)
             # The original process is forgotten **only** when its exit
             # was confirmed and the original handle of the process was
             # released.  A close of the handle that failed keeps the
@@ -7174,6 +7316,14 @@ class _LaunchAggregate:
         for item in items:
             stream = item['stream']
             name = item['name']
+            # The originals that the channel of this launch took are
+            # **never** closed by the launch: the ownership history of
+            # the launch is durable and a channel that completed really
+            # closed them.
+            if self._channel_owned_raw.get(name) is stream:
+                retained.append(name)
+                failures['raw_stream'] = 'BROKER_RAW_STREAM_OWNED_BY_CHANNEL'
+                continue
             # The confirmed close of an original is **never** repeated:
             # the progress record of this launch is the owner of that
             # fact and it outlives every later release.
@@ -7452,6 +7602,36 @@ def _launcher_custody_items():
     return _LAUNCHER_CUSTODY.items()
 
 
+def _release_minimum(deadline=None, context=None, clock=None):
+    """The **current** absolute minimum of a release and the clock of it.
+
+    The deadline of the caller, the absolute deadline of the original
+    context and the **published** cleanup deadline of the round are one
+    value: the earliest of them.  The value is read **again** at every
+    call: a context that was tightened while a previous step of the
+    release ran shortens the bound of the next one.
+
+    The clock of the domain of that value is returned with it: a
+    deadline that belongs to the context of the round is measured with
+    the clock of that context and never with the clock of another
+    domain.
+    """
+    try:
+        value = _require_deadline(deadline)
+    except BrokerError:
+        value = None
+    owner_clock = clock or time.monotonic
+    if context is not None:
+        for candidate in (context.absolute_deadline,
+                          context.cleanup_deadline_value()):
+            if candidate is None:
+                continue
+            if value is None or candidate < value:
+                value = candidate
+                owner_clock = getattr(context, 'clock', None) or owner_clock
+    return value, owner_clock
+
+
 def _release_budget(deadline=None, context=None, clock=None):
     """The seconds that are left for the wait of a process of a launch.
 
@@ -7466,31 +7646,19 @@ def _release_budget(deadline=None, context=None, clock=None):
     The bound of the package is used only when neither the caller nor
     the context of the launch brought a deadline at all.
     """
-    try:
-        value = _require_deadline(deadline)
-    except BrokerError:
-        # A deadline that cannot be understood is no deadline: the
-        # bound of the package is used and it is never a budget that
-        # the caller did not ask for.
-        value = None
-    if context is not None:
-        for candidate in (context.absolute_deadline,
-                          context.cleanup_deadline_value()):
-            if candidate is None:
-                continue
-            if value is None or candidate < value:
-                value = candidate
+    value, owner_clock = _release_minimum(deadline, context, clock)
     if value is None:
         return CLOSE_JOIN_SECONDS
     # The clock is the clock of the domain of the deadline: a deadline
     # that belongs to the context of the round is measured with the
     # clock of that context.
-    return max(0.0, value - (clock or time.monotonic)())
+    return max(0.0, value - owner_clock())
 
 
 def _release_launch_process(process, *, deadline=None, close_pipes=True,
                             exited=None, context=None, progress=None,
-                            owned_streams=None, clock=None, retained_out=None):
+                            owned_streams=None, clock=None, retained_out=None,
+                            failures_out=None):
     """Terminate one process of a launch and report the two facts.
 
     The release is explicit and it is bounded: the process is
@@ -7522,13 +7690,18 @@ def _release_launch_process(process, *, deadline=None, close_pipes=True,
     retry of the owner closes them.  The helper and the retry never
     close the same original and a confirmed close is never repeated.
 
+    The failures are written into the ``failures_out`` dictionary of
+    the owner **as they happen**: a helper that is interrupted before it
+    returns does not return its report and an ordinary failure that
+    happened before the interruption may not be lost with it.
+
     The report names every step that did not succeed and it names the
     **exit** of the process as a separate fact: a close that succeeded
     is never a proof that the process ended.  A raw stream that could
     not be closed is returned with its **original** reference: it stays
     a reachable owned resource and it is never replaced by a summary.
     """
-    failures = {}
+    failures = failures_out if isinstance(failures_out, dict) else {}
     retained_streams = []
     owned = owned_streams if isinstance(owned_streams, dict) else {}
     if progress is not None:
@@ -7589,12 +7762,22 @@ def _release_launch_process(process, *, deadline=None, close_pipes=True,
                     # The close was confirmed by an earlier release of
                     # the same owner: it is never repeated.
                     continue
-            # The bound of the release is read **again** before **each**
-            # close: an expired bound never starts a new close and the
-            # stream keeps its owner.
-            if deadline is not None and (clock or time.monotonic)() >= deadline:
+            # The **current** minimum of the release is read **again**
+            # before **each** initial close: the deadline of the caller,
+            # the absolute deadline of the original context and the
+            # **published** cleanup deadline of the round are one value
+            # and they are read at the moment of the close.  A context
+            # that was tightened by the wait of the process or by a
+            # previous close of an original is honoured here: an
+            # expired bound never starts a new close and the original
+            # keeps its owner and its identity.
+            current, current_clock = _release_minimum(deadline, context,
+                                                      clock)
+            if current is not None and current_clock() >= current:
                 failures[name] = 'BROKER_RAW_STREAM_DEADLINE_EXCEEDED'
                 retained_streams.append((name, stream))
+                if retained_out is not None:
+                    retained_out.append((name, stream))
                 continue
             try:
                 stream.close()
@@ -7611,8 +7794,13 @@ def _release_launch_process(process, *, deadline=None, close_pipes=True,
             except Exception as error:  # noqa: BLE001 - the failure stays visible
                 failures[name] = type(error).__name__
                 # The stream keeps its **original** reference: it stays
-                # a reachable owned resource of the round.
+                # a reachable owned resource of the round.  The failure
+                # is exported **as it happens** and not only with the
+                # report of the helper: an interruption that follows
+                # this failure may not lose it.
                 retained_streams.append((name, stream))
+                if retained_out is not None:
+                    retained_out.append((name, stream))
                 continue
             if progress is not None:
                 progress.record('stream:' + name, stream=stream, closed=True)
