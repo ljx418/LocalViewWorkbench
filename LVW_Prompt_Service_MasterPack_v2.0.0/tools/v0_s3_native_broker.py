@@ -4320,6 +4320,10 @@ class StreamChannel:
         ends may try them again, and a close of an endpoint that is
         already closed keeps the fact that it is closed.
 
+        The error of the reader of the channel is **sticky** and it is
+        never cleared by a later close of the channel: a close that
+        returned is not a release and the error of the reader stays.
+
         The close **initiates** the cancellation of the reader and it
         names itself as the owner of that cancellation before the flag
         is set.  A cancellation that this close really initiated is a
@@ -5005,6 +5009,14 @@ class BrokerProcess:
         that was not confirmed is coordinated again.  The attempt that
         ended is not a release: only the facts of the close prove it.
 
+        The error of the reader of the channel is a **history** of the
+        round and not a fact of the last attempt: a repeated close keeps
+        the first error that the reader really had, it publishes the
+        source of that error and it never turns a real error into a
+        ``None``.  The resource facts of the close may converge while
+        the error history of the reader stays: a close that returned is
+        not a release and a retry is not an amnesty.
+
         The **endpoint is the only owner** of the files of the channel.
         The broker process therefore never closes the standard input and
         the standard output of the process by itself: it closes the
@@ -5015,6 +5027,8 @@ class BrokerProcess:
         facts = {'channel_closed': False,
                  'channel_reader_finished': None,
                  'channel_reader_error': None,
+                 'channel_reader_error_source': None,
+                 'channel_reader_secondary_errors': [],
                  'close_cancellation': None,
                  'channel_retained_workers': 0,
                  'write_end_closed': False,
@@ -5063,6 +5077,11 @@ class BrokerProcess:
             channel_facts = None
         if channel_facts is not None:
             facts.update(channel_facts)
+        # The error of the reader of the channel is a **history** of the
+        # round: a repeated close never turns a real error of the reader
+        # into a ``None``.  The first error is the error of the round and
+        # a later error is kept beside it as a secondary one.
+        self._keep_reader_error_history(facts, previous)
         # The files of the channel belong to the endpoints of the
         # channel.  The fact of their close is the fact of the channel.
         facts['stdin_closed'] = facts['write_end_closed']
@@ -5090,6 +5109,48 @@ class BrokerProcess:
             facts.update(self._release_process_handle(facts['process_exited']))
         self.close_facts = facts
         self.reader_finished = facts['channel_reader_finished']
+        return facts
+
+    @staticmethod
+    def _keep_reader_error_history(facts, previous):
+        """Keep the history of the error of the reader of the channel.
+
+        The **first** error that the reader of the channel really had is
+        the error of the round: every later close keeps it and it is
+        never turned into a ``None`` by a repeated close.  The resource
+        facts of the close may converge, but a real error of the reader
+        is never lost by the retry: the copy of the facts of a previous
+        attempt keeps the facts that are ``True`` and it does **not**
+        keep a code, so the error is restored here from the history
+        itself.
+
+        A later error is a **secondary** error: it is kept beside the
+        first one and it never replaces it.  The source of the error is
+        published with it: ``FIRST_CLOSE`` when the close that is running
+        now is the one that really observed the error and
+        ``REPEATED_CLOSE`` when this attempt carries the error of an
+        earlier one.  The fact of the error itself is the history and it
+        is never replaced by a boolean.
+
+        The named fact of the cancellation of the close is independent
+        from this history and it is never merged with it.
+        """
+        previous = previous if isinstance(previous, dict) else {}
+        first = previous.get('channel_reader_error')
+        current = facts.get('channel_reader_error')
+        secondary = list(previous.get('channel_reader_secondary_errors') or [])
+        if first:
+            if current and current != first:
+                # A second error of the reader is kept beside the first
+                # one: the first error stays the error of the round.
+                if current not in secondary:
+                    secondary.append(current)
+            facts['channel_reader_secondary_errors'] = secondary
+            facts['channel_reader_error'] = first
+            facts['channel_reader_error_source'] = 'REPEATED_CLOSE'
+            return facts
+        if current:
+            facts['channel_reader_error_source'] = 'FIRST_CLOSE'
         return facts
 
     @staticmethod

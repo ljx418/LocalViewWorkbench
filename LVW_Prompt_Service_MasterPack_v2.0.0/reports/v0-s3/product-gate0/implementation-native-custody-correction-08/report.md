@@ -1,4 +1,4 @@
-# N1 correction 08: the correction of the five failures of the frozen batch of the correction 07, the minimal production classification of the close cancellation, pending the new frozen batch and the new independent review
+# N1 correction 08: the correction of the five failures of the frozen batch of the correction 07, the two minimal production classifications that the root authorised, pending the new frozen batch and the new independent review
 
 Stage: R1.  Workpack: WP-R1-U3 / S3-P4-N1.  Gate:
 `S3_P4_N1_CORRECTION_08_CORRECTION_OF_THE_FIVE_FAILURES`.
@@ -9,10 +9,16 @@ Evidence of the failed batch (frozen by the root): `b9347b688299d601c40eccd734b5
 batch = true`).
 
 Root packages: `reports/v0-s3/product-gate0/native-custody-correction-08`
-(`contract.md`, `decision.json`, `failed-attempt01/execution-report.md`) and
+(`contract.md`, `decision.json`, `failed-attempt01/execution-report.md`),
 `reports/v0-s3/product-gate0/native-custody-correction-08/close-cancellation-decision-01/decision.json`
 (`AUTHORIZE_MINIMAL_LOCAL_CLOSE_CANCELLATION_CLASSIFICATION_STATIC_ONLY`, message
-`msg_228a371bfcb9`).
+`msg_228a371bfcb9`) and
+`reports/v0-s3/product-gate0/native-custody-correction-08/error-evidence-preservation-01/decision.json`
+(`STATIC_FIX_CONFIRMED_READER_ERROR_LOSS_BEFORE_TEST_ACK`, message
+`msg_acdc1649d945`).  The two **reply bodies** of those two decisions are part
+of the package and they were read in full: the second one appends the
+minimal correction of the **loss of the reader error** and the counter
+examples that prove it.
 Parent packages: `native-custody-correction-07` (the 18 frozen groups of the
 new module) and its two parents `native-custody-correction-05` (24 frozen
 groups) and `native-custody-correction-03` (16 frozen groups), both inherited
@@ -28,8 +34,8 @@ sampler, they are not a parent crash recovery, they are not a Windows stdin
 EOF, they are not an admission and they are not a product gate 0.
 
 **The six majors of the isolated review stay OPEN.**  This delivery corrects
-five test groups and it applies one minimal production classification that
-the root authorised; it closes nothing by itself.
+five test groups and it applies the two minimal production classifications
+that the root authorised; it closes nothing by itself.
 
 ## 1. What was read
 
@@ -40,7 +46,11 @@ edit: `contract.md`, `decision.json`, `implementation-prompt.md`,
 `failed-attempt01/execution-report.md` together with the two counter
 snapshots, the guard snapshot and the receipt of the inherited runner.  The
 decision of the root on the close cancellation was read in full before the
-first production edit, together with its whole reply.
+first production edit, together with its whole reply.  The **second**
+decision of the root, on the preservation of the reader error, was read in
+full before the second production edit, together with its whole reply and
+with its `decision.json`: it authorises the minimal correction of the loss
+of the reader error and it adds the counter examples that prove it.
 
 The governance layer was read before the sources: `AGENTS.md`,
 `.agent-governance/README.md`, `plans/execution-control.json` and the
@@ -81,8 +91,14 @@ receipt of the inherited runner of the root keeps its **inherited** file
 name (`native-custody-correction-03.receipt.json`) and it is written into
 the **new** run directory of this correction
 (`implementation-native-custody-correction-08/attempt01/`).  The receipt of
-the correction 03 stays in the report directory of the correction 05 and the
-two documents are never mixed.
+the correction 03 itself lives in the **own** report directory of the
+correction 03
+(`implementation-native-custody-correction-03/native-custody-correction-03.receipt.json`).
+The correction of this report: the inherited name of the runner is the name
+of the **writer** of the file and it does **not** place the receipt of the
+correction 03 in the report directory of the correction 05.  Every run
+directory carries its **own** run of the inherited runner and the two
+documents are never mixed.
 
 ## 3. The four corrections of the tests
 
@@ -265,6 +281,15 @@ and of the salvage to be persisted as a bounded JSON document, and it
 requires them to be written **before** the assertions, so that a group that
 fails never depends on the representation of a failure of pytest.
 
+**These documents do not exist yet.**  Nothing was run: the batch of the
+root was not executed and the group was never called.  The table below is
+the list of the **expected product paths** of the next batch, not a list of
+facts that were observed.  The only file of that directory that exists
+today is the note of the directory itself
+(`f5-evidence/README.md`).  Every document of the table is written by the
+group **during** the next batch and it becomes raw evidence of that batch
+only when the batch really ran.
+
 The group writes its documents in
 `reports/v0-s3/product-gate0/implementation-native-custody-correction-08/f5-evidence/`:
 
@@ -275,8 +300,11 @@ The group writes its documents in
 | `f5-salvage.json` | by the `finally` of the group, whatever the outcome was |
 | `f5-close-cancellation.json` | before the assertions of the first sub scenario |
 | `f5-unrelated-cancellation.json` | before the assertions of the second sub scenario |
+| `f5-unrelated-cancellation-second.json` | before the assertions of the **second** public stop of the second sub scenario |
 | `f5-read-fault.json` | before the assertions of the third sub scenario |
+| `f5-read-fault-second.json` | before the assertions of the **second** public stop of the third sub scenario |
 | `f5-partial-frame.json` | before the assertions of the fourth sub scenario |
+| `f5-partial-frame-second.json` | before the assertions of the **second** public stop of the fourth sub scenario |
 
 Every document is bounded and every value of it is the value that the
 production returned.  Each document names:
@@ -317,15 +345,37 @@ the owner of the test:
 | three | the read fails with an ordinary error | the ordinary failure of the read keeps its error and the round stays **unknown** |
 | four | the stream ends in the middle of a frame | the partial frame keeps its named error and it is never dropped as a normal end; the round stays **unknown** |
 
+The three sub scenarios that carry a **real error of the reader** drive
+**two consecutive public stops** of the round, as the second decision of the
+root requires.  The second attempt of the close copies the facts of the
+first one: the counter example is the **copy** itself, because a copy that
+dropped the error of the reader would release the broker of the round
+without a proof.  The group therefore asserts, after the second public
+stop and **before** any assertion of it is evaluated against a written
+document:
+
+* the error of the reader is **still there**, with the same code
+  (`BROKER_PIPE_CANCELLED`, `RuntimeError` and
+  `BROKER_CHANNEL_PARTIAL_FRAME` respectively);
+* the **source** of the error is named and it is `REPEATED_CLOSE`: the
+  second attempt carries the error of the first one instead of observing a
+  new one;
+* the round is still **unknown** (`UNKNOWN_RETAINED`) and the broker of the
+  round is **still kept**: the second attempt may never release the broker
+  because it copied the facts of the first one;
+* the failure of the second attempt **names** the incomplete fact
+  (`CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_error`).
+
 The fault proof of every sub scenario is written on the disk **before** the
 salvage of the owner of the test, exactly like the three phases of the
 group itself.
 
-## 5. The minimal production classification of the close cancellation
+## 5. The two minimal production changes that the root authorised
 
 `tools/v0_s3_native_broker.py` is the **only** production file that this
-delivery touches, and it is the file that the decision of the root
-authorised (`additional_allowed_production_file`).  The custody
+delivery touches, and it is the file that the two decisions of the root
+authorised (`additional_allowed_production_file` and
+`allowed_files`).  The custody
 (`tools/v0_s3_native_custody.py`), the broker core, the launcher, the
 owners of the older rounds, the public contract, the strict required facts
 and the quality thresholds are **frozen and untouched**.
@@ -391,15 +441,74 @@ The change is a **classification**, not a relaxation:
   platform and it does not change the strict required facts of the
   custody.
 
-### 5.4 An observation that this delivery does **not** change
+### 5.4 The second minimal production change: the error of the reader is a history
 
-The copy of the facts of a previous attempt of `BrokerProcess.close` keeps
-the facts that are `True` and it does **not** keep a reader error that is a
-code.  A second public stop therefore does not carry the reader error of
-the first one into its own facts unless it closes the channel again.  That
-behaviour is **pre-existing**, it is outside the scope that the root
-authorised and this delivery does **not** change it; it is reported here
-so that the root can adjudicate it with the facts of the next batch.
+The **second** decision of the root
+(`STATIC_FIX_CONFIRMED_READER_ERROR_LOSS_BEFORE_TEST_ACK`,
+`msg_acdc1649d945`) confirmed **statically** a second, independent defect
+of the same major (M09, the anti false green obligation) and it authorised
+the minimal correction of it inside the same broker file.
+
+**The defect.**  `BrokerProcess.close` initialises
+`channel_reader_error` to `None` and it copies the facts of a previous
+attempt of the close with a rule that keeps the facts that are `True`: a
+reader error is a **code** and it is therefore not copied.  The second
+public stop of a round reaches `BrokerProcess.close` again, the channel was
+already closed and `_channel_complete` confirms every **resource** item of
+it, so the channel is **not** closed again and no new fact of the reader
+is observed.  The facts of the second attempt therefore carry
+`channel_reader_error = None` while the reader of the channel really had
+an error.  `NativeCustodySession._perform_close` checks that field: an
+empty one is not an incomplete fact, the parent releases the broker of the
+round and the round leaves the unknown state **without a proof**.  A real
+error of the reader of the channel is thus lost by the retry and the round
+claims a release that it cannot prove.
+
+**The minimal correction.**  `BrokerProcess.close` keeps the **history** of
+the error of the reader:
+
+* the first error that the reader really had is the error of the round and
+  every later close keeps it: the copy of the facts of the previous
+  attempt is completed by the history itself and a repeated close never
+  turns a real error into a `None`;
+* a later error is a **secondary** error: it is kept beside the first one
+  (`channel_reader_secondary_errors`) and it never replaces it;
+* the **source** of the error is published with it
+  (`channel_reader_error_source`): `FIRST_CLOSE` when the close that runs
+  now is the one that observed the error and `REPEATED_CLOSE` when the
+  attempt carries the error of an earlier one;
+* the named fact of the cancellation of the close is **independent** from
+  this history and it is never merged with it: a cancellation that the
+  close of this channel really initiated is still not an error of the
+  reader.
+
+**What the change explicitly does not do.**
+
+* it does **not** relax the strict facts of the custody and it does **not**
+  clear an error to release a broker: the check of
+  `NativeCustodySession._perform_close`
+  (`if facts.get('channel_reader_error'):`) is untouched and the round
+  stays unknown exactly as it stayed after the first attempt;
+* it does **not** force a success: the resource facts of the close are
+  still computed from the real state of the reader, of the endpoints, of
+  the workers and of their handles;
+* it does **not** copy a boolean: the code of the error itself is kept and
+  the source of the error is named;
+* it does **not** touch the public contract, the error codes, the strict
+  required facts and the thresholds.
+
+The observation of the previous revision of this report — that the copy of
+the facts of a previous attempt does not keep a reader error that is a
+code — is therefore **no longer an observation**: the root adjudicated it
+and it is a defect of the production, and this delivery corrects it.
+
+**What this correction does not claim.**  The two defects that the root
+confirmed statically are **local** ones.  They are **not** claimed to be
+the complete root cause of the fifth failure of the last batch: the
+diagnosis of the fifth one is completed by the **raw facts of the first and
+of the second attempt** of the next batch, and this delivery does not
+pre-fill any of them and it does not claim that the fifth failure is
+closed.
 
 ## 6. The static self-review
 
@@ -421,8 +530,9 @@ measurement and it is **not** a native claim.
   join of the production code.
 * The custody module `tools/v0_s3_native_custody.py` keeps its bytes and
   the change of `tools/v0_s3_native_broker.py` is limited to the
-  `StreamChannel`, to the private identity of the cancellation and to the
-  one new fact of the handle of the broker.
+  `StreamChannel`, to the private identity of the cancellation, to the one
+  new fact of the handle of the broker and to the history of the error of
+  the reader inside `BrokerProcess.close`.
 
 What this delivery does **not** claim and what it did **not** do:
 
@@ -443,9 +553,11 @@ What this delivery does **not** claim and what it did **not** do:
   and the gate of this correction is
   `S3_P4_N1_CORRECTION_08_CORRECTION_OF_THE_FIVE_FAILURES`.
 * **What this batch completes**: the static correction of the five failures
-  of the frozen batch of the correction 07, the minimal production
-  classification of the close cancellation that the root authorised and the
-  deterministic diagnosis of the fifth one.  It closes **no** major.
+  of the frozen batch of the correction 07, the two minimal production
+  corrections that the root authorised (the classification of the close
+  cancellation and the preservation of the history of the error of the
+  reader) and the deterministic diagnosis of the fifth one.  It closes
+  **no** major.
 * **The last passed gate**: `UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW`
   (candidate `621b1bf`), unchanged by this delivery.
 * **The position in the global route**: V0-S0 1/2, V0-S1 5/5, R0 1/2, R1a
@@ -459,17 +571,18 @@ What this delivery does **not** claim and what it did **not** do:
 * **The next owner**: the gate owner of the root and the independent
   review.
 * **The required authorization**: the static implementation of this
-  delivery is the work of the frozen workpack and the production change
-  is the one that the decision of the root authorised.  The **dynamic**
-  execution is not authorized and it is requested from the root by the
-  finite plan of the delivery.
+  delivery is the work of the frozen workpack and the two production
+  changes are the ones that the two decisions of the root authorised.  The
+  **dynamic** execution is not authorized and it is requested from the root
+  by the finite plan of the delivery.
 * **The evidence directory**:
   `reports/v0-s3/product-gate0/implementation-native-custody-correction-08/`.
-* **The exact reason of the stop**: the static implementation, the minimal
-  production classification, the static self-review and the persisted
-  evidence of the fifth failure are complete.  No dynamic execution was
-  performed, no ACK was requested and no rerun, no wrapper, no self repair
-  and no overwrite of a candidate happened.
+* **The exact reason of the stop**: the static implementation, the two
+  minimal production corrections, the static self-review and the
+  preparation of the persisted evidence of the fifth failure are
+  complete.  No dynamic execution was performed, no ACK was requested and
+  no rerun, no wrapper, no self repair and no overwrite of a candidate
+  happened.
 * **The claims**: READY_FOR_REVIEW.  Not Stage PASS.  The six majors of the
   independent review stay **OPEN**.
 
@@ -503,28 +616,30 @@ batch: they are written in the report of the batch and nowhere else,
 because they were not observed.
 
 The ask carries the frozen plan of the single batch of the 175 node ids in
-their original order.  It carries **no** new production request: the
-production change of this delivery is the one that the decision of the
-root already authorised, and the candidate of the previous round
-(`ada50e3`), the candidate of the failed batch (`23e2789`) and the
-receipts of the failed batch are all preserved and none of them is
-overwritten.
+their original order.  It carries **no** new production request: the two
+production changes of this delivery are the ones that the two decisions of
+the root already authorised, and the candidate of the previous round
+(`a9183e6`), the candidate of the round before it (`ada50e3`), the
+candidate of the failed batch (`23e2789`) and the receipts of the failed
+batch are all preserved and none of them is overwritten.
 
 ## 9. The files of this delivery
 
-* `tools/v0_s3_native_broker.py` (changed) — the minimal production
-  classification of the close cancellation that the root authorised: the
-  private `_CloseSource`, the private `_ChannelCancel`, the source of the
-  cancellation at the origin of the error and the named fact of the close
-  in the facts of the channel and of the handle of the broker.
+* `tools/v0_s3_native_broker.py` (changed) — the two minimal production
+  corrections that the root authorised: the private `_CloseSource`, the
+  private `_ChannelCancel`, the source of the cancellation at the origin of
+  the error, the named fact of the close in the facts of the channel and of
+  the handle of the broker, and the **history of the error of the reader**
+  inside `BrokerProcess.close`.
 * `tools/test_v0_s3_native_custody_regressions.py` (changed) — the group
   **F1** with the three named and bounded phases.
 * `tools/test_v0_s3_native_custody_correction05.py` (changed) — the group
   **F2** with the three named scenarios and the corrected oracle.
 * `tools/test_v0_s3_native_custody_correction07.py` (changed) — the groups
   **F3**, **F4** and **F5**, the helpers of the persisted facts, the
-  evidence directory of the fifth failure and the four bounded sub
-  scenarios of the reader of the channel.
+  evidence directory of the fifth failure, the four bounded sub scenarios of
+  the reader of the channel and the **second public stop** of the three sub
+  scenarios that carry a real error of the reader.
 * `reports/v0-s3/product-gate0/implementation-native-custody-correction-08/report.md`
   (new) — this report.
 * `reports/v0-s3/product-gate0/implementation-native-custody-correction-08/execution-plan.request.json`
@@ -533,7 +648,10 @@ overwritten.
   (new) — the pins of the delivery.
 * `reports/v0-s3/product-gate0/implementation-native-custody-correction-08/f5-evidence/README.md`
   (new) — the note of the directory in which the facts of the fifth
-  failure are written by the group itself.
+  failure are written by the group itself.  The **ten** documents of that
+  directory are **expected product paths** of the next batch: they are
+  written by the group when the batch really runs and they do **not** exist
+  today.
 
 No controller, no worker, no runtime, no driver, no supervisor, no
 authorization record, no public schema, no threshold, no control document,

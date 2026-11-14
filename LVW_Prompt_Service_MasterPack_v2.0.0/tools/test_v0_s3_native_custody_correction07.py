@@ -1761,6 +1761,12 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
     # Another owner of the cancel flag of the channel sets it and it
     # names no owner: the cancellation of the close may never be taken
     # for it and the error of the reader is kept.
+    #
+    # The scenario drives **two** consecutive public stops of the round.
+    # The second attempt copies the facts of the first one: the error of
+    # the reader is the **history** of the round and a retry is not an
+    # amnesty, so the error is still there, the round is still unknown
+    # and the broker is still kept.
     api = _F5Api(block_the_reader=True)
     session, holder, channel_closes, channel_facts = _f5_build_chain(
         api, document, plan, clock, wall, tmp_path)
@@ -1785,11 +1791,40 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
         # The round stays unknown and the original broker is kept.
         assert session.broker is not None
         assert first['broker_retained'] is True
+        assert first['state'] == 'UNKNOWN_RETAINED'
         incomplete = [failure for failure in first['failures']
                       if failure.startswith('CUSTODY_BROKER_CLOSE_INCOMPLETE')]
         assert incomplete, 'the incomplete facts were not named'
         assert any(failure.endswith('channel_reader_error')
                    for failure in incomplete)
+
+        # -- THE SECOND PUBLIC STOP OF THE ROUND -------------------------
+        # The second attempt of the close copies the facts of the first
+        # one.  The error of the reader is kept by the copy: it is the
+        # history of the round and the broker may never be released
+        # because the second attempt copied the facts of the first one.
+        second = session.stop()
+        second_document = _f5_snapshot('unrelated-cancellation-second',
+                                       session, api, holder, channel_facts,
+                                       channel_closes, None)
+        _f5_write('unrelated-cancellation-second', second_document)
+        second_facts = second_document['broker_close_facts'] or {}
+        assert second_facts.get('channel_reader_error') == 'BROKER_PIPE_CANCELLED', \
+            'the second attempt lost the error of the reader'
+        assert second_facts.get('channel_reader_error_source') == 'REPEATED_CLOSE', \
+            'the second attempt did not carry the error of the reader'
+        assert second_facts.get('close_cancellation') is None
+        assert session.broker is not None, \
+            'the broker was released by the copy of the facts'
+        assert second['broker_retained'] is True
+        assert second['state'] == 'UNKNOWN_RETAINED'
+        second_incomplete = [failure for failure in second['failures']
+                             if failure.startswith('CUSTODY_BROKER_CLOSE_INCOMPLETE')]
+        assert second_incomplete, \
+            'the second attempt did not name the incomplete facts'
+        assert any(failure.endswith('channel_reader_error')
+                   for failure in second_incomplete), \
+            'the second attempt released the broker with the copy of the facts'
     finally:
         owner_thread.join(15.0)
         assert not owner_thread.is_alive(), 'the owner of the round was left behind'
@@ -1800,7 +1835,10 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
 
     # -- SUB SCENARIO THREE: an ordinary failure of the read -------------
     # A failure of the read is not a cancellation and it is not a close
-    # of the round: its error is kept and the round stays unknown.
+    # of the round: its error is kept and the round stays unknown.  The
+    # scenario drives **two** consecutive public stops: the error of the
+    # read survives the second one and the broker is never released by
+    # the copy of the facts.
     api = _F5Api(read_fault=RuntimeError('read_fault'))
     session, holder, channel_closes, channel_facts = _f5_build_chain(
         api, document, plan, clock, wall, tmp_path)
@@ -1816,10 +1854,32 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
         assert facts.get('close_cancellation') is None
         assert session.broker is not None
         assert first['broker_retained'] is True
+        assert first['state'] == 'UNKNOWN_RETAINED'
         incomplete = [failure for failure in first['failures']
                       if failure.startswith('CUSTODY_BROKER_CLOSE_INCOMPLETE')]
         assert any(failure.endswith('channel_reader_error')
                    for failure in incomplete)
+
+        # -- THE SECOND PUBLIC STOP OF THE ROUND -------------------------
+        second = session.stop()
+        second_document = _f5_snapshot('read-fault-second', session, api,
+                                       holder, channel_facts, channel_closes,
+                                       None)
+        _f5_write('read-fault-second', second_document)
+        second_facts = second_document['broker_close_facts'] or {}
+        assert second_facts.get('channel_reader_error') == 'RuntimeError', \
+            'the second attempt lost the error of the read'
+        assert second_facts.get('channel_reader_error_source') == 'REPEATED_CLOSE'
+        assert second_facts.get('close_cancellation') is None
+        assert session.broker is not None, \
+            'the broker was released by the copy of the facts'
+        assert second['broker_retained'] is True
+        assert second['state'] == 'UNKNOWN_RETAINED'
+        second_incomplete = [failure for failure in second['failures']
+                             if failure.startswith('CUSTODY_BROKER_CLOSE_INCOMPLETE')]
+        assert any(failure.endswith('channel_reader_error')
+                   for failure in second_incomplete), \
+            'the second attempt released the broker with the copy of the facts'
     finally:
         try:
             session.stop()
@@ -1828,7 +1888,10 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
 
     # -- SUB SCENARIO FOUR: a frame that never ends -----------------------
     # The stream ends in the middle of a frame: the partial frame is a
-    # named failure and it is never dropped as a normal end.
+    # named failure and it is never dropped as a normal end.  The
+    # scenario drives **two** consecutive public stops: the partial frame
+    # survives the second one and the broker is never released by the
+    # copy of the facts.
     api = _F5Api(partial_frame=b'{"schema": "lvw.s3-native-custody-channel/1"')
     session, holder, channel_closes, channel_facts = _f5_build_chain(
         api, document, plan, clock, wall, tmp_path)
@@ -1845,10 +1908,32 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
         assert facts.get('close_cancellation') is None
         assert session.broker is not None
         assert first['broker_retained'] is True
+        assert first['state'] == 'UNKNOWN_RETAINED'
         incomplete = [failure for failure in first['failures']
                       if failure.startswith('CUSTODY_BROKER_CLOSE_INCOMPLETE')]
         assert any(failure.endswith('channel_reader_error')
                    for failure in incomplete)
+
+        # -- THE SECOND PUBLIC STOP OF THE ROUND -------------------------
+        second = session.stop()
+        second_document = _f5_snapshot('partial-frame-second', session, api,
+                                       holder, channel_facts, channel_closes,
+                                       None)
+        _f5_write('partial-frame-second', second_document)
+        second_facts = second_document['broker_close_facts'] or {}
+        assert second_facts.get('channel_reader_error') == 'BROKER_CHANNEL_PARTIAL_FRAME', \
+            'the second attempt lost the partial frame'
+        assert second_facts.get('channel_reader_error_source') == 'REPEATED_CLOSE'
+        assert second_facts.get('close_cancellation') is None
+        assert session.broker is not None, \
+            'the broker was released by the copy of the facts'
+        assert second['broker_retained'] is True
+        assert second['state'] == 'UNKNOWN_RETAINED'
+        second_incomplete = [failure for failure in second['failures']
+                             if failure.startswith('CUSTODY_BROKER_CLOSE_INCOMPLETE')]
+        assert any(failure.endswith('channel_reader_error')
+                   for failure in second_incomplete), \
+            'the second attempt released the broker with the copy of the facts'
     finally:
         try:
             session.stop()
