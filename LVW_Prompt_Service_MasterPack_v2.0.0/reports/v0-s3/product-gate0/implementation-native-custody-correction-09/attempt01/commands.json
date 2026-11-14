@@ -1,0 +1,79 @@
+{
+ "ack": {
+  "candidate_sha": "39f803730e09673eb1b74fa51e1f0919f2606a71",
+  "decision": "ACK_ONE_175_NODE_OFFLINE_BATCH_WITH_EXPLICIT_ORIGINAL_COUNTER_ABSENCE",
+  "message_id": "msg_806e6970083e"
+ },
+ "batches_max": 1,
+ "batches_run": 1,
+ "candidate_sha": "39f803730e09673eb1b74fa51e1f0919f2606a71",
+ "commands": [
+  {
+   "argv": [
+    "/usr/bin/python3.12",
+    "-I",
+    "-B",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-09/validation-plan-01/outer_counter_observe.py",
+    "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-09/attempt01/counter-absence-before.json"
+   ],
+   "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+   "exit_code": 0,
+   "label": "counter-absence-before",
+   "observation": "attempt01/counter-absence-before.json",
+   "ran": true,
+   "stderr": "attempt01/counter-absence-before.stderr.log",
+   "stdout": "attempt01/counter-absence-before.stdout.log"
+  },
+  {
+   "argv": [
+    "/usr/bin/python3.12",
+    "-I",
+    "-B",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-09/validation-plan-01/guard.py",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-09/validation-plan-01/runner.py",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-09/attempt01/native-custody-correction-09.guard.json"
+   ],
+   "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+   "exit_code": 1,
+   "guard_snapshot": "attempt01/native-custody-correction-09.guard.json",
+   "label": "guarded-validation",
+   "note": "The batch ran EXACTLY ONCE.  There was no rerun, no wrapper, no self repair, no deleted case and no overwritten candidate.",
+   "ran": true,
+   "receipt": "attempt01/native-custody-correction-03.receipt.json",
+   "receipt_filename_note": "The inherited runner of the root writes native-custody-correction-03.receipt.json inside the NEW attempt directory of this correction.  This is the new run and the receipt of the correction 03 stays in the report directory of the correction 03: the two documents are never mixed.",
+   "stderr": "attempt01/guarded-validation.stderr.log",
+   "stdout": "attempt01/guarded-validation.stdout.log"
+  },
+  {
+   "argv": [
+    "/usr/bin/python3.12",
+    "-I",
+    "-B",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-09/validation-plan-01/outer_counter_observe.py",
+    "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-09/attempt01/counter-absence-after.json"
+   ],
+   "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+   "exit_code": 0,
+   "label": "counter-absence-after",
+   "observation": "attempt01/counter-absence-after.json",
+   "ran": true,
+   "stderr": "attempt01/counter-absence-after.stderr.log",
+   "stdout": "attempt01/counter-absence-after.stdout.log"
+  }
+ ],
+ "gate": "S3_P4_N1_CORRECTION_09_DETERMINISTIC_EXTERNAL_CANCEL_PUBLICATION",
+ "kind": "LVW_N1_CORRECTION_09_ATTEMPT01_COMMANDS/1",
+ "label": "native-custody-correction-09-attempt01-counter-absence",
+ "max_seconds": 300,
+ "outcome": "FAILED: 175 collected in the frozen order, 174 pass, 1 fail, 0 skip, pytest exit 1, cleanup proven for the batch = true.",
+ "overwritten_candidate": "NONE",
+ "rerun": "NONE",
+ "root_plan": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-09/validation-plan-01/plan.json",
+ "root_plan_sha256": "02f06ac7b43ad1e5ff401b4c4b442149e0ef3e21dd1bbe3c5ca5c00d80d05303",
+ "self_repair": "NONE",
+ "stage": "R1",
+ "workpack": "S3-P4-N1",
+ "wrapper": "NONE"
+}

@@ -10,26 +10,26 @@ written **before** the assertions of the phase: a group that fails has to
 leave its evidence on the disk and it may never depend on the
 representation of a failure of pytest.
 
-**The documents of this directory do not exist yet.**  Nothing was run:
-the batch of the root was not executed and the group was never called.
-The table below is the list of the **expected product paths** of the next
-batch and it is **not** a list of facts that were observed.  The only file
-of this directory that exists today is this note.
+**The batch of the root ran exactly once and it FAILED.**  The group wrote
+**four** of the ten documents before it stopped inside the second bounded
+sub scenario; the other **six** were never reached and they are `NOT_RUN`.
+They are not deleted and they are not replaced by a summary.  The table
+below names every document, the phase that writes it and its real state.
 
 The group writes its documents here:
 
-| The document | It is written | Its state today |
+| The document | It is written | Its state |
 |---|---|---|
-| `f5-first.json` | before the assertions of the first public stop | `NOT_RUN` |
-| `f5-second.json` | before the assertions of the second public stop | `NOT_RUN` |
-| `f5-salvage.json` | by the `finally` of the group, whatever the outcome was | `NOT_RUN` |
-| `f5-close-cancellation.json` | before the assertions of the first bounded sub scenario (the cancellation that the close really initiated) | `NOT_RUN` |
-| `f5-unrelated-cancellation.json` | before the assertions of the second bounded sub scenario (a cancellation of another owner) | `NOT_RUN` |
-| `f5-unrelated-cancellation-second.json` | before the assertions of the **second** public stop of the second bounded sub scenario | `NOT_RUN` |
-| `f5-read-fault.json` | before the assertions of the third bounded sub scenario (an ordinary failure of the read) | `NOT_RUN` |
-| `f5-read-fault-second.json` | before the assertions of the **second** public stop of the third bounded sub scenario | `NOT_RUN` |
-| `f5-partial-frame.json` | before the assertions of the fourth bounded sub scenario (a frame that never ends) | `NOT_RUN` |
-| `f5-partial-frame-second.json` | before the assertions of the **second** public stop of the fourth bounded sub scenario | `NOT_RUN` |
+| `f5-first.json` | before the assertions of the first public stop | **written** |
+| `f5-second.json` | before the assertions of the second public stop | **written** |
+| `f5-salvage.json` | by the `finally` of the group, whatever the outcome was | **written** |
+| `f5-close-cancellation.json` | before the assertions of the first bounded sub scenario (the cancellation that the close really initiated) | **written** |
+| `f5-unrelated-cancellation.json` | before the assertions of the second bounded sub scenario (a cancellation of another owner) | **not written**: the group stopped before the first public stop of that sub scenario |
+| `f5-unrelated-cancellation-second.json` | before the assertions of the **second** public stop of the second bounded sub scenario | **not written** |
+| `f5-read-fault.json` | before the assertions of the third bounded sub scenario (an ordinary failure of the read) | **not written**: the group stopped before that sub scenario |
+| `f5-read-fault-second.json` | before the assertions of the **second** public stop of the third bounded sub scenario | **not written** |
+| `f5-partial-frame.json` | before the assertions of the fourth bounded sub scenario (a frame that never ends) | **not written** |
+| `f5-partial-frame-second.json` | before the assertions of the **second** public stop of the fourth bounded sub scenario | **not written** |
 
 Every document is bounded and every value of it is the value that the
 production returned.  Each document names the evidence of the round, the

@@ -1,11 +1,11 @@
-# N1 correction 09: the deterministic order of the cancellation of another owner, pending the frozen batch and the independent review
+# N1 correction 09: the deterministic order of the cancellation of another owner; the batch of the root ran exactly once and it FAILED
 
 Stage: R1.  Workpack: WP-R1-U3 / S3-P4-N1.  Gate:
 `S3_P4_N1_CORRECTION_09_DETERMINISTIC_EXTERNAL_CANCEL_PUBLICATION`.
 
 Candidate of this delivery: `39f803730e09673eb1b74fa51e1f0919f2606a71`.
 Production baseline (frozen by the root): `66600a1bd692c0149fc7724b624997bf2f40dcc1`.
-Evidence of the failed batch (frozen by the root):
+Evidence of the failed batch of the correction 08 (frozen by the root):
 `fb44ff7ac9ffa52163236fc1eb7ecc85ea6682aa`
 (`175 calls / 174 pass / 1 fail / 0 skip / pytest exit 1 / cleanup proven for the
 batch = true`).
@@ -21,16 +21,18 @@ and of its parents (16 + 24 groups), all inherited unchanged.
 
 **This delivery is a static implementation.**  The candidate was **not**
 imported, **not** collected and **not** run by pytest **by the
-implementation**.  The batch of the root did **not** run: it is asked for in
-section 8 and it is **NOT RUN** today.  The counter of the root was **not**
-read: it was **MISSING** before the failed batch of the correction 08 and it
-is **MISSING** after it, its historical continuity is `UNAVAILABLE_NOT_PROVEN`
-and no ledger was touched.  The claims of this delivery stay
-**READY_FOR_REVIEW**.  They are **not** Stage PASS, they are not a native
-execution, they are not a native cleanup, they are not a released GPU, they
-are not a released port, they are not a sampler, they are not a parent crash
-recovery, they are not a Windows stdin EOF, they are not an admission and
-they are not a product gate 0.
+implementation**.  The batch that the root authorised afterwards ran
+**exactly once** under the guard of the root and it **FAILED** with one
+failure; the report of that batch is section 11 and the raw evidence of it
+is in `attempt01/`.  The counter of the root was **not** read by the
+implementation: it was **MISSING** before the batch and it is **MISSING**
+after it, its historical continuity is `UNAVAILABLE_NOT_PROVEN` and no
+ledger was touched.  The claims of this delivery stay **READY_FOR_REVIEW**.
+They are **not** Stage PASS, they are not a native execution, they are not a
+native cleanup, they are not a released GPU, they are not a released port,
+they are not a sampler, they are not a parent crash recovery, they are not a
+Windows stdin EOF, they are not an admission and they are not a product
+gate 0.
 
 **The six majors of the isolated review stay OPEN.**  This delivery corrects
 the **ordering** of one negative scenario of one test module and it closes
@@ -202,23 +204,23 @@ What this delivery does **not** claim and what it did **not** do:
 ## 6. The ten phases of the fifth failure
 
 The group writes **ten** bounded JSON documents and it writes each of them
-**before** the assertions of its phase.  The ten documents are the
-**expected product paths** of the next batch and they do **not** exist
-today: the batch did not run and every phase of this attempt is
-`NOT_RUN`.
+**before** the assertions of its phase.  The batch of the root ran **once**
+(section 11) and it stopped inside the second bounded sub scenario, so
+**four** of the ten documents were written and they are the raw evidence of
+the batch; the other **six** are `NOT_RUN` and they are not pre-created.
 
 | The document | The failed batch of the correction 08 | This attempt |
 |---|---|---|
-| `f5-first.json` | written | `NOT_RUN` |
-| `f5-second.json` | written | `NOT_RUN` |
-| `f5-salvage.json` | written | `NOT_RUN` |
-| `f5-close-cancellation.json` | written | `NOT_RUN` |
-| `f5-unrelated-cancellation.json` | written (it holds the facts of the failure) | `NOT_RUN` |
-| `f5-unrelated-cancellation-second.json` | **not written**: the group stopped at the first assertion of that sub scenario | `NOT_RUN` |
-| `f5-read-fault.json` | **not written**: the group stopped before that sub scenario | `NOT_RUN` |
-| `f5-read-fault-second.json` | **not written** | `NOT_RUN` |
-| `f5-partial-frame.json` | **not written** | `NOT_RUN` |
-| `f5-partial-frame-second.json` | **not written** | `NOT_RUN` |
+| `f5-first.json` | written | **written** |
+| `f5-second.json` | written | **written** |
+| `f5-salvage.json` | written | **written** |
+| `f5-close-cancellation.json` | written | **written** |
+| `f5-unrelated-cancellation.json` | written (it holds the facts of the failure) | **not written**: the group stopped before the first public stop of that sub scenario |
+| `f5-unrelated-cancellation-second.json` | **not written**: the group stopped at the first assertion of that sub scenario | **not written** |
+| `f5-read-fault.json` | **not written**: the group stopped before that sub scenario | **not written** |
+| `f5-read-fault-second.json` | **not written** | **not written** |
+| `f5-partial-frame.json` | **not written** | **not written** |
+| `f5-partial-frame-second.json` | **not written** | **not written** |
 
 **The erratum of the count**: the missing phases are **five documents** and
 not the four sub scenarios of the group.  The second public stop of the sub
@@ -243,21 +245,24 @@ and the two directories are never mixed.
   `plans/execution-control.json` is unchanged (`R1 / WP-R1-U3`, state
   `READY`).  The progress comes from the `development_outline` of that
   plan and from the real receipts; it is not a subjective percentage.
-* **The remaining work**: the frozen batch of the root, the isolated
-  review, the human signature, the native Windows run and the N2 work,
-  which is not started.
+* **The remaining work**: the correction of the one failure of the batch of
+  section 11, the next frozen batch, the isolated review, the human
+  signature, the native Windows run and the N2 work, which is not started.
 * **The next owner**: the gate owner of the root and the independent
   review.
 * **The required authorization**: the static implementation of this delivery
   is the work of the frozen workpack and it changes **no** production
-  source.  The **dynamic** execution is not authorized and it is requested
-  from the root by the finite plan of the delivery.
+  source.  The dynamic execution was authorized by the ACK
+  `ACK_ONE_175_NODE_OFFLINE_BATCH_WITH_EXPLICIT_ORIGINAL_COUNTER_ABSENCE`
+  (`msg_806e6970083e`) and it was used **once**.
 * **The evidence directory**:
   `reports/v0-s3/product-gate0/implementation-native-custody-correction-09/`.
 * **The exact reason of the stop**: the static correction, the static
   self-review and the preparation of the plan request are complete and the
-  batch of the root did **not** run.  There was no rerun, no wrapper, no
-  self repair and no overwrite of a candidate.
+  batch of the root ran **exactly once** and **failed** with one failure
+  (section 11).  There was no rerun, no wrapper, no self repair and no
+  overwrite of a candidate; the correction of the one failure belongs to the
+  root.
 * **The claims**: READY_FOR_REVIEW.  Not Stage PASS.  The six majors of the
   independent review stay **OPEN**.
 
@@ -323,8 +328,17 @@ without any wrapper and without any bypass.
   (new) — the pins of the delivery.
 * `reports/v0-s3/product-gate0/implementation-native-custody-correction-09/f5-evidence/README.md`
   (new) — the note of the directory in which the ten documents are written
-  by the group itself.  The documents are the **expected product paths** of
-  the next batch and they do **not** exist today.
+  by the group itself.  The four documents that the batch of the root
+  really wrote are in it.
+* `reports/v0-s3/product-gate0/implementation-native-custody-correction-09/attempt01/`
+  (new) — the raw evidence of the batch that ran: the three commands with
+  their argv, their cwd and their exit codes, the two outer observations of
+  the absence of the counter, the guard snapshot, the raw output of the
+  batch, the receipt of the inherited runner and the report of the batch.
+* `reports/v0-s3/product-gate0/implementation-native-custody-correction-09/f5-evidence/f5-*.json`
+  (new) — the four bounded documents of the fifth failure that the group
+  really wrote before its assertions.  The six documents that are missing
+  are missing because the batch stopped.
 
 No controller, no worker, no runtime, no driver, no supervisor, no
 authorization record, no public schema, no threshold, no control document,
@@ -340,5 +354,70 @@ the native path are kept.  The N2 work is not started.
   Windows stdin EOF, not an admission and not a product gate 0.
 * The six majors of the independent review stay **OPEN**.  This delivery
   proves neither their closure nor their persistence.
-* The batch of the root did **not** run.  The next step is the decision of
-  the root, the frozen plan and the single batch of the 175 node ids.
+* The batch of the root ran **once** and it **failed** (section 11).  The
+  next step is the decision of the root, the corrected candidate and the
+  next frozen plan, and nothing else.
+
+## 11. The batch that the root authorised: it ran once and it FAILED
+
+Plan of the root:
+`native-custody-correction-09/validation-plan-01/plan.json` (SHA256
+`02f06ac7b43ad1e5ff401b4c4b442149e0ef3e21dd1bbe3c5ca5c00d80d05303`), ACK
+`ACK_ONE_175_NODE_OFFLINE_BATCH_WITH_EXPLICIT_ORIGINAL_COUNTER_ABSENCE`
+(`msg_806e6970083e`).  The batch ran **exactly once** under the guard of the
+root and it **FAILED** with **one** failure: no rerun, no wrapper, no self
+repair, no deleted case, no overwritten candidate.  The report of the batch
+is `attempt01/execution-report.md`; the raw evidence is in `attempt01/` and
+in `f5-evidence/`.
+
+| Fact | Value |
+|---|---|
+| the frozen node ids | 175 (the 157 inherited in their original order and the 18 new ones) |
+| collected | 175 — the order is **identical** to the frozen plan |
+| passed | **174** |
+| failed | **1** |
+| skipped | 0 |
+| pytest exit | **1** |
+| duration | 40.22 s (the bound of the batch is 300 s) |
+| cleanup proven for the batch | **true** |
+| the runtime denials of the guard | **empty** |
+| the preload | one `ctypes.dlopen(null)`, the window `CLOSED` before the candidate |
+| the file descriptors before and after | the same three, no new, no reused, no unknown |
+| the threads before and after | `['MainThread']` and `['MainThread']` |
+| the counter of the root | `MISSING` before and after, the continuity `UNAVAILABLE_NOT_PROVEN` |
+
+The one failure is the **new** observation of the external owner of the
+cancel flag:
+
+```
+tools/test_v0_s3_native_custody_correction07.py:429: in run
+    raise AssertionError(
+E   AssertionError: the reader of the chain was never inside its read
+```
+
+The external owner waits for the explicit event that the reader of the
+chain is really inside its read, the wait is bounded and its **return is
+checked**.  The event `api.reader_blocked` is published by the façade of
+the test only after the reader consumed the two published frames **and**
+after the two bounded waits of the notification of the stop of the round
+(`api.ready`, 30 s each, and the round of this group writes nothing), so it
+is published about **sixty seconds** after the reader of the chain
+started, while the bounded wait of the owner is **15 seconds**.  The owner
+expired, it reported the failure to the owner of the test and the group
+stopped **before** the first public stop of that sub scenario.  This is a
+**preparation gap of the test** and not a defect of the production: the
+production was never asked the question of the sub scenario.
+
+The **order** that the correction 09 fixed is really fixed: the owner of
+the test now waits for the confirmation of the owner and it checks the
+flag and its unknown origin before the first public stop, the failure of
+the owner is reported instead of being swallowed, and the exact thread of
+the owner is joined.  The **event** that the owner waits for is the wrong
+one and the choice of the right one belongs to the root.
+
+The main oracle of the group is unchanged and it passed: the targeted
+fault fired twice on the one original handle, the worker of the read
+endpoint was retained after the first public stop, the second public stop
+released the handle, retained no worker, released the broker without a
+double close and **without a new deadline** (`2489.401969684` in the first
+attempt, in the second attempt and in the salvage).
