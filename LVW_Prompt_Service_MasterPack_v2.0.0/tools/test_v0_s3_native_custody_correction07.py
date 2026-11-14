@@ -134,10 +134,15 @@ class _CancellingEvent:
 #: never replaced by a summary.  The directory may be named by the
 #: environment of the batch, so that the runner of the root may write
 #: the diagnostics into the attempt directory of its own plan.
+#: CORRECTION 11: the diagnostics of the group are written in the NEW
+#: directory of the correction 11.  The real documents of the failed
+#: batch of the correction 10 stay in the directory of the correction
+#: 10 and they are never overwritten, never deleted and never replaced
+#: by a summary.
 F5_EVIDENCE_DIR = (Path(os.environ['LVW_N1_F5_EVIDENCE_DIR'])
                    if os.environ.get('LVW_N1_F5_EVIDENCE_DIR')
                    else (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'
-                         / 'implementation-native-custody-correction-10'
+                         / 'implementation-native-custody-correction-11'
                          / 'f5-evidence'))
 
 
@@ -1304,6 +1309,90 @@ def test_n07_r09_the_launcher_keeps_the_owner_of_the_process_and_the_channel():
     # same finite entry and it never loses the original reference.
     public = release_retained_launches()
     assert 'process' in public['retained']
+
+    # -- N1 correction 11 (M07): the aggregate forgets the process of a
+    #    launch **only** when its exit was confirmed **and** its
+    #    original handle was released.  A close of the handle that
+    #    failed keeps the process with its owner, and the **same** owner
+    #    retries only the incomplete part: it never terminates and never
+    #    waits a second time.  The table of the launcher never
+    #    resurrects a process that was already forgotten.
+    class Handle:
+        """The original handle of a process of a launch."""
+
+        def __init__(self):
+            self.closes = 0
+            self.fail = True
+
+        def Close(self):
+            self.closes += 1
+            if self.fail:
+                raise RuntimeError('handle_close_failed')
+            return True
+
+    class HandleProcess:
+        """A process of a launch whose original handle is closed."""
+
+        pid = 4244
+        returncode = None
+
+        def __init__(self):
+            self.terminated = 0
+            self.waited = 0
+            self._handle = Handle()
+
+        def terminate(self):
+            self.terminated += 1
+
+        def wait(self, timeout=None):
+            self.waited += 1
+            return 0
+
+    class OsView:
+        """A view of the module os that reports the platform."""
+
+        name = 'nt'
+
+        def __getattr__(self, item):
+            return getattr(os, item)
+
+    process4 = HandleProcess()
+    custody4 = _LauncherCustody()
+    aggregate4 = broker_module._LaunchAggregate(custody=custody4)
+    aggregate4.bind_process(process4)
+    custody4.retain('aggregate', aggregate4, 'launch')
+    custody4.retain('process', process4, 'popened', launch=aggregate4)
+    with unittest.mock.patch.object(broker_module, 'os', OsView()):
+        report = aggregate4.release()
+    # The exit was confirmed but the close of the original handle
+    # failed: the process keeps its owner and the round keeps the fact.
+    assert report['retained'] == ['process']
+    assert report['failures'].get('handle') == 'RuntimeError'
+    assert aggregate4.process is process4, \
+        'the process was forgotten although its handle was not closed'
+    assert process4.terminated == 1 and process4.waited == 1
+    assert process4._handle.closes == 1
+    assert any(item['kind'] == 'process' for item in custody4.items())
+    # The same owner retries **only** the incomplete part.
+    process4._handle.fail = False
+    with unittest.mock.patch.object(broker_module, 'os', OsView()):
+        report = aggregate4.release()
+    assert report['released'] == ['process']
+    assert aggregate4.process is None
+    assert process4.terminated == 1, \
+        'the retry terminated the process a second time'
+    assert process4.waited == 1, \
+        'the retry waited for the process a second time'
+    assert process4._handle.closes == 2, \
+        'the retry did not close the original handle again'
+    # The table of the launcher never resurrects the process that was
+    # already forgotten.
+    assert not [item for item in custody4.items()
+                if item['kind'] == 'process'], \
+        'the table of the launcher resurrected a forgotten process'
+    assert custody4.release()['retained'] == []
+    assert custody4.items() == [], \
+        'the table of the launcher kept a detached entry'
 
 
 # -- N07-R10: a closer whose start did not return is unknown --------------

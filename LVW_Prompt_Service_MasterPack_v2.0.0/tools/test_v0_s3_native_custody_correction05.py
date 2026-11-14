@@ -434,11 +434,26 @@ def test_n05_r04_a_cancellation_in_the_release_propagates_after_the_cleanup(tmp_
     core.arm()
     core.launch()
     job = core.job
+    # The eligibility of the control handle of a process is a
+    # **callable** over the original record and never a frozen copy of
+    # the fact: the pending pass asks it at the moment of its close and
+    # it reads the current exit fact of the record.  A frozen answer
+    # would protect the handle for ever.
+    for item in core._pending.pending():
+        if item['kind'] == 'process':
+            assert callable(item['closeable']), \
+                'the close eligibility of the control handle was frozen'
+            assert item['closeable']() is False, \
+                'the eligibility of a live process is not closeable'
+    handles = [record['process_handle'] for record in core.records]
     try:
         core.stop('STOP')
         # The pending pass retried the close and it succeeded: the fact
         # of the close is the fact of the round.
         assert not win32.live, 'the pending pass did not close the handles'
+        for handle in handles:
+            assert win32.closed.count(handle) == 1, \
+                'the control handle of a process was not closed exactly once'
         assert core.job is None
         assert core.job_closed is True
         assert core._pending.pending() == []
@@ -507,6 +522,29 @@ def test_n05_r05_one_process_never_skips_the_wait_of_the_next_one(tmp_path):
     an expired deadline never starts a new wait.  Returned state: the
     failure of the first process is named and the round stays unknown.
     Salvage: the handles of the round are released by their owner.
+
+    RECONCILIATION (N1 correction 11): the old group ended with the
+    blanket assertion that **every** handle of the round was closed.
+    That assertion contradicted the obligation N10-R01: the control
+    handle of a process whose exit was **not** confirmed may not be
+    closed, because it is the only handle that may still stop that
+    process.  The expectation of the group is therefore **split by the
+    actual facts** and it is not weakened:
+
+    * the process whose exit was really confirmed is released and its
+      control handle is closed **exactly once**;
+    * the process whose wait failed keeps its **original** control
+      handle: the handle is still in the record and still in the
+      pending table with its owner, it is **not** closed, and the
+      round stays ``UNKNOWN_RETAINED``;
+    * the later process and the independent handles of the round (the
+      thread handles, the pipes and the job) are released and the
+      original error of the first wait is preserved;
+    * the recovery of the **same** owner succeeds only after an
+      explicit **new** proof of the exit, inside the **same** unextended
+      cleanup deadline; the deadline of the cleanup is never extended
+      and the salvage of the owner of the test is recorded apart and
+      it is never a product PASS.
     """
     class FailingWaitWin32(RecordingWin32):
         def __init__(self, **kwargs):
@@ -527,16 +565,76 @@ def test_n05_r05_one_process_never_skips_the_wait_of_the_next_one(tmp_path):
     core = BrokerCore(win32=win32, plan=sealed_plan(), run_root=tmp_path)
     core.arm()
     core.launch()
-    evidence = core.stop('STOP')
-    # The failure of the first wait is named and the group was not
-    # interrupted: the second process was waited for as well.
-    assert any(item.get('error_type') == 'RuntimeError' for item in core.failures)
-    waited = [call for call in win32.calls if call[0] == 'wait_process']
-    assert len(waited) >= 2, 'the wait of the second process never ran'
-    assert evidence['state'] == 'UNKNOWN_RETAINED'
-    # The handles of the round were released by their owner.
-    assert not win32.live
-    assert core._pending.pending() == []
+    first_record = core.records[0]
+    second_record = core.records[1]
+    unconfirmed = first_record['process_handle']
+    confirmed = second_record['process_handle']
+    try:
+        evidence = core.stop('STOP')
+        # The failure of the first wait is named and the group was not
+        # interrupted: the second process was waited for as well.
+        assert any(item.get('error_type') == 'RuntimeError'
+                   for item in core.failures), \
+            'the original error of the first wait was lost'
+        waited = [call for call in win32.calls if call[0] == 'wait_process']
+        assert len(waited) >= 2, 'the wait of the second process never ran'
+        assert evidence['state'] == 'UNKNOWN_RETAINED'
+        # -- the confirmed exit: the control handle of the second
+        #    process is closed exactly once --------------------------
+        assert second_record['exited'] is True, \
+            'the exit of the second process was not confirmed'
+        assert second_record['process_handle_closed'] is True
+        assert win32.closed.count(confirmed) == 1, \
+            'the control handle of the confirmed process was closed twice'
+        assert confirmed not in win32.live
+        # -- the unconfirmed exit: the control handle of the first
+        #    process keeps its owner and it is NOT closed -----------
+        assert first_record['exited'] is False, \
+            'the exit of the first process was claimed without a proof'
+        assert first_record['process_handle'] is unconfirmed, \
+            'the control handle was forgotten while the exit was unknown'
+        assert first_record['process_handle_closed'] is False
+        assert unconfirmed in win32.live, \
+            'the control handle was closed while the exit was unknown'
+        pending = [item for item in core._pending.pending()
+                   if item['handle'] == unconfirmed]
+        assert pending, 'the control handle lost its owner'
+        assert pending[0]['kind'] == 'process'
+        assert pending[0]['owner'] == 'CORE'
+        retained = [item for item in core._retained_resources
+                    if item['handle'] is unconfirmed]
+        assert retained, 'the control handle was not named'
+        assert retained[0]['code'] == 'BROKER_PROCESS_EXIT_NOT_CONFIRMED'
+        # -- the independent handles are released --------------------
+        for record in core.records:
+            assert record['thread_handle_closed'] is True
+            assert record['thread_handle'] is None
+        assert core.job_closed is True
+        assert core.job is None
+        # The **only** handle that is still open is the control handle
+        # of the process whose exit was never confirmed.
+        assert sorted(win32.live) == [unconfirmed], \
+            'a handle was closed or kept without the proof of the exit'
+
+        # -- the recovery: the same owner confirms the exit inside the
+        #    SAME unextended deadline and the handle is closed once --
+        published = core.cleanup_deadline()
+        core.stop('STOP')
+        assert core.cleanup_deadline() == published, \
+            'the cleanup deadline was extended by the recovery'
+        assert first_record['exited'] is True, \
+            'the recovery did not confirm the exit of the process'
+        assert first_record['process_handle_closed'] is True
+        assert first_record['process_handle'] is None
+        assert win32.closed.count(unconfirmed) == 1, \
+            'the control handle was closed twice'
+        assert unconfirmed not in win32.live
+        assert core._pending.pending() == []
+    finally:
+        # The salvage of the owner of the test is bounded and it never
+        # hides a resource that the product kept.
+        for handle in list(win32.live):
+            RecordingWin32.close_handle(win32, handle)
 
 
 # -- N05-R06: a reader that never started is never joined ----------------
@@ -903,6 +1001,19 @@ def test_n05_r11_no_role_is_created_or_resumed_after_the_deadline(tmp_path):
     The check of the budget before the creation of the job was **not**
     relaxed: the production keeps its bytes and the refusal of the
     expired arm is the behaviour that the root requires.
+
+    RECONCILIATION (N1 correction 11): the second scenario of the group
+    ended with the blanket expectation that **every** handle of the
+    round was closed.  The late process of that scenario is a process
+    whose exit was never confirmed - the lease of the round had already
+    expired when it was created - and the obligation N10-R01 forbids the
+    close of the control handle of such a process.  The expectation is
+    therefore **split by the actual facts**: the control handle of the
+    late process keeps its original reference and its owner, every
+    other handle of the round is released, and the recovery of the same
+    owner may not confirm the exit any more inside the same unextended
+    deadline.  The salvage of the owner of the test is recorded apart
+    and it is never a product PASS.
     """
     # SCENARIO ONE: an arm whose deadline is still valid succeeds: the
     # job of the round is created and the round is armed.
@@ -946,8 +1057,55 @@ def test_n05_r11_no_role_is_created_or_resumed_after_the_deadline(tmp_path):
     assert 'assign_process_to_job' not in win32.names()
     assert 'resume_thread' not in win32.names()
     # The late resource was only cleaned up.
-    assert not win32.live
     assert core.state == 'UNKNOWN_RETAINED'
+
+    # RECONCILIATION (N1 correction 11): the late resource is a process
+    # whose exit was **never** confirmed: the lease of the round had
+    # already expired when it was created, so the bounded wait of the
+    # exit never started.  The blanket expectation that every handle of
+    # the round is closed contradicted the obligation N10-R01 and it is
+    # therefore **split by the actual facts**:
+    #
+    # * the control handle of the late process keeps its **original**
+    #   reference: it is in the record and in the pending table with
+    #   its owner and it is **not** closed;
+    # * every other handle of the round - the thread handle, the pipes
+    #   and the job - is released;
+    # * the recovery of the same owner may not confirm the exit any
+    #   more, because the **same** unextended deadline of the cleanup
+    #   is expired: the handle stays with its owner and the salvage of
+    #   the owner of the test is recorded apart.  It is never a product
+    #   PASS.
+    late_record = core.records[0]
+    late = late_record['process_handle']
+    assert late is not None, 'the late process never got a control handle'
+    assert late_record['exited'] is False, \
+        'the exit of the late process was claimed without a proof'
+    assert late_record['process_handle_closed'] is False
+    assert late in win32.live, \
+        'the control handle was closed while the exit was unknown'
+    pending = [item for item in core._pending.pending() if item['handle'] == late]
+    assert pending, 'the control handle of the late process lost its owner'
+    assert pending[0]['kind'] == 'process'
+    # Every other handle of the round was released by its owner.
+    assert late_record['thread_handle_closed'] is True
+    assert late_record['thread_handle'] is None
+    assert core.job_closed is True
+    assert sorted(win32.live) == [late], \
+        'a handle was closed or kept without the proof of the exit'
+    # The recovery of the same owner: the deadline is not extended and
+    # the exit may not be confirmed any more.
+    published = core.cleanup_deadline()
+    core.stop('STOP')
+    assert core.cleanup_deadline() == published, \
+        'the cleanup deadline was extended by the recovery'
+    assert late_record['exited'] is False
+    assert late_record['process_handle_closed'] is False
+    assert late in win32.live
+    # The salvage of the owner of the test is bounded and it is recorded
+    # apart: it is never a product PASS.
+    for handle in list(win32.live):
+        RecordingWin32.close_handle(win32, handle)
 
     # SCENARIO THREE: the arm of a round whose deadline already
     # arrived is refused **before** the job of the round exists.  The
@@ -1112,20 +1270,20 @@ def test_n05_r14_an_await_that_is_running_reads_the_tightened_deadline():
             pass
 
     clock = ManualClock(1000.0)
-    endpoint = _WindowsPipeEndpoint.__new__(_WindowsPipeEndpoint)
-    endpoint._api = Api()
-    endpoint._file = type('F', (), {'close': lambda self: None})()
-    endpoint._name = 'inprocess'
-    endpoint._handle = 702
-    endpoint._clock = clock
-    endpoint._reader = None
-    endpoint._writer = None
-    endpoint._closed = False
-    endpoint._retained = []
-    endpoint._deadline = None
-    endpoint._write_cancel = None
-    endpoint._write_deadline = None
-    endpoint.facts = {}
+    # The endpoint is built with its **real** constructor and with the
+    # injected primitives of the round: the fixture never bypasses the
+    # constructor, so every invariant of the endpoint - the lock of the
+    # admission among them - is really initialised and the admission is
+    # never a permissive fallback.
+    endpoint = _WindowsPipeEndpoint(
+        file_object=type('F', (), {'close': lambda self: None})(),
+        name='inprocess', api=Api(), clock=clock, handle=702)
+    # The request of the group enters **unexpired**: the round has no
+    # deadline yet and the admission of the generation is the one of a
+    # live round.  The initial expired refusal is the separate
+    # obligation N10-R06 and it is not weakened here.
+    assert endpoint._effective_deadline() is None, \
+        'the request of the group did not enter with a live deadline'
 
     def action(request):
         entered.set()
@@ -1148,10 +1306,23 @@ def test_n05_r14_an_await_that_is_running_reads_the_tightened_deadline():
     reader = threading.Thread(target=run_read)
     reader.start()
     assert entered.wait(5.0), 'the read never entered the operation'
+    # The request was really admitted and it really entered the
+    # primitive: the deadline of the round is tightened **after** that
+    # fact and never before it.  The initial expired refusal is the
+    # separate obligation N10-R06 and it is not weakened here.
+    assert endpoint._reader is not None, \
+        'the worker of the endpoint was never started'
+    assert endpoint._effective_deadline() is None, \
+        'the request did not enter with a live deadline'
     # The deadline of the round is tightened while the read is running.
-    endpoint.bind_deadline(clock.value + 0.5)
+    tightened = clock.value + 0.5
+    endpoint.bind_deadline(tightened)
     clock.advance(5.0)
     reader.join(5.0)
+    # The tightened deadline is the one that the endpoint uses and the
+    # lease of the round is never extended by the tightening.
+    assert endpoint._effective_deadline() == tightened, \
+        'the lease of the round was extended'
     assert outcome.get('code') in ('BROKER_PIPE_TIMEOUT',
                                     'BROKER_PIPE_CANCEL_NOT_CONFIRMED'), \
         'the running await did not read the tightened deadline'
@@ -1451,20 +1622,13 @@ def test_n05_r20_the_closed_fact_is_committed_only_when_it_is_confirmed():
                 raise OSError('close_failed')
 
     clock = ManualClock(1000.0)
-    endpoint = _WindowsPipeEndpoint.__new__(_WindowsPipeEndpoint)
-    endpoint._api = Api()
-    endpoint._file = BrokenFile()
-    endpoint._name = 'inprocess'
-    endpoint._handle = 702
-    endpoint._clock = clock
-    endpoint._reader = None
-    endpoint._writer = None
-    endpoint._closed = False
-    endpoint._retained = []
-    endpoint._deadline = None
-    endpoint._write_cancel = None
-    endpoint._write_deadline = None
-    endpoint.facts = {}
+    # The endpoint is built with its **real** constructor and with the
+    # injected primitives of the round: the fixture never bypasses the
+    # constructor and every invariant of the endpoint is really
+    # initialised.
+    endpoint = _WindowsPipeEndpoint(file_object=BrokenFile(),
+                                    name='inprocess', api=Api(),
+                                    clock=clock, handle=702)
     facts = endpoint.close()
     # The close was not confirmed: the fact is not committed and the
     # endpoint may try it again.

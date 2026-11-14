@@ -55,6 +55,7 @@ import hashlib
 import json
 import os
 import queue
+import subprocess
 import sys
 import threading
 import time
@@ -85,8 +86,14 @@ from tools.test_v0_s3_native_custody_regressions import (  # noqa: E402
 #: The directory in which the bounded facts of this module are written.
 #: Every document is written **before** the assertions of its phase and
 #: every value of it is a value that the production returned.
+#:
+#: CORRECTION 11: the diagnostics of this module are written in the NEW
+#: directory of the correction 11.  The real documents of the failed
+#: batch of the correction 10 stay in the directory of the correction
+#: 10: they are never overwritten, never deleted and never replaced by
+#: a summary.
 EVIDENCE_DIR = (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'
-                / 'implementation-native-custody-correction-10' / 'evidence')
+                / 'implementation-native-custody-correction-11' / 'evidence')
 
 #: The nonce of the private channel of the probes of this module.  It
 #: is a closed form of 32 hexadecimal characters and it is the nonce of
@@ -272,6 +279,16 @@ def test_n10_r02_the_claim_of_the_recovery_and_the_handover_are_exclusive():
     report of the recovery names the entries that it did not own.
     Salvage: the recovery of the API owner releases the ends that it
     owns.
+
+    CORRECTION 11 (M05): the **creation** of a process and the
+    recovery of the façade are **one** ownership decision as well.  The
+    original entries of the process and of its thread are reserved or
+    refused under the lock of the table, the blocking primitives run
+    outside of that lock, and a handle that the recovery of the façade
+    claimed is never delivered to the core and never closed twice.
+    The group drives the race between the birth query of a created
+    process and the recovery of the façade and it proves that there is
+    exactly one closer of the original handle of the process.
     """
     entered = threading.Event()
     release = threading.Event()
@@ -363,6 +380,83 @@ def test_n10_r02_the_claim_of_the_recovery_and_the_handover_are_exclusive():
                                      'live': sorted(kernel32.live)})
     assert report == [], 'the recovery closed an end that it handed over'
     assert getattr(read, 'value', read) in kernel32.live
+
+    # -- the third direction (N1 correction 11, M05): the **creation**
+    #    of a process and the recovery of the façade are one ownership
+    #    decision.  The birth query of the created process blocks, the
+    #    recovery of the façade claims the original entries of the
+    #    process and of its thread while the creation is in flight,
+    #    and the return of the creation may then neither deliver a
+    #    stale claimed handle to the core nor forget it.  There is
+    #    exactly **one** closer of the original handle of the process.
+    blocked = threading.Event()
+    resume = threading.Event()
+    closed_handles = []
+
+    def get_process_times(kernel32, *args):
+        # The birth query of the created process blocks: the recovery
+        # of the façade runs while the creation is in flight.
+        blocked.set()
+        resume.wait(10.0)
+        creation = args[1]
+        creation.dwLowDateTime = kernel32.creation_time & 0xFFFFFFFF
+        creation.dwHighDateTime = kernel32.creation_time >> 32
+        return 1
+
+    def close_handle(kernel32, *args):
+        handle = getattr(args[0], 'value', args[0])
+        closed_handles.append(handle)
+        kernel32.live.pop(handle, None)
+        return 1
+
+    kernel32 = SyntheticKernel32(script={'GetProcessTimes': get_process_times,
+                                         'CloseHandle': close_handle})
+    api = WindowsApi(table=synthetic_table(kernel32))
+    outcome = {}
+
+    def create():
+        try:
+            outcome['created'] = api.create_process_suspended(
+                executable='C:/python.exe', arguments=['-I'],
+                working_directory='C:/', stdout_handle=0, stderr_handle=0)
+        except BaseException as error:  # noqa: BLE001 - the failure stays visible
+            outcome['error'] = error
+
+    creator = threading.Thread(target=create, name='lvw-n10-r02-creation')
+    creator.start()
+    try:
+        assert blocked.wait(10.0), \
+            'the birth query of the creation never ran'
+        # The recovery of the façade claims the original entries of the
+        # process and of its thread while the creation is in flight.
+        report = api.release_retained()
+        assert report, 'the recovery of the façade found nothing to release'
+        resume.set()
+        creator.join(15.0)
+        assert not creator.is_alive(), 'the creation was left behind'
+    finally:
+        resume.set()
+        creator.join(15.0)
+    facts = {'error': getattr(outcome.get('error'), 'code', None),
+             'created': outcome.get('created') is not None,
+             'closed': list(closed_handles),
+             'report': [{'kind': item['kind'], 'released': item['released']}
+                        for item in report]}
+    write_phase('r02-creation', facts)
+    # A stale claimed handle is never delivered to the core.
+    assert outcome.get('created') is None, \
+        'a stale claimed handle was delivered to the core'
+    error = outcome.get('error')
+    assert isinstance(error, BrokerError), \
+        'the creation did not refuse the refused handover'
+    assert error.code == 'BROKER_PROCESS_HANDOVER_REFUSED'
+    # There is exactly **one** closer of the original handle of the
+    # process and of its thread: the recovery of the façade and the
+    # direct cleanup of the failed creation are one owner.
+    assert closed_handles.count(kernel32.process_handle) == 1, \
+        'the original handle of the process was closed twice'
+    assert closed_handles.count(kernel32.thread_handle) == 1, \
+        'the original handle of the thread was closed twice'
 
 
 # -- N10-R03: one notification for every confirmed close -------------------
@@ -735,10 +829,88 @@ def test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel():
                          for item in custody2.items()]}
     write_phase('r05-recovery', facts)
     assert str(recovery.value) == 'channel_close_cancelled'
-    assert order == ['channel', 'terminate', 'wait'], \
-        'the recovery of the launcher did not coordinate the channel first'
+    # RECONCILIATION (N1 correction 11): the process of this launch was
+    # **already** released by the adoption phase: its exit was really
+    # confirmed and its original handle was released with it.  The
+    # recovery of the launcher therefore coordinates the channel only
+    # and it never repeats the termination and the wait of a process
+    # that was already proved released.  The old expectation that the
+    # recovery repeats them contradicted the ownership of the process
+    # and it is replaced by the boundary that really holds.
+    assert order == ['channel'], \
+        'the recovery of the launcher did not coordinate the channel only'
+    assert process2.terminated == 1, \
+        'the recovery terminated the process of the launch a second time'
+    assert process2.waited == 1, \
+        'the recovery waited for the process of the launch a second time'
     # The channel that could not be released keeps its owner.
     assert any(item['kind'] == 'channel' for item in custody2.items())
+
+    # -- PHASE THREE: a launch whose **original handle** was still
+    #    retained is coordinated **again** by the recovery of the
+    #    launcher.  The recovery retries the incomplete parts and it
+    #    never opens a budget of its own.
+    order[:] = []
+
+    class RetainedProcess:
+        """A process whose first wait failed: it keeps its owner."""
+
+        pid = 4243
+        returncode = None
+
+        def __init__(self):
+            self.terminated = 0
+            self.waited = 0
+
+        def terminate(self):
+            self.terminated += 1
+            order.append('terminate')
+
+        def wait(self, timeout=None):
+            self.waited += 1
+            order.append('wait')
+            if self.waited == 1:
+                raise RuntimeError('wait_failed')
+            return 0
+
+    class FailingBrokerProcess3:
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError('broker_process_construction_failed')
+
+    process3 = RetainedProcess()
+    channel3 = CancellingChannel()
+    custody3 = _LauncherCustody()
+
+    original = broker_module.BrokerProcess
+    broker_module.BrokerProcess = FailingBrokerProcess3
+    try:
+        with pytest.raises(RuntimeError):
+            _adopt_broker_process(process3, channel_factory=lambda: channel3,
+                                  executable='C:/python.exe',
+                                  executable_sha256='a' * 64,
+                                  custody=custody3)
+    finally:
+        broker_module.BrokerProcess = original
+    # The adoption could not release the process: it keeps its owner.
+    assert process3.waited == 1
+    kept = [item for item in custody3.items() if item['kind'] == 'process']
+    assert kept, 'the process that could not be released lost its owner'
+    order[:] = []
+    with pytest.raises(KeyboardInterrupt):
+        custody3.release()
+    facts = {'order': list(order),
+             'terminated': process3.terminated,
+             'waited': process3.waited,
+             'custody': [(item['kind'], repr(item['resource']))
+                         for item in custody3.items()]}
+    write_phase('r05-retained-recovery', facts)
+    # The channel is coordinated first and the **retained** process is
+    # coordinated again: the recovery really retries the incomplete
+    # part and it never releases the channel alone.
+    assert order == ['channel', 'terminate', 'wait'], \
+        'the recovery did not coordinate the retained process again'
+    assert process3.terminated == 2
+    assert process3.waited == 2
 
 
 # -- N10-R06: the admission of a generation -------------------------------
@@ -824,6 +996,67 @@ def test_n10_r06_an_expired_or_cancelled_call_performs_no_primitive_call():
         write_phase('r06-admission', {'calls': list(calls),
                                       'reader': endpoint._reader is not None,
                                       'writer': endpoint._writer is not None})
+
+        # -- the linearization point of the admission (N1 correction
+        #    11, M08): the request is admitted **before** the worker of
+        #    the endpoint is started and it is admitted **again** after
+        #    the worker is ready and immediately before the request is
+        #    submitted.  A cancellation or an expiry that is published
+        #    **before** that final admission causes **zero** primitive
+        #    calls: the request never reaches the worker.
+        endpoint2 = _WindowsPipeEndpoint(file_object=_FakeFile('read2'),
+                                         name='inprocess-2', api=Api(),
+                                         clock=clock, handle=703)
+        try:
+            cancel2 = _ChannelCancel()
+            # The initial admission of the generation succeeds: the
+            # round is neither expired nor cancelled.
+            endpoint2._admission(None, None)
+            worker = endpoint2._start('read', endpoint2._read_block, None)
+            assert worker.ready.is_set(), 'the worker was never ready'
+            # The cancellation is published after the readiness of the
+            # worker and before the dispatch of the request.
+            cancel2.set()
+            with pytest.raises(BrokerError) as info:
+                endpoint2._await(worker, None, None, cancel2)
+            assert info.value.code == 'BROKER_PIPE_CANCELLED'
+            assert calls == [], \
+                'a primitive was called by a request that was not admitted'
+            assert worker._submitted == 0, \
+                'the request was submitted although the admission was refused'
+            write_phase('r06-linearization', {
+                'calls': list(calls),
+                'submitted': worker._submitted,
+                'code': info.value.code})
+        finally:
+            endpoint2.close()
+
+        # The same boundary with an **expiry**: the deadline of the
+        # round arrives after the readiness of the worker and before the
+        # dispatch of the request.
+        endpoint3 = _WindowsPipeEndpoint(file_object=_FakeFile('read3'),
+                                         name='inprocess-3', api=Api(),
+                                         clock=clock, handle=704)
+        try:
+            before = list(calls)
+            endpoint3._admission(None, None)
+            worker3 = endpoint3._start('read', endpoint3._read_block, None)
+            assert worker3.ready.is_set(), 'the worker was never ready'
+            # The deadline of the round arrives before the dispatch.
+            clock.value += 1000.0
+            with pytest.raises(BrokerError) as info:
+                endpoint3._await(worker3, None, clock.value - 1.0, None)
+            assert info.value.code == 'BROKER_PIPE_TIMEOUT'
+            assert calls == before, \
+                'a primitive was called by a request that was not admitted'
+            assert worker3._submitted == 0, \
+                'the request was submitted although the admission was refused'
+            write_phase('r06-expiry', {
+                'calls': list(calls),
+                'submitted': worker3._submitted,
+                'code': info.value.code})
+        finally:
+            endpoint3.close()
     finally:
         endpoint.close()
 
@@ -1240,17 +1473,19 @@ def test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread(tmp_path):
     thread ended.  Returned state: the owners that are in flight are
     named.  Salvage: the owner of the test releases the threads that
     the product started.
+
+    RECONCILIATION (N1 correction 11): the three phases of the group
+    shared **one** deadline of the loop, so the second phase inherited
+    the budget that the first phase had already consumed and it was
+    refused by the deadline of the round before its result was read.
+    Every phase is now an **independent bounded scenario** with its own
+    core, its own loop and its own deadline: no phase borrows the
+    expired budget of a previous phase, the real result is published
+    while the real thread of the step is still alive, the join of every
+    thread is **unconditional** and no sleep ever proves the exit of a
+    thread.
     """
     clock = time.monotonic
-    win32 = RecordingWin32()
-    core = BrokerCore(win32=win32, plan=sealed_plan(), run_root=tmp_path,
-                      clock=clock)
-    core.bind_absolute_deadline(clock() + 60.0)
-    transport = type('T', (), {'bind_deadline': lambda self, value: value,
-                               'write': lambda self, raw: None})()
-    loop = BrokerLoop(core=core, transport=transport, plan=core.plan,
-                      nonce=NONCE, clock=clock, wall=time.time)
-    loop._deadline_mono = clock() + 0.3
     release = threading.Event()
     owners = []
     try:
@@ -1258,8 +1493,22 @@ def test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread(tmp_path):
                       KeyboardInterrupt('startup_cancelled'),
                       SystemExit(3)):
             published = threading.Event()
+            # RECONCILIATION (N1 correction 11): every phase of the
+            # group is an **independent bounded scenario**.  It has its
+            # own core, its own loop and its own deadline: no phase
+            # borrows the expired budget of a previous phase and no
+            # sleep ever proves the exit of a thread.
+            win32 = RecordingWin32()
+            core = BrokerCore(win32=win32, plan=sealed_plan(), run_root=tmp_path,
+                              clock=clock)
+            core.bind_absolute_deadline(clock() + 60.0)
+            transport = type('T', (), {'bind_deadline': lambda self, value: value,
+                                       'write': lambda self, raw: None})()
+            loop = BrokerLoop(core=core, transport=transport, plan=core.plan,
+                              nonce=NONCE, clock=clock, wall=time.time)
+            loop._deadline_mono = clock() + 2.0
 
-            def action(error=error, published=published):
+            def action(error=error, published=published, loop=loop):
                 # The result of the step is published and the **real**
                 # thread of the step stays alive: the publication of the
                 # result is never a proof that the thread ended.
@@ -1293,6 +1542,8 @@ def test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread(tmp_path):
     finally:
         # The salvage of the owner of the test: the threads that the
         # product started are released and joined with a bounded wait.
+        # The join is **unconditional**: no phase leaves a thread of the
+        # round behind.
         release.set()
         for owner in owners:
             thread = owner._thread
@@ -1332,6 +1583,16 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
     Returned state: the outcome of the generation is named with its
     order and its error object.  Salvage: the owner of the test stops
     the round in every case.
+
+    CORRECTION 11 (M09): the outcome of the **same** generation is
+    inspected **again** after the coordination of the cancellation, and
+    it is inspected **before** a new timeout is decided.  The published
+    failure of the generation remains the primary error of the round and
+    the failure of the coordination and a new timeout are **parallel**
+    facts: they never replace it and they never hide it.  The group
+    drives the coordination of a cancellation whose fault of the round
+    is published while the coordination runs, and it proves the order
+    of the two facts with the auxiliary static proof of the group.
     """
     document = _live_plan_document()
     plan = validate_launch_plan(document, now=time.time())
@@ -1395,6 +1656,105 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
             session.stop()
         except Exception:  # noqa: BLE001 - the evidence keeps the failure
             pass
+
+    # -- the coordination of the cancellation (N1 correction 11, M09):
+    #    the outcome of the **same** generation is inspected **again**
+    #    after the coordination of the cancellation.  The original error
+    #    object of the generation remains the error that leaves and the
+    #    failure of the coordination is a **parallel** fact: it never
+    #    replaces the published failure and it never hides it.
+    gate = threading.Event()
+    entered = threading.Event()
+
+    class CoordinationApi:
+        """The primitives of a read whose fault is published late."""
+
+        def duplicate_current_thread_handle(self):
+            return 705
+
+        def cancel_synchronous_io(self, handle):
+            # The request of the cancellation releases the fault of the
+            # round: the original error of the generation is really
+            # published **while** the coordination of the cancellation
+            # runs.
+            gate.set()
+            return 'NOT_FOUND'
+
+        def close_handle(self, handle):
+            return None
+
+        def read_stream(self, handle, size):
+            entered.set()
+            gate.wait(5.0)
+            raise RuntimeError('read_fault')
+
+    endpoint = _WindowsPipeEndpoint(file_object=_FakeFile('coordination'),
+                                    name='coordination',
+                                    api=CoordinationApi(),
+                                    clock=time.monotonic, handle=706)
+    cancel = _ChannelCancel()
+    holder = {}
+
+    def run_read():
+        try:
+            endpoint.read(None, cancel)
+        except BaseException as error:  # noqa: BLE001 - the failure stays visible
+            holder['error'] = error
+
+    reader = threading.Thread(target=run_read)
+    reader.start()
+    try:
+        assert entered.wait(5.0), 'the read never entered the operation'
+        # The cancellation of the round is published while the read is
+        # really inside its operation.
+        cancel.set()
+        reader.join(10.0)
+        assert not reader.is_alive(), 'the read of the round was left behind'
+        error = holder.get('error')
+        assert isinstance(error, RuntimeError), \
+            'the original error object of the generation was replaced'
+        assert str(error) == 'read_fault'
+        outcome = endpoint._reader.outcome(1)
+        assert outcome is not None, 'the outcome of the generation is gone'
+        assert outcome['error'] == 'RuntimeError'
+        assert isinstance(outcome['error_object'], RuntimeError)
+        write_phase('r10-coordination', {'error': type(error).__name__,
+                                         'detail': str(error),
+                                         'outcome': outcome['error'],
+                                         'parallel': getattr(
+                                             error, 'lvw_parallel_cancellation',
+                                             None) is not None})
+    finally:
+        gate.set()
+        reader.join(10.0)
+        endpoint.close()
+
+    # -- the auxiliary proof of the group (N1 correction 11, M09): the
+    #    outcome of the **same** generation is inspected **before** a
+    #    new timeout is decided and **again** after the coordination of
+    #    the cancellation.  The order of the two facts is the reason of
+    #    the behaviour above and the behaviour above is the oracle.
+    source = (PACK_ROOT / 'tools' / 'v0_s3_native_broker.py').read_text(
+        encoding='utf-8')
+    tree = ast.parse(source)
+    await_node = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef) and node.name == '_WindowsPipeEndpoint':
+            for item in node.body:
+                if isinstance(item, ast.FunctionDef) and item.name == '_await':
+                    await_node = item
+    assert await_node is not None, 'the awaiting of the endpoint is gone'
+    section = ast.unparse(await_node)
+    assert section.count('worker.outcome(generation)') >= 3, \
+        'the outcome of the generation is not consulted on every path'
+    timeout_at = section.index('BROKER_PIPE_TIMEOUT')
+    first_outcome = section.index('worker.outcome(generation)')
+    cancel_at = section.index('self._cancel(worker, effective)')
+    second_outcome = section.index('worker.outcome(generation)', cancel_at)
+    assert first_outcome < timeout_at, \
+        'the new timeout is decided before the published outcome is read'
+    assert first_outcome < cancel_at < second_outcome, \
+        'the published outcome is not read again after the coordination'
 
 
 # -- N10-R11: the overflow of the channel is a named failure -------------

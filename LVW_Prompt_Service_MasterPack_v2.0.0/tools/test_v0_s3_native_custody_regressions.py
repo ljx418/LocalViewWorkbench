@@ -1203,17 +1203,14 @@ def test_n03_r09_a_partial_windows_write_is_never_a_success():
         def close_handle(self, handle):
             closed.append(handle)
 
-    endpoint = _WindowsPipeEndpoint.__new__(_WindowsPipeEndpoint)
-    endpoint._api = Api()
-    endpoint._file = type('F', (), {'close': lambda self: closed.append('file')})()
-    endpoint._name = 'inprocess'
-    endpoint._handle = 702
-    endpoint._clock = time.monotonic
-    endpoint._reader = None
-    endpoint._writer = None
-    endpoint._closed = False
-    endpoint._retained = []
-    endpoint.facts = {}
+    # The endpoint is built with its **real** constructor and with the
+    # **injected** primitives of the round: the fixture never bypasses
+    # the constructor, so every invariant of the endpoint - the lock of
+    # the admission among them - is really initialised and the
+    # admission is never a permissive fallback.
+    endpoint = _WindowsPipeEndpoint(
+        file_object=type('F', (), {'close': lambda self: closed.append('file')})(),
+        name='inprocess', api=Api(), clock=time.monotonic, handle=702)
     written = endpoint.write(b'abcdef', time.monotonic() + 5.0)
     assert written == 6
     assert writes == [b'abcdef', b'bcdef', b'cdef', b'def', b'ef', b'f']
