@@ -1,0 +1,148 @@
+{
+  "kind": "ROOT_DERIVED_NAVIGATION_NOT_EXECUTOR_RECEIPT",
+  "candidate_sha": "cdac445434ed129ca6c5fa8acc830f1f13261a6f",
+  "status": "FAILED_RECEIPT_OBSERVED_WORKER_FINAL_REPORT_PENDING",
+  "receipt": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-10/attempt01/native-custody-correction-03.receipt.json",
+  "receipt_sha256": "4078209e92887d01d834105871cafcac879aa0a493123f02d6629ee8e83382ac",
+  "guard": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-10/attempt01/native-custody-correction-10.guard.json",
+  "guard_sha256": "955c518d689fa5716ad006b26e3dc050dff4ddaff6a4c9bf73e2084879ca576d",
+  "pytest_exit": 1,
+  "call_count": 189,
+  "pass_count": 172,
+  "fail_count": 17,
+  "skip_count": 0,
+  "cleanup_proven_for_batch": true,
+  "threads_before": [
+    "MainThread"
+  ],
+  "threads_after": [
+    "MainThread"
+  ],
+  "new_or_reused_fds": [],
+  "runtime_denials": [],
+  "preload_window": "CLOSED",
+  "duration_seconds": 81.58157968521118,
+  "failures": [
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_regressions.py::test_n03_r09_a_partial_windows_write_is_never_a_success",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 6.548400051542558e-05,
+      "longrepr": "tools/test_v0_s3_native_custody_regressions.py:1217: in test_n03_r09_a_partial_windows_write_is_never_a_success\n    written = endpoint.write(b'abcdef', time.monotonic() + 5.0)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntools/v0_s3_native_broker.py:4455: in write\n    effective = self._admission(deadline, cancel)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntools/v0_s3_native_broker.py:4255: in _admission\n    with self._admission_lock:\n         ^^^^^^^^^^^^^^^^^^^^\nE   AttributeError: '_WindowsPipeEndpoint' object has no attribute '_admission_lock'"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_regressions.py::test_n03_r13_the_buffer_of_the_channel_is_bounded_and_a_partial_frame_is_named",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 9.11090000954573e-05,
+      "longrepr": "tools/test_v0_s3_native_custody_regressions.py:1479: in test_n03_r13_the_buffer_of_the_channel_is_bounded_and_a_partial_frame_is_named\n    channel = StreamChannel(None, None, read_endpoint=Endpoint([b'x' * (32 * 1024 * 2),\ntools/v0_s3_native_broker.py:4780: in __init__\n    self._writer = writer_endpoint or _make_endpoint(\n                   ^^^^^^^^^^^^^^^\nE   NameError: name 'writer_endpoint' is not defined"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction05.py::test_n05_r04_a_cancellation_in_the_release_propagates_after_the_cleanup",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.0019627170004241634,
+      "longrepr": "tools/test_v0_s3_native_custody_correction05.py:441: in test_n05_r04_a_cancellation_in_the_release_propagates_after_the_cleanup\n    assert not win32.live, 'the pending pass did not close the handles'\nE   AssertionError: the pending pass did not close the handles\nE   assert not {106: 'handle', 112: 'handle'}\nE    +  where {106: 'handle', 112: 'handle'} = <test_v0_s3_native_custody_correction05.test_n05_r04_a_cancellation_in_the_release_propagates_after_the_cleanup.<locals>.TransientWin32 object at 0x70dbf4fe9970>.live"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction05.py::test_n05_r05_one_process_never_skips_the_wait_of_the_next_one",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.001722694000818592,
+      "longrepr": "tools/test_v0_s3_native_custody_correction05.py:538: in test_n05_r05_one_process_never_skips_the_wait_of_the_next_one\n    assert not win32.live\nE   AssertionError: assert not {106: 'handle'}\nE    +  where {106: 'handle'} = <test_v0_s3_native_custody_correction05.test_n05_r05_one_process_never_skips_the_wait_of_the_next_one.<locals>.FailingWaitWin32 object at 0x70dbf4fe8620>.live"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction05.py::test_n05_r10_a_launch_that_could_not_be_handed_over_keeps_its_resources",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.00016917999982979381,
+      "longrepr": "tools/test_v0_s3_native_custody_correction05.py:867: in test_n05_r10_a_launch_that_could_not_be_handed_over_keeps_its_resources\n    assert 'stdin' in kinds\nE   AssertionError: assert 'stdin' in ['aggregate', 'aggregate', 'process']"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction05.py::test_n05_r11_no_role_is_created_or_resumed_after_the_deadline",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.0006542649998664274,
+      "longrepr": "tools/test_v0_s3_native_custody_correction05.py:949: in test_n05_r11_no_role_is_created_or_resumed_after_the_deadline\n    assert not win32.live\nE   AssertionError: assert not {106: 'handle'}\nE    +  where {106: 'handle'} = <tools.test_v0_s3_native_custody_regressions.RecordingWin32 object at 0x70dbf5d5c0b0>.live"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction05.py::test_n05_r14_an_await_that_is_running_reads_the_tightened_deadline",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 5.0003780240003834,
+      "longrepr": "tools/test_v0_s3_native_custody_correction05.py:1150: in test_n05_r14_an_await_that_is_running_reads_the_tightened_deadline\n    assert entered.wait(5.0), 'the read never entered the operation'\nE   AssertionError: the read never entered the operation\nE   assert False\nE    +  where False = wait(5.0)\nE    +    where wait = <threading.Event at 0x70dbf5d6aa20: unset>.wait"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction07.py::test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.0010203429992543533,
+      "longrepr": "tools/test_v0_s3_native_custody_correction07.py:1782: in test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner\n    assert session.broker is holder['broker']\n                             ^^^^^^^^^^^^^^^^\nE   KeyError: 'broker'"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r01_the_control_handle_is_closed_only_after_the_exit",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.0010560279997662292,
+      "longrepr": "tools/test_v0_s3_native_custody_correction10.py:238: in test_n10_r01_the_control_handle_is_closed_only_after_the_exit\n    assert record['process_handle_closed'] is True\nE   assert False is True"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r04_the_launch_aggregate_finds_the_partial_channel",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.00012618899927474558,
+      "longrepr": "tools/test_v0_s3_native_custody_correction10.py:539: in test_n10_r04_the_launch_aggregate_finds_the_partial_channel\n    StreamChannel(\ntools/v0_s3_native_broker.py:4780: in __init__\n    self._writer = writer_endpoint or _make_endpoint(\n                   ^^^^^^^^^^^^^^^\nE   NameError: name 'writer_endpoint' is not defined\n\nDuring handling of the above exception, another exception occurred:\ntools/test_v0_s3_native_custody_correction10.py:590: in test_n10_r04_the_launch_aggregate_finds_the_partial_channel\n    thread.join(10.0)\n/usr/lib/python3.12/threading.py:1142: in join\n    raise RuntimeError(\"cannot join thread before it is started\")\nE   RuntimeError: cannot join thread before it is started"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.0005273609995128936,
+      "longrepr": "tools/test_v0_s3_native_custody_correction10.py:738: in test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel\n    assert order == ['channel', 'terminate', 'wait'], \\\nE   AssertionError: the recovery of the launcher did not coordinate the channel first\nE   assert ['channel'] == ['channel', '...nate', 'wait']\nE     \nE     Right contains 2 more items, first extra item: 'terminate'\nE     Use -v to get more diff"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r07_the_context_of_the_round_reaches_every_layer",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.0010229510007775389,
+      "longrepr": "tools/test_v0_s3_native_custody_correction10.py:1065: in test_n10_r07_the_context_of_the_round_reaches_every_layer\n    observations['context_at_popen'] is session._context,\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   KeyError: 'context_at_popen'"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 6.001969713000108,
+      "longrepr": "tools/test_v0_s3_native_custody_correction10.py:1273: in test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread\n    loop._run_startup('ARM', action)\ntools/v0_s3_native_broker.py:5428: in _run_startup\n    value = owner.await_result()\n            ^^^^^^^^^^^^^^^^^^^^\ntools/v0_s3_native_broker.py:5211: in await_result\n    raise BrokerError('BROKER_STARTUP_DEADLINE_EXCEEDED', self.name)\nE   tools.v0_s3_native_broker.BrokerError: BROKER_STARTUP_DEADLINE_EXCEEDED"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.0005359639999369392,
+      "longrepr": "tools/test_v0_s3_native_custody_correction10.py:1343: in test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation\n    reader = holder['read_endpoint']._reader\n             ^^^^^^^^^^^^^^^^^^^^^^^\nE   KeyError: 'read_endpoint'"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r11_the_overflow_of_the_channel_is_a_named_failure",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 15.000813360000393,
+      "longrepr": "tools/test_v0_s3_native_custody_correction10.py:1443: in test_n10_r11_the_overflow_of_the_channel_is_a_named_failure\n    assert api.read_waiting.wait(15.0), \\\nE   AssertionError: the reader of the chain was never inside its read\nE   assert False\nE    +  where False = wait(15.0)\nE    +    where wait = <threading.Event at 0x70dbf507f650: unset>.wait\nE    +      where <threading.Event at 0x70dbf507f650: unset> = <tools.test_v0_s3_native_custody_correction07._F5Api object at 0x70dbf507f590>.read_waiting"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r12_the_reader_publishes_its_wait_before_it_waits",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 15.000681554999574,
+      "longrepr": "tools/test_v0_s3_native_custody_correction10.py:1606: in test_n10_r12_the_reader_publishes_its_wait_before_it_waits\n    raise owner.error\ntools/test_v0_s3_native_custody_correction07.py:509: in run\n    raise AssertionError(\nE   AssertionError: the reader of the chain was never inside its read"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r13_the_fault_is_unlocked_by_the_owner_and_observed_first",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 15.00073816999975,
+      "longrepr": "tools/test_v0_s3_native_custody_correction10.py:1685: in test_n10_r13_the_fault_is_unlocked_by_the_owner_and_observed_first\n    assert api.read_waiting.wait(15.0), \\\nE   AssertionError: the reader of the chain was never inside its read\nE   assert False\nE    +  where False = wait(15.0)\nE    +    where wait = <threading.Event at 0x70dbf5d641a0: unset>.wait\nE    +      where <threading.Event at 0x70dbf5d641a0: unset> = <tools.test_v0_s3_native_custody_correction07._F5Api object at 0x70dbf5d72990>.read_waiting"
+    }
+  ],
+  "stage_pass": false,
+  "next": "Wait final evidence handoff and exact6327bea source prereview supplement, then one consolidated correction; no rerun"
+}
