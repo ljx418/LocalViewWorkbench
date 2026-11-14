@@ -1,0 +1,97 @@
+{
+  "schema": "lvw.n1-correction10-obligations/1",
+  "production_baseline": "66600a1bd692c0149fc7724b624997bf2f40dcc1",
+  "test_baseline": "39f803730e09673eb1b74fa51e1f0919f2606a71",
+  "inherits": [
+    "correction03:16",
+    "correction05:24",
+    "correction07:18"
+  ],
+  "scope": "APPEND_LOCAL_REGRESSION_NOT_PRODUCT_RELEASE_DENOMINATOR",
+  "items": [
+    {
+      "id": "N10-R01",
+      "major": "M03",
+      "trigger": "Core已取得但assign失败的suspended child，terminate失败/Wait未确认/CloseHandle可成功",
+      "oracle": "record和pending共同禁止process Close，保留最后原控制HANDLE与同owner恢复入口；退出确认后才关，thread等独立处理"
+    },
+    {
+      "id": "N10-R02",
+      "major": "M05",
+      "trigger": "API recovery取entry后暂停，与Core真实handover竞争",
+      "oracle": "同entry claim/transfer原子互斥，成功移交后的API不能再close；阻塞等待不持全表锁，异常时无无主或双关闭owner"
+    },
+    {
+      "id": "N10-R03",
+      "major": "M06",
+      "trigger": "stopped真实reader首次close失败、pending成功，再次Core.stop",
+      "oracle": "所有成功关闭经共同identity通知，reader.handle/pending/retained一致且原read端只成功关闭一次"
+    },
+    {
+      "id": "N10-R04",
+      "major": "M07",
+      "trigger": "StreamChannel.start已启动后throw，adopt局部channel尚None",
+      "oracle": "同launch aggregate仍能找到partial原channel；先协调channel，绝不绕过活endpoint直接关Popen file；不完整事实原owner保留"
+    },
+    {
+      "id": "N10-R05",
+      "major": "M07",
+      "trigger": "BrokerProcess构造失败且channel.close正常return不完整facts；launcher recovery取消",
+      "oracle": "channel返回不是已释放，未确认channel/HANDLE持续可达，同launch先channel后process，安全finalizer后传播原取消对象"
+    },
+    {
+      "id": "N10-R06",
+      "major": "M08",
+      "trigger": "调用endpoint read/write进入时已过期或已cancel",
+      "oracle": "在worker.start/submit/IO前拒，实际primitive调用0；check+本代准入原子，取消/过期不是提交后的补救"
+    },
+    {
+      "id": "N10-R07",
+      "major": "M08",
+      "trigger": "父Session真实default launcher与子main/Core.stop路径预算",
+      "oracle": "各进程实际context在Popen/hash/channel/endpoint/API前已绑定，STOP发布cleanup后transport/partialwrite/join取同最小截止，无未绑定窗口/新5秒"
+    },
+    {
+      "id": "N10-R08",
+      "major": "M08",
+      "trigger": "NOT_FOUND取消复核中途bind更短cleanup",
+      "oracle": "每轮取消/等待/launcher恢复读取最新有效context；pause裁剩余，不沿旧absolute超过cleanup"
+    },
+    {
+      "id": "N10-R09",
+      "major": "M08",
+      "trigger": "StartupOwner action普通BrokerError/KI/SystemExit，attempt已发布但真实线程仍活",
+      "oracle": "所有出口finally有界join，退出未证不release_inflight，原异常保留，等待不提前发布cleanup或重置预算"
+    },
+    {
+      "id": "N10-R10",
+      "major": "M09",
+      "trigger": "本代真实read普通错已complete，endpoint下一次读结果前本地close取消",
+      "oracle": "同代原outcome及error对象先于取消保留；close不能改造真实故障为benign cancel，两次Session.stop原错仍在且UNKNOWN"
+    },
+    {
+      "id": "N10-R11",
+      "major": "M09",
+      "trigger": "真实StreamChannel完整换行oversize/过量帧，read消费前close",
+      "oracle": "overflow原处记录具名sticky error，经两次真实stop到父facts，broker不按无错释放；exact/one-over保留"
+    },
+    {
+      "id": "N10-R12",
+      "major": "test-causality",
+      "trigger": "BOOTSTRAP读取完成后，无关取消负例进入实际API read等待",
+      "oracle": "立刻发布真实read_waiting事件再等待控制，不在等待STOP之后才发布；外部cancel已发布且ownerNone后才能public stop，无延长15/30秒凑时序"
+    },
+    {
+      "id": "N10-R13",
+      "major": "M09",
+      "trigger": "普通read fault/partial frame等负例与真实关闭恢复完整组合",
+      "oracle": "故障由测试owner明确解锁，先观测actual outcome/error/EOF再stop，不依赖STOP写来触发本应先发生的故障；全部预期phase JSON真实生成"
+    },
+    {
+      "id": "N10-R14",
+      "major": "compatibility",
+      "trigger": "新候选旧175节点与已闭各原子义务",
+      "oracle": "保留所有node身份和顺序，已闭UNKNOWN锁/双向预算/终态预留/正常取消来源/首错跨重试等不回归，六Major须新独审不靠测试名"
+    }
+  ]
+}

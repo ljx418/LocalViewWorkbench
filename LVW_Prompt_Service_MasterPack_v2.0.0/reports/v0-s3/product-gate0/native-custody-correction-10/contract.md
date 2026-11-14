@@ -1,0 +1,34 @@
+# N1 correction10：原子所有权、完整上下文及结果优先，一次集中纠正
+
+输入：生产66600a1、测试39f8037；correction09一次175/174PASS1FAIL/cleanuptrue；只读预审F0/M6原报告received/production-review.md。预审非最终门禁，但具明确控制流的六Major子缺口root采纳集中修复。原失败证据/首版NOT_RUN/absence模式/旧counter历史不改。原已修子路径保留，不能称以前修复全无效，也不能以六个名字不变推断毫无进展。
+
+## 根架构与详细设计决定
+
+### A：共同关闭资格与唯一资源owner
+Core与API一样：process EXIT_CONFIRMED才可Close最后原控制HANDLE；thread/pipe安全释放独立。资格不仅在_release_records判断，pending也必须从同resource entry owner取得process退出事实，不能绕过。先前assign失败从未入Job的child也必须留原控制权。后续同原deadline内terminate/wait恢复，真正退出后一次关闭；handle closed不等于process exited。
+API entry的API_OWNED/RECOVERY_CLAIMED/TRANSFER_PENDING/TRANSFERRED/CLOSED状态在_table_lock下原子claim。recovery旧局部entry在handover后不能关闭；handover不能接管已被recovery合法claim准备关闭的entry。阻塞原语不得长时间持整个表锁，可entry级有限状态+原deadline通知/冲突拒绝；回调接收登记失败仍由明确原owner处理，不能半登记后同时两个close owner。禁止仅close前无锁get复核。
+所有成功close经同一个原identity通知Job/record/reader/API/pending/retained事实。stopped reader首次close失败后pending成功也要把reader.handle置None/closed confirmed；后继stop不得双关已关闭且可能被复用的HANDLE。alive/inflight reader原端保护保持已修语义。
+
+### B：一个launch aggregate与进程本地上下文
+不要再用全局散表与局部channel=None猜资源归属。每个本轮launch有薄持久aggregate，关联original Popen/HANDLE、partial channel/endpoint/worker及原context；Popen成功即登记，channel启动前即关联，任何构造/启动后异常外层均能找到同launch的partial owner。endpoint已取得file后，process helper在任何正常/异常/recovery路径不得直接关同stdin/stdout；先由channel协调，再在process退出已证后释放原Popen HANDLE。
+channel.close return不代表release，只有reader/两端/worker及thread HANDLE所有严格事实闭合才forget；正常return不完整必须retain。aggregate恢复按依赖顺序协调，安全步骤后传播原KI/SystemExit且primary/secondary并存，不靠GC或线程自引用证明owner。无需另造通用进程平台，复用已有owner并做薄绑定。
+父Session本地context与子Core本地context各自唯一，不要求跨进程同Python对象。正式default launcher必须在Popen/hash/channel/endpoint/API等副作用前持有原context/截止；不能等整个launcher返回再bind。允许私有工厂新增keyword-only context，注入旧三参数facade的兼容边界要明确、不可用于真实生产入口绕过。Root允许N1内部接口增量，不改公共launch-plan schema或监督协议。
+effective deadline统一取call/bound/context.absolute/已发布context.cleanup最小值，每次start/submit/IO前后核，取消与本代准入原子协调；本已过期/取消的read不得先启动worker和submit再检查。STOP→Core.stop发布now+5s后，真实transport STOPPED写及finally close必须即时取cleanup，不继续长lease。NOT_FOUND每次复核/pause、partialwrite每段、API recovery/launcher恢复每次都重读最新context，不因default None多得5秒。StartupOwner所有出口（成功、timeout、ordinary、KI/SystemExit）在finally对原thread做同deadline bounded join；未退出保留inflight owner，不能只看attempt完成事件或在抛错分支直接release。
+
+### C：同代结果优先于关闭取消，错误不丢
+worker按请求代保存原outcome（result/error对象/来源/完成代），endpoint取消前后都协调同一代。已发布普通IO错误不能因随后close flag被set而换成新CANCELLED错误。正常关闭取消的来源token仍需匹配本close和本请求，token真实不意味着原始IO故障由它导致。Close请求≠完成；只有确由它中止同代IO才可记正常close cancellation，已发生故障为首错，取消为并列事实。两次真实Session.stop都不得丢原错或按无错facts释放broker。
+完整newline oversize/超frame数在产生处记具名CHANNEL_OVERFLOW sticky error和原overflow事实；不能只内部_overflow=True让close看到reader_error=None。exact/one-over、partial EOF、超frame/32KiB各原门限不变，不把原buffer残留丢弃为正常。
+
+### D：夹具因果状态机，不提高超时凑通过
+_F5Api当前先ready.wait(30)才发布reader_blocked，而ready由STOP写/取消触发；外部取消却先等reader_blocked，构成错误的前置依赖（两次等待约60秒）。不能把15秒改90秒。拆成BOOTSTRAP_FRAMES_CONSUMED→READ_WAITING（进入实际primitive后立即publish，先于任何阻塞等待）→显式数据/取消/故障解锁→RESULT/EOF。外部owner等真正READ_WAITING，set同一未知来源cancel并publish确认，测试主线程才stop。正常本地close用close自己取消；普通读故障/partial frame用测试owner明确解锁后先观测actual fault或EOF，不由STOP发送来解锁本应先发生的故障。STOPPED只能在实际STOP请求后发布，不能靠30秒超时读出预放终态帧。可直接改原测试facade/helpers，不改生产配合fixture。
+两种取消码取决于真实观测层：endpoint._await=PIPE_CANCELLED，channel._check_wait=CHANNEL_CANCELLED。root本包明确该负例义务是未知来源真实取消首错保留，而非冻结到某个内部层；可以接受这两个既有稳定码中的实际一个，但必须原始来源/阶段/本代outcome证明，不得只扩大集合掩盖任意其他错误。控制read在endpoint in-flight时可继续精确assert PIPE，between-frame另子场景才CHANNEL。不把正常本地close取消算未知错误。
+
+## Workpack与允许修改
+唯一Claude owner串行三个同Stage Workpack：A共同entry/close通知；B launch/context及所有出口；C outcome/error通道与完整fixture组合。局部静态收据每包，统一一次有限子树测试+独审；不逐缺口反复交接、不重跑已关闭历史候选。
+允许tools/v0_s3_native_broker.py、tools/v0_s3_native_custody.py、tools/test_v0_s3_native_custody.py、tools/test_v0_s3_native_custody_regressions.py、tools/test_v0_s3_native_custody_correction05.py、tools/test_v0_s3_native_custody_correction07.py，NEW tools/test_v0_s3_native_custody_correction10.py及NEW reports/v0-s3/product-gate0/implementation-native-custody-correction-10/。其他产品owner/授权/协议/public schema/门限/control/MANIFEST/所有历史报告冻结。必须超范围先集中askroot。native拒绝点保留，N2不启动。
+保留原175node身份顺序及所有有效断言，允许fixture修正旧不正确时序/显式context初始化并逐项解释；不得删负例/硬编码成功facts。新增14组固定在NEW模块，root最终冻结175+14=189具体有序节点。旧16/24/18义务不替换；产品I24/12分母不改。每组义务→真实owner/入口→触发→exact oracle→负例→返回事实→同owner恢复→test owner finally salvage；必须有真实类组合，不只fake记录或源码字符串。
+静态交付需先完成一次六Major原子矩阵，逐原报告子缺口列实际entry/lifetime/新源码/新组合负例，未覆盖注明，不写六个“已闭”摘要。对common context需列default launcher/main/Channel/WindowsApi/worker每条实际传递边和每次deadline读取，避免只新增对象没接到正式入口。每个取消/普通异常/构造失败恢复都检查同资源关闭资格、同代结果与原thread退出，不只修被断言到的首分支。
+
+## 验证边界
+现在只静态实现/AST，精确路径commit完整新候选后askroot189节点有限plan（全source/tool pins、原223文件依赖/3stdlib、root前置guard/runner/outerabsence、三条绝对argv/cwd、<=300s单批、逐node/raw/退出码/FD真实身份/全部线程/NEW诊断）。不能import候选/collect/pytest；ask后结束turn等reply不同时worker_done。root ACK后一批，失败保留原候选/原始证据，不自己修到绿/复跑。
+原counter及parent只外层lstat且必须MISSING，continuity UNAVAILABLE_NOT_PROVEN，旧grant EXPIRED_NO_REPLAY不重建/清零/退款/复活。硬guard先于candidate/pytest，只一次可信stdlib dlopen(None)后永久关闭，真实Win32API/Job/业务进程/GPU/模型/服务/socket/sqlite/网络/下载/媒体/原ledger拒。FIRST429停WAIT_BUDGET不retry/换路/root接手；FIRST审批拒绝/超时停不包装绕过。独审保留、六Major仍OPEN，不StagePASS不N2不真实运行。
