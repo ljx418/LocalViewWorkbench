@@ -1,0 +1,70 @@
+{
+ "ack": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-10/validation-plan-01/ack.json",
+ "batch_wall_seconds": 81.69,
+ "batches_max": 1,
+ "candidate_sha": "cdac445434ed129ca6c5fa8acc830f1f13261a6f",
+ "commands": [
+  {
+   "argv": [
+    "/usr/bin/python3.12",
+    "-I",
+    "-B",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-10/validation-plan-01/outer_counter_observe.py",
+    "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-10/attempt01/counter-absence-before.json"
+   ],
+   "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+   "environment": {
+    "LVW_N1_F5_EVIDENCE_DIR": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-10/f5-evidence",
+    "PYTHONDONTWRITEBYTECODE": "1"
+   },
+   "executed": "exactly once, in the order of the plan, nothing else was executed",
+   "exit_code": 0,
+   "label": "counter-absence-before"
+  },
+  {
+   "argv": [
+    "/usr/bin/python3.12",
+    "-I",
+    "-B",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-10/validation-plan-01/guard.py",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-10/validation-plan-01/runner.py",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-10/attempt01/native-custody-correction-10.guard.json"
+   ],
+   "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+   "environment": {
+    "LVW_N1_F5_EVIDENCE_DIR": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-10/f5-evidence",
+    "PYTHONDONTWRITEBYTECODE": "1"
+   },
+   "executed": "exactly once, in the order of the plan, nothing else was executed",
+   "exit_code": 1,
+   "label": "guarded-validation"
+  },
+  {
+   "argv": [
+    "/usr/bin/python3.12",
+    "-I",
+    "-B",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-10/validation-plan-01/outer_counter_observe.py",
+    "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-10/attempt01/counter-absence-after.json"
+   ],
+   "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+   "environment": {
+    "LVW_N1_F5_EVIDENCE_DIR": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-10/f5-evidence",
+    "PYTHONDONTWRITEBYTECODE": "1"
+   },
+   "executed": "exactly once, in the order of the plan, nothing else was executed",
+   "exit_code": 0,
+   "label": "counter-absence-after"
+  }
+ ],
+ "extra_test": false,
+ "kind": "lvw.n1-correction10-attempt01-commands/1",
+ "max_seconds": 300,
+ "plan": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-10/validation-plan-01/plan.json",
+ "plan_sha256": "61077309264afc30e0084960e9e1bef68a40f1c0e877e73b933e74b0d30eb88c",
+ "retry": false,
+ "self_repair": false,
+ "wrapper": false
+}

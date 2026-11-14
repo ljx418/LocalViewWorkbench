@@ -1,0 +1,139 @@
+.............................................................................................................................F...F......FF....FF..F........................F...F..FF.F.FFFFF.
+=================================== FAILURES ===================================
+___________ test_n03_r09_a_partial_windows_write_is_never_a_success ____________
+tools/test_v0_s3_native_custody_regressions.py:1217: in test_n03_r09_a_partial_windows_write_is_never_a_success
+    written = endpoint.write(b'abcdef', time.monotonic() + 5.0)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_s3_native_broker.py:4455: in write
+    effective = self._admission(deadline, cancel)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tools/v0_s3_native_broker.py:4255: in _admission
+    with self._admission_lock:
+         ^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: '_WindowsPipeEndpoint' object has no attribute '_admission_lock'
+_ test_n03_r13_the_buffer_of_the_channel_is_bounded_and_a_partial_frame_is_named _
+tools/test_v0_s3_native_custody_regressions.py:1479: in test_n03_r13_the_buffer_of_the_channel_is_bounded_and_a_partial_frame_is_named
+    channel = StreamChannel(None, None, read_endpoint=Endpoint([b'x' * (32 * 1024 * 2),
+tools/v0_s3_native_broker.py:4780: in __init__
+    self._writer = writer_endpoint or _make_endpoint(
+                   ^^^^^^^^^^^^^^^
+E   NameError: name 'writer_endpoint' is not defined
+___ test_n05_r04_a_cancellation_in_the_release_propagates_after_the_cleanup ____
+tools/test_v0_s3_native_custody_correction05.py:441: in test_n05_r04_a_cancellation_in_the_release_propagates_after_the_cleanup
+    assert not win32.live, 'the pending pass did not close the handles'
+E   AssertionError: the pending pass did not close the handles
+E   assert not {106: 'handle', 112: 'handle'}
+E    +  where {106: 'handle', 112: 'handle'} = <test_v0_s3_native_custody_correction05.test_n05_r04_a_cancellation_in_the_release_propagates_after_the_cleanup.<locals>.TransientWin32 object at 0x70dbf4fe9970>.live
+________ test_n05_r05_one_process_never_skips_the_wait_of_the_next_one _________
+tools/test_v0_s3_native_custody_correction05.py:538: in test_n05_r05_one_process_never_skips_the_wait_of_the_next_one
+    assert not win32.live
+E   AssertionError: assert not {106: 'handle'}
+E    +  where {106: 'handle'} = <test_v0_s3_native_custody_correction05.test_n05_r05_one_process_never_skips_the_wait_of_the_next_one.<locals>.FailingWaitWin32 object at 0x70dbf4fe8620>.live
+___ test_n05_r10_a_launch_that_could_not_be_handed_over_keeps_its_resources ____
+tools/test_v0_s3_native_custody_correction05.py:867: in test_n05_r10_a_launch_that_could_not_be_handed_over_keeps_its_resources
+    assert 'stdin' in kinds
+E   AssertionError: assert 'stdin' in ['aggregate', 'aggregate', 'process']
+________ test_n05_r11_no_role_is_created_or_resumed_after_the_deadline _________
+tools/test_v0_s3_native_custody_correction05.py:949: in test_n05_r11_no_role_is_created_or_resumed_after_the_deadline
+    assert not win32.live
+E   AssertionError: assert not {106: 'handle'}
+E    +  where {106: 'handle'} = <tools.test_v0_s3_native_custody_regressions.RecordingWin32 object at 0x70dbf5d5c0b0>.live
+______ test_n05_r14_an_await_that_is_running_reads_the_tightened_deadline ______
+tools/test_v0_s3_native_custody_correction05.py:1150: in test_n05_r14_an_await_that_is_running_reads_the_tightened_deadline
+    assert entered.wait(5.0), 'the read never entered the operation'
+E   AssertionError: the read never entered the operation
+E   assert False
+E    +  where False = wait(5.0)
+E    +    where wait = <threading.Event at 0x70dbf5d6aa20: unset>.wait
+______ test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner ______
+tools/test_v0_s3_native_custody_correction07.py:1782: in test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner
+    assert session.broker is holder['broker']
+                             ^^^^^^^^^^^^^^^^
+E   KeyError: 'broker'
+________ test_n10_r01_the_control_handle_is_closed_only_after_the_exit _________
+tools/test_v0_s3_native_custody_correction10.py:238: in test_n10_r01_the_control_handle_is_closed_only_after_the_exit
+    assert record['process_handle_closed'] is True
+E   assert False is True
+_________ test_n10_r04_the_launch_aggregate_finds_the_partial_channel __________
+tools/test_v0_s3_native_custody_correction10.py:539: in test_n10_r04_the_launch_aggregate_finds_the_partial_channel
+    StreamChannel(
+tools/v0_s3_native_broker.py:4780: in __init__
+    self._writer = writer_endpoint or _make_endpoint(
+                   ^^^^^^^^^^^^^^^
+E   NameError: name 'writer_endpoint' is not defined
+
+During handling of the above exception, another exception occurred:
+tools/test_v0_s3_native_custody_correction10.py:590: in test_n10_r04_the_launch_aggregate_finds_the_partial_channel
+    thread.join(10.0)
+/usr/lib/python3.12/threading.py:1142: in join
+    raise RuntimeError("cannot join thread before it is started")
+E   RuntimeError: cannot join thread before it is started
+______ test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel _______
+tools/test_v0_s3_native_custody_correction10.py:738: in test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel
+    assert order == ['channel', 'terminate', 'wait'], \
+E   AssertionError: the recovery of the launcher did not coordinate the channel first
+E   assert ['channel'] == ['channel', '...nate', 'wait']
+E     
+E     Right contains 2 more items, first extra item: 'terminate'
+E     Use -v to get more diff
+__________ test_n10_r07_the_context_of_the_round_reaches_every_layer ___________
+tools/test_v0_s3_native_custody_correction10.py:1065: in test_n10_r07_the_context_of_the_round_reaches_every_layer
+    observations['context_at_popen'] is session._context,
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'context_at_popen'
+________ test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread _________
+tools/test_v0_s3_native_custody_correction10.py:1273: in test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread
+    loop._run_startup('ARM', action)
+tools/v0_s3_native_broker.py:5428: in _run_startup
+    value = owner.await_result()
+            ^^^^^^^^^^^^^^^^^^^^
+tools/v0_s3_native_broker.py:5211: in await_result
+    raise BrokerError('BROKER_STARTUP_DEADLINE_EXCEEDED', self.name)
+E   tools.v0_s3_native_broker.BrokerError: BROKER_STARTUP_DEADLINE_EXCEEDED
+____ test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation _____
+tools/test_v0_s3_native_custody_correction10.py:1343: in test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation
+    reader = holder['read_endpoint']._reader
+             ^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'read_endpoint'
+_________ test_n10_r11_the_overflow_of_the_channel_is_a_named_failure __________
+tools/test_v0_s3_native_custody_correction10.py:1443: in test_n10_r11_the_overflow_of_the_channel_is_a_named_failure
+    assert api.read_waiting.wait(15.0), \
+E   AssertionError: the reader of the chain was never inside its read
+E   assert False
+E    +  where False = wait(15.0)
+E    +    where wait = <threading.Event at 0x70dbf507f650: unset>.wait
+E    +      where <threading.Event at 0x70dbf507f650: unset> = <tools.test_v0_s3_native_custody_correction07._F5Api object at 0x70dbf507f590>.read_waiting
+__________ test_n10_r12_the_reader_publishes_its_wait_before_it_waits __________
+tools/test_v0_s3_native_custody_correction10.py:1606: in test_n10_r12_the_reader_publishes_its_wait_before_it_waits
+    raise owner.error
+tools/test_v0_s3_native_custody_correction07.py:509: in run
+    raise AssertionError(
+E   AssertionError: the reader of the chain was never inside its read
+______ test_n10_r13_the_fault_is_unlocked_by_the_owner_and_observed_first ______
+tools/test_v0_s3_native_custody_correction10.py:1685: in test_n10_r13_the_fault_is_unlocked_by_the_owner_and_observed_first
+    assert api.read_waiting.wait(15.0), \
+E   AssertionError: the reader of the chain was never inside its read
+E   assert False
+E    +  where False = wait(15.0)
+E    +    where wait = <threading.Event at 0x70dbf5d641a0: unset>.wait
+E    +      where <threading.Event at 0x70dbf5d641a0: unset> = <tools.test_v0_s3_native_custody_correction07._F5Api object at 0x70dbf5d72990>.read_waiting
+=========================== short test summary info ============================
+FAILED tools/test_v0_s3_native_custody_regressions.py::test_n03_r09_a_partial_windows_write_is_never_a_success
+FAILED tools/test_v0_s3_native_custody_regressions.py::test_n03_r13_the_buffer_of_the_channel_is_bounded_and_a_partial_frame_is_named
+FAILED tools/test_v0_s3_native_custody_correction05.py::test_n05_r04_a_cancellation_in_the_release_propagates_after_the_cleanup
+FAILED tools/test_v0_s3_native_custody_correction05.py::test_n05_r05_one_process_never_skips_the_wait_of_the_next_one
+FAILED tools/test_v0_s3_native_custody_correction05.py::test_n05_r10_a_launch_that_could_not_be_handed_over_keeps_its_resources
+FAILED tools/test_v0_s3_native_custody_correction05.py::test_n05_r11_no_role_is_created_or_resumed_after_the_deadline
+FAILED tools/test_v0_s3_native_custody_correction05.py::test_n05_r14_an_await_that_is_running_reads_the_tightened_deadline
+FAILED tools/test_v0_s3_native_custody_correction07.py::test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner
+FAILED tools/test_v0_s3_native_custody_correction10.py::test_n10_r01_the_control_handle_is_closed_only_after_the_exit
+FAILED tools/test_v0_s3_native_custody_correction10.py::test_n10_r04_the_launch_aggregate_finds_the_partial_channel
+FAILED tools/test_v0_s3_native_custody_correction10.py::test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel
+FAILED tools/test_v0_s3_native_custody_correction10.py::test_n10_r07_the_context_of_the_round_reaches_every_layer
+FAILED tools/test_v0_s3_native_custody_correction10.py::test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread
+FAILED tools/test_v0_s3_native_custody_correction10.py::test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation
+FAILED tools/test_v0_s3_native_custody_correction10.py::test_n10_r11_the_overflow_of_the_channel_is_a_named_failure
+FAILED tools/test_v0_s3_native_custody_correction10.py::test_n10_r12_the_reader_publishes_its_wait_before_it_waits
+FAILED tools/test_v0_s3_native_custody_correction10.py::test_n10_r13_the_fault_is_unlocked_by_the_owner_and_observed_first
+17 failed, 172 passed in 79.46s (0:01:19)
+{"pytest_exit": 1, "call_count": 189, "pass_count": 172, "fail_count": 17, "skip_count": 0, "functional_pass_count": 170, "cleanup_proven_for_batch": true}
