@@ -1,0 +1,332 @@
+Source: transcript (provider=claude)
+Worker: ready
+Archived: false
+Terminal liveness: live
+Agent liveness: live
+Source exact: true
+Content complete: false
+Clipping: message_limit_or_scan_window, transcript_payload
+Continuation cursor (opaque; pass unchanged to --cursor): owr1_eyJ2IjoxLCJkIjoiY3R4X2U0NzhmZjRlNTBkMSIsInMiOiJ0cmFuc2NyaXB0IiwiaSI6InZQdWppdjFFcGgtYTNveUhGY04wTndOT0tKRVd0bHNRIiwicCI6NDE2MDU4NSwiYyI6IklwaFh5a00zQTNBLXh4ZEVLX01IaVdHN0tVeUFxRlhEIn0
+Warning: Oversized transcript text was clipped.
+Warning: Oversized tool input was clipped.
+
+[tool] [tool result] def main(root, baseline):
+    root = Path(root)
+    checks = []
+    failed = []
+
+    def check(name, ok, detail=''):
+        checks.append({'check': name, 'ok': bool(ok), 'detail': detail})
+        if not ok:
+            failed.append(name)
+
+    # 1 - the pins of the production and of the other test modules
+    for name, digest in sorted(PINS.items()):
+        data = (root / name).read_bytes()
+        check('pin:%s' % name, sha256(data) == digest, sha256(data))
+
+    # 2 - the 189 frozen node identities and their order
+    total = 0
+    identities = []
+    for name, count in MODULES:
+        source = (root / name).read_text(encoding='utf-8')
+        found = nodes(source)
+        check('node-count:%s' % name, len(found) == count,
+              '%d of %d' % (len(found), count))
+        total += len(found)
+        identities.extend('%s::%s' % (name, item) for item in found)
+    check('denominator:189', total == 189, str(total))
+    check('denominator:unique', len(set(identities)) == 189,
+          str(len(set(identities))))
+
+    # 3 - the nodes of this module against the baseline blob
+    module = root / 'tools/test_v0_s3_native_custody_correction10.py'
+    source = module.read_text(en
+… (truncated)
+
+[reasoning] Great — I can reuse the c18 static_checks.py as a base for c19, adding the new checks. But c18's checks include `evidence:directory` expecting 'implementation-native-custody-correction-18' in source — that would fail for c19 unless I keep that string. Hmm, that check verifies the module references the evidence directory of its correction. Let me look at what that is in the source: probably `EVIDENCE_DIR` or a path constant.
+
+Let me check.
+
+Also `inventory:...` checks reference the 27-name inventory — the c19 version has 28. I'll need to update.
+
+Let me grep the source for the correction-18 evidence directory reference.
+
+[assistant] [tool Bash] {"command":"cd /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0 && grep -n \"implementation-native-custody-correction-18\" tools/test_v0_s3_native_custody_correction10.py","description":"Find evidence dir reference in module"}
+
+[tool] [tool result] 131:                / 'implementation-native-custody-correction-18' / 'evidence')
+
+[assistant] [tool Read] {"file_path":"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py","limit":40,"offset":115}
+
+[tool] [tool result] 115	#: are never overwritten, never deleted and never replaced by a
+116	#: summary.
+117	#: CORRECTION 16: the diagnostics of this module are written in the NEW
+118	#: directory of the correction 16.  The real documents of the batch of
+119	#: the correction 15 stay in the directory of the correction 15: they
+120	#: are never overwritten, never deleted and never replaced by a
+121	#: summary.
+122	#: CORRECTION 17: the diagnostics of this module are written in the NEW
+123	#: directory of the correction 17.  The real documents of the batch of the
+124	#: correction 16 stay in the directory of the correction 16: they are
+125	#: never overwritten, never deleted and never replaced by a summary.
+126	#: CORRECTION 18: the diagnostics of this module are written in the NEW
+127	#: directory of the correction 18.  The real documents of the batch of the
+128	#: correction 17 stay in the directory of the correction 17: they are
+129	#: never overwritten, never deleted and never replaced by a summary.
+130	EVIDENCE_DIR = (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'
+131	                / 'implementation-native-custody-correction-18' / 'evidence')
+132	
+133	#: The nonce of the private channel of the
+… (truncated)
+
+[reasoning] The evidence dir points to the correction-18 directory. Should I change it to correction-19? The contract says "Only edit tools/test_v0_s3_native_custody_correction10.py and NEW implementation-native-custody-correction-19 reports."
+
+Changing EVIDENCE_DIR to the correction-19 directory would be a change to the module that points the dynamic evidence at a new directory. That seems right for a new correction (each correction has its own evidence dir, per the pattern: correction 16, 17, 18 each have their own).
+
+Yes — the pattern is clear: each correction writes its diagnostics into its OWN new directory. So c19 should point EVIDENCE_DIR at 'implementation-native-custody-correction-19'/'evidence'.
+
+But then the c18 static check `evidence:directory` would fail. That's expected — I'm writing new c19 static checks.
+
+Let me update EVIDENCE_DIR to correction-19 and add the comment.
+
+Also — is there a risk that changing EVIDENCE_DIR breaks something? The dynamic run is NOT_RUN, so no. And the pattern from 16/17/18 supports it.
+
+Let me do it.
+
+[assistant] [tool Edit] {"replace_all":false,"file_path":"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py","old_string":"#: CORRECTION 18: the diagnostics of this module are written in the NEW\n#: directory of the correction 18.  The real documents of the batch of the\n#: correction 17 stay in the directory of the correction 17: they are\n#: never overwritten, never deleted and never replaced by a summary.\nEVIDENCE_DIR = (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'\n                / 'implementation-native-custody-correction-18' / 'evidence')","new_string":"#: CORRECTION 18: the diagnostics of this module are written in the NEW\n#: directory of the correction 18.  The real documents of the batch of the\n#: correction 17 stay in the directory of the correction 17: they are\n#: never overwritten, never deleted and never replaced by a summary.\n#: CORRECTION 19: the diagnostics of this module are written in the NEW\n#: directory of the correction 19.  The real documents of the batch of the\n#: correction 18 stay in the directory of the correction 18: they are\n#: never overwritten, never deleted and never replaced by a summary.\n… (truncated)"}
+
+[tool] [tool result] The file /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py has been updated successfully.
+
+[reasoning] Now let me review my changes for correctness. Let me look at the whole diff.
+
+Also I should double-check a few risky spots:
+1. In the phase's finally, `clean` no longer requires `ledger.state(phase) == 'ATTEMPTED'`. But `ledger.pass_(phase)` is now guarded by `elif ledger is not None`. OK.
+
+2. In the phase's except handler, `written_result` variable — I named it the same in both phases. Fine.
+
+3. `record_guarded` returns `record(name, facts)` which returns a path string. But if `write_phase` succeeds but `inventory.add` / `ledger.attempt` raise... unlikely.
+
+Hmm, actually there's a subtle issue: `record()` calls `write_phase` then `written.add`, `inventory.add`, `ledger.attempt`. If `ledger.attempt` raised, `record_guarded` would catch it and return None even though the document was written. Edge case; acceptable.
+
+4. The `_registry_owners` change: `kinds.add(kind)` now happens after the query. But note the original code had `kinds.add(kind)` for 'thread' kind too — the original's `else` branch added 'thread' entries via `add([(name, owner)])`. In my version, the first pass adds 'thread' entries, and the second pass `continue`s for kind == 'thread' (so 'thread' is NOT added to `kin
+… (truncated)
+
+[assistant] [tool Bash] {"command":"cd /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement && git diff --stat && git diff LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py | head -400","description":"Review the diff"}
+
+[tool] [tool result]  .../implementation-integration-01/report.md        |  27 +-
+ .../test_v0_s3_native_custody_correction10.py      | 918 ++++++++++++++++-----
+ 2 files changed, 723 insertions(+), 222 deletions(-)
+diff --git a/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py b/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py
+index 9aec2ca..518a4e9 100644
+--- a/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py
++++ b/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py
+@@ -127,8 +127,12 @@ from tools.test_v0_s3_native_custody_regressions import (  # noqa: E402
+ #: directory of the correction 18.  The real documents of the batch of the
+ #: correction 17 stay in the directory of the correction 17: they are
+ #: never overwritten, never deleted and never replaced by a summary.
++#: CORRECTION 19: the diagnostics of this module are written in the NEW
++#: directory of the correction 19.  The real documents of the batch of the
++#: correction 18 stay in the directory of the correction 18: they are
++#: never overwritten, never deleted and never replaced by a summary.
+ EVIDENC
+… (truncated)
+
+[reasoning] Wait — there's a bug! `git diff --stat` shows `implementation-integration-01/report.md` was modified. That's a pre-existing modification (from the git status at session start: "M reports/v0-s3/product-gate0/implementation-integration-01/report.md"). It was already modified before I started. I should NOT include it in my commit — the scope says only test10 + NEW c19 reports.
+
+Let me check what that modification is — it was there at session start (per the git status snapshot). I'll leave it uncommitted.
+
+Hmm, actually it might be a leftover from another session. Let me check the diff briefly and decide. The contract says "production/other tests/history/rootfiles/contracts/189IDs/order unchanged". A stray modified report.md is not mine. I'll not commit it.
+
+Let me continue reviewing the diff.
+
+[assistant] [tool Bash] {"command":"git diff LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py | sed -n '400,900p'","description":"Review rest of diff part 1"}
+
+[tool] [tool result] <persisted-output>
+Output too large (29.5KB). Full output saved to: /home/administrator/.claude/projects/-home-administrator-orca-workspaces-LocalViewWorkbench-lvw-v1-d0-implement/9e18db34-6168-4430-bb9d-70a595e9a24f/tool-results/bpoj42meo.txt
+
+Preview (first 2KB):
++                        # never converted into an ordinary assertion.
++                        raise
+                     raise AssertionError(
+                         'the evidence of the cleanup of the parent could not '
+                         'be written: %s' % (write_error,))
+         finally:
+             parent_observer.disarm()
+             parent_observer_patch.stop()
++        # CORRECTION 19 (M3): the priority of the failures is fixed: the
++        # failure that is already unwinding wins, then the **exact**
++        # interruption of the cleanup and only then the ordinary
++        # assertion of the proof.
++        if parent_interrupts and sys.exc_info()[0] is None:
++            raise parent_interrupts[0]
+         if parent_proof is not None and sys.exc_info()[0] is None:
+             raise AssertionError(parent_proof)
+     # CORRECTION 17 (M3): no unrelated failure of a close of the child
+@@ -4068,21 +4222
+… (truncated)
+
+[assistant] [tool Bash] {"command":"git diff LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py > /tmp/c19.diff; wc -l /tmp/c19.diff; sed -n '900,1400p' /tmp/c19.diff","description":"Review diff part 2"}
+
+[tool] [tool result] 1353 /tmp/c19.diff
+-                                               executed=True,
+-                                               reason=reason,
+-                                               detail=detail,
+-                                               original_failure=dict(
+-                                                   original_failure),
+-                                               cleanup_errors=list(
+-                                                   cleanup_errors),
+-                                               evidence_write_errors=list(
+-                                                   write_errors),
+-                                               proof_failure=drain['proof'],
+-                                               quiescent=drain['quiescent']))
+-                    ledger.fail(phase, reason)
+-            # CORRECTION 18 (M3): the interruption of the cleanup is
+-            # re-raised only when no other failure is unwinding.
++                    phase_failure_detail = (
++                        'the durable FAIL of the phase was not written: %s'
++                        % (write_errors,))
++                    cleanup_detail = _join_details(cleanup_d
+… (truncated)
+
+[reasoning] The diff looks good. A few issues to double-check:
+
+1. **The final assertion block is inside the test function but AFTER the try/except/finally.** The `finally` clause's `ledger.finish(r10_name, 'NOT_RUN', ...)` — but if the try succeeded, all names are terminal, so the finally's loop does nothing. ✓
+
+2. **Problem**: the assertion `assert first_failure['type'] is None` — `first_failure` is a dict defined before the try. ✓
+
+3. **Potential issue**: `r10_inventory.add(r10_name)` in the outer except handler — but the document written there is the FAIL document. ✓
+
+4. **Issue**: In the outer `finally`, `ledger.finish(r10_name, 'NOT_RUN', first_failure['type'])`. But `first_failure['type']` may be None (when the group passed) — but in that case no name is PLANNED. ✓
+
+5. **Important**: `early_original` — I add an `except BaseException` clause to the early chain's try. But the try body contains `ledger.pass_('r10-second')` etc. Fine.
+
+Wait — there's a problem! The early chain's try/except/finally: I added `except BaseException as error: ... raise` BEFORE the `finally:`. But in Python, the order must be `try: ... except: ... finally: ...`. I placed the except before the finally. ✓ (the diff
+… (truncated)
+
+[assistant] [tool Bash] {"command":"grep -n \"ledger.fail\" tools/test_v0_s3_native_custody_correction10.py","description":"Find all ledger.fail call sites"}
+
+[tool] [tool result error] Exit code 2
+ugrep: warning: tools/test_v0_s3_native_custody_correction10.py: No such file or directory
+
+[assistant] [tool Bash] {"command":"cd /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0 && grep -n \"ledger.fail\" tools/test_v0_s3_native_custody_correction10.py","description":"Find ledger.fail call sites"}
+
+[tool] [tool result] 5657:                        ledger.fail(phase + '-barrier', 'BARRIER_NOT_COMPLETED')
+5677:                        ledger.fail(phase + '-barrier',
+5914:                    ledger.fail(name, type(error).__name__)
+6034:                        ledger.fail(phase, reason)
+6446:                    ledger.fail(name, type(error).__name__)
+6573:                        ledger.fail(phase, reason)
+6974:                        ledger.fail('r10-early-salvage', 'EarlyCleanup')
+7187:                        ledger.fail('r10-coordination', document['reason'])
+7293:            ledger.fail(r10_name, type(error).__name__)
+
+[assistant] [tool Read] {"file_path":"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py","limit":40,"offset":5644}
+
+[tool] [tool result] 5644	            if expect_barrier in ('PASSED', 'REFUSED'):
+5645	                if not api.barrier_completed.wait(15.0):
+5646	                    record_guarded(phase + '-barrier', dict(
+5647	                        barrier_identity(),
+5648	                        status='FAIL',
+5649	                        executed=True,
+5650	                        premise='BARRIER_NOT_COMPLETED',
+5651	                        timeout_seconds=15.0,
+5652	                        barrier_completed=False,
+5653	                        barrier_expectation=expect_barrier,
+5654	                        barrier_probe=barrier_probe,
+5655	                        state=session.state))
+5656	                    if ledger is not None:
+5657	                        ledger.fail(phase + '-barrier', 'BARRIER_NOT_COMPLETED')
+5658	                    raise AssertionError(
+5659	                        'the publication barrier of the round never completed')
+5660	                # CORRECTION 18 (M2): the error of the durable write of
+5661	                # the barrier is **consumed** here: a barrier whose
+5662	                # document was not written never certifies the barrier
+5663	                # and it never leave
+… (truncated)
+
+[assistant] [tool Edit] {"replace_all":false,"file_path":"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py","old_string":"            if expect_barrier in ('PASSED', 'REFUSED'):\n                if not api.barrier_completed.wait(15.0):\n                    record_guarded(phase + '-barrier', dict(\n                        barrier_identity(),\n                        status='FAIL',\n                        executed=True,\n                        premise='BARRIER_NOT_COMPLETED',\n                        timeout_seconds=15.0,\n                        barrier_completed=False,\n                        barrier_expectation=expect_barrier,\n                        barrier_probe=barrier_probe,\n                        state=session.state))\n                    if ledger is not None:\n                        ledger.fail(phase + '-barrier', 'BARRIER_NOT_COMPLETED')\n                    raise AssertionError(\n                        'the publication barrier of the round never completed')\n                # CORRECTION 18 (M2): the error of the durable write of\n                # the barrier is **consumed** here: a barrier whose\n                # … (truncated)","…":"truncated"}
+
+[tool] [tool result] The file /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py has been updated successfully.
+
+[reasoning] Now let me check line 5914 and 6446 — those are the phase except handlers which I already fixed (`if ledger is not None and written_result is not None`). ✓
+
+Lines 6034 and 6573: `ledger.fail(phase, reason)` — these are in the FAIL branch, guarded by `if written_result is not None`. ✓
+
+Now let me re-verify syntax and then check the remaining review items.
+
+Remaining items to verify:
+- M2.2: "Outer inventory must finalize true unentered names NOT_RUN only after successful write, assert complete valid terminal accounting and no persistence diagnostics on a passing test." ✓ done.
+
+- M3.3: "Exact KeyboardInterrupt/SystemExit propagation must be enforced at EVERY caller: mainparent, zero, controlled, M09, earlyrealchain, coordination and evidencewriters." ✓ done for all.
+
+  Wait — "evidencewriters": the write handlers in the parent/zero/controlled convert a write error to AssertionError; I fixed them to re-raise the exact interrupt. What about the M09 phases? In the phase, `record_guarded` catches BaseException → appends to write_errors → `_note_interruption(interrupts, error)` → returns None. Then the phase's finally: `if interrupts and sys.exc_info()[0] is None: raise interrupts[0]`. ✓
+… (truncated)
+
+[assistant] [tool Read] {"file_path":"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py","limit":30,"offset":754}
+
+[tool] [tool result] 754	        return None
+755	    return '%s: %s' % (message, '; '.join(problems))
+756	
+757	
+758	def _join_details(*parts):
+759	    """The detail of a failure: every part that carries a fact.
+760	
+761	    CORRECTION 18 (M2): the original failure of the phase and every
+762	    diagnostic of its cleanup are **joined**: neither of them replaces
+763	    the other and none of them is dropped.
+764	    """
+765	    return '; '.join([part for part in parts if part])
+766	
+767	
+768	def _cleanup_detail(cleanup_errors, write_errors):
+769	    """The diagnostic of the cleanup errors of one phase.
+770	
+771	    CORRECTION 18 (M2): the errors of the cleanup are a **list** and
+772	    they are never overwritten: the detail names **every** one of them
+773	    and it names the errors of the writing of the evidence as well.
+774	    """
+775	    parts = []
+776	    for item in cleanup_errors:
+777	        parts.append('%s: %s' % (item.get('kind'), item.get('detail')))
+778	    for item in write_errors:
+779	        parts.append('the writing of the evidence of %s failed: %s'
+780	                     % (item.get('name'), item.get('detail')))
+781	    if not parts:
+782	        return None
+783	    return '; '.join(p
+… (truncated)
+
+[reasoning] Good. Now let me add the outer interrupt handling for the outer handler's writes.
+
+Let me view and edit the outer except/finally.
+
+[assistant] [tool Edit] {"replace_all":false,"file_path":"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py","old_string":"        first_failure['type'] = type(error).__name__\n        for r10_name in r10_documents:\n            if ledger.state(r10_name) != 'ATTEMPTED':\n                continue\n            try:\n                write_phase(r10_name, dict(r10_raw.get(r10_name, {}),\n                                           status='FAIL',\n                                           executed=True,\n                                           reason=type(error).__name__,\n                                           detail=str(error)))\n            except BaseException as write_error:  # noqa: BLE001\n                first_failure.setdefault('write_errors', []).append(\n                    {'name': r10_name,\n                     'type': type(write_error).__name__,\n                     'detail': str(write_error)})\n                continue\n            r10_inventory.add(r10_name)\n            ledger.fail(r10_name, type(error).__name__)\n        raise","new_string":"        first_failure['type'] = type(error).__name__\n        for r10_name in r… (truncated)"}
+
+[tool] [tool result] The file /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py has been updated successfully.
+
+[assistant] [tool Edit] {"replace_all":false,"file_path":"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py","old_string":"        for r10_name in r10_documents:\n            if ledger.state(r10_name) != 'PLANNED':\n                continue\n            try:\n                write_phase(r10_name, {'status': 'NOT_RUN',\n                                       'reason': first_failure['type']})\n            except BaseException as write_error:  # noqa: BLE001\n                first_failure.setdefault('write_errors', []).append(\n                    {'name': r10_name,\n                     'type': type(write_error).__name__,\n                     'detail': str(write_error)})\n                continue\n            r10_inventory.add(r10_name)\n            ledger.finish(r10_name, 'NOT_RUN', first_failure['type'])","new_string":"        for r10_name in r10_documents:\n            if ledger.state(r10_name) != 'PLANNED':\n                continue\n            try:\n                write_phase(r10_name, {'status': 'NOT_RUN',\n                                       'reason': first_failure['type']})\n            except BaseException as write_error:  # noq… (truncated)"}
+
+[tool] [tool result] The file /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py has been updated successfully.
+
+[assistant] [tool Edit] {"replace_all":false,"file_path":"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py","old_string":"    r10_inventory = set()\n    r10_raw = {}\n    first_failure = {'type': None}","new_string":"    r10_inventory = set()\n    r10_raw = {}\n    first_failure = {'type': None}\n    # CORRECTION 19 (M3): the **exact** objects of the interruptions\n    # that the inventory of the group met.\n    outer_interrupts = []"}
+
+[tool] [tool result] The file /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py has been updated successfully.
+
+[reasoning] Now, the outer `finally` re-raises the interrupt. But after the finally, the assertions follow. If the interrupt was raised in the finally, the assertions are skipped. ✓
+
+But also: after the finally, if `outer_interrupts` is non-empty and nothing is unwinding, we should raise the first one. Let me add that before the assertions.
+
+Actually the finally's raise handles the NOT_RUN writes. The except handler's writes happen during an unwind (original wins). So no additional raise is needed. But for completeness, let me add:
+
+```python
+    if outer_interrupts and sys.exc_info()[0] is None:
+        raise outer_interrupts[0]
+```
+before the assertions. Hmm, but the except handler's `_note_interruption` collects interrupts during the unwind — those shouldn't be raised (original wins). And if the try succeeded, the except handler never ran, so outer_interrupts is only from the finally, which already raises. So the extra check would be a no-op mostly. I'll add it for explicitness — actually it could wrongly raise an interrupt collected during the unwind of the original... no: if the original is unwinding, `sys.exc_info()[0] is not None` → skip. But by the time we reach the code after the try/
+… (truncated)
+
+[assistant] [tool Edit] {"replace_all":false,"file_path":"/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py","old_string":"        for r10_name in r10_documents:\n            if ledger.state(r10_name) != 'PLANNED':\n                continue\n            try:\n                write_phase(r10_name, {'status': 'NOT_RUN',\n                                       'reason': first_failure['type']})\n            except BaseException as write_error:  # noqa: BLE001\n                first_failure.setdefault('write_errors', []).append(\n                    {'name': r10_name,\n                     'type': type(write_error).__name__,\n                     'detail': str(write_error)})\n                interrupted = _note_interruption(outer_interrupts,\n                                                write_error)\n                if interrupted and sys.exc_info()[0] is None:\n                    # CORRECTION 19 (M3): an **exact** cancellation of the\n                    # write of the inventory is re-raised as **itself**.\n                    raise\n                continue\n            r10_inventory.add(r10_name)\n            ledger.finish(r10_name, … (truncated)","…":"truncated"}
+
+[tool] [tool result] The file /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py has been updated successfully.
+
+[assistant] API Error: Request rejected (429) · 已达到 Token Plan 用量上限：请升级 Token Plan 套餐或购买积分补充用量。 (2056)
