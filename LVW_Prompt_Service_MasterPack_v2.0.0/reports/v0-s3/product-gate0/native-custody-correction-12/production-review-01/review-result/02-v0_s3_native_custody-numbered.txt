@@ -1,0 +1,2426 @@
+     1	"""Parent-side native custody: the closed launch plan and the bounded session.
+     2	
+     3	This module is the parent internal half of the N1 native custody foundation.
+     4	It owns exactly two things.
+     5	
+     6	* The **closed launch plan**.  It is a small, exactly keyed document that
+     7	  names the tools of one round, the absolute lease of the round and the
+     8	  finite role set.  The plan never carries an argument vector, a shell, a
+     9	  script, an environment or a PID.  The command form of a role is frozen in
+    10	  the broker and assembled from the already authorised tools; the plan only
+    11	  says *which* tools and *which* closed data.
+    12	
+    13	* The **bounded custody session**.  It is the parent side handle of one
+    14	  broker process, the private control channel to that broker and the
+    15	  absolute deadline of the round.
+    16	
+    17	Three facts are deliberate and they are repeated in every evidence that
+    18	this module produces.
+    19	
+    20	* The hash of the plan proves that the plan did not change.  It does not
+    21	  prove that a grant is real.  The grant authority of this package is
+    22	  ``NOT_VERIFIED`` and this package produces no admission evidence at all.
+    23	
+    24	* The parent never stops a native service by name, by PID or by a record
+    25	  that somebody else wrote.  The parent stops only what it created: the
+    26	  broker process of this round, through its own original handle and through
+    27	  the private channel.  The broker, in turn, stops only what it created:
+    28	  the processes of this round, through their own original handles and
+    29	  through the job object of this round.
+    30	
+    31	* Nothing here is a proof of a native execution.  The Windows path of this
+    32	  package has never run on Windows, so every native claim of its evidence
+    33	  stays ``NOT_PROVEN``.
+    34	
+    35	The session owns the resources of one round from the moment they are
+    36	created until they are released, and it never leaves a resource of the
+    37	round to the garbage collector:
+    38	
+    39	* the plan is validated once, deep copied and presented as a copy, so
+    40	  that a caller that changes the presented copy changes nothing of the
+    41	  command that the round will really run;
+    42	
+    43	* every failure of the start of the round closes the original handle of
+    44	  the broker inside the method that failed, whether the failure was a
+    45	  refusal of the broker, a timeout, a parse error, an ordinary exception
+    46	  or a cancellation;
+    47	
+    48	* the read side of the private channel has exactly one owner, a bounded
+    49	  pump, and the round keeps a status heartbeat alive on its own, so that
+    50	  a long round is not stopped for silence and so that a heartbeat never
+    51	  extends the absolute deadline of the round.
+    52	
+    53	The close of the round is coordinated by **one** owner and **one**
+    54	absolute deadline.
+    55	
+    56	* the first caller of the close owns it and every other caller waits
+    57	  for the close that is in flight inside that very deadline, so that a
+    58	  caller never returns a success before the cleanup could finish;
+    59	
+    60	* the end of the attempt of the close is published in a ``finally`` and
+    61	  the state of the close is explicit: ``NOT_STARTED``, ``IN_PROGRESS``
+    62	  or ``FINISHED``.  ``FINISHED`` means that the attempt ended and it
+    63	  never means that the resources of the round are released: only the
+    64	  facts of the close prove that;
+    65	
+    66	* no background thread of the round starts after the close began: the
+    67	  permission to start one is closed before the close takes its snapshot
+    68	  of the threads, and the stop event of the heartbeat is never rebuilt.
+    69	"""
+    70	import copy
+    71	import hashlib
+    72	import inspect
+    73	import json
+    74	import math
+    75	import os
+    76	import re
+    77	import threading
+    78	import time
+    79	from pathlib import Path
+    80	from types import MappingProxyType
+    81	
+    82	PLAN_SCHEMA = 'lvw.s3-native-custody-plan/1'
+    83	CHANNEL_SCHEMA = 'lvw.s3-native-custody-channel/1'
+    84	
+    85	# The closed key sets.  A document with one key too many or one key too few
+    86	# is refused; a plan is never repaired and never completed.
+    87	PLAN_KEYS = frozenset({'schema', 'run_id', 'candidate_sha', 'authorization_sha256',
+    88	                       'lease_expires_at', 'max_runtime_seconds', 'roles'})
+    89	ROLE_KEYS = frozenset({'role', 'tools', 'data', 'log'})
+    90	TOOL_KEYS = frozenset({'path', 'sha256'})
+    91	
+    92	# The finite role set.  COMFY and OLLAMA are required, SAMPLER is optional.
+    93	# The order of the roles is fixed: the sampler is created last, because it
+    94	# observes the two services that this broker created.
+    95	ROLE_ORDER = ('COMFY', 'OLLAMA', 'SAMPLER')
+    96	REQUIRED_ROLES = ('COMFY', 'OLLAMA')
+    97	ROLE_DATA_KEYS = {
+    98	    'COMFY': frozenset({'user_directory'}),
+    99	    'OLLAMA': frozenset(),
+   100	    'SAMPLER': frozenset({'nvidia_exe', 'nvidia_sha256', 'max_seconds'}),
+   101	}
+   102	# The number of tools of a role is fixed as well.  The first tool of a role
+   103	# is its executable; the second one, where it exists, is the script that the
+   104	# executable runs.  A role never grows a third tool by accident.
+   105	ROLE_TOOL_COUNTS = {'COMFY': 2, 'OLLAMA': 1, 'SAMPLER': 2}
+   106	
+   107	# The bounded limits of the round.  They are internal limits of this
+   108	# foundation and they are not a claim about any native Windows behaviour.
+   109	MAX_RUNTIME_SECONDS = 21600
+   110	MAX_FRAME_BYTES = 32 * 1024
+   111	MAX_FRAMES = 1024
+   112	MAX_STREAM_BYTES = 256 * 1024
+   113	MAX_NEW_TEXT_BYTES = 8 * 1024 * 1024
+   114	MAX_DESCENDANTS = 17
+   115	MAX_SAMPLER_SECONDS = 7200
+   116	
+   117	# The bounded waits of the parent side.  The heartbeat keeps a round alive
+   118	# while the round runs; it never moves the absolute deadline of the round.
+   119	# The cleanup of a stop has its own short budget and never borrows the
+   120	# remaining runtime of the round: the stop and the cleanup share ONE
+   121	# budget and no layer adds a budget of its own.
+   122	CHANNEL_POLL_SECONDS = 0.25
+   123	HEARTBEAT_INTERVAL_SECONDS = 60.0
+   124	HEARTBEAT_MISSING_SECONDS = 120.0
+   125	HEARTBEAT_SLICE_SECONDS = 0.25
+   126	STOP_CLEANUP_SECONDS = 5.0
+   127	WRITE_BUDGET_SECONDS = 5.0
+   128	THREAD_JOIN_SECONDS = 2.0
+   129	# The number of the frames of the channel that is reserved for the
+   130	# terminal exchange of the round.  The heartbeat may not spend them: a
+   131	# round that reached its frame budget fails closed and it never
+   132	# reconnects and it never renews its lease.
+   133	RESERVED_TERMINAL_FRAMES = 8
+   134	
+   135	# The closed command set of the private channel and the closed reply kinds.
+   136	COMMANDS = ('STATUS', 'STOP')
+   137	REPLIES = ('READY', 'STATUS', 'STOPPED', 'REFUSED')
+   138	
+   139	# The state machine of one round.  ARMED means that the job object of the
+   140	# round exists; RUNNING means that the roles of the round were created,
+   141	# assigned to that job and resumed.  UNKNOWN_RETAINED is a terminal state
+   142	# that keeps the evidence of what could not be proven.
+   143	STATES = ('NEW', 'VALIDATED', 'ARMED', 'RUNNING', 'STOPPING', 'RELEASED',
+   144	          'UNKNOWN_RETAINED')
+   145	
+   146	COMMAND_KEYS = frozenset({'schema', 'command', 'run_id', 'candidate_sha',
+   147	                          'authorization_sha256', 'nonce', 'sequence'})
+   148	REPLY_KEYS = frozenset({'schema', 'kind', 'run_id', 'candidate_sha',
+   149	                        'authorization_sha256', 'nonce', 'sequence', 'state', 'detail'})
+   150	
+   151	# The nonce of the private channel.  The parent and the broker agree on
+   152	# one closed form: 32 hexadecimal characters.  A nonce identifies the
+   153	# channel of one round; it grants no custody over any process.
+   154	NONCE_PATTERN = r'[0-9a-f]{32}'
+   155	NONCE_BYTES = 16
+   156	
+   157	# The facts that the close of the broker has to report before the
+   158	# parent may forget the original reference of the broker.  Every one of
+   159	# them has to be present in the facts of the close and it has to be
+   160	# exactly ``True``.  A missing fact, a ``None``, a ``False`` and an
+   161	# unknown value are all unknown: the original broker is kept and the
+   162	# round stays unknown.
+   163	#
+   164	# The list is **strict**.  The channel, the process and its original
+   165	# handle are not enough: the reader of the channel has to have really
+   166	# stopped without an error, the two ends of the channel have to be
+   167	# closed and the original handles of the workers of the endpoints have
+   168	# to be released.  A close that proves only three facts does not prove
+   169	# that the resources of the round are released.
+   170	REQUIRED_CLOSE_FACTS = ('channel_closed', 'process_exited',
+   171	                        'process_handle_released', 'channel_reader_finished',
+   172	                        'read_end_closed', 'write_end_closed',
+   173	                        'worker_thread_handle_released')
+   174	# The facts of the close that have to be present and that have to be
+   175	# zero.  A missing fact is a missing fact and not a zero.
+   176	REQUIRED_CLOSE_ZERO_FACTS = ('channel_retained_workers',)
+   177	# The facts of the reader of the channel.  They are facts of the close
+   178	# and not of the round: they are checked when they are present.
+   179	READER_CLOSE_FACTS = ('channel_reader_finished', 'reader_finished')
+   180	
+   181	# The three states of the close of one round.  NOT_STARTED is the state
+   182	# of a round whose close never began.  IN_PROGRESS is the state of a
+   183	# close that is running right now.  FINISHED is the state of a close
+   184	# whose **attempt** ended: it never means that the resources of the
+   185	# round are released, only the facts of the close prove that.
+   186	CLOSE_STATES = ('NOT_STARTED', 'IN_PROGRESS', 'FINISHED')
+   187	
+   188	# The slice of the wait of a competitor of the close.  The wait is
+   189	# sliced so that the shared deadline of the cleanup is honoured by the
+   190	# clock of the round and not only by the clock of the host: a clock
+   191	# that the round controls can make the deadline arrive at once.
+   192	CLOSE_WAIT_SLICE_SECONDS = 0.05
+   193	
+   194	
+   195	class CustodyError(RuntimeError):
+   196	    """A refused custody step with a stable, machine readable code."""
+   197	
+   198	    def __init__(self, code, detail=None):
+   199	        super().__init__(code)
+   200	        self.code = code
+   201	        self.detail = detail
+   202	
+   203	
+   204	# -- the one context of a round ---------------------------------------------
+   205	
+   206	class _CustodyContext:
+   207	    """The ONE finite startup and cleanup context of one round.
+   208	
+   209	    The context holds the four things that every layer of the round has
+   210	    to share and that may never be copied from one layer into the next
+   211	    one.
+   212	
+   213	    * The **clock** of the round, so that every deadline of the round is
+   214	      expressed in one domain.
+   215	
+   216	    * The **absolute deadline** of the round.  It is fixed once and it
+   217	      may only be shortened.
+   218	
+   219	    * The **one cleanup deadline**.  It is published **once**, by the
+   220	      first caller that enters the cleanup, and every later caller
+   221	      reuses that very value.  The publication is one atomic step under
+   222	      the lock of the context: two callers that entered the cleanup at
+   223	      the same moment always see the same number and the deadline is
+   224	      never generated twice.
+   225	
+   226	    * The three **one way latches** of the round: the cancel, the stop
+   227	      and the unknown.  A latch that was set is never cleared, and a
+   228	      late event may never overwrite the unknown of the round.
+   229	
+   230	    The session, the send of the round, the stop of the background
+   231	    threads and the close of the broker all hold this **one object**.
+   232	    A layer that only copied the number of a deadline would be a layer
+   233	    with a deadline of its own.
+   234	    """
+   235	
+   236	    def __init__(self, *, clock=None, wall=None):
+   237	        self.clock = clock or time.monotonic
+   238	        self.wall = wall or time.time
+   239	        self._lock = threading.RLock()
+   240	        self._absolute_deadline = None
+   241	        self._cleanup_deadline = None
+   242	        # The one way latches of the round.
+   243	        self.cancel = threading.Event()
+   244	        self.stopping = threading.Event()
+   245	        self.unknown = threading.Event()
+   246	
+   247	    # -- the deadlines ----------------------------------------------------
+   248	    def bind_absolute_deadline(self, deadline):
+   249	        """Bind the absolute deadline of the round.  It may only shorten."""
+   250	        if deadline is None:
+   251	            return self._absolute_deadline
+   252	        with self._lock:
+   253	            if self._absolute_deadline is None or deadline < self._absolute_deadline:
+   254	                self._absolute_deadline = deadline
+   255	            return self._absolute_deadline
+   256	
+   257	    @property
+   258	    def absolute_deadline(self):
+   259	        with self._lock:
+   260	            return self._absolute_deadline
+   261	
+   262	    def cleanup_deadline_value(self):
+   263	        """The published cleanup deadline, or ``None`` before the first."""
+   264	        with self._lock:
+   265	            return self._cleanup_deadline
+   266	
+   267	    def publish_cleanup_deadline(self, value):
+   268	        """Publish the ONE cleanup deadline of the round, atomically.
+   269	
+   270	        The first caller publishes the value and every later caller
+   271	        receives the very same value.  A later caller may never extend
+   272	        the deadline of the cleanup and it may never replace it.
+   273	        """
+   274	        with self._lock:
+   275	            if self._cleanup_deadline is None:
+   276	                self._cleanup_deadline = value
+   277	            return self._cleanup_deadline
+   278	
+   279	    def remaining_cleanup(self):
+   280	        """The seconds that are left until the cleanup deadline.
+   281	
+   282	        The value is recomputed on every call: a wait that already
+   283	        consumed part of the budget never receives the whole budget
+   284	        again.
+   285	        """
+   286	        with self._lock:
+   287	            value = self._cleanup_deadline
+   288	        if value is None:
+   289	            return 0.0
+   290	        return max(0.0, value - self.clock())
+   291	
+   292	    def effective_deadline(self, call=None, bound=None):
+   293	        """The ONE deadline that a call of a layer really uses.
+   294	
+   295	        The deadline of the call, the deadline that is bound to the
+   296	        layer, the absolute deadline of the round and the **published**
+   297	        cleanup deadline of the round are one value: the earliest of the
+   298	        four.
+   299	
+   300	        The published cleanup deadline is part of it: a round that
+   301	        entered its cleanup publishes one deadline and every layer that
+   302	        reads the context afterwards is bound by it.
+   303	
+   304	        The value is **recomputed on every call**: a deadline that was
+   305	        published after the call started still shortens the call that is
+   306	        running.
+   307	        """
+   308	        value = call
+   309	        if value is not None and not isinstance(value, (int, float)):
+   310	            value = None
+   311	        for candidate in (bound, self.absolute_deadline,
+   312	                          self.cleanup_deadline_value()):
+   313	            if candidate is None:
+   314	                continue
+   315	            if value is None or candidate < value:
+   316	                value = candidate
+   317	        return value
+   318	
+   319	    # -- the one way latches ----------------------------------------------
+   320	    def request_cancel(self):
+   321	        """Ask for the cancellation of the round.  One way."""
+   322	        self.cancel.set()
+   323	
+   324	    def request_stop(self):
+   325	        """Ask for the stop of the round.  One way."""
+   326	        self.stopping.set()
+   327	
+   328	    def latch_unknown(self):
+   329	        """Latch the unknown state of the round.  One way."""
+   330	        if self.unknown.is_set():
+   331	            return False
+   332	        self.unknown.set()
+   333	        return True
+   334	
+   335	    def is_unknown(self):
+   336	        """Whether the unknown state of the round was latched."""
+   337	        return self.unknown.is_set()
+   338	
+   339	
+   340	# -- the closed plan -------------------------------------------------------
+   341	
+   342	_WINDOWS_ABSOLUTE = re.compile(r'^(?:[A-Za-z]:[\\/]|\\\\)[^\x00]+$')
+   343	_LOG_REFERENCE = re.compile(r'[A-Za-z0-9][A-Za-z0-9._/-]{0,254}')
+   344	_DIRECTORY_NAME = re.compile(r'[A-Za-z0-9][A-Za-z0-9._-]{0,63}')
+   345	DIRECTORY_NAME_MAX_LENGTH = 64
+   346	# The device names of Windows.  A directory of the round may not carry
+   347	# one of them, with or without an extension.
+   348	WINDOWS_DEVICE_NAMES = frozenset(
+   349	    ['CON', 'PRN', 'AUX', 'NUL']
+   350	    + ['COM%d' % index for index in range(1, 10)]
+   351	    + ['LPT%d' % index for index in range(1, 10)])
+   352	
+   353	
+   354	def _require_text(value, pattern, code):
+   355	    if not isinstance(value, str) or not re.fullmatch(pattern, value):
+   356	        raise CustodyError(code)
+   357	    return value
+   358	
+   359	
+   360	def _require_exact_int(value, code, *, minimum=None, maximum=None):
+   361	    """An exact integer.
+   362	
+   363	    A boolean is not an integer here and a float is not an integer either:
+   364	    ``True`` would silently become ``1`` and ``1.5`` would silently become
+   365	    ``1``, and both would hide a malformed plan.
+   366	    """
+   367	    if type(value) is not int:
+   368	        raise CustodyError(code)
+   369	    if minimum is not None and value < minimum:
+   370	        raise CustodyError(code)
+   371	    if maximum is not None and value > maximum:
+   372	        raise CustodyError(code)
+   373	    return value
+   374	
+   375	
+   376	def _require_number(value, code):
+   377	    if isinstance(value, bool) or not isinstance(value, (int, float)):
+   378	        raise CustodyError(code)
+   379	    if not math.isfinite(value):
+   380	        raise CustodyError(code)
+   381	    return value
+   382	
+   383	
+   384	def _windows_parts(path):
+   385	    return [part for part in re.split(r'[\\/]+', path) if part not in ('', '.')]
+   386	
+   387	
+   388	def _require_absolute_windows_path(value, code):
+   389	    if not isinstance(value, str) or not _WINDOWS_ABSOLUTE.match(value):
+   390	        raise CustodyError(code)
+   391	    if '..' in _windows_parts(value):
+   392	        raise CustodyError(code)
+   393	    if len(value) > 512:
+   394	        raise CustodyError(code)
+   395	    return value
+   396	
+   397	
+   398	def _require_log_reference(value):
+   399	    """A relative reference of a log of this run, below the run root.
+   400	
+   401	    The reference is judged with the semantics of a **Windows** path and
+   402	    not with the semantics of the host that runs the check.  The package
+   403	    is validated on a POSIX host and the round runs on Windows, so a check
+   404	    that used the rules of the host would accept a reference that the
+   405	    broker of the round resolves somewhere else.  ``pathlib`` is not used
+   406	    here for the same reason: ``Path('C:/Windows/temp/x.log').is_absolute()``
+   407	    is ``False`` on Linux and ``True`` on Windows.
+   408	
+   409	    A reference is refused when it is
+   410	
+   411	    * empty, not a string or longer than the closed limit;
+   412	    * absolute in the POSIX sense (``/var/log/comfy.log``);
+   413	    * absolute in the Windows sense (``C:/Windows/temp/comfy.log``);
+   414	    * relative to a drive (``C:comfy.log``);
+   415	    * a UNC reference or a mixed separator reference
+   416	      (``\\\\server\\share\\comfy.log``, ``temp\\native\\comfy.log``);
+   417	    * an alternate data stream (``temp/native/comfy.log:stream``);
+   418	    * a traversal (``../comfy.log``, ``temp/../comfy.log``);
+   419	    * a reference with an empty or a dot segment
+   420	      (``temp//comfy.log``, ``temp/./comfy.log``).
+   421	
+   422	    A plain relative reference below the run root is accepted.  The
+   423	    refusal happens in ``validate_launch_plan``, before any job, any
+   424	    process and any log of the round exists, and the broker validates the
+   425	    plan again before it consumes it.
+   426	    """
+   427	    if not isinstance(value, str) or not value or len(value) > 255:
+   428	        raise CustodyError('CUSTODY_PLAN_LOG_INVALID')
+   429	    # A colon is the separator of a drive and the separator of an
+   430	    # alternate data stream.  Both are refused: the reference stays a
+   431	    # plain relative name of the run root.
+   432	    if ':' in value:
+   433	        raise CustodyError('CUSTODY_PLAN_LOG_INVALID')
+   434	    # A backslash is a path separator of Windows.  A UNC reference and a
+   435	    # reference with a mixed separator are refused with it.
+   436	    if '\\' in value:
+   437	        raise CustodyError('CUSTODY_PLAN_LOG_INVALID')
+   438	    # A leading slash is an absolute reference in POSIX and in Windows.
+   439	    if value.startswith('/'):
+   440	        raise CustodyError('CUSTODY_PLAN_LOG_INVALID')
+   441	    # The closed character set of the reference.
+   442	    if not _LOG_REFERENCE.fullmatch(value):
+   443	        raise CustodyError('CUSTODY_PLAN_LOG_INVALID')
+   444	    parts = value.split('/')
+   445	    if any(part in ('', '.', '..') for part in parts):
+   446	        raise CustodyError('CUSTODY_PLAN_LOG_INVALID')
+   447	    return value
+   448	
+   449	
+   450	def _require_directory_name(value, code):
+   451	    """One controlled directory name and nothing else.
+   452	
+   453	    The name of the user directory of the ComfyUI role is a **single
+   454	    segment** below the root of the round.  A prefix match is not a
+   455	    match: a name that starts with a legal name and continues with a
+   456	    separator would leave the root of the round, and the round would
+   457	    then write outside of the root that it sealed.
+   458	
+   459	    The name is therefore refused when it is
+   460	
+   461	    * not a string, empty or longer than 64 characters;
+   462	    * not exactly one segment of the closed character set;
+   463	    * a traversal (``..``) or a name that ends with a dot, because
+   464	      Windows would silently cut that dot and the directory of the plan
+   465	      would not be the directory that the round creates;
+   466	    * a device name of Windows (``NUL``, ``CON``, ``COM1`` ...), with
+   467	      or without an extension.
+   468	    """
+   469	    if not isinstance(value, str) or not value:
+   470	        raise CustodyError(code)
+   471	    if len(value) > DIRECTORY_NAME_MAX_LENGTH:
+   472	        raise CustodyError(code)
+   473	    if not _DIRECTORY_NAME.fullmatch(value):
+   474	        raise CustodyError(code)
+   475	    if '..' in value:
+   476	        raise CustodyError(code)
+   477	    if value.endswith('.') or value != value.strip():
+   478	        raise CustodyError(code)
+   479	    if value.split('.', 1)[0].upper() in WINDOWS_DEVICE_NAMES:
+   480	        raise CustodyError(code)
+   481	    return value
+   482	
+   483	
+   484	def _validate_role_data(name, data):
+   485	    if name == 'COMFY':
+   486	        _require_directory_name(data['user_directory'],
+   487	                                'CUSTODY_PLAN_ROLE_DATA_INVALID')
+   488	        return
+   489	    if name == 'SAMPLER':
+   490	        _require_absolute_windows_path(data['nvidia_exe'],
+   491	                                       'CUSTODY_PLAN_ROLE_DATA_INVALID')
+   492	        _require_text(data['nvidia_sha256'], r'[0-9a-f]{64}',
+   493	                      'CUSTODY_PLAN_ROLE_DATA_INVALID')
+   494	        _require_exact_int(data['max_seconds'], 'CUSTODY_PLAN_ROLE_DATA_INVALID',
+   495	                           minimum=1, maximum=MAX_SAMPLER_SECONDS)
+   496	
+   497	
+   498	def _freeze(value):
+   499	    """A read-only view of one validated document.
+   500	
+   501	    The view is what the command of a role is built from.  A caller that
+   502	    holds the view cannot change it, and a caller that holds the
+   503	    presented copy of the plan cannot change the view either.
+   504	    """
+   505	    if isinstance(value, dict):
+   506	        return MappingProxyType({key: _freeze(item) for key, item in value.items()})
+   507	    if isinstance(value, list):
+   508	        return tuple(_freeze(item) for item in value)
+   509	    return value
+   510	
+   511	
+   512	class LaunchPlan:
+   513	    """The validated and sealed launch plan of one native custody round.
+   514	
+   515	    The plan holds two things that cannot influence each other.
+   516	
+   517	    * The **canonical** document: the validated document itself, deep
+   518	      copied once, at the moment of the validation.  Its normalized
+   519	      bytes and their digest are the seal of the plan, and the broker
+   520	      checks the very same bytes again when it consumes the plan.
+   521	
+   522	    * The **read-only views** of the roles: the commands of the round
+   523	      are built from these views and never from a presented copy.
+   524	
+   525	    The sealed form that is handed to a caller is a *copy* of the
+   526	    canonical document.  A caller that changes that copy changes
+   527	    nothing: the command of the role still comes from the read-only
+   528	    view of the canonical document.
+   529	    """
+   530	
+   531	    __slots__ = ('run_id', 'candidate_sha', 'authorization_sha256',
+   532	                 'lease_expires_at', 'max_runtime_seconds', 'roles',
+   533	                 '_canonical')
+   534	
+   535	    def __init__(self, run_id, candidate_sha, authorization_sha256,
+   536	                 lease_expires_at, max_runtime_seconds, roles):
+   537	        self.run_id = run_id
+   538	        self.candidate_sha = candidate_sha
+   539	        self.authorization_sha256 = authorization_sha256
+   540	        self.lease_expires_at = lease_expires_at
+   541	        self.max_runtime_seconds = max_runtime_seconds
+   542	        self._canonical = {
+   543	            'schema': PLAN_SCHEMA,
+   544	            'run_id': run_id,
+   545	            'candidate_sha': candidate_sha,
+   546	            'authorization_sha256': authorization_sha256,
+   547	            'lease_expires_at': lease_expires_at,
+   548	            'max_runtime_seconds': max_runtime_seconds,
+   549	            'roles': [copy.deepcopy(dict(role)) for role in roles],
+   550	        }
+   551	        self.roles = tuple(_freeze(role) for role in self._canonical['roles'])
+   552	
+   553	    @property
+   554	    def sealed(self):
+   555	        """A copy of the canonical document of the plan.
+   556	
+   557	        The copy is a copy: a caller that writes into it writes into a
+   558	        temporary object and the plan of the round does not change.
+   559	        """
+   560	        return copy.deepcopy(self._canonical)
+   561	
+   562	    def sealed_bytes(self):
+   563	        """The normalized bytes of the seal of the plan.
+   564	
+   565	        The bytes are the one definition of the seal: the parent writes
+   566	        them, the parent hashes them and the broker hashes the very same
+   567	        bytes when it consumes the plan.
+   568	        """
+   569	        return json.dumps(self._canonical, ensure_ascii=False, sort_keys=True,
+   570	                          indent=2).encode('utf-8')
+   571	
+   572	    def sealed_sha256(self):
+   573	        """The digest of the normalized bytes of the seal of the plan."""
+   574	        return hashlib.sha256(self.sealed_bytes()).hexdigest()
+   575	
+   576	
+   577	def validate_launch_plan(plan, *, now=None):
+   578	    """Validate one closed launch plan and return its sealed form.
+   579	
+   580	    The plan is never repaired.  A plan that carries an unknown key, an
+   581	    unknown role, an arbitrary argument vector, a shell, a script, an
+   582	    environment or a PID is refused here, before anything is created.
+   583	    """
+   584	    if not isinstance(plan, dict):
+   585	        raise CustodyError('CUSTODY_PLAN_NOT_OBJECT')
+   586	    if set(plan) != PLAN_KEYS:
+   587	        raise CustodyError('CUSTODY_PLAN_KEY_SET_INVALID')
+   588	    if plan['schema'] != PLAN_SCHEMA:
+   589	        raise CustodyError('CUSTODY_PLAN_SCHEMA_INVALID')
+   590	    run_id = _require_text(plan['run_id'], r'[A-Za-z0-9][A-Za-z0-9._-]{0,79}',
+   591	                           'CUSTODY_PLAN_RUN_ID_INVALID')
+   592	    candidate_sha = _require_text(plan['candidate_sha'], r'[0-9a-f]{40}',
+   593	                                  'CUSTODY_PLAN_CANDIDATE_INVALID')
+   594	    authorization_sha256 = _require_text(plan['authorization_sha256'],
+   595	                                         r'[0-9a-f]{64}',
+   596	                                         'CUSTODY_PLAN_AUTHORIZATION_INVALID')
+   597	    wall = time.time() if now is None else _require_number(now, 'CUSTODY_PLAN_LEASE_INVALID')
+   598	    lease = _require_number(plan['lease_expires_at'], 'CUSTODY_PLAN_LEASE_INVALID')
+   599	    if lease <= wall:
+   600	        raise CustodyError('CUSTODY_PLAN_LEASE_EXPIRED')
+   601	    runtime = _require_exact_int(plan['max_runtime_seconds'],
+   602	                                 'CUSTODY_PLAN_RUNTIME_INVALID',
+   603	                                 minimum=1, maximum=MAX_RUNTIME_SECONDS)
+   604	    roles = plan['roles']
+   605	    if not isinstance(roles, list) or not roles or len(roles) > len(ROLE_ORDER):
+   606	        raise CustodyError('CUSTODY_PLAN_ROLES_INVALID')
+   607	    sealed_roles = {}
+   608	    logs = set()
+   609	    for item in roles:
+   610	        if not isinstance(item, dict) or set(item) != ROLE_KEYS:
+   611	            raise CustodyError('CUSTODY_PLAN_ROLE_INVALID')
+   612	        name = item['role']
+   613	        if not isinstance(name, str) or name not in ROLE_ORDER or name in sealed_roles:
+   614	            raise CustodyError('CUSTODY_PLAN_ROLE_INVALID')
+   615	        tools = item['tools']
+   616	        if not isinstance(tools, list) or len(tools) != ROLE_TOOL_COUNTS[name]:
+   617	            raise CustodyError('CUSTODY_PLAN_TOOL_INVALID')
+   618	        sealed_tools = []
+   619	        paths = set()
+   620	        for tool in tools:
+   621	            if not isinstance(tool, dict) or set(tool) != TOOL_KEYS:
+   622	                raise CustodyError('CUSTODY_PLAN_TOOL_INVALID')
+   623	            path = _require_absolute_windows_path(tool['path'], 'CUSTODY_PLAN_TOOL_INVALID')
+   624	            _require_text(tool['sha256'], r'[0-9a-f]{64}', 'CUSTODY_PLAN_TOOL_INVALID')
+   625	            if path.casefold() in paths:
+   626	                raise CustodyError('CUSTODY_PLAN_TOOL_INVALID')
+   627	            paths.add(path.casefold())
+   628	            sealed_tools.append({'path': path, 'sha256': tool['sha256']})
+   629	        data = item['data']
+   630	        if not isinstance(data, dict) or set(data) != ROLE_DATA_KEYS[name]:
+   631	            raise CustodyError('CUSTODY_PLAN_ROLE_DATA_INVALID')
+   632	        _validate_role_data(name, data)
+   633	        log = _require_log_reference(item['log'])
+   634	        if log.casefold() in logs:
+   635	            raise CustodyError('CUSTODY_PLAN_LOG_INVALID')
+   636	        logs.add(log.casefold())
+   637	        sealed_roles[name] = {'role': name, 'tools': sealed_tools,
+   638	                              'data': dict(data), 'log': log}
+   639	    if any(name not in sealed_roles for name in REQUIRED_ROLES):
+   640	        raise CustodyError('CUSTODY_PLAN_ROLES_INVALID')
+   641	    ordered = [sealed_roles[name] for name in ROLE_ORDER if name in sealed_roles]
+   642	    return LaunchPlan(run_id, candidate_sha, authorization_sha256, float(lease),
+   643	                      runtime, ordered)
+   644	
+   645	
+   646	def enforce_child_budget(plan, *, parent_child_remaining_seconds):
+   647	    """Bind the runtime of the round to the finite budget of the parent.
+   648	
+   649	    The remaining budget of the parent child is an input of the parent.  It
+   650	    is never read from a ledger here and it is never invented: a parent that
+   651	    has no remaining budget refuses the round instead of starting one.
+   652	    """
+   653	    remaining = _require_exact_int(parent_child_remaining_seconds,
+   654	                                   'CUSTODY_NO_CHILD_BUDGET_REMAINING', minimum=1)
+   655	    if plan.max_runtime_seconds > remaining:
+   656	        raise CustodyError('CUSTODY_CHILD_BUDGET_TOO_SMALL')
+   657	    return remaining
+   658	
+   659	
+   660	# -- the private control channel -------------------------------------------
+   661	
+   662	def _strict_pairs(items):
+   663	    value = {}
+   664	    for key, item in items:
+   665	        if key in value:
+   666	            raise CustodyError('CUSTODY_FRAME_INVALID')
+   667	        value[key] = item
+   668	    return value
+   669	
+   670	
+   671	def _reject_constant(_value):
+   672	    raise CustodyError('CUSTODY_FRAME_INVALID')
+   673	
+   674	
+   675	def decode_frame(raw, *, limit=MAX_FRAME_BYTES):
+   676	    """Decode one frame of the private channel with the strict rules."""
+   677	    if not isinstance(raw, (bytes, bytearray)):
+   678	        raise CustodyError('CUSTODY_FRAME_INVALID')
+   679	    if len(raw) > limit:
+   680	        raise CustodyError('CUSTODY_FRAME_TOO_LARGE')
+   681	    try:
+   682	        text = bytes(raw).decode('utf-8')
+   683	    except UnicodeDecodeError as error:
+   684	        raise CustodyError('CUSTODY_FRAME_INVALID') from error
+   685	    try:
+   686	        value = json.loads(text, object_pairs_hook=_strict_pairs,
+   687	                           parse_constant=_reject_constant)
+   688	    except CustodyError:
+   689	        raise
+   690	    except (ValueError, TypeError) as error:
+   691	        raise CustodyError('CUSTODY_FRAME_INVALID') from error
+   692	    if not isinstance(value, dict):
+   693	        raise CustodyError('CUSTODY_FRAME_INVALID')
+   694	    return value
+   695	
+   696	
+   697	def encode_command(command, *, run_id, candidate_sha, authorization_sha256,
+   698	                   nonce, sequence):
+   699	    """Encode one command of the parent for the private channel."""
+   700	    if command not in COMMANDS:
+   701	        raise CustodyError('CUSTODY_FRAME_INVALID')
+   702	    _require_exact_int(sequence, 'CUSTODY_FRAME_SEQUENCE_INVALID', minimum=1)
+   703	    frame = {'schema': CHANNEL_SCHEMA, 'command': command, 'run_id': run_id,
+   704	             'candidate_sha': candidate_sha,
+   705	             'authorization_sha256': authorization_sha256,
+   706	             'nonce': nonce, 'sequence': sequence}
+   707	    raw = json.dumps(frame, ensure_ascii=False, sort_keys=True,
+   708	                     separators=(',', ':'), allow_nan=False).encode('utf-8')
+   709	    if len(raw) > MAX_FRAME_BYTES:
+   710	        raise CustodyError('CUSTODY_FRAME_TOO_LARGE')
+   711	    return raw + b'\n'
+   712	
+   713	
+   714	def decode_command(raw, *, run_id, candidate_sha, authorization_sha256,
+   715	                   nonce, last_sequence):
+   716	    """Decode and check one command that the parent sent to the broker."""
+   717	    value = decode_frame(raw)
+   718	    if set(value) != COMMAND_KEYS:
+   719	        raise CustodyError('CUSTODY_FRAME_INVALID')
+   720	    if value['schema'] != CHANNEL_SCHEMA:
+   721	        raise CustodyError('CUSTODY_FRAME_INVALID')
+   722	    if value['command'] not in COMMANDS:
+   723	        raise CustodyError('CUSTODY_FRAME_INVALID')
+   724	    if (value['run_id'] != run_id or value['candidate_sha'] != candidate_sha
+   725	            or value['authorization_sha256'] != authorization_sha256
+   726	            or value['nonce'] != nonce):
+   727	        raise CustodyError('CUSTODY_FRAME_IDENTITY_MISMATCH')
+   728	    sequence = value['sequence']
+   729	    if type(sequence) is not int or sequence < 1:
+   730	        raise CustodyError('CUSTODY_FRAME_SEQUENCE_INVALID')
+   731	    if last_sequence is not None and sequence <= last_sequence:
+   732	        raise CustodyError('CUSTODY_FRAME_SEQUENCE_INVALID')
+   733	    return value
+   734	
+   735	
+   736	def decode_reply(raw, *, run_id, candidate_sha, authorization_sha256,
+   737	                 nonce, last_sequence):
+   738	    """Decode and check one reply that the broker sent to the parent."""
+   739	    value = decode_frame(raw)
+   740	    if set(value) != REPLY_KEYS:
+   741	        raise CustodyError('CUSTODY_FRAME_INVALID')
+   742	    if value['schema'] != CHANNEL_SCHEMA:
+   743	        raise CustodyError('CUSTODY_FRAME_INVALID')
+   744	    if value['kind'] not in REPLIES:
+   745	        raise CustodyError('CUSTODY_FRAME_INVALID')
+   746	    if (value['run_id'] != run_id or value['candidate_sha'] != candidate_sha
+   747	            or value['authorization_sha256'] != authorization_sha256
+   748	            or value['nonce'] != nonce):
+   749	        raise CustodyError('CUSTODY_FRAME_IDENTITY_MISMATCH')
+   750	    sequence = value['sequence']
+   751	    if type(sequence) is not int or sequence < 1:
+   752	        raise CustodyError('CUSTODY_FRAME_SEQUENCE_INVALID')
+   753	    if last_sequence is not None and sequence <= last_sequence:
+   754	        raise CustodyError('CUSTODY_FRAME_SEQUENCE_INVALID')
+   755	    if value['state'] not in STATES:
+   756	        raise CustodyError('CUSTODY_FRAME_INVALID')
+   757	    if not isinstance(value['detail'], dict):
+   758	        raise CustodyError('CUSTODY_FRAME_INVALID')
+   759	    return value
+   760	
+   761	
+   762	# -- the one reader of the private channel --------------------------------
+   763	
+   764	class _ReplyWaiter:
+   765	    """One waiting owner of one kind of reply."""
+   766	
+   767	    __slots__ = ('kinds', 'event', 'reply')
+   768	
+   769	    def __init__(self, kinds):
+   770	        self.kinds = kinds
+   771	        self.event = threading.Event()
+   772	        self.reply = None
+   773	
+   774	
+   775	class _ChannelPump(threading.Thread):
+   776	    """The one reader of the private control channel of one round.
+   777	
+   778	    The pump is the single owner of the read side of the channel.  It is
+   779	    one thread, it is joined by the owner of the round and it is never a
+   780	    pool of workers.  Its failure is visible: the waiters of the round
+   781	    are woken and the round keeps the failure instead of waiting for a
+   782	    reply that will never arrive.
+   783	
+   784	    A reply that nobody waits for is kept, but only the last status
+   785	    reply is kept: a round that runs for hours would otherwise fill the
+   786	    channel with the answers of its own heartbeat.
+   787	    """
+   788	
+   789	    def __init__(self, broker, *, decode, clock=None, on_error=None):
+   790	        super().__init__(daemon=True, name='lvw-native-custody-channel-pump')
+   791	        self._broker = broker
+   792	        self._decode = decode
+   793	        self._clock = clock or time.monotonic
+   794	        # The owner of the round is told about a failure of the pump.
+   795	        # A pump that died is not a silent event: the round latches its
+   796	        # unknown state and closes itself in a bounded way.
+   797	        self._on_error = on_error
+   798	        self._lock = threading.Lock()
+   799	        self._waiters = []
+   800	        self._pending = []
+   801	        self._latest_status = None
+   802	        self._error = None
+   803	        self._eof = False
+   804	        self._frames = 0
+   805	        # The name of the cancel flag is not ``_stop``: the base class of
+   806	        # the thread uses that name for its own method and a shadow of it
+   807	        # would break the join of the thread.
+   808	        self._stop_event = threading.Event()
+   809	        self._finished = threading.Event()
+   810	
+   811	    # -- the reading ------------------------------------------------------
+   812	    def run(self):
+   813	        try:
+   814	            while not self._stop_event.is_set():
+   815	                raw = self._broker.read(CHANNEL_POLL_SECONDS)
+   816	                if raw is None:
+   817	                    continue
+   818	                if raw == b'':
+   819	                    self._eof = True
+   820	                    break
+   821	                reply = self._decode(raw)
+   822	                self._frames += 1
+   823	                self._deliver(reply)
+   824	        except BaseException as error:  # noqa: BLE001 - the failure stays visible
+   825	            self._error = error
+   826	            if self._on_error is not None:
+   827	                try:
+   828	                    self._on_error(error)
+   829	                except BaseException:  # noqa: BLE001 - the failure stays visible
+   830	                    pass
+   831	        finally:
+   832	            with self._lock:
+   833	                for waiter in self._waiters:
+   834	                    waiter.event.set()
+   835	                self._waiters = []
+   836	            self._finished.set()
+   837	
+   838	    def _deliver(self, reply):
+   839	        with self._lock:
+   840	            for waiter in list(self._waiters):
+   841	                if reply['kind'] in waiter.kinds:
+   842	                    waiter.reply = reply
+   843	                    waiter.event.set()
+   844	                    self._waiters.remove(waiter)
+   845	                    return
+   846	            if reply['kind'] == 'STATUS':
+   847	                # The status of the round is a snapshot, not a queue: only
+   848	                # the last one is kept.
+   849	                self._latest_status = reply
+   850	                return
+   851	            if len(self._pending) >= MAX_FRAMES:
+   852	                raise CustodyError('CUSTODY_FRAME_COUNT_EXCEEDED')
+   853	            self._pending.append(reply)
+   854	
+   855	    # -- the waiting ------------------------------------------------------
+   856	    def take(self, kinds, deadline):
+   857	        """Wait for one reply of the wanted kinds, bounded by the deadline."""
+   858	        waiter = _ReplyWaiter(kinds)
+   859	        with self._lock:
+   860	            for index, reply in enumerate(self._pending):
+   861	                if reply['kind'] in kinds:
+   862	                    del self._pending[index]
+   863	                    return reply
+   864	            if 'STATUS' in kinds and self._latest_status is not None:
+   865	                reply = self._latest_status
+   866	                self._latest_status = None
+   867	                return reply
+   868	            if self._error is not None:
+   869	                raise self._error
+   870	            if self._eof:
+   871	                raise CustodyError('CUSTODY_CHANNEL_EOF')
+   872	            self._waiters.append(waiter)
+   873	        remaining = deadline - self._clock()
+   874	        if not waiter.event.wait(max(0.0, remaining)):
+   875	            with self._lock:
+   876	                if waiter in self._waiters:
+   877	                    self._waiters.remove(waiter)
+   878	            raise CustodyError('CUSTODY_CHANNEL_TIMEOUT')
+   879	        if waiter.reply is not None:
+   880	            return waiter.reply
+   881	        with self._lock:
+   882	            failure = self._error
+   883	        if failure is not None:
+   884	            raise failure
+   885	        raise CustodyError('CUSTODY_CHANNEL_EOF')
+   886	
+   887	    # -- the end ----------------------------------------------------------
+   888	    def stop(self):
+   889	        """Ask the pump to stop.  The pump is joined by its owner."""
+   890	        self._stop_event.set()
+   891	
+   892	    def join_bounded(self, seconds):
+   893	        """Join the pump and report whether it really stopped."""
+   894	        self.join(seconds)
+   895	        stopped = not self.is_alive()
+   896	        return stopped
+   897	
+   898	    @property
+   899	    def frames(self):
+   900	        return self._frames
+   901	
+   902	    @property
+   903	    def error(self):
+   904	        return self._error
+   905	
+   906	    @property
+   907	    def finished(self):
+   908	        return self._finished.is_set()
+   909	
+   910	    @property
+   911	    def alive(self):
+   912	        return self.is_alive()
+   913	
+   914	
+   915	# -- the parent side session -----------------------------------------------
+   916	
+   917	class NativeCustodySession:
+   918	    """The parent side custody of one native custody round.
+   919	
+   920	    The session owns the validated plan, the original handle of the broker
+   921	    process of this round and the private control channel to it.  It never
+   922	    stops a native service by name, by PID or by a record of another owner.
+   923	
+   924	    The session is deliberately *not* a service platform.  It launches one
+   925	    broker process, it exchanges the closed frames of the private channel
+   926	    with it and it closes it again.  It never loads a caller supplied
+   927	    module, it never builds an argument vector of its own and it never
+   928	    starts a native service itself: the broker is the only creator of the
+   929	    processes of a round.
+   930	
+   931	    Every failure of the start of the round ends inside ``start``: the
+   932	    original handle of the broker and the private channel are released
+   933	    there, and the caller never has to remember to stop a round that never
+   934	    started.
+   935	    """
+   936	
+   937	    def __init__(self, *, plan, run_root, parent_child_remaining_seconds,
+   938	                 launcher=None, clock=None, wall=None, nonce=None):
+   939	        self._document = plan
+   940	        self._run_root = Path(run_root)
+   941	        self._remaining = parent_child_remaining_seconds
+   942	        self._launcher = launcher
+   943	        self._clock = clock or time.monotonic
+   944	        self._wall = wall or time.time
+   945	        self._nonce = self._resolve_nonce(nonce)
+   946	        self.state = 'NEW'
+   947	        self.plan = None
+   948	        self.broker = None
+   949	        self._sequence = 0
+   950	        self._broker_sequence = 0
+   951	        self._frames_sent = 0
+   952	        self._frames_received = 0
+   953	        self._deadline_wall = None
+   954	        self._deadline_mono = None
+   955	        self._stopped = False
+   956	        self._failures = []
+   957	        self._terminal = None
+   958	        self._broker_identity = None
+   959	        self._broker_reader_finished = None
+   960	        self._broker_close_facts = None
+   961	        self._pump = None
+   962	        # The failure that the reader of the channel really saw.  It is
+   963	        # kept with the round, because the reader may be gone when the
+   964	        # owner of the round reads the first reply: a cancellation that
+   965	        # the reader saw is the failure of the round and it continues to
+   966	        # propagate.
+   967	        self._pump_error = None
+   968	        self._heartbeat = None
+   969	        # The stop event of the heartbeat is created **once**, here, and
+   970	        # it is never rebuilt: a rebuilt event would let a heartbeat
+   971	        # that starts after the stop of the round wait for a stop that
+   972	        # will never come.
+   973	        self._heartbeat_stop = threading.Event()
+   974	        self._heartbeat_failure = None
+   975	        self._last_heartbeat = None
+   976	        self._last_alive_wall = None
+   977	        self._write_lock = threading.Lock()
+   978	        # The one owner of the frame budget of the round.  The frames
+   979	        # that the parent sends and the frames that it receives share
+   980	        # this one lock, so that the check and the commit of the budget
+   981	        # are one atomic step in both directions.
+   982	        self._budget_lock = threading.Lock()
+   983	        # The one owner of the state of the round.  The latch of the
+   984	        # unknown state and the application of a state are one atomic
+   985	        # step: a late reply never turns an unknown round into a
+   986	        # running one.
+   987	        self._state_lock = threading.RLock()
+   988	        self._unknown_latched = False
+   989	        self._close_lock = threading.Lock()
+   990	        self._broker_close_failed = False
+   991	        self._cleanup_deadline = None
+   992	        # The ONE context of the round.  Every layer of the session
+   993	        # holds this very object: the send, the stop of the background
+   994	        # threads, the close of the broker and the recovery of the close
+   995	        # share one deadline, one cancel and one unknown.
+   996	        self._context = _CustodyContext(clock=self._clock, wall=self._wall)
+   997	        # -- the coordination of the close ----------------------------------
+   998	        # One session keeps ONE cleanup owner and ONE absolute cleanup
+   999	        # deadline.  The state of the close is explicit: a competitor
+  1000	        # never assumes that a close in progress is a close that is
+  1001	        # finished and it waits inside the same absolute deadline.
+  1002	        self._close_state = 'NOT_STARTED'
+  1003	        self._close_done = threading.Event()
+  1004	        # The generation of the close.  Every attempt of the close owns
+  1005	        # **its own** event: the end of an older attempt never proves
+  1006	        # that the attempt that is running now ended.  A waiter always
+  1007	        # waits for the event of the generation that it found.
+  1008	        self._close_generation = 0
+  1009	        self._close_owner = None
+  1010	        self._close_waiters = 0
+  1011	        self._close_waiter_arrived = threading.Event()
+  1012	        # The event of the **real** end of the closer.  The end of the
+  1013	        # attempt of the close and the end of the thread that performs
+  1014	        # it are two different facts.
+  1015	        self._closer_exited = threading.Event()
+  1016	        # -- the latch of the background of the round ------------------------
+  1017	        # The permission to start a background thread is closed before
+  1018	        # the close takes its snapshot of the threads, so that a thread
+  1019	        # that starts after the close began is refused and never leaks.
+  1020	        self._background_lock = threading.Lock()
+  1021	        self._background_cv = threading.Condition(self._background_lock)
+  1022	        self._background_open = True
+  1023	        self._background_starting = 0
+  1024	        # The state of every background thread of the round.  The state
+  1025	        # tells whether the start of the thread returned, whether it
+  1026	        # failed and whether the thread really runs: a thread whose
+  1027	        # start did not return keeps its owner and it is never taken for
+  1028	        # a thread that ended.
+  1029	        self._background_threads = {}
+  1030	        # The flag of the stop of the round.  A stop blocks every later
+  1031	        # heartbeat: the heartbeat of a round that is stopping must not
+  1032	        # write into a channel that is being closed.
+  1033	        self._stopping = False
+  1034	        # The latch of the bounded close that a failure of the
+  1035	        # background threads started.  The close runs in its own thread:
+  1036	        # a thread never joins itself.
+  1037	        self._closer_started = False
+  1038	        self._closer = None
+  1039	        # Every closer thread that this session ever built.  A closer
+  1040	        # whose start did not return may still come up: it keeps its
+  1041	        # owner in this list and it is never forgotten.
+  1042	        self._closer_threads = []
+  1043	        # The state of the **start** of the closer.  A closer whose
+  1044	        # start did not return may still come up: it is never taken for
+  1045	        # a thread that ended.
+  1046	        self._closer_start_state = 'NOT_STARTED'
+  1047	        # Whether the context of the round was handed over to the
+  1048	        # launcher.  The production launcher accepts it and it holds the
+  1049	        # deadline of the round before the first side effect of the
+  1050	        # launch.  A launcher of the old three argument shape is the
+  1051	        # compatibility boundary of the inspection facades.
+  1052	        self._launcher_context_propagated = None
+  1053	
+  1054	    # -- the nonce of the round -------------------------------------------
+  1055	    @staticmethod
+  1056	    def _resolve_nonce(nonce):
+  1057	        """The nonce of the private channel of one round.
+  1058	
+  1059	        The parent and the broker agree on one closed form: 32
+  1060	        hexadecimal characters.  A nonce that does not have that form is
+  1061	        refused here, before any directory, before any file and before
+  1062	        any process.  A nonce identifies the channel of one round and it
+  1063	        grants no custody over any process.
+  1064	        """
+  1065	        if nonce is None:
+  1066	            return os.urandom(NONCE_BYTES).hex()
+  1067	        if not isinstance(nonce, str) or not re.fullmatch(NONCE_PATTERN, nonce):
+  1068	            raise CustodyError('CUSTODY_NONCE_INVALID')
+  1069	        return nonce
+  1070	
+  1071	    # -- the deadline ----------------------------------------------------
+  1072	    def _fix_deadline(self):
+  1073	        """Fix the absolute deadline of the round, once.
+  1074	
+  1075	        The deadline is the earlier of the absolute lease of the plan, the
+  1076	        runtime of the plan and the remaining budget of the parent.  It is
+  1077	        fixed here, before the broker is launched and before the first
+  1078	        reply of the round, and it is never moved again: a status request,
+  1079	        a heartbeat or a stop command may not extend it.
+  1080	        """
+  1081	        if self._deadline_wall is not None:
+  1082	            return self._deadline_wall
+  1083	        wall_now = self._wall()
+  1084	        self._deadline_wall = min(self.plan.lease_expires_at,
+  1085	                                  wall_now + self.plan.max_runtime_seconds,
+  1086	                                  wall_now + self._remaining)
+  1087	        self._deadline_mono = self._clock() + max(0.0, self._deadline_wall - wall_now)
+  1088	        # The context of the round carries the same absolute deadline:
+  1089	        # every layer of the round reads it there and it is never
+  1090	        # copied into a deadline of its own.
+  1091	        self._context.bind_absolute_deadline(self._deadline_mono)
+  1092	        return self._deadline_wall
+  1093	
+  1094	    def remaining_seconds(self):
+  1095	        if self._deadline_mono is None:
+  1096	            return float(self._remaining)
+  1097	        return max(0.0, self._deadline_mono - self._clock())
+  1098	
+  1099	    # -- the plan --------------------------------------------------------
+  1100	    def validate(self):
+  1101	        """Validate the plan of the round and bind the finite budget."""
+  1102	        if self.state != 'NEW':
+  1103	            raise CustodyError('CUSTODY_STATE_INVALID')
+  1104	        self.plan = validate_launch_plan(self._document, now=self._wall())
+  1105	        enforce_child_budget(self.plan,
+  1106	                             parent_child_remaining_seconds=self._remaining)
+  1107	        self.state = 'VALIDATED'
+  1108	        return self.plan
+  1109	
+  1110	    # -- the channel -----------------------------------------------------
+  1111	    def _send(self, command, *, terminal=False):
+  1112	        """Send one command of the parent to the broker.
+  1113	
+  1114	        The write is bounded three times: by the absolute deadline of
+  1115	        the round, by the remaining time of the round and by a fixed
+  1116	        short budget of its own.  A broker that never reads can
+  1117	        therefore never hold the supervisor of the round forever, and
+  1118	        the failure of the write is a named failure of the round.
+  1119	
+  1120	        The frame budget of the channel is shared by the frames that the
+  1121	        parent sends and by the frames that it receives.  The frames of
+  1122	        the terminal exchange are reserved and the budget is never
+  1123	        widened and never renewed.
+  1124	
+  1125	        The sequence of a frame is chosen **inside** the write lock and
+  1126	        the frame is encoded there as well.  The parent, the heartbeat
+  1127	        and the stop of the round share ONE sequence owner: two frames
+  1128	        with the same sequence can never be built and no frame is ever
+  1129	        built outside of the lock.
+  1130	
+  1131	        A round that is stopping sends no further frame: the stop
+  1132	        blocks the heartbeat that would follow it.
+  1133	        """
+  1134	        with self._write_lock:
+  1135	            if self._stopping and not terminal:
+  1136	                return False
+  1137	            self._reserve_frame(terminal=terminal)
+  1138	            self._sequence += 1
+  1139	            raw = encode_command(command, run_id=self.plan.run_id,
+  1140	                                 candidate_sha=self.plan.candidate_sha,
+  1141	                                 authorization_sha256=self.plan.authorization_sha256,
+  1142	                                 nonce=self._nonce, sequence=self._sequence)
+  1143	            budget = max(0.0, min(self.remaining_seconds(), WRITE_BUDGET_SECONDS))
+  1144	            # The write of the round never outlives the shared cleanup
+  1145	            # deadline of the round: a stop that is in flight does not
+  1146	            # give the write a budget of its own.
+  1147	            cleanup = self._context.cleanup_deadline_value()
+  1148	            if cleanup is not None:
+  1149	                budget = min(budget, max(0.0, cleanup - self._clock()))
+  1150	            deadline = self._clock() + budget
+  1151	            self._write_to_broker(raw, deadline)
+  1152	            return True
+  1153	
+  1154	    def _reserve_frame(self, *, terminal=False, received=False):
+  1155	        """One atomic check and commit of the shared frame budget.
+  1156	
+  1157	        The frames that the parent sends and the frames that it receives
+  1158	        share **one** counter and one owner.  The check and the commit
+  1159	        are one atomic step under the lock of the budget: two
+  1160	        directions that check the budget at the same moment may never
+  1161	        take the last frame of the budget together.
+  1162	
+  1163	        The reservation of the terminal exchange is **consumed** by the
+  1164	        terminal frame itself: a frame of the terminal exchange is
+  1165	        never refused because of the reservation that was kept for it.
+  1166	        A frame that is not terminal never borrows the reservation and
+  1167	        it fails closed when the total does not fit.
+  1168	        """
+  1169	        with self._budget_lock:
+  1170	            reserved = 0 if terminal else RESERVED_TERMINAL_FRAMES
+  1171	            if self._frames_sent + self._frames_received + reserved + 1 > MAX_FRAMES:
+  1172	                raise CustodyError('CUSTODY_FRAME_BUDGET_EXCEEDED')
+  1173	            if received:
+  1174	                self._frames_received += 1
+  1175	            else:
+  1176	                self._frames_sent += 1
+  1177	            return True
+  1178	
+  1179	    def _check_frame_budget(self, *, terminal=False):
+  1180	        """The frame budget of the channel, in both directions.
+  1181	
+  1182	        The round of six hours with its heartbeat stays inside the
+  1183	        budget of the channel, and the frames of the terminal exchange
+  1184	        are reserved.  A round that reached its budget fails closed: it
+  1185	        never reconnects and it never renews its lease.
+  1186	
+  1187	        The budget is the **total** of the frames that the parent sent
+  1188	        and of the frames that it received.  One direction is never a
+  1189	        substitute for the total: a reply is refused before it is
+  1190	        accepted when the total does not fit.
+  1191	        """
+  1192	        with self._budget_lock:
+  1193	            reserved = 0 if terminal else RESERVED_TERMINAL_FRAMES
+  1194	            if self._frames_sent + self._frames_received + reserved + 1 > MAX_FRAMES:
+  1195	                raise CustodyError('CUSTODY_FRAME_BUDGET_EXCEEDED')
+  1196	            return True
+  1197	
+  1198	    def _write_to_broker(self, raw, deadline):
+  1199	        """Write one frame through the deadline aware interface.
+  1200	
+  1201	        The handle of the broker has to say that it understands an
+  1202	        absolute deadline.  A handle that does not say so is **never**
+  1203	        assumed to be deadline aware: the parent refuses to write into
+  1204	        it instead of blocking on a write that nobody bounds.
+  1205	        """
+  1206	        writer = getattr(self.broker, 'write', None)
+  1207	        if not callable(writer):
+  1208	            raise CustodyError('CUSTODY_BROKER_WRITE_INTERFACE_MISSING')
+  1209	        if getattr(self.broker, 'channel_deadline_aware', False) is not True:
+  1210	            raise CustodyError('CUSTODY_BROKER_NOT_DEADLINE_AWARE')
+  1211	        writer(raw, deadline)
+  1212	
+  1213	    def _bind_deadline(self, deadline):
+  1214	        """Bind the absolute deadline of the round to the broker handle.
+  1215	
+  1216	        The deadline may only shorten the deadline that is already
+  1217	        bound.  A handle that does not offer the interface is left
+  1218	        alone: the session still bounds its own waits.
+  1219	        """
+  1220	        if self.broker is None:
+  1221	            return
+  1222	        binder = getattr(self.broker, 'bind_channel_deadline', None)
+  1223	        if not callable(binder):
+  1224	            return
+  1225	        binder(deadline)
+  1226	
+  1227	    def _read_reply(self, kinds, *, timeout=None):
+  1228	        """Read the replies of the broker until one of them is wanted.
+  1229	
+  1230	        The read never blocks the deadline of the round: the transport of
+  1231	        the channel is bounded and the wait is clipped to the remaining
+  1232	        deadline of the round.
+  1233	        """
+  1234	        if self._heartbeat_failure is not None:
+  1235	            raise CustodyError(self._heartbeat_failure)
+  1236	        limit = self.remaining_seconds() if timeout is None else timeout
+  1237	        limit = max(0.0, min(limit, self.remaining_seconds()))
+  1238	        deadline = self._clock() + limit
+  1239	        while True:
+  1240	            pump = self._pump
+  1241	            if pump is None:
+  1242	                # The reader of the channel is gone.  A cancellation that
+  1243	                # the reader saw is the failure of the round and it
+  1244	                # continues to propagate; an ordinary failure of the
+  1245	                # reader is already named in the failures of the round.
+  1246	                if isinstance(self._pump_error, (KeyboardInterrupt, SystemExit)):
+  1247	                    raise self._pump_error
+  1248	                raise CustodyError('CUSTODY_CHANNEL_CLOSED')
+  1249	            reply = pump.take(kinds, deadline)
+  1250	            if reply['kind'] in kinds:
+  1251	                return reply
+  1252	
+  1253	    def _decode_reply(self, raw):
+  1254	        """Decode one reply of the broker and check the identity of it."""
+  1255	        reply = decode_reply(raw, run_id=self.plan.run_id,
+  1256	                             candidate_sha=self.plan.candidate_sha,
+  1257	                             authorization_sha256=self.plan.authorization_sha256,
+  1258	                             nonce=self._nonce,
+  1259	                             last_sequence=self._broker_sequence)
+  1260	        # The budget of the channel is the total of both directions.  A
+  1261	        # reply that does not fit into the total is refused before it
+  1262	        # is accepted and before it is counted.  The reply of the
+  1263	        # terminal exchange consumes the reservation that was kept for
+  1264	        # it: it is never refused because of its own reservation.
+  1265	        terminal = reply['kind'] in ('STOPPED', 'REFUSED')
+  1266	        self._reserve_frame(terminal=terminal, received=True)
+  1267	        self._broker_sequence = reply['sequence']
+  1268	        # Only a reply that was decoded and that carries the identity of
+  1269	        # the round refreshes the liveness of the round.
+  1270	        self._last_alive_wall = self._wall()
+  1271	        return reply
+  1272	
+  1273	    # -- the heartbeat ----------------------------------------------------
+  1274	    def _heartbeat_step(self):
+  1275	        """One step of the status heartbeat of the round.
+  1276	
+  1277	        The heartbeat is the explicit owner of the keep alive of the
+  1278	        round: it sends one status command of the parent every 60
+  1279	        seconds, so that a long round is not stopped for silence.  It
+  1280	        never extends the absolute deadline of the round: it is a frame
+  1281	        of the closed protocol and nothing else.
+  1282	
+  1283	        The heartbeat is never sent **after** the absolute deadline of
+  1284	        the round arrived and it is never sent after the round started
+  1285	        to stop.
+  1286	
+  1287	        The step is a method of its own and it reads the clock of the
+  1288	        session, so that the whole schedule of a round of six hours can
+  1289	        be checked with a clock that only moves when the check moves it.
+  1290	        """
+  1291	        now = self._clock()
+  1292	        if self._last_heartbeat is None:
+  1293	            self._last_heartbeat = now
+  1294	            return False
+  1295	        if now - self._last_heartbeat < HEARTBEAT_INTERVAL_SECONDS:
+  1296	            return False
+  1297	        if self._stopping:
+  1298	            # A round that is stopping sends no further heartbeat.
+  1299	            return False
+  1300	        if self._deadline_mono is not None and now >= self._deadline_mono:
+  1301	            # The absolute lease of the round arrived: the heartbeat is
+  1302	            # not sent any more and it never extends the lease.
+  1303	            return False
+  1304	        self._last_heartbeat = now
+  1305	        try:
+  1306	            sent = self._send('STATUS')
+  1307	        except BaseException as error:  # noqa: BLE001 - the failure stays visible
+  1308	            self._heartbeat_failure = ('CUSTODY_HEARTBEAT_FAILED:'
+  1309	                                       + type(error).__name__)
+  1310	            self._latch_background_failure(self._heartbeat_failure)
+  1311	            return False
+  1312	        return bool(sent)
+  1313	
+  1314	    def _start_heartbeat(self):
+  1315	        """Start the status heartbeat of the round.
+  1316	
+  1317	        There is exactly one heartbeat thread per round and it is joined
+  1318	        by the owner of the round.  A failure of the heartbeat is a
+  1319	        named failure of the round: the round becomes unknown and it is
+  1320	        never stopped silently in the background.
+  1321	
+  1322	        The stop event of the heartbeat is created **once**, in the
+  1323	        constructor of the session, and it is never rebuilt.  A rebuilt
+  1324	        event would let a heartbeat that starts after the stop of the
+  1325	        round wait for a stop that will never come.
+  1326	        """
+  1327	        if self._heartbeat is not None:
+  1328	            # There is exactly one heartbeat per round.
+  1329	            return True
+  1330	        if self._heartbeat_stop.is_set():
+  1331	            # The round is already stopping: a heartbeat that starts
+  1332	            # now would be a heartbeat that nobody stops any more.
+  1333	            self._failures.append('CUSTODY_HEARTBEAT_NOT_STARTED')
+  1334	            return False
+  1335	
+  1336	        def beat():
+  1337	            while not self._heartbeat_stop.wait(HEARTBEAT_SLICE_SECONDS):
+  1338	                try:
+  1339	                    self._heartbeat_step()
+  1340	                except BaseException as error:  # noqa: BLE001 - the failure stays visible
+  1341	                    self._heartbeat_failure = ('CUSTODY_HEARTBEAT_FAILED:'
+  1342	                                               + type(error).__name__)
+  1343	                    self._latch_background_failure(self._heartbeat_failure)
+  1344	                    return
+  1345	
+  1346	        thread = threading.Thread(target=beat, daemon=True,
+  1347	                                  name='lvw-native-custody-heartbeat')
+  1348	        return self._start_background_thread('heartbeat', thread)
+  1349	
+  1350	    def _start_background_thread(self, kind, thread):
+  1351	        """Start one background thread of the round under the latch.
+  1352	
+  1353	        The registration of the thread, the permission to start it and
+  1354	        the count of the threads that are in the middle of their start
+  1355	        are **one** atomic step under the lock of the background of the
+  1356	        round.  A thread that is registered may be started and a thread
+  1357	        that may not be started any more is never registered.
+  1358	
+  1359	        The close of the round closes the permission **before** it takes
+  1360	        its snapshot of the threads, so a thread that is started after
+  1361	        the close began is either refused or stopped by the very close
+  1362	        that refused it.
+  1363	
+  1364	        The state of the thread is recorded **while** it is started:
+  1365	
+  1366	        * ``STARTING``  the start of the thread did not return yet.  The
+  1367	          thread keeps its owner and it may only clean up: it is never
+  1368	          taken for a thread that ended.
+  1369	        * ``RUNNING``   the thread started and it runs.
+  1370	        * ``FAILED``    the start of the thread raised.  The record says
+  1371	          whether the thread really runs anyway: a thread that runs
+  1372	          keeps the reference of the session and the round becomes
+  1373	          unknown, and a thread that never started is not a thread of
+  1374	          the round.
+  1375	        """
+  1376	        with self._background_lock:
+  1377	            if not self._background_open:
+  1378	                self._failures.append('CUSTODY_BACKGROUND_START_REFUSED:' + kind)
+  1379	                return False
+  1380	            record = {'kind': kind, 'thread': thread, 'state': 'STARTING',
+  1381	                      'started': False, 'error': None}
+  1382	            self._background_threads[kind] = record
+  1383	            setattr(self, '_' + kind, thread)
+  1384	            self._background_starting += 1
+  1385	        try:
+  1386	            thread.start()
+  1387	        except BaseException as error:  # noqa: BLE001 - the failure stays visible
+  1388	            alive = bool(getattr(thread, 'is_alive', lambda: False)())
+  1389	            ident = getattr(thread, 'ident', None)
+  1390	            with self._background_lock:
+  1391	                record['error'] = error
+  1392	                record['state'] = 'FAILED'
+  1393	                record['started'] = bool(alive or ident is not None)
+  1394	                self._background_starting -= 1
+  1395	                self._background_cv.notify_all()
+  1396	            if record['started']:
+  1397	                # The thread really runs: it keeps the reference of the
+  1398	                # session and the round becomes unknown.  A thread that
+  1399	                # runs is never taken for a thread that never started.
+  1400	                self._failures.append('CUSTODY_BACKGROUND_START_FAILED:' + kind)
+  1401	                self._latch_unknown_state()
+  1402	            else:
+  1403	                # The thread never started: its reference is dropped and
+  1404	                # its failure stays visible.
+  1405	                with self._background_lock:
+  1406	                    if getattr(self, '_' + kind) is thread:
+  1407	                        setattr(self, '_' + kind, None)
+  1408	            raise
+  1409	        with self._background_lock:
+  1410	            record['state'] = 'RUNNING'
+  1411	            record['started'] = True
+  1412	            self._background_starting -= 1
+  1413	            self._background_cv.notify_all()
+  1414	        return True
+  1415	
+  1416	    def _latch_unknown_state(self):
+  1417	        """Latch the unknown state of the round.  One way.
+  1418	
+  1419	        The latch and the application of a state share **one** lock: a
+  1420	        reply that arrives late and the failure of a background thread
+  1421	        may never both believe that they are the first one.  The first
+  1422	        one latches the unknown state and every later one is refused.
+  1423	        """
+  1424	        with self._state_lock:
+  1425	            first = not self._unknown_latched
+  1426	            self._unknown_latched = True
+  1427	            self._context.latch_unknown()
+  1428	            self.state = 'UNKNOWN_RETAINED'
+  1429	        return first
+  1430	
+  1431	    def _latch_background_failure(self, code):
+  1432	        """Latch the unknown state of the round after a background failure.
+  1433	
+  1434	        A failure of the heartbeat or of the pump is not a string that
+  1435	        is appended to a list and nothing else.  The round becomes
+  1436	        unknown and a **bounded** close is started.  The close runs in
+  1437	        its own thread: a thread never joins itself.
+  1438	        """
+  1439	        if code not in self._failures:
+  1440	            self._failures.append(code)
+  1441	        self._latch_unknown_state()
+  1442	        self._start_bounded_close()
+  1443	
+  1444	    def _apply_state(self, state):
+  1445	        """Apply the state of the round, never overwriting an unknown one.
+  1446	
+  1447	        A reply that arrives late - after the pump failed and after the
+  1448	        round latched its unknown state - never turns an unknown round
+  1449	        into a running one.  The late reply stays visible in the
+  1450	        evidence of the round.
+  1451	
+  1452	        The check and the application are **one** atomic step under the
+  1453	        lock of the state of the round: a reply that passed the check
+  1454	        and a failure that latches the unknown state may never both
+  1455	        believe that they are the first one.
+  1456	        """
+  1457	        with self._state_lock:
+  1458	            if self._unknown_latched and state != 'UNKNOWN_RETAINED':
+  1459	                self._failures.append('CUSTODY_LATE_STATE_IGNORED:' + state)
+  1460	                return False
+  1461	            self.state = state
+  1462	            return True
+  1463	
+  1464	    def _start_bounded_close(self):
+  1465	        """Start the bounded close of the round, once, in its own thread.
+  1466	
+  1467	        The close runs in its own thread because a thread never joins
+  1468	        itself: the pump and the heartbeat of the round report their
+  1469	        failure to the round and the round closes in a thread of its
+  1470	        own.  The callbacks of the pump and of the heartbeat never wait
+  1471	        for that close, so a closer that joins the pump can never wait
+  1472	        for the pump in turn.
+  1473	
+  1474	        A closer that could not be **built** and a closer that could not
+  1475	        be **started** must not leave the round in ``IN_PROGRESS`` for
+  1476	        ever: the waiters are woken, the failure is named and the round
+  1477	        stays unknown.  The original broker of the round keeps its
+  1478	        owner, so that the public stop of the round may coordinate it
+  1479	        again.
+  1480	        """
+  1481	        with self._close_lock:
+  1482	            if self._closer_started:
+  1483	                return False
+  1484	            self._closer_started = True
+  1485	            self._closer_start_state = 'STARTING'
+  1486	        try:
+  1487	            thread = threading.Thread(target=self._closer_main, daemon=True,
+  1488	                                      name='lvw-native-custody-closer')
+  1489	            self._closer = thread
+  1490	            self._closer_threads.append(thread)
+  1491	            thread.start()
+  1492	        except BaseException as error:  # noqa: BLE001 - the failure stays visible
+  1493	            self._failures.append('CUSTODY_CLOSER_START_FAILED:'
+  1494	                                   + type(error).__name__)
+  1495	            self._latch_unknown_state()
+  1496	            with self._close_lock:
+  1497	                # The latch of the closer is not permanent: a later
+  1498	                # attempt may try again and the public stop of the round
+  1499	                # is the recovery entry of the resources.
+  1500	                self._closer_started = False
+  1501	                unpublished = (self._close_state == 'IN_PROGRESS'
+  1502	                               and self._close_owner is None)
+  1503	                if unpublished:
+  1504	                    self._close_state = 'FINISHED'
+  1505	            if unpublished:
+  1506	                self._close_done.set()
+  1507	            return False
+  1508	        # The start of the closer returned: the thread of the closer
+  1509	        # really exists and it may be joined.
+  1510	        self._closer_start_state = 'RUNNING'
+  1511	        return True
+  1512	
+  1513	    def _closer_main(self):
+  1514	        """The body of the closer of the round.
+  1515	
+  1516	        The end of the **attempt** of the close and the end of the
+  1517	        **thread** that performs it are two different facts: the
+  1518	        evidence of the round carries both of them.
+  1519	        """
+  1520	        try:
+  1521	            self._close_broker()
+  1522	        finally:
+  1523	            self._closer_exited.set()
+  1524	
+  1525	    def _on_pump_error(self, error):
+  1526	        """The reader of the channel failed: the round latches its state.
+  1527	
+  1528	        The failure that the reader really saw is kept with the round
+  1529	        and its own code stays visible: the failure of the reader never
+  1530	        replaces the failure that the reader really saw.
+  1531	        """
+  1532	        self._pump_error = error
+  1533	        if isinstance(error, (KeyboardInterrupt, SystemExit)):
+  1534	            code = 'CUSTODY_PUMP_CANCELLED:' + type(error).__name__
+  1535	        else:
+  1536	            code = 'CUSTODY_PUMP_FAILED:' + type(error).__name__
+  1537	        original = getattr(error, 'code', None)
+  1538	        if isinstance(original, str) and original and original not in self._failures:
+  1539	            self._failures.append(original)
+  1540	        self._latch_background_failure(code)
+  1541	
+  1542	    def _stop_background(self, deadline=None):
+  1543	        """Stop the background threads of the round and join them.
+  1544	
+  1545	        A thread that does not stop within the shared cleanup deadline
+  1546	        is a fact of the round: it is named and the round becomes
+  1547	        unknown.  It is never left behind and it is never discarded, and
+  1548	        its reference is kept so that the owner of the round can try it
+  1549	        again.  A thread that really stopped is not kept any more.
+  1550	
+  1551	        The latch of the background is closed **before** the snapshot of
+  1552	        the threads is taken.  A thread that is started after this
+  1553	        point is refused, and a thread that is in the middle of its own
+  1554	        start is finished before the snapshot is taken: the close of
+  1555	        the round never leaves behind a thread that it did not know
+  1556	        about.
+  1557	
+  1558	        The close never joins the thread that runs it: a thread that
+  1559	        joins itself is refused by the product and not by the caller.
+  1560	        """
+  1561	        if deadline is None:
+  1562	            deadline = self._cleanup_deadline_for()
+  1563	        # The stop of the round blocks every later heartbeat, also when
+  1564	        # the close was started by a failure and not by the caller.
+  1565	        self._stopping = True
+  1566	        self._context.request_stop()
+  1567	        self._heartbeat_stop.set()
+  1568	        current = threading.current_thread()
+  1569	        with self._background_cv:
+  1570	            self._background_open = False
+  1571	            while self._background_starting > 0:
+  1572	                remaining = max(0.0, deadline - self._clock())
+  1573	                if remaining <= 0.0:
+  1574	                    self._failures.append('CUSTODY_BACKGROUND_START_PENDING')
+  1575	                    break
+  1576	                self._background_cv.wait(remaining)
+  1577	            heartbeat = self._heartbeat
+  1578	            pump = self._pump
+  1579	            records = dict(self._background_threads)
+  1580	        if heartbeat is not None:
+  1581	            record = records.get('heartbeat')
+  1582	            if record is not None and record['state'] == 'STARTING':
+  1583	                # The start of this thread did not return: the thread
+  1584	                # may still come up.  It keeps its owner, it is never
+  1585	                # joined and it may only clean up.  A thread whose start
+  1586	                # did not return is never taken for a thread that ended.
+  1587	                self._failures.append('CUSTODY_BACKGROUND_START_PENDING:heartbeat')
+  1588	                self._latch_unknown_state()
+  1589	            else:
+  1590	                if heartbeat is not current and heartbeat.ident is not None:
+  1591	                    heartbeat.join(self._cleanup_remaining(deadline))
+  1592	                if heartbeat.is_alive():
+  1593	                    self._failures.append('CUSTODY_HEARTBEAT_NOT_STOPPED')
+  1594	                    self._latch_unknown_state()
+  1595	                else:
+  1596	                    self._heartbeat = None
+  1597	        if pump is not None:
+  1598	            pump.stop()
+  1599	            record = records.get('pump')
+  1600	            if record is not None and record['state'] == 'STARTING':
+  1601	                # The start of the reader did not return: the thread may
+  1602	                # still come up.  It keeps its owner and it is never
+  1603	                # joined: a thread that was not started is not joinable.
+  1604	                self._failures.append('CUSTODY_BACKGROUND_START_PENDING:pump')
+  1605	                self._latch_unknown_state()
+  1606	            elif pump is current:
+  1607	                # The close never joins the thread that runs it: a pump
+  1608	                # that is the current thread stays alive and keeps its
+  1609	                # reference with its owner.
+  1610	                self._failures.append('CUSTODY_PUMP_NOT_STOPPED')
+  1611	                self._latch_unknown_state()
+  1612	            elif pump.ident is None and not pump.is_alive():
+  1613	                # The reader never started: it is not a thread of the
+  1614	                # round and it is never joined.
+  1615	                self._failures.append('CUSTODY_PUMP_NOT_STARTED')
+  1616	                self._pump = None
+  1617	            elif not pump.join_bounded(self._cleanup_remaining(deadline)):
+  1618	                self._failures.append('CUSTODY_PUMP_NOT_STOPPED')
+  1619	                self._latch_unknown_state()
+  1620	            else:
+  1621	                self._pump = None
+  1622	
+  1623	    def _cleanup_remaining(self, deadline=None):
+  1624	        """The seconds that are left until the deadline of the cleanup.
+  1625	
+  1626	        The name of this helper is **not** ``_remaining``: the session
+  1627	        owns ``_remaining`` as the remaining budget of the parent child
+  1628	        and an instance attribute of the same name would shadow this
+  1629	        method.  A shadowed helper is a ``TypeError`` in every close
+  1630	        path of the round.
+  1631	        """
+  1632	        if deadline is None:
+  1633	            return THREAD_JOIN_SECONDS
+  1634	        return max(0.0, deadline - self._clock())
+  1635	
+  1636	    def _cleanup_deadline_for(self):
+  1637	        """The ONE absolute deadline of the cleanup of the round.
+  1638	
+  1639	        The deadline is generated at the first stop or at the first
+  1640	        failure of the cleanup.  It is the earlier of the absolute
+  1641	        deadline of the round and the fixed cleanup budget of the round
+  1642	        and it is the same value in every layer of the cleanup: the
+  1643	        send, the stop of the background threads, the close of the
+  1644	        broker, the close of the channel and the close of the endpoints
+  1645	        all use this very value.
+  1646	
+  1647	        The generation is **one atomic step** under the lock of the
+  1648	        context of the round.  Two callers that entered the cleanup at
+  1649	        the same moment therefore see the very same value: the
+  1650	        deadline is never generated twice and it is never extended by a
+  1651	        caller that came later.
+  1652	        """
+  1653	        published = self._context.cleanup_deadline_value()
+  1654	        if published is not None:
+  1655	            self._cleanup_deadline = published
+  1656	            return published
+  1657	        budget = max(0.0, min(STOP_CLEANUP_SECONDS, self.remaining_seconds()))
+  1658	        value = self._clock() + budget
+  1659	        if self._deadline_mono is not None:
+  1660	            value = min(value, self._deadline_mono)
+  1661	        published = self._context.publish_cleanup_deadline(value)
+  1662	        self._cleanup_deadline = published
+  1663	        return published
+  1664	
+  1665	    # -- the lifecycle ----------------------------------------------------
+  1666	    def start(self):
+  1667	        """Start the broker of the round and take the custody of it.
+  1668	
+  1669	        The parent keeps the *original* handle of the broker.  The identity
+  1670	        of the broker is therefore read from that handle and never from a
+  1671	        claim of the broker itself: a child that reports its own pid is a
+  1672	        claim and not a proof.
+  1673	
+  1674	        The **whole** lifecycle of the start is protected: the launcher,
+  1675	        the reading of the identity of the broker, the construction and
+  1676	        the start of the pump and the start of the heartbeat are all
+  1677	        inside one guard.  Every failure of this method releases the
+  1678	        original handle of the broker and the private channel before it
+  1679	        leaves the method: the caller never has to stop a round that
+  1680	        never started.
+  1681	
+  1682	        A refusal of the launcher, a timeout, a parse error and an
+  1683	        ordinary exception end the same way: the round is closed here
+  1684	        and it ends in a **structured** terminal state that carries the
+  1685	        named code of the failure.  The code of the original error is
+  1686	        kept: a refusal of the broker is never replaced by a generic
+  1687	        error of the parent.  A cancellation is cleaned up and it
+  1688	        continues to propagate.
+  1689	        """
+  1690	        if self.state == 'NEW':
+  1691	            self.validate()
+  1692	        if self.state != 'VALIDATED':
+  1693	            raise CustodyError('CUSTODY_STATE_INVALID')
+  1694	        self._fix_deadline()
+  1695	        launcher = self._launcher or _default_launcher
+  1696	        try:
+  1697	            try:
+  1698	                self.broker = self._call_launcher(launcher)
+  1699	            except (KeyboardInterrupt, SystemExit):
+  1700	                raise
+  1701	            except BaseException as error:  # noqa: BLE001 - the failure stays visible
+  1702	                # The refusal of the launcher is a structured refusal of
+  1703	                # the round.  The code of the original error is kept and
+  1704	                # the error is not raised as it is.
+  1705	                self._latch_unknown_state()
+  1706	                self._failures.append(self._launch_failure_code(error))
+  1707	                return self.evidence()
+  1708	            if self.broker is None:
+  1709	                self._latch_unknown_state()
+  1710	                self._failures.append('CUSTODY_BROKER_LAUNCH_UNAVAILABLE')
+  1711	                return self.evidence()
+  1712	            self._broker_identity = {
+  1713	                'pid': getattr(self.broker, 'pid', None),
+  1714	                'executable': getattr(self.broker, 'executable', None),
+  1715	                'executable_sha256': getattr(self.broker, 'executable_sha256', None),
+  1716	                'identity_source': 'PARENT_ORIGINAL_HANDLE',
+  1717	                'reported_by_the_broker': False,
+  1718	            }
+  1719	            # The absolute deadline of the round is bound to the handle of
+  1720	            # the broker before the first frame of the round is read: the
+  1721	            # channel of the round can never outlive the round.
+  1722	            try:
+  1723	                self._bind_deadline(self._deadline_mono)
+  1724	            except BaseException as error:  # noqa: BLE001 - the failure stays visible
+  1725	                self._failures.append(self._failure_code(error))
+  1726	                self._latch_unknown_state()
+  1727	                self._close_broker()
+  1728	                raise
+  1729	            pump = _ChannelPump(self.broker, decode=self._decode_reply,
+  1730	                                clock=self._clock,
+  1731	                                on_error=self._on_pump_error)
+  1732	            # The start of the background of the round is refused when
+  1733	            # the close of the round began already.  The start does not
+  1734	            # raise on that refusal: it continues to the exchange of the
+  1735	            # start, and the failure that leaves this method is the
+  1736	            # failure of the reader of the channel - a cancellation
+  1737	            # among them.
+  1738	            self._start_background_thread('pump', pump)
+  1739	            self._start_heartbeat()
+  1740	            ready = self._read_reply(('READY', 'REFUSED'))
+  1741	            if ready['kind'] == 'REFUSED':
+  1742	                self._latch_unknown_state()
+  1743	                self._failures.append(ready['detail'].get('code', 'BROKER_REFUSED'))
+  1744	                self._close_broker()
+  1745	                return self.evidence()
+  1746	            self._apply_state(ready['state'])
+  1747	            if ready['state'] != 'ARMED':
+  1748	                raise CustodyError('CUSTODY_STATE_INVALID')
+  1749	            status = self._read_reply(('STATUS', 'REFUSED'))
+  1750	            if status['kind'] == 'REFUSED':
+  1751	                self._latch_unknown_state()
+  1752	                self._failures.append(status['detail'].get('code', 'BROKER_REFUSED'))
+  1753	                self._close_broker()
+  1754	                return self.evidence()
+  1755	            self._apply_state(status['state'])
+  1756	        except (KeyboardInterrupt, SystemExit):
+  1757	            # A cancellation is cleaned up and it continues to propagate.
+  1758	            self._failures.append('CUSTODY_SESSION_CANCELLED')
+  1759	            self._latch_unknown_state()
+  1760	            self._close_broker()
+  1761	            raise
+  1762	        except BaseException as error:  # noqa: BLE001 - the failure stays visible
+  1763	            # An ordinary failure of the start is a structured terminal
+  1764	            # state of the round.  The handle of the broker is released
+  1765	            # even when the exchange of the start failed: the resource of
+  1766	            # this round is never left open on purpose and the caller
+  1767	            # never has to stop it later.
+  1768	            code = self._failure_code(error)
+  1769	            if code not in self._failures:
+  1770	                self._failures.append(code)
+  1771	            self._latch_unknown_state()
+  1772	            self._close_broker()
+  1773	            return self.evidence()
+  1774	        return self.evidence()
+  1775	
+  1776	    def _call_launcher(self, launcher):
+  1777	        """Call the launcher of the round with the context of the round.
+  1778	
+  1779	        The **context** of the round is handed to the launcher when the
+  1780	        launcher accepts it.  The launcher holds the absolute deadline
+  1781	        of the round **before** the first side effect of the launch: the
+  1782	        creation of the process, the reading of the executable, the
+  1783	        channel and its endpoints all read the deadline of the round
+  1784	        from that context.
+  1785	
+  1786	        A launcher of the **old three argument shape** is called with
+  1787	        three arguments and the round keeps the fact that the context
+  1788	        could not be handed over.  That shape is the compatibility
+  1789	        boundary of the inspection facades of the tests: it may not be
+  1790	        used to enter the production path of the round, because the
+  1791	        deadline of the round would not be bound before the process of
+  1792	        the round exists.
+  1793	        """
+  1794	        accepts = False
+  1795	        try:
+  1796	            signature = inspect.signature(launcher)
+  1797	        except (TypeError, ValueError):  # pragma: no cover - a C callable
+  1798	            signature = None
+  1799	        if signature is not None:
+  1800	            for parameter in signature.parameters.values():
+  1801	                if parameter.kind == parameter.VAR_KEYWORD:
+  1802	                    accepts = True
+  1803	                    break
+  1804	                if parameter.name == 'context' and parameter.kind in (
+  1805	                        parameter.KEYWORD_ONLY, parameter.POSITIONAL_OR_KEYWORD):
+  1806	                    accepts = True
+  1807	                    break
+  1808	        if accepts:
+  1809	            self._launcher_context_propagated = True
+  1810	            return launcher(self.plan, self._run_root, self._nonce,
+  1811	                            context=self._context)
+  1812	        self._launcher_context_propagated = False
+  1813	        return launcher(self.plan, self._run_root, self._nonce)
+  1814	
+  1815	    @staticmethod
+  1816	    def _launch_failure_code(error):
+  1817	        """The named code of a refusal of the launcher.
+  1818	
+  1819	        The code of the original error is kept.  A refusal of the
+  1820	        broker that names its own code - the unsupported platform of the
+  1821	        broker for instance - is never replaced by a generic code of the
+  1822	        parent.
+  1823	        """
+  1824	        code = getattr(error, 'code', None)
+  1825	        if isinstance(code, str) and code:
+  1826	            return code
+  1827	        return 'CUSTODY_BROKER_LAUNCH_FAILED:' + type(error).__name__
+  1828	
+  1829	    @staticmethod
+  1830	    def _failure_code(error):
+  1831	        """The named code of one failure of the round."""
+  1832	        code = getattr(error, 'code', None)
+  1833	        if isinstance(code, str) and code:
+  1834	            return code
+  1835	        return 'CUSTODY_SESSION_FAILED:' + type(error).__name__
+  1836	
+  1837	    def stop(self):
+  1838	        """Stop the round and close the original handle of the broker.
+  1839	
+  1840	        The stop is idempotent: a repeated stop does not send a second
+  1841	        command, does not create anything and does not change the evidence
+  1842	        of the round.  The closure of the broker happens in a ``finally``,
+  1843	        so it also happens when the exchange of the stop failed.
+  1844	
+  1845	        The stop and the cleanup share **one** absolute deadline: the
+  1846	        earlier of the absolute deadline of the round and the fixed
+  1847	        cleanup budget of the round.  That one value is used by the send
+  1848	        of the stop, by the stop of the background threads, by the close
+  1849	        of the broker, by the close of the channel and by the close of
+  1850	        the endpoints of the channel.  No layer of the cleanup adds a
+  1851	        budget of its own and a round that is stopped does not get a new
+  1852	        and unauthorised grace period of hours.
+  1853	
+  1854	        The stop blocks the heartbeat that would follow it.
+  1855	
+  1856	        A repeated stop does not send a second command and it does not
+  1857	        close a second time.  It waits for the close that is in flight
+  1858	        inside the same absolute deadline of the cleanup, so that it
+  1859	        never returns a success before the cleanup could finish.
+  1860	        """
+  1861	        if self._stopped:
+  1862	            # A repeated stop sends no second command and it closes no
+  1863	            # second time.  It waits for the close that is in flight and
+  1864	            # it coordinates the items that a previous attempt did not
+  1865	            # confirm, inside the **original** deadline of the cleanup.
+  1866	            cleanup_deadline = self._cleanup_deadline_for()
+  1867	            try:
+  1868	                status = self._close_broker()
+  1869	                if status != 'PERFORMED':
+  1870	                    self._public_stop_recovery(cleanup_deadline)
+  1871	            finally:
+  1872	                self._await_close()
+  1873	            return self.evidence()
+  1874	        self._stopped = True
+  1875	        self._stopping = True
+  1876	        self._context.request_stop()
+  1877	        cleanup_deadline = self._cleanup_deadline_for()
+  1878	        status = 'PERFORMED'
+  1879	        try:
+  1880	            if self.broker is not None and self.state in ('ARMED', 'RUNNING'):
+  1881	                self._bind_deadline(cleanup_deadline)
+  1882	                self._send('STOP', terminal=True)
+  1883	                reply = self._read_reply(
+  1884	                    ('STOPPED', 'REFUSED'),
+  1885	                    timeout=max(0.0, cleanup_deadline - self._clock()))
+  1886	                self._apply_state(reply['state'])
+  1887	                self._terminal = reply['detail']
+  1888	                if reply['kind'] == 'REFUSED':
+  1889	                    self._failures.append(reply['detail'].get('code', 'BROKER_REFUSED'))
+  1890	            elif self.broker is None:
+  1891	                self._failures.append('CUSTODY_BROKER_NOT_STARTED')
+  1892	                self._latch_unknown_state()
+  1893	        except CustodyError as error:
+  1894	            self._failures.append(error.code)
+  1895	            self._latch_unknown_state()
+  1896	        except Exception as error:  # noqa: BLE001 - the failure stays visible
+  1897	            # An ordinary failure of the stop is a named failure of the
+  1898	            # round: the evidence of the round keeps it and the stop
+  1899	            # does not raise over the evidence.
+  1900	            self._failures.append(self._failure_code(error))
+  1901	            self._latch_unknown_state()
+  1902	        except BaseException as error:  # noqa: BLE001 - the failure stays visible
+  1903	            # A cancellation is cleaned up and it continues to propagate.
+  1904	            self._failures.append(self._failure_code(error))
+  1905	            self._latch_unknown_state()
+  1906	            raise
+  1907	        finally:
+  1908	            status = self._close_broker()
+  1909	            if status != 'PERFORMED':
+  1910	                # An **explicit public stop** coordinates the items that
+  1911	                # a previous attempt did not confirm.  The internal close
+  1912	                # of the round never does that: a close that follows the
+  1913	                # attempt of a background thread - the close of a start
+  1914	                # that failed, for instance - would close the same peer a
+  1915	                # second time.
+  1916	                self._public_stop_recovery(cleanup_deadline)
+  1917	            # The **real** closer of the round is coordinated on every
+  1918	            # exit of the public stop: the normal one, the cancelled one
+  1919	            # and the ordinary failure.  The end of the attempt of the
+  1920	            # close is not the end of the thread that performs it.
+  1921	            self._await_close()
+  1922	        return self.evidence()
+  1923	
+  1924	    def _close_broker(self):
+  1925	        """Close the original handle of the broker, exactly once.
+  1926	
+  1927	        One session keeps ONE cleanup owner and ONE absolute cleanup
+  1928	        deadline.  The first caller becomes the owner of the close and
+  1929	        it performs it; every other caller is a competitor and it waits
+  1930	        for the close that is in flight **inside the same absolute
+  1931	        deadline** of the cleanup.  A competitor never assumes that a
+  1932	        close in progress is a close that is finished and it never
+  1933	        renews the deadline of the cleanup.
+  1934	
+  1935	        The owner publishes the end of its attempt in a ``finally``: a
+  1936	        success, an ordinary exception, a cancellation and a
+  1937	        ``SystemExit`` all wake the waiters.  A waiter never holds the
+  1938	        lock of the owner while it waits and the owner never waits for
+  1939	        itself.
+  1940	
+  1941	        A handle that could not be closed is *kept*: the reference of the
+  1942	        original handle stays in the evidence of the round and the round
+  1943	        stays unknown.  A failed close is never swallowed and never
+  1944	        replaced by a success.
+  1945	
+  1946	        The internal close of the round never coordinates the items
+  1947	        that a previous attempt did not confirm.  The recovery of the
+  1948	        unconfirmed items belongs to the **public stop** of the round:
+  1949	        a close that follows the attempt of a background thread - the
+  1950	        close of a start that failed, for instance - would close the
+  1951	        same peer a second time.
+  1952	
+  1953	        The return value names the role of the caller: ``PERFORMED``
+  1954	        when this call was the owner of the close, ``ALREADY_FINISHED``
+  1955	        when an attempt ended before, ``WAITED`` when another owner was
+  1956	        closing the round and ``OWNER`` when the caller is the owner
+  1957	        itself.
+  1958	        """
+  1959	        deadline = self._cleanup_deadline_for()
+  1960	        with self._close_lock:
+  1961	            state = self._close_state
+  1962	            if state == 'NOT_STARTED':
+  1963	                if self.broker is None:
+  1964	                    # Nothing was acquired: there is nothing to close
+  1965	                    # and no owner of the close is claimed.
+  1966	                    return 'NOTHING_TO_CLOSE'
+  1967	                self._close_state = 'IN_PROGRESS'
+  1968	                self._close_owner = threading.current_thread()
+  1969	                owner = True
+  1970	            else:
+  1971	                owner = False
+  1972	        if owner:
+  1973	            try:
+  1974	                self._perform_close(deadline)
+  1975	            finally:
+  1976	                # The end of the attempt is published on every path: a
+  1977	                # success, an ordinary exception, a cancellation and a
+  1978	                # SystemExit all wake the waiters.
+  1979	                self._finish_close()
+  1980	            return 'PERFORMED'
+  1981	        if state == 'FINISHED':
+  1982	            # The attempt that was in flight ended.  An attempt that
+  1983	            # ended is **not** a release, but the internal close does
+  1984	            # not coordinate the unconfirmed items again: the public
+  1985	            # stop of the round does that, and only that.
+  1986	            return 'ALREADY_FINISHED'
+  1987	        if self._close_owner is threading.current_thread():
+  1988	            # The owner of the close never waits for itself.
+  1989	            return 'OWNER'
+  1990	        self._await_close()
+  1991	        return 'WAITED'
+  1992	
+  1993	    def _public_stop_recovery(self, deadline):
+  1994	        """Coordinate the items that a previous attempt did not confirm.
+  1995	
+  1996	        Only an **explicit public stop** of the round reaches this
+  1997	        method.  The internal close of the round never coordinates the
+  1998	        unconfirmed items again: a close that follows the attempt of a
+  1999	        background thread would close the same peer a second time.
+  2000	
+  2001	        The recovery is a **take over** of the unconfirmed items by the
+  2002	        owner of the public stop and it uses the **original** deadline
+  2003	        of the cleanup: the deadline is never renewed.  A recovery that
+  2004	        arrives after the deadline keeps the resources of the round with
+  2005	        their owner and the round stays unknown.
+  2006	
+  2007	        A competitor never opens a second close at the same time: a
+  2008	        close that is in flight is waited for and the items that it did
+  2009	        not confirm may be coordinated by a **later** public stop.  The
+  2010	        recovery is therefore never locked out.
+  2011	        """
+  2012	        if self.broker is None:
+  2013	            # Everything that the round owned was released: there is
+  2014	            # nothing left to coordinate.
+  2015	            return 'NOTHING_TO_RECOVER'
+  2016	        with self._close_lock:
+  2017	            if self._close_state == 'IN_PROGRESS':
+  2018	                # Another owner is closing the round right now: the
+  2019	                # competitor waits for that owner and it never opens a
+  2020	                # second close at the same time.
+  2021	                return 'IN_PROGRESS'
+  2022	            if self._close_state != 'FINISHED':
+  2023	                # No attempt of the close ever ended: there is nothing
+  2024	                # that could be coordinated again.
+  2025	                return 'NOT_STARTED'
+  2026	        self._recover_close(deadline)
+  2027	        return 'RECOVERED'
+  2028	
+  2029	    def _recover_close(self, deadline):
+  2030	        """Coordinate the items that a previous attempt did not confirm.
+  2031	
+  2032	        The recovery is the **public** entry of the round: it calls the
+  2033	        product entry of the handle of the broker and it never calls a
+  2034	        method of a stand-in.  Only an explicit public stop reaches it
+  2035	        and the internal close of the round never does.  The original
+  2036	        deadline of the cleanup is never renewed: a recovery that
+  2037	        arrives after it keeps the resources of the round with their
+  2038	        owner and the round stays unknown.
+  2039	
+  2040	        The recovery opens a **new generation** of the close and it
+  2041	        publishes its own event.  The end of the previous attempt never
+  2042	        proves that the attempt that is running now ended: a waiter
+  2043	        that arrives during this generation waits for this generation.
+  2044	        """
+  2045	        if self.broker is None:
+  2046	            # Everything that the round owned was released: there is
+  2047	            # nothing left to coordinate.
+  2048	            return
+  2049	        if max(0.0, deadline - self._clock()) <= 0.0:
+  2050	            self._failures.append('CUSTODY_CLOSE_RECOVERY_EXPIRED')
+  2051	            self._latch_unknown_state()
+  2052	            return
+  2053	        with self._close_lock:
+  2054	            if self._close_state == 'IN_PROGRESS':
+  2055	                # Another owner is closing the round right now.
+  2056	                return
+  2057	            self._close_state = 'IN_PROGRESS'
+  2058	            self._close_owner = threading.current_thread()
+  2059	            self._close_generation += 1
+  2060	            self._close_done = threading.Event()
+  2061	        try:
+  2062	            self._perform_close(deadline)
+  2063	        finally:
+  2064	            self._finish_close()
+  2065	
+  2066	    def _perform_close(self, deadline):
+  2067	        """The close of the original handle of the broker, by its owner.
+  2068	
+  2069	        The steps of the close are independent of each other: a failure
+  2070	        of one of them never skips the ones that are safe to run.
+  2071	
+  2072	        The release of the reference needs the **facts** of the close:
+  2073	        the channel, the process and its original handle and the reader
+  2074	        of the channel have to be closed and the reader has to have
+  2075	        stopped without an error.  A missing fact, a ``None``, a
+  2076	        ``False``, an unknown value and an exception are all unknown: the
+  2077	        original broker is kept and the round stays unknown.
+  2078	        """
+  2079	        try:
+  2080	            self._stop_background(deadline)
+  2081	        except BaseException as error:  # noqa: BLE001 - the failure stays visible
+  2082	            # The background threads of the round could not be stopped.
+  2083	            # The close of the original handle of the broker still runs:
+  2084	            # the steps of the close are independent of each other.
+  2085	            self._failures.append('CUSTODY_BACKGROUND_STOP_FAILED:'
+  2086	                                   + type(error).__name__)
+  2087	            self._latch_unknown_state()
+  2088	        try:
+  2089	            self._bind_deadline(deadline)
+  2090	        except BaseException as error:  # noqa: BLE001 - the failure stays visible
+  2091	            self._failures.append(self._failure_code(error))
+  2092	        broker = self.broker
+  2093	        if broker is None:
+  2094	            return
+  2095	        try:
+  2096	            facts = broker.close()
+  2097	        except BaseException as error:  # noqa: BLE001 - the failure stays visible
+  2098	            self._failures.append('CUSTODY_BROKER_CLOSE_FAILED:'
+  2099	                                   + type(error).__name__)
+  2100	            self._broker_close_failed = True
+  2101	            self._latch_unknown_state()
+  2102	            self._broker_reader_finished = getattr(broker, 'reader_finished', None)
+  2103	            return
+  2104	        self._broker_reader_finished = getattr(broker, 'reader_finished', None)
+  2105	        self._broker_close_facts = facts if isinstance(facts, dict) else None
+  2106	        if not isinstance(facts, dict):
+  2107	            # A close that returned no facts at all is not a proof.
+  2108	            self._failures.append('CUSTODY_BROKER_CLOSE_INCOMPLETE:facts')
+  2109	            self._broker_close_failed = True
+  2110	            self._latch_unknown_state()
+  2111	            return
+  2112	        incomplete = []
+  2113	        for key in REQUIRED_CLOSE_FACTS:
+  2114	            if key not in facts or facts[key] is not True:
+  2115	                incomplete.append(key)
+  2116	        for key in REQUIRED_CLOSE_ZERO_FACTS:
+  2117	            if key not in facts or facts[key] != 0:
+  2118	                incomplete.append(key)
+  2119	        for key in READER_CLOSE_FACTS:
+  2120	            if key in facts and facts[key] is not True:
+  2121	                incomplete.append(key)
+  2122	        if getattr(broker, 'reader_finished', None) is not True:
+  2123	            # The reader of the channel has to have really stopped.
+  2124	            # A missing fact and an unknown fact are both unknown.
+  2125	            incomplete.append('reader_finished')
+  2126	        if facts.get('channel_reader_error'):
+  2127	            incomplete.append('channel_reader_error')
+  2128	        if facts.get('channel_retained_workers'):
+  2129	            incomplete.append('channel_retained_workers')
+  2130	        if incomplete:
+  2131	            for key in incomplete:
+  2132	                self._failures.append('CUSTODY_BROKER_CLOSE_INCOMPLETE:' + key)
+  2133	            self._broker_close_failed = True
+  2134	            self._latch_unknown_state()
+  2135	            # The original broker is kept: the reference of the
+  2136	            # resource of the round is never dropped and the round
+  2137	            # never claims a release that it cannot prove.
+  2138	            return
+  2139	        self.broker = None
+  2140	
+  2141	    def _finish_close(self):
+  2142	        """Publish the end of the attempt of the close of the round.
+  2143	
+  2144	        FINISHED means that the attempt ended and it never means that
+  2145	        the resources of the round are released: only the facts of the
+  2146	        close prove that.
+  2147	
+  2148	        The event that is published is the event of the **current**
+  2149	        generation of the close: the end of an older attempt never
+  2150	        releases a waiter of the attempt that is running now.
+  2151	        """
+  2152	        with self._close_lock:
+  2153	            self._close_state = 'FINISHED'
+  2154	            event = self._close_done
+  2155	        event.set()
+  2156	
+  2157	    def _await_close(self):
+  2158	        """Wait for the close that is in flight, inside the shared deadline.
+  2159	
+  2160	        The wait never holds the lock of the owner: the owner may need
+  2161	        it while it stops the background threads of the round.  The
+  2162	        arrival of a waiter is published, so that the round and its
+  2163	        evidence can see that a competitor waits for the close that it
+  2164	        owns.
+  2165	
+  2166	        The end of the **attempt** of the close and the end of the
+  2167	        **thread** that performs it are two different facts.  A waiter
+  2168	        that arrives when the attempt already ended still waits for the
+  2169	        real exit of the closer: only a close that has no closer thread
+  2170	        of its own and no cleanup in flight may be confirmed at once.
+  2171	        """
+  2172	        with self._close_lock:
+  2173	            state = self._close_state
+  2174	            if state == 'IN_PROGRESS' and self._close_owner is threading.current_thread():
+  2175	                # The owner of the close never waits for itself.
+  2176	                return True
+  2177	            waiting = state == 'IN_PROGRESS'
+  2178	            if waiting:
+  2179	                self._close_waiters += 1
+  2180	            # The waiter waits for the event of the **generation** that
+  2181	            # it found.  The end of an older attempt never releases a
+  2182	            # waiter of the attempt that is running now.
+  2183	            event = self._close_done
+  2184	        if waiting:
+  2185	            self._close_waiter_arrived.set()
+  2186	        try:
+  2187	            deadline = self._cleanup_deadline_for()
+  2188	            if waiting:
+  2189	                while True:
+  2190	                    remaining = max(0.0, deadline - self._clock())
+  2191	                    if remaining <= 0.0:
+  2192	                        # The shared deadline of the cleanup arrived.
+  2193	                        # The deadline is never renewed and the original
+  2194	                        # resources of the round are kept.
+  2195	                        self._failures.append('CUSTODY_CLOSE_NOT_FINISHED')
+  2196	                        self._latch_unknown_state()
+  2197	                        return False
+  2198	                    if event.wait(min(remaining, CLOSE_WAIT_SLICE_SECONDS)):
+  2199	                        # The end of the attempt of this generation is
+  2200	                        # published.  A **new** generation may have
+  2201	                        # begun in the meantime: the waiter follows the
+  2202	                        # current owner and it is never released by the
+  2203	                        # end of an older attempt.  The end of the
+  2204	                        # **thread** that performed the attempt is a
+  2205	                        # second fact.
+  2206	                        with self._close_lock:
+  2207	                            if (self._close_state == 'IN_PROGRESS'
+  2208	                                    and self._close_owner is not threading.current_thread()):
+  2209	                                event = self._close_done
+  2210	                                continue
+  2211	                        break
+  2212	            return self._await_closer_exit(deadline)
+  2213	        finally:
+  2214	            if waiting:
+  2215	                with self._close_lock:
+  2216	                    self._close_waiters -= 1
+  2217	
+  2218	    def _await_closer_exit(self, deadline):
+  2219	        """Wait for the **real** exit of the closer of the round.
+  2220	
+  2221	        The end of the attempt of the close is published by the owner
+  2222	        of the close and it is published **before** the thread that
+  2223	        performs it returns.  The event of the closer is therefore not
+  2224	        a proof that the thread ended: the waiter joins the thread and
+  2225	        it asks the thread itself whether it is still alive.
+  2226	
+  2227	        The join uses the **same** absolute deadline of the cleanup and
+  2228	        the remaining budget is recomputed before every single join.
+  2229	        The round never joins itself and a closer never waits for a
+  2230	        waiter: there is no cycle of waits.
+  2231	
+  2232	        A closer whose **start** did not return is **unknown** and not a
+  2233	        thread that ended: the join of such a thread raises and the
+  2234	        thread may still come up.  Such a closer keeps its owner and
+  2235	        the round stays unknown.
+  2236	
+  2237	        A closer that is still alive when the deadline arrives keeps
+  2238	        its owner and the round stays unknown.
+  2239	        """
+  2240	        with self._close_lock:
+  2241	            closers = list(self._closer_threads)
+  2242	        if not closers:
+  2243	            # The close was performed by the caller itself: there is no
+  2244	            # thread of its own and there is nothing to join.
+  2245	            return True
+  2246	        current = threading.current_thread()
+  2247	        for closer in closers:
+  2248	            if closer is current:
+  2249	                # The round never joins itself.  The closer is the
+  2250	                # thread that runs this wait: it cannot wait for its
+  2251	                # own exit and it ends as soon as this method returns.
+  2252	                continue
+  2253	            if not self._join_one_closer(closer, deadline):
+  2254	                return False
+  2255	        return True
+  2256	
+  2257	    def _join_one_closer(self, closer, deadline):
+  2258	        """Wait for the real exit of one closer of the round."""
+  2259	        while True:
+  2260	            remaining = max(0.0, deadline - self._clock())
+  2261	            if remaining <= 0.0:
+  2262	                # The original deadline of the cleanup arrived.  The
+  2263	                # deadline is never renewed, the closer keeps its owner
+  2264	                # and the round stays unknown.
+  2265	                self._failures.append('CUSTODY_CLOSER_NOT_FINISHED')
+  2266	                self._latch_unknown_state()
+  2267	                return False
+  2268	            try:
+  2269	                closer.join(min(remaining, CLOSE_WAIT_SLICE_SECONDS))
+  2270	            except RuntimeError:
+  2271	                # The start of this closer did not return: the thread
+  2272	                # was never started and it may still come up.  It is
+  2273	                # **unknown** and not a thread that ended.
+  2274	                self._failures.append('CUSTODY_CLOSER_START_UNKNOWN')
+  2275	                self._latch_unknown_state()
+  2276	                return False
+  2277	            if not closer.is_alive():
+  2278	                return True
+  2279	
+  2280	    def __enter__(self):
+  2281	        return self
+  2282	
+  2283	    def __exit__(self, _kind, _value, _traceback):
+  2284	        try:
+  2285	            self.stop()
+  2286	        except Exception:  # noqa: BLE001 - the evidence keeps the failure
+  2287	            self._latch_unknown_state()
+  2288	        return False
+  2289	
+  2290	    # -- the evidence ------------------------------------------------------
+  2291	    def evidence(self):
+  2292	        """The evidence of the round.
+  2293	
+  2294	        Every native claim of this evidence is ``NOT_PROVEN``.  This package
+  2295	        has never executed a Windows service, so it may not claim that a
+  2296	        service was released, that a GPU was released, that a port was
+  2297	        released or that a parent crash is survived.
+  2298	        """
+  2299	        return {
+  2300	            'kind': 'lvw.s3-native-custody-evidence/1',
+  2301	            'state': self.state,
+  2302	            'run_id': self.plan.run_id if self.plan is not None else None,
+  2303	            'candidate_sha': self.plan.candidate_sha if self.plan is not None else None,
+  2304	            'authorization_sha256': (self.plan.authorization_sha256
+  2305	                                     if self.plan is not None else None),
+  2306	            'grant_authority': 'NOT_VERIFIED',
+  2307	            'plan_sha256_proves': 'PLAN_INTEGRITY_ONLY',
+  2308	            'plan': self.plan.sealed if self.plan is not None else None,
+  2309	            'plan_sha256': (self.plan.sealed_sha256()
+  2310	                            if self.plan is not None else None),
+  2311	            'broker': self._broker_identity,
+  2312	            'broker_channel_reader_finished': self._broker_reader_finished,
+  2313	            # Whether the ONE context of the round was handed over to
+  2314	            # the launcher of the broker.  ``None`` means that no
+  2315	            # launcher was called at all.
+  2316	            'launcher_context_propagated': self._launcher_context_propagated,
+  2317	            'broker_retained': self.broker is not None,
+  2318	            'broker_close_failed': self._broker_close_failed,
+  2319	            'broker_close_facts': self._broker_close_facts,
+  2320	            'broker_close_facts_required': list(REQUIRED_CLOSE_FACTS),
+  2321	            'pump_error': (repr(self._pump.error)
+  2322	                           if self._pump is not None and self._pump.error is not None
+  2323	                           else None),
+  2324	            'heartbeat_alive': bool(self._heartbeat is not None
+  2325	                                    and self._heartbeat.is_alive()),
+  2326	            'pump_alive': bool(self._pump is not None and self._pump.alive),
+  2327	            # The coordination of the close of the round.  ``FINISHED``
+  2328	            # means that the attempt of the close ended and it never
+  2329	            # means that the resources of the round are released: only
+  2330	            # the facts of the close prove that.
+  2331	            'close_state': self._close_state,
+  2332	            'close_finished': self._close_done.is_set(),
+  2333	            'close_generation': self._close_generation,
+  2334	            'close_waiters': self._close_waiters,
+  2335	            'closer_alive': bool(self._closer is not None and self._closer.is_alive()),
+  2336	            # The state of the **start** of the closer and the number of
+  2337	            # the closer threads that this session ever built.  A closer
+  2338	            # whose start did not return may still come up: it keeps its
+  2339	            # owner in the list and it is never forgotten.
+  2340	            'closer_start_state': self._closer_start_state,
+  2341	            'closer_threads': len(self._closer_threads),
+  2342	            # The end of the **thread** of the closer and the end of its
+  2343	            # **attempt** are two facts.  The event of the closer is
+  2344	            # published inside the thread and it is therefore not a
+  2345	            # proof that the thread ended: the evidence asks the thread
+  2346	            # itself.
+  2347	            'closer_exited': bool(self._closer_exited.is_set()
+  2348	                                   and self._closer is not None
+  2349	                                   and not self._closer.is_alive()),
+  2350	            'background_open': self._background_open,
+  2351	            # The state of every background thread of the round.  The
+  2352	            # state tells whether the start of the thread returned and
+  2353	            # whether the thread really runs: a thread whose start did
+  2354	            # not return is never taken for a thread that ended.
+  2355	            'background_threads': [{'kind': record['kind'],
+  2356	                                    'state': record['state'],
+  2357	                                    'started': record['started'],
+  2358	                                    'alive': bool(record['thread'].is_alive()),
+  2359	                                    'error_type': (type(record['error']).__name__
+  2360	                                                   if record['error'] is not None
+  2361	                                                   else None)}
+  2362	                                   for record in self._background_threads.values()],
+  2363	            'cleanup_deadline': self._cleanup_deadline,
+  2364	            'broker_deadline_aware': (getattr(self.broker, 'channel_deadline_aware', False)
+  2365	                                      is True),
+  2366	            'broker_channel_deadline_bound': getattr(self.broker, 'write_deadline', None),
+  2367	            'channel': {
+  2368	                'schema': CHANNEL_SCHEMA,
+  2369	                'nonce': self._nonce,
+  2370	                'frames_sent': self._frames_sent,
+  2371	                'frames_received': self._frames_received,
+  2372	                'last_sequence_sent': self._sequence,
+  2373	                'last_sequence_received': self._broker_sequence,
+  2374	                'frame_limit': MAX_FRAMES,
+  2375	                'frame_bytes_limit': MAX_FRAME_BYTES,
+  2376	                'private_to_the_parent': True,
+  2377	                'heartbeat_interval_seconds': HEARTBEAT_INTERVAL_SECONDS,
+  2378	                'heartbeat_missing_seconds': HEARTBEAT_MISSING_SECONDS,
+  2379	                'heartbeat_failure': self._heartbeat_failure,
+  2380	                'last_alive_wall': self._last_alive_wall,
+  2381	                'frame_budget_total': MAX_FRAMES,
+  2382	                'frame_budget_reserved_terminal': RESERVED_TERMINAL_FRAMES,
+  2383	                'stop_cleanup_budget_seconds': STOP_CLEANUP_SECONDS,
+  2384	            },
+  2385	            'lease': {
+  2386	                'lease_expires_at': self.plan.lease_expires_at if self.plan is not None else None,
+  2387	                'max_runtime_seconds': (self.plan.max_runtime_seconds
+  2388	                                        if self.plan is not None else None),
+  2389	                'parent_child_remaining_seconds': self._remaining,
+  2390	                'effective_deadline_wall': self._deadline_wall,
+  2391	                'deadline_extended': False,
+  2392	                'absolute': True,
+  2393	            },
+  2394	            'terminal': self._terminal,
+  2395	            'failures': list(self._failures),
+  2396	            # The claims that this package does not make.
+  2397	            'native_execution_proven': False,
+  2398	            'native_cleanup_proven': False,
+  2399	            'gpu_released_proven': False,
+  2400	            'port_released_proven': False,
+  2401	            'sampler_proven': False,
+  2402	            'parent_crash_recovery_proven': False,
+  2403	            'windows_stdin_eof_proven': False,
+  2404	            'admission_produced': False,
+  2405	            'stage_pass_claim': False,
+  2406	            'product_gate0': False,
+  2407	        }
+  2408	
+  2409	
+  2410	def _default_launcher(plan, run_root, nonce, *, context=None):
+  2411	    """The production launcher of the broker of this package.
+  2412	
+  2413	    The launcher is deliberately inert here.  The broker of this package is
+  2414	    a Windows process and this package has never started one, so the
+  2415	    launcher refuses on every platform instead of pretending that a native
+  2416	    execution exists.  The wiring of the launcher into the parent
+  2417	    controller is a later owner and it is not enabled by this package.
+  2418	
+  2419	    The **context** of the round is handed over to the launcher of the
+  2420	    broker: the launcher holds the absolute deadline of the round and the
+  2421	    one context of the round **before** the first side effect of the
+  2422	    launch - the creation of the process, the reading of the executable,
+  2423	    the channel and its endpoints.
+  2424	    """
+  2425	    from tools.v0_s3_native_broker import launch_broker
+  2426	    return launch_broker(plan, run_root, nonce, context=context)

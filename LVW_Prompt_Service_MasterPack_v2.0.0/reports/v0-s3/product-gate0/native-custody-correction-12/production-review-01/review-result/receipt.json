@@ -1,0 +1,852 @@
+{
+  "schema": "lvw.n1-correction12.static-production-review/1",
+  "candidate_sha": "025146bc41c914b870ffe991c2e0b6dd3a49c160",
+  "recommendation": "CHANGES_REQUIRED",
+  "counts": {
+    "Fatal": 0,
+    "Major": 2,
+    "Minor": 0
+  },
+  "atom_dispositions": {
+    "M07-A": "PARTIALLY_CLOSED_STATIC_OPEN_CROSSPRODUCT_DUPLICATE_FACT_LOSS_CURRENT_BOUND",
+    "M08-A": "CLOSED_STATIC",
+    "M08-B": "CLOSED_STATIC",
+    "M08-C": "PARTIALLY_CLOSED_STATIC_OPEN_LOOP_CURRENT_CONTEXT_AND_MS_FLOOR",
+    "M08-D": "CLOSED_STATIC",
+    "M08-E": "PARTIALLY_CLOSED_STATIC_PREPOPEN_OPEN_LATER_HASH_CHANNEL"
+  },
+  "findings": [
+    {
+      "id": "M07",
+      "severity": "Major",
+      "status": "OPEN",
+      "subpaths": [
+        {
+          "id": "M07-A.1",
+          "location": [
+            "B6888",
+            "B6918-6973",
+            "B7016-7044",
+            "B7351-7364"
+          ],
+          "summary": "Retained process retry and raw retry list both close same originals; successful raw work repeats."
+        },
+        {
+          "id": "M07-A.2",
+          "location": [
+            "B6923-6957",
+            "B7328-7364"
+          ],
+          "summary": "Raw close interruption prevents helper returning confirmed exit/HANDLE facts; subsequent recovery repeats successful work."
+        },
+        {
+          "id": "M07-A.3",
+          "location": [
+            "B6930-6934",
+            "B7351-7357",
+            "B7016-7026"
+          ],
+          "summary": "Initial raw closes lack bound admission; pending retry loop snapshots context once rather than each next close."
+        }
+      ]
+    },
+    {
+      "id": "M08",
+      "severity": "Major",
+      "status": "OPEN",
+      "subpaths": [
+        {
+          "id": "M08-C.1",
+          "location": [
+            "B6197-6215",
+            "B5480-5485",
+            "C815",
+            "B6395-6396",
+            "C1236-1249",
+            "C873-874"
+          ],
+          "summary": "Child loop and parent pump/reply supervisor waits do not crop next requested wait to current original context minimum."
+        },
+        {
+          "id": "M08-C.2",
+          "location": [
+            "B843-856",
+            "B1134-1152",
+            "B3394-3399"
+          ],
+          "summary": "Existing millisecond converters force positive 1ms wait with less remaining."
+        },
+        {
+          "id": "M08-E",
+          "location": [
+            "C1874-1877",
+            "B7563-7575",
+            "B7585-7604"
+          ],
+          "summary": "No stop/effective-expiry admission before next executable hash or channel effects after admitted Popen."
+        }
+      ]
+    }
+  ],
+  "original_major_dispositions": {
+    "M03": "CLOSED_STATIC_EXIT_SAFETY",
+    "M05": "CLOSED_STATIC",
+    "M06": "CLOSED_STATIC",
+    "M07": "OPEN",
+    "M08": "OPEN",
+    "M09": "CLOSED_STATIC_ORIGINAL_OUTCOME_SELECTION"
+  },
+  "original_minor_dispositions": {
+    "m03": "CLOSED_STATIC"
+  },
+  "obligations": [
+    {
+      "id": "N03-R01",
+      "status": "CLOSED_STATIC",
+      "evidence": "B1515-1516/B1569-1614/B1678-1721 retain original creation identities, reserve/refuse transfer, and preserve failed cleanup.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R02",
+      "status": "CLOSED_STATIC",
+      "evidence": "B1526-1568/B1593-1614 independently handle attribute/NUL/birth/process failures and original cancellation association.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R03",
+      "status": "CLOSED_STATIC",
+      "evidence": "B1359-1405 validates job PID header, returned byte bounds, equal assigned/listed counts and cap before PID reads.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R04",
+      "status": "CLOSED_STATIC",
+      "evidence": "B2589-2606/B2949-2969/B3474-3483 retain original job when close is unconfirmed.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R05",
+      "status": "CLOSED_STATIC",
+      "evidence": "B3185-3223 independently executes stop finalizers and rethrows first original error after bookkeeping.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R06",
+      "status": "OPEN",
+      "evidence": "C1696-1774 parent startup failure owner retained; B6888/B6930-6973/B7351-7364 raw retry facts/duplicate-close/expiry residual M07-A.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R07",
+      "status": "CLOSED_STATIC",
+      "evidence": "B2472-2489/B2674-2801 startup effect guards; B5705-5734/B5850-5861/B6061-6100 fixes established-start interrupted join and retains unknown original owner.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R08",
+      "status": "OPEN",
+      "evidence": "B6507-6508/B6523-6524 normal process waits and B5812-5822 startup waits repaired; all-next-wait M08-C remains B6210-6215/B3399.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R09",
+      "status": "CLOSED_STATIC",
+      "evidence": "B4972-4986 partial-write current minimum; B5012-5058 retries unresolved worker/thread HANDLE before closed-file early return.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R10",
+      "status": "CLOSED_STATIC",
+      "evidence": "B4246-4271 bounded generation queue; B4043-4109 checks current original cancel/minimum at dispatch before primitive action.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R11",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1134-1152 serializes writes and stop barrier; C1305-1311 latches background failure; C1424-1429/C1457-1462 UNKNOWN sticky.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R12",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1169-1176/C1265-1267 common frame budget; B5983/B6246-6251 terminal reserve zero, combined budget unchanged.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R13",
+      "status": "CLOSED_STATIC",
+      "evidence": "B5357-5397 exact/one-over frame/tail/partial EOF; B5370-5371/B5475-5478 newly crops drain queue put using current remaining.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R14",
+      "status": "CLOSED_STATIC",
+      "evidence": "C2112-2139 strict actual close facts and reader-error retention; B6478-6487/B5012-5058 retries incomplete channel/workers.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R15",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1808-1827 structured original launcher code; B7527-7532 refuses platform/plan/nonce before files; further launch context residual separately M08-E.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R16",
+      "status": "UNCERTAIN",
+      "evidence": "Two production blobs do not establish external pins, complete original tests or full lifecycle/native compatibility; excluded.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R01",
+      "status": "CLOSED_STATIC",
+      "evidence": "B1459/B1536-1542 retains original NUL on failed close; B1192-1297 explicit retained-handle recovery remains.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R02",
+      "status": "CLOSED_STATIC",
+      "evidence": "B1526-1568/B1681-1723 independent cleanup and original cancellation association retained; raw Popen interruption issue is separately M07-A.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R03",
+      "status": "CLOSED_STATIC",
+      "evidence": "B1822-1823/B1840-1869 retains both original pipe ends and independently cleans inheritance-failure ends with cancellation association.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R04",
+      "status": "CLOSED_STATIC",
+      "evidence": "B2211-2290/B3426-3469 independent pending/record close; B2732-2735 shares callable live original process eligibility.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R05",
+      "status": "CLOSED_STATIC",
+      "evidence": "B3334-3349/B3351-3392 per-original-process waits and exit queries continue across ordinary/KI/SystemExit failures before original rethrow.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R06",
+      "status": "UNCERTAIN",
+      "evidence": "B2871-2877 preregisters original Core reader, but ident-less interrupted late start B3029-3044 is not native timing proof.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R07",
+      "status": "UNCERTAIN",
+      "evidence": "C1376-1414/C1569-1621 has startup records/barrier; true late background start timing remains excluded/unproved.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R08",
+      "status": "UNCERTAIN",
+      "evidence": "C1386-1408 retains background startup record; ident-less interrupted start physical lifecycle remains unproved.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R09",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1481-1511 records original closer before start, resets failed latch; C2268-2276 keeps RuntimeError UNKNOWN.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R10",
+      "status": "OPEN",
+      "evidence": "B6950-6967 original HANDLE retention/exit memory remains; B6888/B6930-6973/B7351-7364 cross-product raw double routes/confirmed-fact loss M07-A.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R11",
+      "status": "OPEN",
+      "evidence": "B4043-4109 dispatch current-context repair closed; B7491-7500/B7563 pre-Popen stop/expiry refusal closed; B7575/B7594 next effects still M08-E.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R12",
+      "status": "CLOSED_STATIC",
+      "evidence": "B199-208 and C274-277 publish one cleanup under lock; C1653-1663 reuses published original cleanup rather than resetting lease.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R13",
+      "status": "OPEN",
+      "evidence": "B3048-3056 Core waits recompute; B6507/B6523 and B5812-5822 repaired; B6210-6215 and millisecond floors retain M08-C.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R14",
+      "status": "CLOSED_STATIC",
+      "evidence": "B4536-4563 live endpoint minimum; B4346-4360 NOT_FOUND rereads original context and crops each pause; no fresh retry lease.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R15",
+      "status": "CLOSED_STATIC",
+      "evidence": "B4043-4109 current context cancel/effective minimum in actual dispatch decision; B4735-4741 await notices original context cancel.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R16",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1424-1429/C1457-1462 common state lock prevents late state apply from clearing UNKNOWN.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R17",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1169-1176/C1265-1267 atomic common frame count; C1134-1151 sequence/write serialized.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R18",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1170-1172/C1265-1267 and B5983/B6246-6251 terminal reserve zero on combined terminal budget, thresholds unchanged.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R19",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1861-1877/C1993-2064 repeated public stop keeps original cleanup, close event generation, and same-owner incomplete recovery.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R20",
+      "status": "CLOSED_STATIC",
+      "evidence": "B5012-5058 incomplete Windows worker/HANDLE retry precedes closed-file early return; B3853-3875 POSIX facts idempotent within its alternate path.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R21",
+      "status": "CLOSED_STATIC",
+      "evidence": "B6499-6500 derives standard-pipe facts from channel; normal BrokerProcess never closes those raw files itself.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R22",
+      "status": "CLOSED_STATIC",
+      "evidence": "C2112-2139 requires true/zero facts, actual reader finish and no reader error; no inference from close return alone.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R23",
+      "status": "CLOSED_STATIC",
+      "evidence": "C2172-2216 follows current in-progress event/generation; C2246-2278 bounded real original closer join, self-join avoidance and unknown-start refusal.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R24",
+      "status": "UNCERTAIN",
+      "evidence": "External pins, exact original node identities/order, assertions, phase artifacts and batch189/native results excluded.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R01",
+      "status": "CLOSED_STATIC",
+      "evidence": "B1164-1187/B1255-1269/B1696-1707 explicit exit confirmation before original process HANDLE close; B3433-3445 same Core safety.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R02",
+      "status": "CLOSED_STATIC",
+      "evidence": "B1134-1152/B1255-1291 API recovery retains unconfirmed control and returns incomplete claims with original bounded deadline; millisecond floor separately M08-C.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R03",
+      "status": "CLOSED_STATIC",
+      "evidence": "B979-1012/B1025-1034 shared pipe transfer/recovery claim; B1576-1590 and B1681-1721 process transfer/direct cleanup participate.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R04",
+      "status": "CLOSED_STATIC",
+      "evidence": "B1822-1869 independent original pipe-end retention/cleanup and original cancellation association.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R05",
+      "status": "CLOSED_STATIC",
+      "evidence": "B3048-3088 rereads actual reader liveness after wait/join failure; B3235-3246 pending close protects original live owner.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R06",
+      "status": "CLOSED_STATIC",
+      "evidence": "B3334-3349/B3366-3392 per-record finalizers preserve original KI/SystemExit after later safe records.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R07",
+      "status": "CLOSED_STATIC",
+      "evidence": "B2949-2969/B3262-3308 common success notification clears original record/reader/retained handle; B3020-3023 prevents repeat reader close.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R08",
+      "status": "UNCERTAIN",
+      "evidence": "B4667-4690 preregisters actual endpoint worker; B4427-4435 RuntimeError=false; real ident-less/start scheduling remains unproved.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R09",
+      "status": "OPEN",
+      "evidence": "B7571-7572 original pre-hash ownership and B5250-5262 partial channel registration preserved; ordinary stranded raw recovery repaired B6944-7044, cross-product M07-A remains.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R10",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1489-1491 original closer registered before start; C2269-2276 does not infer thread exit from RuntimeError.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R11",
+      "status": "CLOSED_STATIC",
+      "evidence": "B4204-4211 worker cancel decision; B4338-4360 same-generation completion/NOT_FOUND retry bounded by current original minimum.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R12",
+      "status": "CLOSED_STATIC",
+      "evidence": "B4949-4986 before each partial write uses current bound/absolute/cleanup minimum; preserves prior admitted-call cancellation semantics.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R13",
+      "status": "OPEN",
+      "evidence": "B7670-7678 child prebinding and B4043-4109 current dispatch repaired; pre-Popen public stop repaired B7491-7500; later hash/channel M08-E remains.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R14",
+      "status": "CLOSED_STATIC",
+      "evidence": "B6061-6100 startup registered before start and settles every exit; B5705-5734/B5850-5861 actual-start facts enable real join after interrupted start; startup await current bound B5812-5822.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R15",
+      "status": "CLOSED_STATIC",
+      "evidence": "B6478-6487/B6600-6635 incomplete channel retries; C1993-2139 same-original public stop recovery retains incomplete facts/error history.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R16",
+      "status": "CLOSED_STATIC",
+      "evidence": "B5012-5058 recomputes worker/alive/HANDLE/retained before _closed early return; incomplete original thread HANDLE retry preserved.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R17",
+      "status": "CLOSED_STATIC",
+      "evidence": "C2053-2064 uses fresh event/generation for retry; C2198-2211 follows current in-progress generation.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R18",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1867-1872/C1907-1921 public stop awaits; C2246-2278 actual closer exit coordination and self-join avoidance.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R01",
+      "status": "CLOSED_STATIC",
+      "evidence": "B2732-2735 stores original shared callable B2900-2902; B2924-2927 and B2307-2316 ask current original exit, B3433-3445 refuses early process close.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R02",
+      "status": "CLOSED_STATIC",
+      "evidence": "B979-1012/B1025-1034 pipe handover/recovery guarded; B1576-1590/B1681-1721 process successful transfer/direct failed-create claims guarded.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R03",
+      "status": "CLOSED_STATIC",
+      "evidence": "B2283-2286/B2965-2969/B3286-3308 common close notification; original reader handle cleared and B3020 prevents repeat.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R04",
+      "status": "OPEN",
+      "evidence": "B5250-5262 partial channel owned first; B5560-5616 unknown join protects raw read file; no-channel raw cross-product M07-A still open.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R05",
+      "status": "OPEN",
+      "evidence": "B6950-6967 original HANDLE failure retention/exit memory, B7180-7186/B7218-7222 no stale resurrection and ordinary raw retry fixed; M07-A duplicate/fact-loss/current-bound residual remains.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R06",
+      "status": "CLOSED_STATIC",
+      "evidence": "B4616-4626 initially cancelled/expired refusal; B4725-4730 final post-readiness admission and B4043-4109 current-context worker dispatch now both enforced.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R07",
+      "status": "OPEN",
+      "evidence": "C1810-1811/C2425-2426/B5083-5093 original context propagated, B7670-7678 child prebinding, dispatch/process waits repaired; M08-E later launch effects remain.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R08",
+      "status": "CLOSED_STATIC",
+      "evidence": "B4346-4360 NOT_FOUND current pause; B6930-6934/B7334-7336 aggregate dynamic process wait; B6507-6508/B6523-6524 normal wait and retry now reread original bound.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R09",
+      "status": "CLOSED_STATIC",
+      "evidence": "B6061-6100/B6118-6125 all-exit startup settle current budget; B5705-5734/B5850-5861 established interrupted start gets actual bounded join; B5736-5759/B5812-5822 current startup await.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R10",
+      "status": "CLOSED_STATIC",
+      "evidence": "B4747-4767 same-generation original error selected before/after timeout coordination; B4809-4812 original object returned; B4833-4881 cancellation order/parallel facts preserved.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R11",
+      "status": "CLOSED_STATIC",
+      "evidence": "B5357-5367/B5382-5386 exact/one-over; B5413-5416 sticky overflow; B5585-5586/B6621-6623 propagates; B6496/B6560-6577 first-error history; C2126 retains broker.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R12",
+      "status": "UNCERTAIN",
+      "evidence": "Actual event schedule causality/primitive calls and test fixtures excluded; static source cannot establish dynamic coverage.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R13",
+      "status": "UNCERTAIN",
+      "evidence": "Actual per-generation publication->timeout->coordination phase JSON, negatives and two public stop histories excluded; M09 static ordering alone is insufficient.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R14",
+      "status": "UNCERTAIN",
+      "evidence": "Exact old175/new14 identities/order, tool/dependency pins, changed assertions, before-salvage state and batch189 outcomes excluded.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    }
+  ],
+  "obligation_count": 72,
+  "obligation_status_counts": {
+    "CLOSED_STATIC": 53,
+    "OPEN": 10,
+    "UNCERTAIN": 9
+  },
+  "source_binding": {
+    "candidate_sha": "025146bc41c914b870ffe991c2e0b6dd3a49c160",
+    "sources": {
+      "v0_s3_native_broker.py": {
+        "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-12/production-review-01/v0_s3_native_broker.py.txt",
+        "sha256": "5527734702c83858eb147d3752cbc00224d62848ca80932082e22fe1345674f6"
+      },
+      "v0_s3_native_custody.py": {
+        "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-12/production-review-01/v0_s3_native_custody.py.txt",
+        "sha256": "9b7e68969f2cbf8763664ba57fa3e5ee4133a0beed076a64f037e6344f336d8d"
+      }
+    }
+  },
+  "source_verification": [
+    {
+      "name": "v0_s3_native_broker.py",
+      "sha256": "5527734702c83858eb147d3752cbc00224d62848ca80932082e22fe1345674f6",
+      "bytes": 361424,
+      "lines": 7692,
+      "matches_binding": true
+    },
+    {
+      "name": "v0_s3_native_custody.py",
+      "sha256": "9b7e68969f2cbf8763664ba57fa3e5ee4133a0beed076a64f037e6344f336d8d",
+      "bytes": 112727,
+      "lines": 2426,
+      "matches_binding": true
+    }
+  ],
+  "source_hashes_verified": true,
+  "line_count_semantics": "Measured physical lines; binding contains hashes only, no declared line counts. Numbered snapshots preserve original positions.",
+  "coordinate": {
+    "stage_id": "R1",
+    "workpack_id": "WP-R1-U3",
+    "gate": "S3_P4_OFFLINE_INTEGRATION_PREPARATION",
+    "state": "RUNNING"
+  },
+  "stage_pass_claim": false,
+  "final_independent_acceptance": false,
+  "runtime_authorized": false,
+  "dynamic": "NOT_RUN",
+  "native_behavior": "NOT_PROVEN",
+  "batch189": "SEPARATE_NOT_READ_NOT_CLAIMED",
+  "test_only_preflight_revision": "SEPARATE_NOT_INSPECTED",
+  "live_implementation_edits_read": false,
+  "candidate_imports": 0,
+  "candidate_compiles_execs": 0,
+  "candidate_tests_collection": 0,
+  "agents_started": 0,
+  "implementer_reports_tests_or_pass_narrative_read": false,
+  "original_ledger_counter_read": false,
+  "write_scope": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-12/production-review-01/review-result",
+  "input_hashes": {
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/AGENTS.md": "80386dacbc34134f21021d0db12a11f646a66bcb2a96f841e32a8c911b1d5d11",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/README.md": "cebce483aaab5bfa64d9a553983b5393f9f37950d5083c64f1ecde1e6c6a7a0f",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/.agent-governance/README.md": "a31398c4ccaaff0fe6bf606357bf223418b95837a489867bb6645c04bcd89225",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/plans/execution-control.json": "99f940dbf42a789f308624b14b087d969152548c88b4c6032132b2ca937bcbc0",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/docs/24_EXECUTION_MASTER_PLAN.md": "6762b5526ce291a88460c50922154a64c0dd0cfab958af36d6828c9905799eea",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-12/contract.md": "ef84f7329710b2ce01c552c165a76ed543792cf8418737d02cff44809e7a8ead",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-12/scope.json": "a1fb07ba56db08128702ea1685bdc38534280d6a2eff111844cdf0b6172ca470",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-12/decision.json": "9e424ec539e2a0e4d5f1e3d92734bb8afe7a17cee8a67705754bf31c4cbe74f4",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-12/production-review-01/source-binding.json": "deec8abf855be175a16239f17b9d929e54ba803064150d3ad0f727e6101a048b",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-11/production-review-01/review-result/review.md": "f0eadfcc864511349bfb41abd8fc13c83c69fdfedb8b64661697d13491ce9be3",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-11/production-review-01/review-result/receipt.json": "96e6915a1c0e1553ee4d86e83678af4470401f540a03bb680dd8cb82bb77a53d"
+  },
+  "development_outline": [
+    {
+      "stage_id": "V0-S0",
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "implementation": "ARCHIVED",
+      "machine_acceptance": "NO_GO_HISTORICAL",
+      "independent_review": "COMPLETED_WITH_BLOCKERS",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "V0-S1",
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "R0",
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "implementation": "PARTIAL_REUSED",
+      "machine_acceptance": "SINGLE_IMAGE_SUBSET_ONLY",
+      "independent_review": "NO_SEPARATE_R0_VERDICT",
+      "human_signoff": "NO_SEPARATE_R0_SIGNOFF"
+    },
+    {
+      "stage_id": "R1a",
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "V0-S2",
+      "completed_substeps": 7,
+      "total_substeps": 8,
+      "implementation": "IMPLEMENTED",
+      "machine_acceptance": "COMPLETE_FIXED9_PASSED",
+      "independent_review": "COMPLETE_FATAL0_MAJOR0_MINOR0",
+      "human_signoff": "PENDING"
+    },
+    {
+      "stage_id": "V0-S3",
+      "completed_substeps": 0,
+      "total_substeps": 6,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R1",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "EARLY_SLICE_IMPLEMENTED_FULL_R1_PENDING",
+      "machine_acceptance": "EARLY_SLICE_UM10_ONLY",
+      "independent_review": "EARLY_SLICE_FATAL0_MAJOR0",
+      "human_signoff": "EARLY_SLICE_APPROVED_FULL_R1_PENDING"
+    },
+    {
+      "stage_id": "V1-M1",
+      "completed_substeps": 0,
+      "total_substeps": 3,
+      "implementation": "DESIGN_ONLY",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R2",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R3",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R4",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5a",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5b",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5c",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    }
+  ],
+  "dynamic_coverage_required": [
+    "Original raw stream returned identity, actual retry, retained process/HANDLE failure cross-product, cancellation and expiry; no repeated confirmed actions and eventual table convergence",
+    "Actual post-submit/pre-dispatch context cancel/absolute/cleanup tightening event schedule with zero primitive calls",
+    "Normal Session->BrokerProcess actual wait arguments after channel closes and shortens original cleanup",
+    "Startup result/endpoint/drain/BrokerLoop wait arguments before and after current-context tightening, including sub-millisecond expiry",
+    "Real start-success-then-interrupt active tail, original exception identity, actual bounded join and same-owner later convergence",
+    "Public Session.stop while launch preparation/Popen/hash is paused; refuse next separately admitted hash/channel effects",
+    "M09 actual generation ordinary fault then timeout before consumption, successful and failed cancellation/join coordination, exact original error object, two real public stop/UNKNOWN histories",
+    "Separate frozen189 identity/order/pins/assertions/phase JSON/negative/oracle/salvage review"
+  ],
+  "unresolved_assumptions": [
+    "Git candidate-to-blob provenance is supplied binding rather than independent checkout reconstruction",
+    "Static source does not establish native scheduling, physical cleanup, HANDLE reuse or timing",
+    "Ident-less interrupted Core reader and parent background late startup remain uncertain",
+    "Full worker submission queue under adversarial concurrent endpoint calls may still request fixed wait; intended single-inflight reachability not proven here",
+    "Alternate POSIX poll path was observed but not used to invent Windows native feature requirements"
+  ],
+  "execution_audit": {
+    "methods": [
+      "read-only ls/rg/cat/sed/nl",
+      "diff exact prior/current immutable broker blobs",
+      "stdlib pathlib/json/hashlib source-as-data verification and report generation",
+      "stdlib tokenize to omit multiline strings/comments when viewing code"
+    ],
+    "candidate_code_loaded_or_executed": false,
+    "failed_read_command": "One invalid cwd typo rejected before command execution; corrected on next read.",
+    "approval_refusal": false,
+    "http429": false,
+    "orchestration_skill_read": true,
+    "runtime_guide_command": "orca-ide skills get orchestration"
+  },
+  "artifacts": {
+    "01-v0_s3_native_broker-numbered.txt": {
+      "sha256": "2e04e7434a126309f7ae371791da5b9b3f709860ce8dd7d625e756893af9a63d",
+      "bytes": 415268
+    },
+    "02-v0_s3_native_custody-numbered.txt": {
+      "sha256": "a89908a5c99b5fe506f2bec00c2fb771c1f34ec4433de3406e569d9615c34ec1",
+      "bytes": 129709
+    },
+    "review.md": {
+      "sha256": "0a32ffc6be8459349deac1a617ed068fcc5bc0dd519fa16e41d65fc7ac03b6a5",
+      "bytes": 36235
+    }
+  }
+}
