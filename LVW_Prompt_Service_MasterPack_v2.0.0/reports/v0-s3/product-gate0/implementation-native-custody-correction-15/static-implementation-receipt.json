@@ -1,0 +1,135 @@
+{
+ "admission_produced": false,
+ "batch_executed": false,
+ "candidate_base_sha": "63b490ae8b5678113fc13ed16fb2a8a54e5ca39c",
+ "changed_source_files": [
+  "tools/test_v0_s3_native_custody_correction10.py"
+ ],
+ "closed_static_preserved": [
+  "M08-A",
+  "M08-B",
+  "M08-C.1",
+  "M08-C.2",
+  "M08-D",
+  "M08-E",
+  "M05",
+  "M06",
+  "M09",
+  "m03",
+  "M03_exit_safety"
+ ],
+ "coordinate": "V1/R1/WP-R1-U3/S3_P4_OFFLINE_INTEGRATION_PREPARATION",
+ "counter": {
+  "counter_created": false,
+  "counter_read": false,
+  "counter_refunded": false,
+  "counter_reset": false,
+  "historical_counter_continuity": "UNAVAILABLE_NOT_PROVEN"
+ },
+ "dynamic_authorized": false,
+ "executed_commands": [
+  {
+   "command": "git status / git diff / git log / git show (read only)",
+   "kind": "version_control_read"
+  },
+  {
+   "command": "sha256 of the eight pinned files and of the baseline commit 8a6ed74 (git show)",
+   "kind": "digest_read"
+  },
+  {
+   "command": "ast.parse and in-memory compile of the changed test module",
+   "kind": "static_parse"
+  },
+  {
+   "command": "symtable scope check of the changed test module (no import, no execution)",
+   "kind": "static_scope_check"
+  },
+  {
+   "command": "ast extraction of the 189 node ids and comparison with the frozen list of the plan of the root",
+   "kind": "static_node_identity_check"
+  },
+  {
+   "command": "ast extraction of the 62 names, signatures and attributes of the production that the correction uses",
+   "kind": "static_namespace_and_signature_check"
+  },
+  {
+   "command": "the generation of the JSON documents of this report root",
+   "kind": "report_write"
+  }
+ ],
+ "grant_authority": "NOT_VERIFIED",
+ "historical_evidence": "The actual batch of the correction 14 (commit 8a6ed74, 189 PASS / 0 FAIL / 0 SKIP, cleanup true) and the reports of the corrections 14 and older are unchanged.  The real documents of the batch of the correction 14 stay in the directory of the correction 14 and they are never overwritten, never deleted and never replaced by a summary.  The pre-existing modification of implementation-integration-01/report.md was not touched.",
+ "independent_test_design_review": {
+  "source": "reports/v0-s3/product-gate0/native-custody-correction-14/test-review-01/review-result/review.md",
+  "disposition": "CHANGES_REQUIRED",
+  "Fatal": 0,
+  "Major": 3,
+  "Minor": 0,
+  "addresses": [
+   "M1 publiczeroexpirypath",
+   "M2 failclosedcheckedpublicationbarrier",
+   "M3 unconditionalnegativetestownercleanup"
+  ],
+  "closure_claimed_by_this_receipt": false
+ },
+ "kind": "LVW_N1_CORRECTION15_STATIC_IMPLEMENTATION_RECEIPT/1",
+ "major_closure_claimed": false,
+ "native_proven": false,
+ "new_report_root": "reports/v0-s3/product-gate0/implementation-native-custody-correction-15/",
+ "next_owner": "root / gate owner: the pin of the new candidate, the finite guarded batch of the 189 nodes and the independent review of the test delta",
+ "node_count": 189,
+ "node_identity_added": [],
+ "node_identity_removed": [],
+ "node_identity_verified": "Statically: the node ids of the five modules were extracted with the AST (no collection, no import, no execution) in the order of the definitions and compared with the frozen list of the plan of the root (carried by the proved list of the correction 14).  The two lists are identical (189 = 189, same order).  No node was added, renamed, removed or moved; the three Majors are addressed INSIDE the existing node ids N10-R07 and N10-R10.",
+ "node_order_is_binding": true,
+ "not_executed": [
+  "candidate import",
+  "pytest collection",
+  "pytest execution",
+  "ctypes or any native call",
+  "runtime or helper probe",
+  "operating system business process",
+  "model, GPU or service",
+  "network, media, database, ledger or counter access",
+  "the guarded batch of the 189 nodes",
+  "the replay of any old batch"
+ ],
+ "not_proven": [
+  "native_execution",
+  "native_cleanup",
+  "gpu_released",
+  "port_released",
+  "sampler",
+  "parent_crash_recovery",
+  "windows_stdin_eof"
+ ],
+ "previous_batch_result": "189PASS/0FAIL/0skip, cleanup true, guard runtime empty, counter absent before and after (the actual batch of the correction 14)",
+ "previous_evidence_commit": "8a6ed7462a69bfa7e29d4d143c2d6fed289a1912",
+ "product_gate0": false,
+ "product_sha": "63b490ae8b5678113fc13ed16fb2a8a54e5ca39c",
+ "production_findings_preserved": "F0/M0/m0 (independent production review 02 of the correction 13; the production bytes are unchanged)",
+ "production_pins": {
+  "lvw/backend/app/native_runtime.py": "16bf3e6396f9548312f92007eebbda55a448f0bdc6bab4a10afd71179b231a85",
+  "tools/v0_s3_native_broker.py": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
+  "tools/v0_s3_native_custody.py": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581"
+ },
+ "production_unchanged": true,
+ "real_execution_performed": false,
+ "stage": "R1",
+ "stage_pass_claim": false,
+ "static_checks": {
+  "document": "static-checks.json",
+  "failed": 0,
+  "passed": 62
+ },
+ "unchanged_source_files": [
+  "tools/v0_s3_native_broker.py",
+  "tools/v0_s3_native_custody.py",
+  "tools/test_v0_s3_native_custody.py",
+  "tools/test_v0_s3_native_custody_regressions.py",
+  "tools/test_v0_s3_native_custody_correction05.py",
+  "tools/test_v0_s3_native_custody_correction07.py",
+  "lvw/backend/app/native_runtime.py"
+ ],
+ "workpack": "S3-P4-N1"
+}
