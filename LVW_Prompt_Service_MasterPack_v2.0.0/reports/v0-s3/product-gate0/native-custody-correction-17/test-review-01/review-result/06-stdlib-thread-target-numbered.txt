@@ -1,0 +1,84 @@
+REVIEW CANDIDATE GIT COMMIT 058ee9ff0020a1485ee57ddafe23a1d390159c4a; dependency/authority evidence, not runtime proof.
+READ ONLY LOCAL STDLIB; not candidate execution
+/usr/lib/python3.12/threading.py SHA256 8273b4cf5b6f274b4993f5cae08634dd272c6952af9867ff9aa13ed446f1549b
+900:         If a subclass overrides the constructor, it must make sure to invoke
+901:         the base class constructor (Thread.__init__()) before doing anything
+902:         else to the thread.
+903: 
+904:         """
+905:         assert group is None, "group argument must be None for now"
+906:         if kwargs is None:
+907:             kwargs = {}
+908:         if name:
+909:             name = str(name)
+910:         else:
+911:             name = _newname("Thread-%d")
+912:             if target is not None:
+913:                 try:
+914:                     target_name = target.__name__
+915:                     name += f" ({target_name})"
+916:                 except AttributeError:
+917:                     pass
+918: 
+919:         self._target = target
+920:         self._name = name
+921:         self._args = args
+922:         self._kwargs = kwargs
+923:         if daemon is not None:
+924:             if daemon and not _daemon_threads_allowed():
+925:                 raise RuntimeError('daemon threads are disabled in this (sub)interpreter')
+926:             self._daemonic = daemon
+927:         else:
+928:             self._daemonic = current_thread().daemon
+929:         self._ident = None
+930:         if _HAVE_THREAD_NATIVE_ID:
+931:             self._native_id = None
+932:         self._tstate_lock = None
+933:         self._started = Event()
+934:         self._is_stopped = False
+935:         self._initialized = True
+973:     def start(self):
+974:         """Start the thread's activity.
+975: 
+976:         It must be called at most once per thread object. It arranges for the
+977:         object's run() method to be invoked in a separate thread of control.
+978: 
+979:         This method will raise a RuntimeError if called more than once on the
+980:         same thread object.
+981: 
+982:         """
+983:         if not self._initialized:
+984:             raise RuntimeError("thread.__init__() not called")
+985: 
+986:         if self._started.is_set():
+987:             raise RuntimeError("threads can only be started once")
+988: 
+989:         with _active_limbo_lock:
+990:             _limbo[self] = self
+991:         try:
+992:             _start_new_thread(self._bootstrap, ())
+993:         except Exception:
+994:             with _active_limbo_lock:
+995:                 del _limbo[self]
+996:             raise
+997:         self._started.wait()
+998: 
+999:     def run(self):
+1000:         """Method representing the thread's activity.
+1001: 
+1002:         You may override this method in a subclass. The standard run() method
+1003:         invokes the callable object passed to the object's constructor as the
+1004:         target argument, if any, with sequential and keyword arguments taken
+1005:         from the args and kwargs arguments, respectively.
+1006: 
+1007:         """
+1008:         try:
+1009:             if self._target is not None:
+1010:                 self._target(*self._args, **self._kwargs)
+1011:         finally:
+1012:             # Avoid a refcycle if the thread is running a function with
+1013:             # an argument that has a member that points to the thread.
+1014:             del self._target, self._args, self._kwargs
+1015: 
+1016:     def _bootstrap(self):
+1017:         # Wrapper around the real bootstrap code that ignores

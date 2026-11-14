@@ -1,0 +1,381 @@
+REVIEW CANDIDATE GIT COMMIT 058ee9ff0020a1485ee57ddafe23a1d390159c4a; dependency/authority evidence, not runtime proof.
+{
+  "authority": {
+    "AGENTS.md": {
+      "sha256": "80386dacbc34134f21021d0db12a11f646a66bcb2a96f841e32a8c911b1d5d11",
+      "bytes": 9465
+    },
+    ".agent-governance/README.md": {
+      "sha256": "a31398c4ccaaff0fe6bf606357bf223418b95837a489867bb6645c04bcd89225",
+      "bytes": 2367
+    },
+    "plans/execution-control.json": {
+      "sha256": "348c1e3e54b0fda7a8c389b4df7ed539b1b1c4cba34ce01c094793038b750405",
+      "bytes": 104061
+    },
+    "docs/24_EXECUTION_MASTER_PLAN.md": {
+      "sha256": "6762b5526ce291a88460c50922154a64c0dd0cfab958af36d6828c9905799eea",
+      "bytes": 38383
+    },
+    "correction17/contract.md": {
+      "sha256": "43b0a4263b899a9223607a4de4b955c388baa5fdefbfda84f5220c31b59e00c8",
+      "bytes": 4310
+    },
+    "correction17/scope.json": {
+      "sha256": "a6d3bafc0b1090af2ae0696731f27fb416b026ef3e6bf24c10e69f739f89874e",
+      "bytes": 451
+    },
+    "correction17/decision.json": {
+      "sha256": "0b7db5e3b14d3fe678cffd785d92945b7ae5a1320d73332d512fed966a2bdd74",
+      "bytes": 820
+    },
+    "correction17/design-review-02/ack.md": {
+      "sha256": "f6a52fdb9323521c5bb75a7c01fe78527f651576c750ef9c9cf1ddd5b6ffd931",
+      "bytes": 5157
+    },
+    "correction17/design-review-02/design.input.md": {
+      "sha256": "c92f3408768abccff18fd619e2e7d1789d60b0af0adcaef020990ae9c5cd3fb7",
+      "bytes": 81001
+    },
+    "prior16/review.md": {
+      "sha256": "6758ef6d3ba377156fbe738590466c248563a925e7b88abfa63555b1f5cce13a",
+      "bytes": 17927
+    },
+    "prior16/receipt.json": {
+      "sha256": "9c77063f7aaa169bc36512f51cf46cd4b9671cee273a192e9cfa19af2093f9e2",
+      "bytes": 48003
+    }
+  },
+  "coordinate": {
+    "stage_id": "R1",
+    "workpack_id": "WP-R1-U3",
+    "gate": "S3_P4_OFFLINE_INTEGRATION_PREPARATION",
+    "state": "RUNNING"
+  },
+  "outline": [
+    {
+      "stage_id": "V0-S0",
+      "completed_substeps": 1,
+      "total_substeps": 2
+    },
+    {
+      "stage_id": "V0-S1",
+      "completed_substeps": 5,
+      "total_substeps": 5
+    },
+    {
+      "stage_id": "R0",
+      "completed_substeps": 1,
+      "total_substeps": 2
+    },
+    {
+      "stage_id": "R1a",
+      "completed_substeps": 5,
+      "total_substeps": 5
+    },
+    {
+      "stage_id": "V0-S2",
+      "completed_substeps": 7,
+      "total_substeps": 8
+    },
+    {
+      "stage_id": "V0-S3",
+      "completed_substeps": 0,
+      "total_substeps": 6
+    },
+    {
+      "stage_id": "R1",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "V1-M1",
+      "completed_substeps": 0,
+      "total_substeps": 3
+    },
+    {
+      "stage_id": "R2",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R3",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R4",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R5a",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R5b",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R5c",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    }
+  ],
+  "prior16_findings": [
+    {
+      "id": "M1",
+      "severity": "Major",
+      "status": "OPEN",
+      "location": "T10:2637-2679,2733,2772",
+      "title": "Class-to-string patch prevents public zero driver; healthy error predicate cannot pass; retention key is not retention oracle"
+    },
+    {
+      "id": "M2",
+      "severity": "Major",
+      "status": "OPEN",
+      "location": "T10:4259-4330,4580-4620,4890-4963",
+      "title": "Executed failures after document write lack FAIL; attempted stops can be NOT_RUN; pre-inventory failures leave later phases absent"
+    },
+    {
+      "id": "M3",
+      "severity": "Major",
+      "status": "OPEN",
+      "location": "T10:292-543,3174-3413",
+      "title": "Controlled start failure bypasses salvage; failure catches precede cleanup; unrelated close failures can pass"
+    }
+  ]
+}
+ROOT DESIGN ACK — revision2 plus binding clarifications below accepted FOR STATIC IMPLEMENTATION ONLY. Design hash c92f3408768abccff18fd619e2e7d1789d60b0af0adcaef020990ae9c5cd3fb7, receipt700903d5804228d4f88d1c83aa0630430481967093f7d07b2773e58788320161. Section10 supersedes the identified contradictory old pseudocode; no claim of Major closure or dynamic PASS.
+You may now edit ONLY tools/test_v0_s3_native_custody_correction10.py and NEW reports/v0-s3/product-gate0/implementation-native-custody-correction-17/. Baseline4dafa1f316242d8bd348b81c52f375aa37254754. Keep production, all other tests, historical reports, contracts/thresholds, root packets/control/MANIFEST and exact189 node identities/order unchanged. Preserve both initial and revised design via root snapshots; identify implementation delta to design. Deliver committed static candidate, perMajor event/oracle/negative/cleanup mapping, removed-assertion equivalence map, full189AST IDs/order and source pins, finite3command<=300s REQUEST. No imports/collect/pytest/ctypes/runtime/native/model/GPU/network/service/media/DB/counter until separate root frozen runtime plan/ACK.
+Binding implementation clarifications, all within reviewed scope:
+1. Inventory arithmetic is inconsistent: four timeout schedules x5 names +3 published names +3 earlier names =26, not31. Derive the exact list from actual scheduled operations, explicitly include any published construction/extra check only if actually instrumented, assert uniqueness and complete attempted/terminal accounting. Do NOT create phantom evidence to satisfy31 or shrink any189 tests. On every construction/setup/stop failure record attempted FAIL; overall phase outcome is final only after cleanup. Mark writes only after successful persistence; preserve original exception if evidence write fails and expose that diagnostic.
+2. Registration keyed by exact thread object is necessary but names alone are not ownership. Arm seam per actual round scope with exact channel/session/endpoint refs or conservatively register every actual start in the isolated fixture window; forward all originals and no admission refusal. Keep observation active through stop and draining. Quiescence requires all known producer threads truly joined, no pending starts and a stable registry generation across a final resnapshot; empty pending count or stable names alone is insufficient. One30s drain bound per round, cropped per-owner <=10s and shared across resnapshots; no resets within that drain, no original productdeadline renewal. On expiry release gates and preserve UNKNOWN/error; never skip other owner attempts via early assert.
+3. Barrier completion snapshot/event must be finalized on BOTH successful and refused predicate paths (finally), after recording the actual failure, return state and generation/object facts. Exact cancel REQUESTED return remains after checked publication. Persist barrier facts before dependent assertions, including early premise failure; snapshot/event absent means explicit failure, never synthetic completed. A shallow in-memory dict alone is not durable execution evidence; write real phase JSON preserving object-identity booleans plus readable type/detail.
+4. Catch sentinel/ordinary/constructor failures only outside the entire cleanup region. Constructor injection targets the exact child drain object armed for this subcase, calls original Thread.start then raises inside constructor; must not affect a similarly named parent thread. CLOSE_FAILURE is correctly a cleanup-only case, not a claimed unwinding case: only the exact injected owner/type/message may be expected; ALL other cleanup errors fail. Expected injected close failure is distinct from proving physical thread cleanup; require actual joins/liveness plus exact exception oracle. No substring/non-null predicates in place of exact tokens.
+5. Error lists and original KeyboardInterrupt/SystemExit identity survive all best-effort cleanup. Full stop snapshot uses actual evidence keys background_threads/closer_start_state etc; retained identity must compare the original round object to the live retained object, not tautology session.broker is session.broker. Null broker ID is represented as null, not id(None). Snapshot/query failures retain exact diagnostics and cannot certify cleanup. Never erase retained production resources in fixture salvage.
+6. Recheck all proposed monkeypatch call signatures and complete helper argument shapes against actual sources, not constant/name existence. Actual public start return/error and retained-value+identity are primary; historical helper observations remain supplemental. Preserve equivalent/stronger predicates for every removed assertion and exact failure tokens.
+Implement the approved design with these clarifications in ONE static candidate. If a specific point is impossible in scope ask root with exact callsite rather than silently substitute; otherwise proceed without further design churn. First429 WAIT_BUDGET/end, no retry/switch/root takeover. First approval refusal/timeout stop/no bypass/config edit. Final committed delivery worker_done once/end; no selfMajor/Stage/nativePASS.
+
+ Correction addendum — root review D1–D5 (authoritative)
+
+Revises the design after the root review (`CHANGES_REQUIRED`, D1–D5). It
+**supersedes** §3.5–§3.8, §4.2, §4.4–§4.7 and the rows C10, C11, C12, C14,
+C15, C17–C20, C22 of §6. Everything else stands (C1–C9, C13, C16, C21, §2,
+§5, §7–§9). No framework is added: the causal order, the exception boundaries,
+the inventory and the transitions of the named items are fixed.
+
+### 10.1 (D1) — the barrier: the wait may not precede its cause
+
+**Withdrawn:** the `barrier_entered` event and the wait "right after
+`session.start()`" of §3.6 — the barrier of the seam runs only when the
+coordination cancels the read, which `bind_deadline` + `clock.advance`
+(`T10:4139-4140`) cause **after** the worker and the generation are
+registered (`T10:4125-4134`). The original trigger is preserved, never moved:
+
+| step | action | where |
+|---|---|---|
+| S1 | `session.start()` | `T10:4119` |
+| S2 | bounded wait 15 s for `api.read_waiting` | `T10:4123` |
+| S3 | `worker = holder['read_endpoint']._reader`; `api.worker_holder['worker'] = worker` | `T10:4125-4127` |
+| S4 | `generation = worker._submitted`; `api.worker_holder['generation'] = generation` | `T10:4128-4134` |
+| S5 | `bind_deadline(clock.value + 0.5)`; `clock.advance(1.0)` → the coordination cancels the read → the seam's `cancel_synchronous_io` runs | `T10:4139-4140` |
+| S6 | **in the seam**: publish the fault → the barrier block → the predicates → `barrier['left_at']` → **the seam persists `api.barrier_snapshot = dict(self.barrier)`** → **the seam sets `api.barrier_completed`** | seam `T10:3899-3994` |
+| S7 | the phase waits (bounded 15 s) for `api.barrier_completed` | new |
+| S8 | the phase writes the durable barrier document **from the persisted snapshot** | new |
+| S9 | the barrier assertions read the **persisted snapshot** | `T10:4192-4232` |
+
+* The event is **`barrier_completed`**, set by the seam at the **end** of the
+  barrier block; no "entered" event, no wait before S5.
+* The snapshot is written **by the seam**; the phase never re-reads the live
+  `api.barrier`, so a late snapshot can never look completed.
+* A **timeout** of S7 persists an explicit premise failure —
+  `{'status': 'FAIL', 'premise': 'BARRIER_NOT_COMPLETED', 'timeout_seconds':
+  15.0, 'barrier_completed': False}` — and the phase fails; it never
+  continues with an empty barrier.
+* `expect_barrier='NOT_APPLICABLE'`: the barrier never runs, the document is
+  written **immediately** with the empty snapshot and
+  `barrier_snapshot['entered_at'] is None` is asserted (`T10:4227-4232`); no
+  wait is performed there.
+* The failure path keeps the barrier facts (`T10:4304-4306`) and adds
+  `barrier_completed` and the snapshot when it exists.
+
+### 10.2 (D2) — the construction, the phase result, the whole-test guard
+
+**(a) The construction is inside the local guard**, with the holders
+initialised to `None` before it: `ledger.attempt(phase + '-construction')`,
+then `session = holder = channel_closes = channel_facts = None`, then `try:`
+→ `_chain(api, document, plan, tmp_path, clock=clock)` → the phase body →
+`except BaseException:` (the FAIL rewrite of §10.6) → `raise` → `finally:`
+(the bounded teardown; a `None` holder is skipped, never dereferenced). A
+construction that failed half way is therefore an **attempted construction**
+with a durable FAIL document, not an absent document.
+
+**(b) The complete inventory** — five names per schedule: `<phase>` (the
+**result**), `<phase>-construction`, `<phase>-barrier`, `<phase>-first`,
+`<phase>-second`; plus `r10-published-before-timeout{,-first,-second}` and
+the earlier R10 documents `r10-first`, `r10-second`, `r10-coordination` →
+**31 names**, all `plan`ned at the top of the test.
+
+**(c) The result is separate from the checks.** A passed check is terminal.
+The result document is written **last**, after both stops **and** the cleanup,
+and becomes PASSED only when the barrier check is PASSED (or NOT_APPLICABLE),
+both stop checks are PASSED and the cleanup had no proof failure. A later
+failed stop ⇒ the result is **FAIL** while the earlier checks **keep** PASSED
+and their facts. The result is never PASSED before the stops and the cleanup.
+
+**(d) The whole-test guard** covers the earlier R10 real-chain work
+(`T10:4745-4816`), the coordination block (`T10:4817-4888`) **and** the five
+later schedules; the inventory and the ledger are installed before all of it;
+the `finally` writes `NOT_RUN` only for the names still PLANNED and never
+overwrites a written document.
+
+### 10.3 (D3) — the scope, the exact thread objects, the bounded drain
+
+**(a) The scope** — one registry per round lifetime; the seam is armed for
+the whole lifetime and disarmed only after that round's salvage: the R07 main
+round (`parent_registry`, armed before `start_round(...)` at `T10:2371`,
+disarmed after the parent salvage at `T10:2983-2995`); the zero round
+(`zero_registry`, `T10:2682` → `T10:2786-2789`); each controlled subcase
+(`controlled_registry`, `T10:3221` → `T10:3370-3374`). The seam stays armed
+through the product's `stop()` and the late closer work, so a thread started
+during the stop is registered too.
+
+**(b) The exact object, not the name** — the registration is keyed by
+`id(thread)`; the name is only a label. The seam forwards every start it
+does not own (`if id(thread) not in armed_threads and thread.name not in
+owned_names: return original_start(thread, *args, **kwargs)`); the ownership
+proof always works on the object, and a name match alone never claims
+ownership.
+
+**(c) No production decision is frozen** — the seam observes only: it
+forwards the original start, never blocks, refuses, reorders or delays a
+start, and never touches a deadline.
+
+**(d) The bounded drain, ONE overall bound** — `pending_starts() == 0` alone
+is withdrawn as a proof (a start may follow the snapshot). The salvage of a
+round is a bounded drain loop: `budget = 30.0` (one overall bound per
+round), `deadline = now + budget`; then repeatedly — take `registry.snapshot()`
+(the exact objects and their states) and append it to `attempts`; release the
+gates of the round; `_salvage_threads(snapshot.owners, states=snapshot.hints,
+seconds=10.0, total_seconds=max(0.0, deadline - now))`; stop when
+`quiescent` (no pending start, no late start) **and** the salvage is proved,
+or when `now >= deadline`. The last snapshot and the last salvage are the
+recorded facts.
+
+* The **30 s** is the bound of the **whole drain of that round**, not 30 s per
+  resnapshot; the per-owner wait is cropped by the remaining overall budget
+  and the budget is **never reset** between the rounds of the loop nor between
+  the rounds of the test.
+* The quiescence assertion comes **after** the drain, never before it: an
+  unquiet round is a **FAIL/UNKNOWN** — the gates are still released and
+  **all** the registered owners are still attempted; the drain repeats
+  boundedly; if the bound is reached the proof fails truthfully (`'the owners
+  of the round were not quiescent'`) with the last snapshot and the last
+  salvage recorded.
+* The drain never renews a deadline of the product and never claims that the
+  product released a resource.
+
+**(e) The producers** are the ones the product starts: pump and heartbeat
+(`C:1772-1783`), closer (`C:1530-1534`), channel drain (`B:5256-5278`), the
+two endpoint workers (`B:4683-4702`) — all observed, because the seam
+observes every `threading.Thread.start` of the armed window.
+
+### 10.4 (D4) — the exact close failure, the exact unwinding order
+
+**(a) The substring test is withdrawn.** The oracle is exact: exactly one
+recorded failure; `owner == 'controlled:transport'`; `type == 'RuntimeError'`
+(the exact class); `detail == 'controlled_close_failure'` (the exact
+message); and no record with another owner or another type. In **every**
+checkpoint `child_close_failures` (`T10:2929-2964`) must be **empty**: an
+unrelated close or endpoint error fails the subcase instead of being
+tolerated next to the intended failure.
+
+**(b) The exact ordering** for the four checkpoints whose deliberate failure
+is raised by the fixture: (1) the deliberate failure is **raised** inside the
+region (sentinel / ordinary assertion / constructor seam); (2) the region
+runs **every** cleanup action in a fixed order — the gates → the close of the
+transport → the close of each endpoint → `_capture_stop` → the owner
+enumeration → the drain + salvage → the proof → the document; (3) the region
+**records** every additional error and raises `AssertionError(proof)` **only**
+when no original failure is unwinding; (4) the original failure leaves the
+region and is caught by the outer `except`, **after every other cleanup
+action has been attempted**; (5) the outer `except` records the exact type
+and the exact token.
+
+`CLOSE_FAILURE` is the single case whose failure is produced **by the
+cleanup itself**: the failing close is **recorded** with its exact type and
+exact message and the region **continues** with every other cleanup action —
+it is therefore **not** an unwinding case, and the design says so instead of
+claiming it. No expected sentinel is caught before the cleanup region: the
+outer `except` is the only catch and it lies outside the region.
+
+**(c) The original failure is preserved** — an error met by the region while
+an original failure unwinds leaves the **original** re-raised, the additional
+error recorded in the document and the overall proof failed; the test never
+reports a successful cleanup on an error.
+
+### 10.5 (D5) — every cleanup error is preserved
+
+**(a) The classification is inside the per-owner guard** (it was outside the
+try of the salvage in §4.5). Per owner: `state = None; errors = []`; then
+`_owner_start_state(...)` inside its own `try` (a failure ⇒ an `errors`
+entry of kind `STATE` and `state = 'UNKNOWN'`); if the state is not
+`STARTED` the owner is recorded with `alive=None, joined=None` and its
+errors; otherwise `thread.join(wait)` in its own `try` (kind `JOIN`) and
+`bool(thread.is_alive())` in its own `try` (kind `LIVENESS`, `alive = None`
+on a failure); the fact of the owner keeps `alive`, `joined` and the **list**
+`errors`.
+
+* **every** owner is attempted — a failure of the classification, of the join
+  or of the liveness query never aborts the iteration;
+* every error is retained in a **list** with its kind, exact type and detail
+  — never a single "first error", never a silent `UNKNOWN` without a
+  diagnostic; an owner whose classification failed is `UNKNOWN` **with** the
+  diagnostic and it fails the proof, which names the owner and the error;
+* the display form (the thread name) and the identity (`id(thread)`) are
+  separate fields — the identity is never read out of a display string.
+
+**(b) `KeyboardInterrupt` / `SystemExit`** — the interruption is recorded
+with its identity; with no original unwinding it is re-raised at the end of
+the region; with an original unwinding the **original** is preserved and
+re-raised and the interruption is an additional recorded error. The region
+never reports a successful cleanup when an interruption occurred.
+
+**(c) `_capture_stop` reads the real facts** — the **real** keys of the
+evidence DTO (`C:2343-2444`), among them `background_threads`, which **is** a
+valid key (`C:2399-2406`); the object identities are kept apart from the
+display JSON. The capture holds: `returned` (the actual dict of
+`session.stop()`), `exception` (`{'type','detail'}`), `live_state`
+(`session.state`), `evidence` (the full dict of `session.evidence()`),
+`evidence_state`, `evidence_broker_retained`, `evidence_failures`,
+`evidence_background_threads`, `evidence_closer_start_state` (the real keys
+of that dict), `retained_broker_is_session_broker` (a bool: the identity),
+`retained_broker_id` (`id(session.broker)`: the identity) and `snapshot_error`
+(`{'type','detail'}` when the snapshot failed).
+
+* the identities are **not** read out of the display JSON — they are the live
+  facts of the session; the display JSON is kept as the DTO it is;
+* a valid key is never read through a `.get()` that could hide an absent
+  value — a missing value is a fact to be asserted;
+* if the snapshot raises, `snapshot_error` carries the exact type and detail
+  and the capture is **not** silently empty;
+* the capture is taken **before** the salvage and on **both** paths.
+
+### 10.6 (D2, D6) — the state transitions after the corrections
+
+| from | event | to | durable document |
+|---|---|---|---|
+| `PLANNED` | the operation is entered (`attempt()` **before** the construction, the phase body, the barrier or the stop) | `ATTEMPTED` | none yet |
+| `PLANNED` | the end of the test, never entered | `NOT_RUN` | `{'status': 'NOT_RUN', 'reason': <type of the first failure>}` — no fact of the phase |
+| `ATTEMPTED` | the raw facts are written, before the assertions | `ATTEMPTED` | `{'status': 'EXECUTED', ...raw facts...}` |
+| `ATTEMPTED` | every check of the operation held | `PASSED` | the **check** document — terminal |
+| `ATTEMPTED` | an assertion raised or the operation itself raised | `FAIL` | the check document: `{'status': 'FAIL', 'executed': True, 'reason': <type>, 'detail': <str>, ...raw facts...}` |
+| `ATTEMPTED` | the phase reached its end | `PASSED` / `FAIL` | the **result** document, written **last**; PASSED only when the barrier check, both stop checks **and** the cleanup passed; a later failed stop ⇒ FAIL while the earlier checks keep PASSED |
+| `PASSED` / `FAIL` / `NOT_RUN` | anything | unchanged (**terminal**) | never overwritten by the inventory |
+
+The **result** and the **check** documents are different: the result carries
+the overall outcome, the checks carry their own facts; a failed check never
+rewrites a passed check and the inventory never rewrites either.

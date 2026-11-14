@@ -1,0 +1,300 @@
+{
+  "kind": "independent-static-test-evidence-design-review",
+  "candidate_sha": "058ee9ff0020a1485ee57ddafe23a1d390159c4a",
+  "candidate_git_commit": "058ee9ff0020a1485ee57ddafe23a1d390159c4a",
+  "coordinate": "V1/R1/WP-R1-U3/S3_P4",
+  "task_id": "task_037e192c7c86",
+  "dispatch_id": "ctx_35f91033ea1f",
+  "terminal": "term_7e87398e-da26-4d9b-a7e2-a445ab7f3922",
+  "decision": "CHANGES_REQUIRED",
+  "counts": {
+    "Fatal": 0,
+    "Major": 2,
+    "Minor": 0
+  },
+  "major_status": {
+    "M1": "CLOSED_STATIC",
+    "M2": "OPEN",
+    "M3": "OPEN"
+  },
+  "source_binding_file": "../source-binding.json",
+  "source_binding_sha256": "1d48025ad489c6f403667cf1db74671fd0a9ec7a8c5d09716a5de4336eb1a2b8",
+  "sources": {
+    "tools/v0_s3_native_broker.py": {
+      "sha256": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
+      "bytes": 386807,
+      "lines": 8174,
+      "pins_match": true,
+      "candidate_git_bytes_equal": true,
+      "prior16_git_bytes_equal": true,
+      "source_review13_bytes_equal": true,
+      "source_review13_commit_bytes_equal": true
+    },
+    "tools/v0_s3_native_custody.py": {
+      "sha256": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581",
+      "bytes": 114702,
+      "lines": 2470,
+      "pins_match": true,
+      "candidate_git_bytes_equal": true,
+      "prior16_git_bytes_equal": true,
+      "source_review13_bytes_equal": true,
+      "source_review13_commit_bytes_equal": true
+    },
+    "tools/test_v0_s3_native_custody_correction05.py": {
+      "sha256": "8563989f078fcd45d44c496a0bea16c1ecf5005513543f6f4e00792e4ed7e130",
+      "bytes": 114666,
+      "lines": 2531,
+      "pins_match": true,
+      "candidate_git_bytes_equal": true,
+      "prior16_git_bytes_equal": true
+    },
+    "tools/test_v0_s3_native_custody_correction07.py": {
+      "sha256": "dc74cf7f92e8be6cc2b69c602b9fc0b3fdd765ec8b9b48c4f061dde7bdcd6cdf",
+      "bytes": 152715,
+      "lines": 3282,
+      "pins_match": true,
+      "candidate_git_bytes_equal": true,
+      "prior16_git_bytes_equal": true
+    },
+    "tools/test_v0_s3_native_custody_correction10.py": {
+      "sha256": "5495799f8c2d92f1f7fe78886fb87629057806fb37ad03b85fabe0171a07d43c",
+      "bytes": 320952,
+      "lines": 6424,
+      "pins_match": true,
+      "candidate_git_bytes_equal": true,
+      "prior16_git_bytes_equal": false
+    }
+  },
+  "candidate_sha_ambiguity": {
+    "implementer_field": "static-implementation-receipt.json:candidate_sha",
+    "implementer_value": "5495799f8c2d92f1f7fe78886fb87629057806fb37ad03b85fabe0171a07d43c",
+    "meaning": "T10 module SHA256, not Git commit identity",
+    "reviewer_candidate_sha_meaning": "actual Git commit",
+    "runtime_proof": false,
+    "classification": "INFORMATIONAL_RESOLVED_BY_AUTHORITATIVE_SOURCE_BINDING"
+  },
+  "production_unchanged": true,
+  "prior_production_Fatal": 0,
+  "prior_production_Major": 0,
+  "prior_production_reference": "native-custody-correction-13/production-review-02/review-result/receipt.json",
+  "denominator": {
+    "count": 189,
+    "unique": 189,
+    "module_counts": [
+      117,
+      16,
+      24,
+      18,
+      14
+    ],
+    "frozen14_order_matches": true,
+    "signatures_decorators_preserved": true,
+    "node_deletion": false,
+    "skip_xfail_calls": [],
+    "assertion_semantic_preservation": "QUALIFIED_BY_OPEN_M2_M3",
+    "proof_method": "independent AST parse of exact Git blobs; no candidate execution/collection"
+  },
+  "ack_clarifications": {
+    "1": "PARTIAL_M2_OPEN",
+    "2": "PARTIAL_M3_OPEN",
+    "3": "PARTIAL_M2_OPEN",
+    "4": "PARTIAL_M3_OPEN",
+    "5": "PARTIAL_M3_OPEN",
+    "6": "M1_CLOSED_STATIC_M3_OPEN"
+  },
+  "findings": [
+    {
+      "id": "M2",
+      "severity": "Major",
+      "status": "OPEN",
+      "locations": [
+        "T10:4869-4879,5349-5360,5991-6015",
+        "T10:5883-5911",
+        "T10:4667-4718,4900-4941,5035-5037",
+        "T10:5110-5195,5486-5572"
+      ],
+      "title": "Missing terminal construction documents, attempted coordination too late, barrier facts/identity and final failure accounting incomplete",
+      "triggers": [
+        "success leaves five constructions ATTEMPTED with no document",
+        "later unrelated failure rewrites earlier successful construction as FAIL",
+        "executed early coordination failure is inventoried NOT_RUN",
+        "executed barrier can be overwritten NOT_RUN after early assertion failure",
+        "barrier persistence diagnostic unasserted and explicit identity boolean lost on final overwrite",
+        "failure finalized before cleanup; later cleanup evidence absent; write failures replace original exceptions"
+      ]
+    },
+    {
+      "id": "M3",
+      "severity": "Major",
+      "status": "OPEN",
+      "locations": [
+        "T10:3734-3750,3866-3958",
+        "T10:3793-3810; B:5256-5278; stdlib:919,1009-1014",
+        "T10:3861-3862,3974-3978",
+        "T10:3881-3893,4000-4061",
+        "T10:856-877",
+        "T10:522-527,560-602,665-692,5142-5195,5514-5572"
+      ],
+      "title": "Controlled failure drivers/guards incorrect, owner snapshot race, lost cleanup errors and cancellation identity",
+      "triggers": [
+        "controlled start failure bypasses owner cleanup",
+        "constructor seam uses target instead of actual _target and never injects intended failure",
+        "CLOSE_FAILURE raises sentinel despite asserting cleanup-only/no-sentinel",
+        "unrelated close failures accepted in other controlled checkpoints",
+        "owner created between enumeration and generation read can evade joins",
+        "later successful drain discards earlier cleanup errors",
+        "KeyboardInterrupt/SystemExit identity/rethrow not preserved; joins before drain can bypass cleanup"
+      ]
+    }
+  ],
+  "closed_static_obligations": [
+    {
+      "id": "M1",
+      "locations": [
+        "T10:2626-2705,2921-3263",
+        "B:5496-5528",
+        "C:805-929,1735-1825,2343-2376"
+      ],
+      "scope": "correct actual class read patch, original public start/default launcher/attached pump, common clock and zero requested waits with held/noEOF ordering, actual public return and retained resource values before salvage",
+      "limitations": "source-only closure; shared fixture cleanup remains M3 OPEN; no successful dynamic observation claimed"
+    }
+  ],
+  "dynamic17": "NOT_RUN",
+  "runtime_plan_acked": false,
+  "candidate_imported": false,
+  "candidate_compiled": false,
+  "candidate_collected": false,
+  "pytest_run": false,
+  "implementer_scripts_run": false,
+  "native": "NOT_PROVEN",
+  "product_acceptance": false,
+  "stage_pass": false,
+  "budget_reset": false,
+  "extra_agents": false,
+  "first429_observed": false,
+  "approval_refusal_observed": false,
+  "write_scope": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-17/test-review-01/review-result",
+  "artifacts": {
+    "01-binding-denominator-and-assertion-delta.txt": {
+      "sha256": "db6b7e1c0cd4992e3f34bb814ec526159ca12211ece265e4a249c719cc6682ef",
+      "bytes": 28454,
+      "candidate_git_commit": "058ee9ff0020a1485ee57ddafe23a1d390159c4a"
+    },
+    "02-full-helper-numbered.txt": {
+      "sha256": "373dea5a25d41698595b836efb187252d2a75e0c1a79ad2efda0e32b0403eec3",
+      "bytes": 31465,
+      "candidate_git_commit": "058ee9ff0020a1485ee57ddafe23a1d390159c4a"
+    },
+    "03-M1-public-start-numbered.txt": {
+      "sha256": "872763ea73efd4033aaa2034f7ab22092e4f45d273af14f2dd664c29050adc47",
+      "bytes": 67450,
+      "candidate_git_commit": "058ee9ff0020a1485ee57ddafe23a1d390159c4a"
+    },
+    "04-M2-barrier-and-ledger-numbered.txt": {
+      "sha256": "b484b5ea20ba6bc189ebfd5f0a2667681ed5df94b4496aec7055f6c77f4214e1",
+      "bytes": 88698,
+      "candidate_git_commit": "058ee9ff0020a1485ee57ddafe23a1d390159c4a"
+    },
+    "05-M3-guards-and-controlled-numbered.txt": {
+      "sha256": "67f391ac4ccc1785fe2922c2960efc726ee29f0e12d137e839099ff2e194b94c",
+      "bytes": 47867,
+      "candidate_git_commit": "058ee9ff0020a1485ee57ddafe23a1d390159c4a"
+    },
+    "06-stdlib-thread-target-numbered.txt": {
+      "sha256": "c2f43a7d91562f12c5f63155d80d363af2bc954e979db8eb7cfa0e08de806950",
+      "bytes": 3557,
+      "candidate_git_commit": "058ee9ff0020a1485ee57ddafe23a1d390159c4a"
+    },
+    "07-authority-and-prior-findings.txt": {
+      "sha256": "0be9770beb87883351dc21eb959c0c251bcb39200d142069b4f173546654e5aa",
+      "bytes": 23132,
+      "candidate_git_commit": "058ee9ff0020a1485ee57ddafe23a1d390159c4a"
+    },
+    "review.md": {
+      "sha256": "4a142a3c9e6cadbf007c54affb038178ec311ad88715b44267e8c08fbf98def9",
+      "bytes": 25658,
+      "candidate_git_commit": "058ee9ff0020a1485ee57ddafe23a1d390159c4a"
+    }
+  },
+  "development_outline": [
+    {
+      "stage_id": "V0-S0",
+      "completed_substeps": 1,
+      "total_substeps": 2
+    },
+    {
+      "stage_id": "V0-S1",
+      "completed_substeps": 5,
+      "total_substeps": 5
+    },
+    {
+      "stage_id": "R0",
+      "completed_substeps": 1,
+      "total_substeps": 2
+    },
+    {
+      "stage_id": "R1a",
+      "completed_substeps": 5,
+      "total_substeps": 5
+    },
+    {
+      "stage_id": "V0-S2",
+      "completed_substeps": 7,
+      "total_substeps": 8
+    },
+    {
+      "stage_id": "V0-S3",
+      "completed_substeps": 0,
+      "total_substeps": 6
+    },
+    {
+      "stage_id": "R1",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "V1-M1",
+      "completed_substeps": 0,
+      "total_substeps": 3
+    },
+    {
+      "stage_id": "R2",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R3",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R4",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R5a",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R5b",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R5c",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    }
+  ],
+  "current_coordinate_from_root_control": {
+    "stage_id": "R1",
+    "workpack_id": "WP-R1-U3",
+    "gate": "S3_P4_OFFLINE_INTEGRATION_PREPARATION",
+    "state": "RUNNING"
+  },
+  "remaining_work": "M2/M3 correction and independent static review, then separately root-frozen ACKed finite dynamic verification and required acceptance",
+  "agent_cleanup": "worker_done settles assignment; physical terminal exit not claimed; lifecycle coordinator-owned",
+  "skill": "/home/administrator/.agents/skills/orchestration/SKILL.md; orca-ide skills get orchestration"
+}
