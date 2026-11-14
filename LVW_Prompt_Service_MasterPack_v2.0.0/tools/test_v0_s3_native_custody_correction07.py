@@ -120,8 +120,13 @@ class _CancellingEvent:
 #: facts of one phase are written **before** the assertions of that
 #: phase: a group that fails has to leave its evidence on the disk and
 #: it may never depend on the representation of a failure of pytest.
+#:
+#: CORRECTION 09: the root of the correction 08 owns the **five** real
+#: documents of the failed batch of the correction 08 and they are never
+#: overwritten.  The diagnostics of this module are written in the **new**
+#: directory of the correction 09 and the two directories are never mixed.
 F5_EVIDENCE_DIR = (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'
-                   / 'implementation-native-custody-correction-08'
+                   / 'implementation-native-custody-correction-09'
                    / 'f5-evidence')
 
 
@@ -385,20 +390,61 @@ def _f5_build_chain(api, document, plan, clock, wall, run_root):
     return session, holder, channel_closes, channel_facts
 
 
-def _f5_unrelated_owner(api, holder):
+class _F5ExternalCancelOwner:
     """Another owner of the cancel flag of the channel.
 
-    The owner waits for the reader of the chain to be really inside its
-    read and it then sets the cancel flag of the channel **without**
-    naming an owner.  A cancellation that this owner initiated may
-    never be taken for a cancellation of the close of the channel and
-    the error of the reader is kept.
+    The owner of the flag is a **thread of the test** and it is not the
+    close of the channel.  It waits for the explicit event that the
+    reader of the chain is really inside its read, it sets the **same**
+    cancel flag of the **same** channel **without naming an owner** and
+    it publishes an explicit confirmation of that fact.
+
+    The owner never asserts and it never raises into the thread of the
+    owner of the test: a failure of the owner is **reported** to the
+    owner of the test and the confirmation is published in **every**
+    case, so that the owner of the test is never left waiting for a
+    thread that died without a word.
     """
-    api.reader_blocked.wait(10.0)
-    channel = holder.get('channel')
-    if channel is None:
-        return
-    channel._cancel.set()
+
+    def __init__(self, api, holder):
+        self.api = api
+        self.holder = holder
+        # The explicit confirmation of the owner.  It is published after
+        # the flag of the cancel was really set and it is published even
+        # when the owner failed.
+        self.published = threading.Event()
+        self.error = None
+        self.flag_set = None
+        self.flag_owner = 'NOT_OBSERVED'
+
+    def run(self):
+        """Set the flag of the cancel and publish the confirmation."""
+        try:
+            # The bounded wait of the **explicit** event of the reader:
+            # the owner never sets the flag before the reader of the
+            # chain is really inside its read.  The return of the wait
+            # is checked: a timeout is a failure of the owner and it is
+            # never a silent guess.
+            if not self.api.reader_blocked.wait(15.0):
+                raise AssertionError(
+                    'the reader of the chain was never inside its read')
+            channel = self.holder.get('channel')
+            if channel is None:
+                raise AssertionError(
+                    'the channel of the round was never built')
+            # The **same** cancel flag of the **same** channel and the
+            # owner of the flag is **not** named: a cancellation of this
+            # owner may never be taken for a cancellation of the close
+            # of the channel and the error of the reader is kept.
+            channel._cancel.set()
+            self.flag_set = bool(channel._cancel.is_set())
+            self.flag_owner = channel._cancel.owner()
+        except BaseException as error:  # noqa: BLE001 - it is reported
+            self.error = error
+        finally:
+            # The wake-up of the owner of the test is bounded and it
+            # happens in every case.
+            self.published.set()
 
 
 # -- N07-R01: the control handle of an unconfirmed process is kept ---------
@@ -1616,6 +1662,30 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
       stays unknown;
     * a frame that never ends keeps the error of the partial frame and
       the round stays unknown.
+
+    CORRECTION 09 (M09): the **order** of the cancellation of another
+    owner is deterministic now.  The failed batch of the correction 08
+    proved that the old owner of the test set the flag of the cancel
+    **while** the main thread was already inside the first public stop:
+    the close and the owner competed for the flag, the **first** owner
+    won and the close won it, therefore the premise of the sub scenario
+    (a cancellation of **another** owner) was never established.  The
+    raw facts of that batch show the close cancellation as a named fact
+    of the close and no error of the reader at all; they do **not**
+    prove that the production swallowed a cancellation.
+
+    The external owner is now a named object of the test: it waits for
+    the explicit event that the reader of the chain is really inside its
+    read, it sets the **same** flag of the **same** channel without
+    naming an owner and it publishes an explicit confirmation.  The
+    owner of the test waits for that confirmation, it checks that the
+    flag is really set and that the origin of the cancellation is
+    really unknown and **only then** it drives the first public stop.
+    A failure of the owner is reported to the owner of the test and the
+    exact thread of the owner is joined in the ``finally``: the thread
+    of the owner never asserts, the main thread never drives the close
+    after a failed owner and the round is never closed under a live
+    worker.  There is no sleep, no polling and no rerun.
     """
     document = _live_plan_document()
     plan = validate_launch_plan(document, now=time.time())
@@ -1762,6 +1832,23 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
     # names no owner: the cancellation of the close may never be taken
     # for it and the error of the reader is kept.
     #
+    # CORRECTION 09: the order of the two facts is now **deterministic**.
+    # The old owner of the test waited for the reader of the chain to
+    # be inside its read and it set the flag of the cancel **while** the
+    # main thread was already inside the first public stop: the close
+    # and the owner competed for the flag and the **first** owner won.
+    # The raw facts of the failed batch of the correction 08 show the
+    # close winning it, therefore the premise of the sub scenario was
+    # never established and the assertion of the error of the reader
+    # could not hold.
+    #
+    # The owner of the test now waits for the **explicit confirmation**
+    # of the external owner, it checks that the flag is really set and
+    # that the origin of the cancellation is really **unknown** and only
+    # then it drives the first public stop.  The order of the two facts
+    # is therefore the order of the test and it is not the order of the
+    # scheduler.
+    #
     # The scenario drives **two** consecutive public stops of the round.
     # The second attempt copies the facts of the first one: the error of
     # the reader is the **history** of the round and a retry is not an
@@ -1770,16 +1857,51 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
     api = _F5Api(block_the_reader=True)
     session, holder, channel_closes, channel_facts = _f5_build_chain(
         api, document, plan, clock, wall, tmp_path)
-    owner_thread = threading.Thread(
-        target=lambda: _f5_unrelated_owner(api, holder),
-        daemon=True, name='lvw-n07-r15-unrelated-owner')
+    external_owner = _F5ExternalCancelOwner(api, holder)
+    owner_thread = threading.Thread(target=external_owner.run,
+                                    name='lvw-n07-r15-unrelated-owner')
     owner_thread.start()
     try:
         session.start()
+        # The owner of the test waits for the **confirmation** of the
+        # external owner.  The wait is bounded and its return is
+        # checked: the main thread never drives the close after an
+        # owner that died without a word.
+        assert external_owner.published.wait(30.0), \
+            'the external owner never confirmed its cancellation'
+        if external_owner.error is not None:
+            # The failure of the owner is the failure of the test: it is
+            # never swallowed by a worker thread and the main thread
+            # never executes the close after a failed owner.
+            raise external_owner.error
+        channel = holder['channel']
+        # The flag of the cancel is really set and the origin of the
+        # cancellation is really **unknown**: the flag names no owner,
+        # therefore the close of the channel may never be taken for the
+        # owner of this cancellation.
+        assert external_owner.flag_set is True, \
+            'the external owner did not set the flag of the cancel'
+        assert channel._cancel.is_set(), \
+            'the flag of the cancel was not set'
+        assert channel._cancel.owner() is None, \
+            'the flag of the cancel named an owner'
+        assert external_owner.flag_owner is None, \
+            'the flag of the cancel named an owner'
         first = session.stop()
         unrelated_document = _f5_snapshot('unrelated-cancellation', session,
                                           api, holder, channel_facts,
                                           channel_closes, None)
+        # The confirmation of the external owner is part of the bounded
+        # facts of the phase: the evidence of the origin of the
+        # cancellation is on the disk and it is not a claim of the test.
+        unrelated_document['external_cancel_owner'] = {
+            'published': bool(external_owner.published.is_set()),
+            'flag_set': external_owner.flag_set,
+            'flag_owner': external_owner.flag_owner,
+            'reader_blocked': bool(api.reader_blocked.is_set()),
+            'thread_name': owner_thread.name,
+            'thread_is_alive': bool(owner_thread.is_alive()),
+        }
         _f5_write('unrelated-cancellation', unrelated_document)
         facts = unrelated_document['broker_close_facts'] or {}
         # The error of the reader is kept: the cancellation of another
@@ -1826,8 +1948,13 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
                    for failure in second_incomplete), \
             'the second attempt released the broker with the copy of the facts'
     finally:
-        owner_thread.join(15.0)
-        assert not owner_thread.is_alive(), 'the owner of the round was left behind'
+        # The **exact** thread of the owner of the test is joined and it
+        # is never left behind: the round is not closed under a live
+        # worker and the exit of the process is never the end of a
+        # thread.
+        owner_thread.join(30.0)
+        assert not owner_thread.is_alive(), \
+            'the owner of the round was left behind'
         try:
             session.stop()
         except Exception:  # noqa: BLE001 - the evidence keeps the failure
