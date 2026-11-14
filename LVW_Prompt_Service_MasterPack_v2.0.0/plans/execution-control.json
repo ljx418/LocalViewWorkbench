@@ -9,7 +9,8 @@
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
     "gate": "S3_P4_OFFLINE_INTEGRATION_PREPARATION",
-    "state": "RUNNING"
+    "state": "RUNNING",
+    "status": "WAIT_BUDGET"
   },
   "last_passed_gate": {
     "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
@@ -21,7 +22,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "S3_P4_N1_CORRECTION12_183PASS6FAIL_AND_2MAJOR",
+  "current_blocking_gate": "WAIT_BUDGET_CLAUDECODE_429_CORRECTION12_EVIDENCE_HANDOFF",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -34,9 +35,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "ClaudeCode frozen validation executor; Codex consolidate results",
-  "next_action": "Preserve original one189-node result183PASS6FAIL/cleanup true; executor completes after-observation and evidence-only commit; consolidate all6 actual failures with2 independent Major residuals without rerunning candidate.",
-  "required_authorization": null,
+  "next_owner": "User restores ClaudeCode budget/task or explicitly approves finite takeover; Codex maintains handoff only",
+  "next_action": "User explicitly restores this ClaudeCode task after budget recovery, or explicitly authorizes a finite Codex takeover for this interruption. Resume evidence-only completion at original candidate/budget; NEVER rerun completed three commands. Then consolidate scoped correction from draft and independent findings.",
+  "required_authorization": "Explicit restoration of this ClaudeCode task after quota recovery, or finite Codex takeover for this429; existing V1 authorization does not override429 stop.",
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -87,7 +88,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/unified-media/live-15/receipt.json",
   "independent_review": "reports/unified-media/independent-live-15/review.md",
-  "exact_stop_reason": "Raw guarded receipt inspected:189executed183PASS6FAIL0skip, cleanup true. Executor still completing terminal evidence; no Stage/native acceptance.",
+  "exact_stop_reason": "API Error: Request rejected (429) · 已达到 Token Plan 用量上限：请升级 Token Plan 套餐或购买积分补充用量。 (2056) First429 stop rule: no retry, provider switch, new implementation dispatch or root takeover. Raw189 result183PASS6FAIL preserved; terminal evidence completion pending.",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -2253,5 +2254,6 @@
       },
       "static_correction02": "reports/v0-s3/product-gate0/native-custody-correction-03/correction-plan-02/decision.json"
     }
-  }
+  },
+  "budget_hold_record": "reports/v0-s3/product-gate0/native-custody-correction-12/budget-hold-01/hold.json"
 }
