@@ -25,8 +25,13 @@ groups) and `native-custody-correction-03` (16 frozen groups), both inherited
 unchanged.
 
 **This delivery is a static implementation.**  The candidate was **not**
-imported, **not** collected, **not** run by pytest and no dynamic probe of
-any kind was made.  No counter was read and no ledger was touched.  The
+imported, **not** collected and **not** run by pytest **by the
+implementation**.  The batch that the root authorised afterwards ran
+**exactly once** under the guard of the root and it **FAILED** with one
+failure; the report of that batch is section 11 and the raw evidence of it
+is in `attempt02/`.  The counter of the root was **not** read: it was
+**MISSING** before the batch and it is **MISSING** after it, its historical
+continuity is `UNAVAILABLE_NOT_PROVEN` and no ledger was touched.  The
 claims of this delivery stay **READY_FOR_REVIEW**.  They are **not** Stage
 PASS, they are not a native execution, they are not a native cleanup, they
 are not a released GPU, they are not a released port, they are not a
@@ -536,13 +541,17 @@ measurement and it is **not** a native claim.
 
 What this delivery does **not** claim and what it did **not** do:
 
-* the candidate was **not** imported, **not** collected and **not** run;
+* the implementation itself did **not** import, **not** collect and **not**
+  run the candidate: the batch of section 11 is the one that the root
+  authorised and it ran under the guard of the root;
 * no pytest, no runner, no guard and no dynamic probe of any kind was
-  executed;
+  executed **by the implementation**;
 * no Windows API, no job object, no process, no service, no socket, no
   database, no network, no download, no media and no GPU was touched;
 * the budget ledger and the shared counter were **not** read, **not**
-  written and **not** reset;
+  written and **not** reset: the counter was **MISSING** before the batch
+  and it is **MISSING** after it and the old grant stays
+  `EXPIRED_NO_REPLAY`;
 * no agent was derived and no owner of another round was changed;
 * the native claims of the package stay `NOT_PROVEN`.
 
@@ -579,10 +588,11 @@ What this delivery does **not** claim and what it did **not** do:
   `reports/v0-s3/product-gate0/implementation-native-custody-correction-08/`.
 * **The exact reason of the stop**: the static implementation, the two
   minimal production corrections, the static self-review and the
-  preparation of the persisted evidence of the fifth failure are
-  complete.  No dynamic execution was performed, no ACK was requested and
-  no rerun, no wrapper, no self repair and no overwrite of a candidate
-  happened.
+  preparation of the persisted evidence of the fifth failure are complete,
+  and the batch that the root authorised ran **exactly once** and **failed**
+  with one failure (section 11).  There was no rerun, no wrapper, no self
+  repair and no overwrite of a candidate, and the correction of the one
+  failure belongs to the root.
 * **The claims**: READY_FOR_REVIEW.  Not Stage PASS.  The six majors of the
   independent review stay **OPEN**.
 
@@ -652,8 +662,92 @@ batch are all preserved and none of them is overwritten.
   directory are **expected product paths** of the next batch: they are
   written by the group when the batch really runs and they do **not** exist
   today.
+* `reports/v0-s3/product-gate0/implementation-native-custody-correction-08/attempt01-not-run-01.md`
+  and `attempt01-not-run-01.commands.json` (new) — the record of the first
+  plan of the correction 08, whose three commands were **NOT RUN** because
+  the exact temporary counter of its argv was missing.  The ACK of that
+  plan was withdrawn before any valid batch began.
+* `reports/v0-s3/product-gate0/implementation-native-custody-correction-08/attempt02/`
+  (new) — the raw evidence of the batch that ran: the three commands with
+  their argv, their cwd and their exit codes, the two outer observations of
+  the absence of the counter, the guard snapshot, the raw output of the
+  batch, the receipt of the inherited runner and the report of the batch.
+* `reports/v0-s3/product-gate0/implementation-native-custody-correction-08/f5-evidence/f5-*.json`
+  (new) — the five bounded documents of the fifth failure that the group
+  really wrote before its assertions.  The five documents that are missing
+  are missing because the batch stopped at the failed assertion.
 
 No controller, no worker, no runtime, no driver, no supervisor, no
 authorization record, no public schema, no threshold, no control document,
 no manifest and no historical evidence was changed.  The refusal points of
 the native path are kept and the N2 work is not started.
+
+## 10. The batch that the root authorised: it ran once and it FAILED
+
+Plan of the root:
+`native-custody-correction-08/validation-plan-02/plan.json` (SHA256
+`0e6c5fceaf017618dc53ab5b42f4d44bace38879c374a193fc30ff151a169696`), ACK
+`ACK_ONE_175_NODE_OFFLINE_BATCH_WITH_EXPLICIT_ORIGINAL_COUNTER_ABSENCE`.
+The batch ran **exactly once** under the guard of the root and it
+**FAILED** with **one** failure: no rerun, no wrapper, no self repair, no
+deleted case, no overwritten candidate.  The report of the batch is
+`attempt02/execution-report.md`; the raw evidence is in `attempt02/` and in
+`f5-evidence/`.
+
+| Fact | Value |
+|---|---|
+| collected | 175, in the frozen order (`collected == selected`) |
+| passed / failed / skipped | **174** / **1** / 0 |
+| pytest exit | 1 |
+| duration | 35.37 s (bound 300 s) |
+| cleanup proven for the batch | **true** |
+| the failing node | `tools/test_v0_s3_native_custody_correction07.py::test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner` |
+
+**Location.**  The failure is in the **second bounded sub scenario** of that
+group, at `tools/test_v0_s3_native_custody_correction07.py:1787`: the one
+that drives a cancellation with the **same code** whose owner is **another**
+one.
+
+**Cause.**  The raw facts of the phase
+(`f5-evidence/f5-unrelated-cancellation.json`) say that the **close of the
+channel initiated** the cancellation (`close_cancellation =
+{code: BROKER_PIPE_CANCELLED, source: CHANNEL_CLOSE, sequence: 1}` and
+`reader_error = None`).  The owner thread of the test sets the cancel flag
+only after it observed the reader inside its read, and that observation
+happens **during** the exchange of the stop, i.e. **concurrently** with the
+close: the close and the owner compete for the flag and the close won it.
+The external cancellation therefore **never arrived first**, and the raw
+fact `CHANNEL_CLOSE` **cannot** prove that an external cancellation was
+swallowed.  The premise of the negative case was not ordered by the test.
+
+**What the batch does prove.**  The **main** oracle of the group — the
+real chain, the targeted fault of **one** original handle of the thread of
+**one** named worker and the **two** convergences — **passed**: the fault
+fired on that one handle, the worker was retained and its handle was not
+released after the first public stop, and after the explicit release of
+the fault the second public stop released the handle, retained no worker
+and released the broker, without a double close and without a new
+deadline.  The complete root cause of the failure of the last batch is
+**not** claimed.
+
+**The sub scenarios that did not run** stay `NOT_RUN`: the second stop of
+the unrelated cancellation, the read fault and its second stop, and the
+partial frame and its second stop.  The group stopped at the failed
+assertion; the five documents that were written are the raw evidence and
+the five that are missing are missing because the batch stopped.
+
+**The boundary held**: the guard preceded the candidate and pytest, the
+runtime denials are empty, the single trusted preload is one
+`ctypes.dlopen(null)` closed before the candidate, the file descriptors
+before and after are the same three with no new or reused descriptor, and
+the threads are `MainThread` only.  The counter of the root was **MISSING**
+before the batch and it is **MISSING** after it, its historical continuity
+is `UNAVAILABLE_NOT_PROVEN`, no digest is claimed to be equal and no
+balance is claimed to be verified, the facts of the old receipt stay the
+facts of that receipt and the old grant stays `EXPIRED_NO_REPLAY`.
+
+**Next step.**  The correction of the ordering of that negative case is a
+change of the test module and it belongs to the root: no repair and no
+rerun was made here.  The six majors stay **OPEN**, the claims stay
+**READY_FOR_REVIEW**, they are not Stage PASS, no N2 work was started and
+no real run happened.
