@@ -490,7 +490,7 @@ removed or moved and the exact 189 identities and their order are unchanged.
 | PF13-01 (1) | the completed channel owns and closes the originals, the original HANDLE fails once, the same owner retries | `N07-R09` | the channel really closes the original files once, the HANDLE is attempted twice (one failure, one success), the exit is waited for once and the table converges only when every fact is true |
 | PF13-01 (2) | the ordinary failure of the input followed by the exact `KeyboardInterrupt` of the output, and the companion with the `KeyboardInterrupt` at the **first** raw close | `N05-R10` | the persistent original references before the salvage, the original error identity, the counts of the successful operations, the release fault and the same-owner recovery of **all** the originals; the process has **no** standard error, exactly like the default `Popen` |
 | PF13-01 (3) | the earlier success with a failing original HANDLE | `N05-R10` | the confirmed close is never repeated, the exit is never confirmed again and only the HANDLE and the unresolved original are retried |
-| PF13-01 (4) | the round is tightened during the wait of the process and between two initial raw closes, with the exact expired and positive cases and the already-owned retry | `N10-R05` | the next close is **zero** (it is never attempted), the original is retained with its identity and the owned retry closes it once the round is positive again |
+| PF13-01 (4) | the round is tightened during the wait of the process and between two initial raw closes, with the exact expired and positive cases, the **repeated** release of the expired round and the successful unresolved-only retry of a separate original round that is still positive | `N10-R05` | the next close is **zero** (it is never attempted) and the original is retained with its identity; a repeated release of the expired round starts no new close and the one way deadline of the round is never renewed; the successful retry keeps the same owner, the same original context and the same original deadline |
 | PF13-02 | the millisecond boundary with a common **zero** clock origin through the API adapter, the **recovery** adapter and the Core adapter | `N07-R02` | the requested primitive arguments at the exact zero, below the unit, at the unit and one over it; the expected values are derived from the **actual** remaining; the finite no-positive-floor rule is unchanged |
 | PF13-03 (a) | the real parent pump through the BrokerProcess and the queue of the channel, and the parent reply event, after the original context was tightened | `N10-R07` | the **actual** requested arguments of the queue wait and of the event wait, with the zero expiry included; the recorders are transparent and they call the original owner of the wait |
 | PF13-03 (b) | the public `Session.stop` while the process of the round is **admitted** | `N07-R13` | no read of the executable, no digest and **zero** channel constructor attempts, while the admitted process keeps its owner and stays recoverable; the separate stop-during-hash schedule is preserved |
@@ -521,3 +521,55 @@ the subtraction of an epoch.
 * The dynamic coverage of the batch is `NOT_RUN`: the implementation did not
   import, collect or run the candidate.
 * The historical counter continuity stays `UNAVAILABLE_NOT_PROVEN`.
+
+---
+
+# Static preflight 04 of the correction 13 — the expired round is never renewed
+
+Baseline `41df626f395172d75791892ba439df5f3924bbce`.  Root static preflight
+**PF13-04**: the N10-R05 driver of the static follow-up tried to make the
+**expired** round of the first case positive again with
+`context_one.bind_absolute_deadline(clock_one.value + 10.0)` and expected the
+owned retry to close the refused originals.  `_RoundContext.bind_absolute_deadline`
+only **shortens**: the later call does not extend the expired value, so the
+correct production behaviour is the continued refusal and the continued
+retention of the originals.  The fixture, not the product, was wrong.
+
+**The production of `41df626` is unchanged.**  The repair is **test only** and
+it does not weaken the deadline monotonicity, replace the original context,
+rewind a clock, reset a private field, introduce a fresh lease or change any
+product contract or threshold.
+
+## 10. What the driver now proves
+
+| Case | What it drives | What it asserts |
+|---|---|---|
+| the round tightened during the wait of the process | the original round expires while the process is coordinated | no close is attempted, the original keeps its identity and its owner |
+| the round tightened between two initial closes | the first close shortens the original deadline | the **second** close is not attempted, the first one is confirmed |
+| the positive case | the original round stays positive | every initial close is really attempted and confirmed |
+| the **repeated** release of the expired round | the **same** owner is released again while the one way deadline of the round is expired | **zero** additional closes, the exact originals keep their identity and their owner and the current bound of the round is the expired one; the deadline of the round is **not** renewed |
+| the successful unresolved-only retry | a **separate** original round that is positive from the start, with a controlled **ordinary** close failure whose fault seam is released by its own first attempt | the first attempt retains the original with its identity, the **same** owner really closes it under the **same** original context and the **same** original deadline, and the table of the launcher converges |
+
+The expired round is never counted as renewed: the group asserts the value of
+the absolute deadline of the round after the repeated release, and it never
+calls `bind_absolute_deadline` with a later value on an expired round.
+
+## 11. What is preserved
+
+* All 189 node identities and their order are unchanged; the repair is inside
+  the existing node `N10-R05`.
+* The expiry negatives of the M07-A.3 paths stay: the refusal of a close at
+  an expired bound, the retention of the original with its identity and the
+  naming of `BROKER_RAW_STREAM_DEADLINE_EXCEEDED`.
+* Every other schedule of the group, the six obligations of the failed nodes
+  of the correction 12, the three M09 schedules and the interrupted-start
+  join stay inside their node ids.
+* The production of `41df626` is unchanged while its independent immutable
+  source review runs; the historical evidence, the root packets, the control,
+  the MANIFEST and the trusted runner and guard were not touched.
+
+## 12. What is still not claimed
+
+No Major is closed, no Stage PASS, no native proof and no human signature.
+The dynamic coverage of the batch is `NOT_RUN` and the historical counter
+continuity stays `UNAVAILABLE_NOT_PROVEN`.

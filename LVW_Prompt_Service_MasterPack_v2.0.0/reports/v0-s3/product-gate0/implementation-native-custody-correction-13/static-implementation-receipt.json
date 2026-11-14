@@ -1,156 +1,152 @@
 {
-  "batch_executed": false,
-  "batch_result": null,
-  "candidate_base_sha": "a69170c446ff4af2955ddac1707af91d00c5dfcd",
-  "previous_candidate_sha": "29c5215ad44721c60145bad61165b99580cc1898",
-  "previous_evidence_commit": "e2d2831c852c5155d71a0d37700b8a99e640dd2d",
-  "kind": "LVW_N1_CORRECTION13_STATIC_IMPLEMENTATION_RECEIPT/2",
-  "coordinate": "V1/R1/WP-R1-U3/S3_P4_OFFLINE_INTEGRATION_PREPARATION",
-  "dynamic_authorized": false,
-  "admission_produced": false,
-  "stage_pass_claim": false,
-  "product_gate0": false,
-  "major_closure_claimed": false,
-  "grant_authority": "NOT_VERIFIED",
-  "node_count": 189,
-  "node_order_is_binding": true,
-  "node_identity_verified": "statically, after the static follow-up: the node ids of the five modules were extracted with the AST and compared with the frozen list of the plan of the root of the correction 12; the two lists are identical (189 = 189, same order).  No node was added, renamed, removed or moved.",
-  "changed_source_files": [
-    "tools/v0_s3_native_broker.py",
-    "tools/test_v0_s3_native_custody_regressions.py",
-    "tools/test_v0_s3_native_custody_correction05.py",
-    "tools/test_v0_s3_native_custody_correction07.py",
-    "tools/test_v0_s3_native_custody_correction10.py"
-  ],
-  "unchanged_allowed_files": [
-    "tools/test_v0_s3_native_custody.py",
-    "tools/v0_s3_native_custody.py"
-  ],
-  "open_findings_repaired": [
-    "M07-A.1",
-    "M07-A.2",
-    "M07-A.3"
-  ],
-  "test_driver_gaps_repaired": [
-    "PF13-01",
-    "PF13-02",
-    "PF13-03"
-  ],
-  "closed_static_preserved": [
-    "M08-A",
-    "M08-B",
-    "M08-C.1",
-    "M08-C.2",
-    "M08-D",
-    "M08-E",
-    "M05",
-    "M06",
-    "M09",
-    "m03",
-    "M03_exit_safety"
-  ],
-  "production_delta": {
-    "M07-A.1": "_LaunchAggregate keeps a durable ownership history of the channel (_channel_owns_raw, _channel_owned_raw) that is written at the actual registration of the channel and is never revoked; the eligibility of a raw close is decided with the history and not with the presence of the channel in the active slot; _release_raw_streams refuses the raw close of an original that the channel took.",
-    "M07-A.2": "_LaunchAggregate._register_pending_raw registers the original identities of the process with the owner before the first interruptible raw step; _release_launch_process exports every ordinary failure as it happens (retained_out) and writes the failures into the shared dictionary of the owner (failures_out); _LaunchAggregate._reconcile_pending_raw keeps every unresolved original - failed or never visited - with its identity and its owner.",
-    "M07-A.3": "_release_minimum returns the current minimum of a release together with the clock of its domain; _release_launch_process asks it before every initial raw close and refuses a new close when the bound arrived; _release_budget reads the minimum through it.",
-    "M08": "no path of M08 was altered: the delta of this follow-up touches the ownership of the original resources of a launch and the admission of their closes."
+ "admission_produced": false,
+ "batch_executed": false,
+ "batch_result": null,
+ "candidate_base_sha": "41df626f395172d75791892ba439df5f3924bbce",
+ "changed_source_files": [
+  "tools/test_v0_s3_native_custody_correction10.py"
+ ],
+ "closed_static_preserved": [
+  "M08-A",
+  "M08-B",
+  "M08-C.1",
+  "M08-C.2",
+  "M08-D",
+  "M08-E",
+  "M05",
+  "M06",
+  "M09",
+  "m03",
+  "M03_exit_safety"
+ ],
+ "coordinate": "V1/R1/WP-R1-U3/S3_P4_OFFLINE_INTEGRATION_PREPARATION",
+ "counter": {
+  "counter_created": false,
+  "counter_read": false,
+  "counter_refunded": false,
+  "counter_reset": false,
+  "historical_counter_continuity": "UNAVAILABLE_NOT_PROVEN"
+ },
+ "dynamic_authorized": false,
+ "executed_commands": [
+  {
+   "command": "git status --short / git diff --stat / git log",
+   "kind": "version_control_read"
   },
-  "test_drivers": {
-    "PF13-01": "N07-R09 (the completed channel with the failing original HANDLE and the same-owner retry), N05-R10 (the ordinary failure followed by the exact cancellation, the companion with the cancellation at the first raw close, and the cross-product with the earlier success and the failing HANDLE) and N10-R05 (the round tightened during the wait and between two initial closes, the positive case and the already-owned retry).",
-    "PF13-02": "N07-R02: the millisecond boundary with a common zero clock origin through the API adapter, the recovery adapter and the Core adapter; the expected values are derived from the actual remaining.",
-    "PF13-03": "N10-R07 (the real parent pump through the BrokerProcess and the queue of the channel, and the parent reply event, with the zero expiry) and N07-R13 (the public Session.stop while the process of the round is admitted, with the counters of the read, of the digest and of the constructor of the channel)."
+  {
+   "command": "sha256sum of the seven allowed files",
+   "kind": "digest_read"
   },
-  "executed_commands": [
-    {
-      "command": "git status --short / git diff --stat / git log",
-      "kind": "version_control_read"
-    },
-    {
-      "command": "sha256sum of the seven allowed files",
-      "kind": "digest_read"
-    },
-    {
-      "command": "compile(source_text, name, \"exec\") of the seven files, in memory",
-      "kind": "in_memory_compile"
-    },
-    {
-      "command": "ast.parse + symtable global resolution check of the seven files",
-      "kind": "static_resolution_check"
-    },
-    {
-      "command": "ast extraction of the 189 node ids and comparison with the frozen list",
-      "kind": "static_node_identity_check"
-    },
-    {
-      "command": "the generation of the JSON documents of this report root",
-      "kind": "report_write"
-    }
+  {
+   "command": "compile(source_text, name, \"exec\") of the seven files, in memory",
+   "kind": "in_memory_compile"
+  },
+  {
+   "command": "ast.parse + symtable global resolution check of the seven files",
+   "kind": "static_resolution_check"
+  },
+  {
+   "command": "ast extraction of the 189 node ids and comparison with the frozen list",
+   "kind": "static_node_identity_check"
+  },
+  {
+   "command": "the generation of the JSON documents of this report root",
+   "kind": "report_write"
+  }
+ ],
+ "grant_authority": "NOT_VERIFIED",
+ "historical_evidence": "The failed batch of the correction 12 (commit e2d2831) and the reports of the corrections 12/11/10/09/08 are unchanged.  The exact a69170c static delivery is archived in native-custody-correction-13/static-correction-01/static-candidate-a69170c.zip and the exact 41df626 delivery is preserved by the git history.  The pre-existing modification of implementation-integration-01/report.md was not touched.",
+ "kind": "LVW_N1_CORRECTION13_STATIC_IMPLEMENTATION_RECEIPT/3",
+ "major_closure_claimed": false,
+ "next_owner": "root / gate owner: the independent re-review of the test delta, the pin of the new candidate and the finite batch of the 189 nodes",
+ "node_count": 189,
+ "node_identity_verified": "statically, after the static follow-up: the node ids of the five modules were extracted with the AST and compared with the frozen list of the plan of the root of the correction 12; the two lists are identical (189 = 189, same order).  No node was added, renamed, removed or moved.",
+ "node_order_is_binding": true,
+ "not_executed": [
+  "candidate import",
+  "collection",
+  "pytest",
+  "ctypes",
+  "native call",
+  "runtime probe",
+  "helper probe",
+  "service",
+  "GPU",
+  "model",
+  "network",
+  "database",
+  "media",
+  "ledger",
+  "counter",
+  "external agent"
+ ],
+ "not_proven": [
+  "native_execution",
+  "native_cleanup",
+  "gpu_released",
+  "port_released",
+  "sampler",
+  "parent_crash_recovery",
+  "windows_stdin_eof"
+ ],
+ "open_findings_repaired": [
+  "M07-A.1",
+  "M07-A.2",
+  "M07-A.3"
+ ],
+ "previous_candidate_sha": "a69170c446ff4af2955ddac1707af91d00c5dfcd",
+ "previous_evidence_commit": "e2d2831c852c5155d71a0d37700b8a99e640dd2d",
+ "product_gate0": false,
+ "production_delta": {
+  "M07-A.1": "_LaunchAggregate keeps a durable ownership history of the channel (_channel_owns_raw, _channel_owned_raw) that is written at the actual registration of the channel and is never revoked; the eligibility of a raw close is decided with the history and not with the presence of the channel in the active slot; _release_raw_streams refuses the raw close of an original that the channel took.",
+  "M07-A.2": "_LaunchAggregate._register_pending_raw registers the original identities of the process with the owner before the first interruptible raw step; _release_launch_process exports every ordinary failure as it happens (retained_out) and writes the failures into the shared dictionary of the owner (failures_out); _LaunchAggregate._reconcile_pending_raw keeps every unresolved original - failed or never visited - with its identity and its owner.",
+  "M07-A.3": "_release_minimum returns the current minimum of a release together with the clock of its domain; _release_launch_process asks it before every initial raw close and refuses a new close when the bound arrived; _release_budget reads the minimum through it.",
+  "M08": "no path of M08 was altered.",
+  "note": "The production of 41df626 is UNCHANGED by the repair of PF13-04: the repair is test only.  The delta of 41df626 itself is recorded in the report of the correction 13."
+ },
+ "reports": {
+  "atom_matrix": "atom-matrix.md",
+  "changed_assertions": "changed-assertions.md",
+  "node_identity": "node-identity.json",
+  "report": "report.md",
+  "source_pins": "source-pins.json",
+  "static_receipt": "static-implementation-receipt.json",
+  "validation_plan_request": "validation-plan-request.json",
+  "wait_inventory": "wait-inventory.md"
+ },
+ "scope_obeyed": {
+  "not_touched": [
+   "the production of 41df626 (tools/v0_s3_native_broker.py and tools/v0_s3_native_custody.py)",
+   "the other test files of the seven allowed files",
+   "the reports of the correction 12 and of the earlier corrections",
+   "the root packets, the execution control and the MANIFEST",
+   "the trusted runner, the trusted guard and the counters of the root",
+   "the pre-existing modification of implementation-integration-01/report.md"
   ],
-  "not_executed": [
-    "candidate import",
-    "collection",
-    "pytest",
-    "ctypes",
-    "native call",
-    "runtime probe",
-    "helper probe",
-    "service",
-    "GPU",
-    "model",
-    "network",
-    "database",
-    "media",
-    "ledger",
-    "counter",
-    "external agent"
-  ],
-  "not_proven": [
-    "native_execution",
-    "native_cleanup",
-    "gpu_released",
-    "port_released",
-    "sampler",
-    "parent_crash_recovery",
-    "windows_stdin_eof"
-  ],
-  "historical_evidence": "The failed batch of the correction 12 (commit e2d2831) and the reports of the corrections 12/11/10/09/08 are unchanged.  The exact a69170c static delivery is archived in native-custody-correction-13/static-correction-01/static-candidate-a69170c.zip and the git history preserves it.  The pre-existing modification of implementation-integration-01/report.md was not touched.  No untracked artefact was removed and no historical report was edited.",
-  "scope_obeyed": {
-    "written": [
-      "tools/v0_s3_native_broker.py",
-      "tools/test_v0_s3_native_custody_regressions.py",
-      "tools/test_v0_s3_native_custody_correction05.py",
-      "tools/test_v0_s3_native_custody_correction07.py",
-      "tools/test_v0_s3_native_custody_correction10.py",
-      "reports/v0-s3/product-gate0/implementation-native-custody-correction-13/"
-    ],
-    "not_touched": [
-      "the reports of the correction 12 and of the earlier corrections",
-      "the root packets, the execution control and the MANIFEST",
-      "the trusted runner, the trusted guard and the counters of the root",
-      "the pre-existing modification of implementation-integration-01/report.md",
-      "every other production owner"
-    ]
-  },
-  "counter": {
-    "historical_counter_continuity": "UNAVAILABLE_NOT_PROVEN",
-    "counter_created": false,
-    "counter_read": false,
-    "counter_refunded": false,
-    "counter_reset": false
-  },
-  "stop_rules": {
-    "first_429": "WAIT_BUDGET: the work stops, there is no retry, no provider switch, no root takeover and no configuration bypass.",
-    "first_approval_refused_or_timed_out": "the work stops and it is never wrapped, never bypassed and never dressed up as a pass."
-  },
-  "reports": {
-    "atom_matrix": "atom-matrix.md",
-    "changed_assertions": "changed-assertions.md",
-    "node_identity": "node-identity.json",
-    "report": "report.md",
-    "source_pins": "source-pins.json",
-    "static_receipt": "static-implementation-receipt.json",
-    "validation_plan_request": "validation-plan-request.json",
-    "wait_inventory": "wait-inventory.md"
-  },
-  "next_owner": "root / gate owner: the independent re-review of the delta of the follow-up, the pin of the new candidate and the finite batch of the 189 nodes"
+  "written": [
+   "tools/test_v0_s3_native_custody_correction10.py",
+   "reports/v0-s3/product-gate0/implementation-native-custody-correction-13/"
+  ]
+ },
+ "stage_pass_claim": false,
+ "stop_rules": {
+  "first_429": "WAIT_BUDGET: the work stops, there is no retry, no provider switch, no root takeover and no configuration bypass.",
+  "first_approval_refused_or_timed_out": "the work stops and it is never wrapped, never bypassed and never dressed up as a pass."
+ },
+ "test_driver_gaps_repaired": [
+  "PF13-01",
+  "PF13-02",
+  "PF13-03",
+  "PF13-04"
+ ],
+ "test_drivers": {
+  "PF13-01": "N07-R09 (the completed channel with the failing original HANDLE and the same-owner retry), N05-R10 (the ordinary failure followed by the exact cancellation, the companion with the cancellation at the first raw close, and the cross-product with the earlier success and the failing HANDLE) and N10-R05 (the round tightened during the wait and between two initial closes, the positive case, the repeated release of the expired round and the successful unresolved-only retry of a separate original round that is still positive).",
+  "PF13-02": "N07-R02: the millisecond boundary with a common zero clock origin through the API adapter, the recovery adapter and the Core adapter; the expected values are derived from the actual remaining.",
+  "PF13-03": "N10-R07 (the real parent pump through the BrokerProcess and the queue of the channel, and the parent reply event, with the zero expiry) and N07-R13 (the public Session.stop while the process of the round is admitted, with the counters of the read, of the digest and of the constructor of the channel).",
+  "PF13-04": "N10-R05: the fixture no longer tries to renew the one way deadline of an expired round.  The repeated release of the SAME owner of the expired round performs zero additional closes and preserves the exact originals and the current bound, and the successful unresolved-only retry is driven in a SEPARATE original round that is positive from the start, with the same owner, the same original context and the same original deadline for both attempts."
+ },
+ "unchanged_allowed_files": [
+  "tools/test_v0_s3_native_custody.py",
+  "tools/v0_s3_native_custody.py"
+ ]
 }

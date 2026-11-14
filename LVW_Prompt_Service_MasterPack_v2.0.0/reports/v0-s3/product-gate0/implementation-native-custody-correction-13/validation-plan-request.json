@@ -1,7 +1,7 @@
 {
  "admission_produced": false,
  "batches_max": 1,
- "candidate_base_sha": "a69170c446ff4af2955ddac1707af91d00c5dfcd",
+ "candidate_base_sha": "41df626f395172d75791892ba439df5f3924bbce",
  "candidate_sha": "FROZEN_BY_THE_ROOT_AFTER_THIS_DELIVERY",
  "commands": [
   {
@@ -339,7 +339,7 @@
   "tools/test_v0_s3_native_custody.py::test_the_old_owners_are_unchanged",
   "tools/test_v0_s3_native_custody.py::test_the_old_refusal_points_are_still_declared"
  ],
- "kind": "LVW_N1_CORRECTION13_IMPLEMENTATION_PLAN_REQUEST/3",
+ "kind": "LVW_N1_CORRECTION13_IMPLEMENTATION_PLAN_REQUEST/4",
  "max_seconds": 300,
  "node_count": 189,
  "node_order_is_binding": true,
@@ -546,13 +546,14 @@
  ],
  "observations_before_the_batch": "none: the batch did not run.  The implementation did NOT import, NOT collect and NOT run the candidate, it did NOT run the guard, it did NOT read the counter and it did NOT probe the runtime.  Only the source text was compiled in memory and only the AST, the symtable and the digests of the seven files were inspected.",
  "preflight": {
-  "finding": "PF13-01, PF13-02, PF13-03",
-  "finding_source": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-13/static-preflight-01/findings.md",
-  "production_changed": true,
-  "resolution": "The static follow-up of the correction 13 repairs the three residual paths of the one remaining Major (M07-A.1 the durable ownership history of the channel, M07-A.2 the executable ownership of every unconfirmed and unvisited original, M07-A.3 the current minimum before every initial raw close) and adds the executable test drivers of PF13-01 (the cross-products of the original resources), of PF13-02 (the millisecond boundary with a common zero clock origin through the API, the recovery and the Core adapters) and of PF13-03 (the real parent pump queue wait, the parent reply event wait and the public stop while the process is admitted).  No node was added, renamed, removed or moved: the exact 189 identities and their order are unchanged."
+  "finding": "PF13-01, PF13-02, PF13-03, PF13-04",
+  "finding_source": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-13/static-preflight-01/findings.md and .../static-preflight-02/findings.md",
+  "production_changed": false,
+  "production_note": "The production of 41df626 is UNCHANGED by the repair of PF13-04: the fixture of N10-R05 tried to renew the one way deadline of an expired round and the deadline of a round may only be shortened.  The repair is test only and it drives the continued refusal of the expired round and the successful unresolved-only retry of a separate original round that is still positive.",
+  "resolution": "PF13-04: the driver of N10-R05 proves that a repeated release of the SAME owner of an EXPIRED round starts zero new closes and preserves the exact originals and the current bound, and that the successful unresolved-only retry happens under the same owner, the same original context and the same original deadline of a round that was positive from the start.  No node was added, renamed, removed or moved: the exact 189 identities and their order are unchanged."
  },
  "preparation_dir": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-13/attempt01-preparation",
- "previous_candidate_sha": "29c5215ad44721c60145bad61165b99580cc1898",
+ "previous_candidate_sha": "a69170c446ff4af2955ddac1707af91d00c5dfcd",
  "previous_evidence_commit": "e2d2831c852c5155d71a0d37700b8a99e640dd2d",
  "product_gate0": false,
  "real_execution_performed": false,
@@ -563,7 +564,7 @@
   "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody.py": "fe96d2ffd353d3f3f6df4da2b023dd6cfaf58fe730ab6655afbca723ed507d32",
   "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction05.py": "e470573ccc9d4f010a4a73612a12b36c34a005c88af1f598f67d54bde4330e06",
   "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction07.py": "009179e8c425099d1399a28a3c9e36319fddb3cb8d6a56f9e6f46c5b9c069d95",
-  "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py": "ba5d79269ad57f3490cf90635945425608f699b9598daf0dee76b6656b0502a1",
+  "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py": "1432d33deadb7f665c04456cbe91b2880471b3560081c138aa9b98ee6074e518",
   "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_regressions.py": "03250ea0ac64519c57edfbe1be965eb2827b46fc7f2d80b47146e4a5e6e7cb93",
   "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_native_broker.py": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
   "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_native_custody.py": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581"

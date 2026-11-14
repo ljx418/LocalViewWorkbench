@@ -1115,16 +1115,34 @@ def test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel(tmp_path):
     #    original keeps its owner and its identity, no new close is
     #    started and no fresh cleanup lease is opened.
     class BoundStream:
-        """One original raw file that counts its own closes."""
+        """One original raw file that counts its own closes.
 
-        def __init__(self, name, on_close=None):
+        The file carries two named seams: an **ordinary** failure that
+        happens once and a callback that the group uses to tighten the
+        original round between two closes.  The ordinary failure is the
+        fault seam of the group: it is released by its own first
+        attempt and the second attempt of the **same** owner really
+        closes the original.
+        """
+
+        def __init__(self, name, on_close=None, failure=None):
             self.name = name
             self.attempts = 0
             self.closed = False
             self.on_close = on_close
+            self._failure = failure
+            # The **original** fault object of the seam: it is kept so
+            # that the identity of the failure is a fact and not a
+            # label.
+            self.fault = None
 
         def close(self):
             self.attempts += 1
+            if self._failure is not None:
+                error = self._failure
+                self._failure = None
+                self.fault = error
+                raise error
             if self.on_close is not None:
                 callback = self.on_close
                 self.on_close = None
@@ -1250,13 +1268,15 @@ def test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel(tmp_path):
     assert aggregate_three.raw_streams == [], \
         'the launch owns an original whose close was confirmed'
 
-    # -- the already-owned retry: the originals that the launch owns
-    #    are really closed by the **same** owner once the round is
-    #    positive again.  The path that the correction 12 closed is
-    #    guarded here and it is not broken by the refusal.
-    context_one.bind_absolute_deadline(clock_one.value + 10.0)
-    recovered_one = custody_one.release()
-    facts = {'recovered': recovered_one,
+    # -- the round of the first case is **expired** and the deadline of
+    #    a round is **one way**: it may only be shortened.  A repeated
+    #    release of the **same** owner therefore starts **no** new close,
+    #    the exact originals keep their owner and the current bound of
+    #    the round is the expired one.  The group never renews a lease,
+    #    it never replaces the context of the round and it never rewinds
+    #    a clock.
+    repeated_one = custody_one.release()
+    facts = {'repeated': repeated_one,
              'stdin_attempts': stdin_one.attempts,
              'stdout_attempts': stdout_one.attempts,
              'stdin_closed': stdin_one.closed,
@@ -1264,18 +1284,91 @@ def test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel(tmp_path):
              'raw_streams': [item['name']
                              for item in aggregate_one.raw_streams],
              'owned': [(item['kind'], repr(item['resource']))
-                       for item in custody_one.items()]}
-    write_phase('r05-bound-owned-retry', facts)
-    assert stdin_one.attempts == 1, \
-        'the owned retry of the input was not attempted'
-    assert stdout_one.attempts == 1, \
-        'the owned retry of the output was not attempted'
-    assert stdin_one.closed is True
-    assert stdout_one.closed is True
-    assert aggregate_one.raw_streams == [], \
+                       for item in custody_one.items()],
+             'absolute_deadline': context_one.absolute_deadline}
+    write_phase('r05-bound-expired-repeat', facts)
+    assert stdin_one.attempts == 0, \
+        'the expired round started a new close of the input'
+    assert stdout_one.attempts == 0, \
+        'the expired round started a new close of the output'
+    assert stdin_one.closed is False
+    assert stdout_one.closed is False
+    assert [item['name'] for item in aggregate_one.raw_streams] == \
+        ['stdin', 'stdout'], \
+        'the expired round lost the identity of an original'
+    assert context_one.absolute_deadline == clock_one.value - 1.0, \
+        'the expired round renewed its own deadline'
+
+    # -- the successful unresolved-only retry: it happens in a
+    #    **separate** original round that is still **positive** and it
+    #    uses the **same** owner, the **same** original context and the
+    #    **same** original deadline for both attempts.  The ordinary
+    #    failure of the close is the fault seam of the group: the first
+    #    attempt retains the original with its identity and the second
+    #    attempt of the same owner really closes it.
+    clock_four = ManualClock(1000.0)
+    context_four = _RoundContext(clock=clock_four)
+    context_four.bind_absolute_deadline(clock_four.value + 10.0)
+    stdin_four = BoundStream('stdin')
+    stdout_four = BoundStream(
+        'stdout', failure=RuntimeError('stdout_close_failed'))
+    process_four = BoundProcess(stdin=stdin_four, stdout=stdout_four)
+    custody_four, aggregate_four = bound_launch(context_four, process_four)
+    report_four = custody_four.release()
+    facts = {'report': report_four,
+             'stdin_attempts': stdin_four.attempts,
+             'stdout_attempts': stdout_four.attempts,
+             'stdout_closed': stdout_four.closed,
+             'raw_streams': [item['name']
+                             for item in aggregate_four.raw_streams],
+             'owned': [(item['kind'], repr(item['resource']))
+                       for item in custody_four.items()],
+             'absolute_deadline': context_four.absolute_deadline}
+    write_phase('r05-owned-retry', facts)
+    assert stdout_four.attempts == 1, \
+        'the output of the launch was not closed by the first release'
+    assert stdout_four.closed is False, \
+        'the failed close of the output was read as a close'
+    # The **original** fault object of the seam is the failure that the
+    # product names and the identity of it is kept.
+    assert stdout_four.fault is not None, \
+        'the ordinary failure of the close never happened'
+    assert aggregate_four.facts.get('failures', {}).get('stdout') \
+        == 'RuntimeError', \
+        'the ordinary failure of the close was not named by the product'
+    assert [item['name'] for item in aggregate_four.raw_streams] == \
+        ['stdout'], \
+        'the launch lost the unresolved original of its round'
+    owned_four = [item for item in custody_four.items()
+                  if item['kind'] == 'stdout']
+    assert owned_four, \
+        'the unresolved original of the round lost its owner'
+    # The fault seam of the group is released by its own first attempt:
+    # the **same** owner retries the unresolved original under the
+    # **same** original context and the **same** original deadline.
+    recovered_four = custody_four.release()
+    facts = {'recovered': recovered_four,
+             'stdin_attempts': stdin_four.attempts,
+             'stdout_attempts': stdout_four.attempts,
+             'stdout_closed': stdout_four.closed,
+             'raw_streams': [item['name']
+                             for item in aggregate_four.raw_streams],
+             'owned': [(item['kind'], repr(item['resource']))
+                       for item in custody_four.items()],
+             'absolute_deadline': context_four.absolute_deadline}
+    write_phase('r05-owned-retry-recovery', facts)
+    assert stdout_four.attempts == 2, \
+        'the same owner did not retry the unresolved original'
+    assert stdout_four.closed is True, \
+        'the same owner did not really close the unresolved original'
+    assert aggregate_four.raw_streams == [], \
         'the launch still owns an original that was really closed'
-    assert custody_one.items() == [], \
+    assert custody_four.items() == [], \
         'the table of the launcher kept an item of the launch'
+    # The deadline of the round was never renewed and the context of
+    # the round is the one of the first attempt.
+    assert context_four.absolute_deadline == clock_four.value + 10.0, \
+        'the round renewed its own deadline'
 
 
 # -- N10-R06: the admission of a generation -------------------------------
