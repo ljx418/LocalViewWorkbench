@@ -1,0 +1,2047 @@
+Candidate 0f532a7d86e390dc093b7d78aa5fc36103bdff23; T10 physical lines
+4812: # -- N10-R10: the outcome of the generation wins --------------------------
+4813: 
+4814: class _BarrierRefusal(Exception):
+4815:     """The refusal of the publication barrier of the test.
+4816: 
+4817:     It is a **premise** of the test and not a failure of the
+4818:     production: the production catches the ordinary exceptions of the
+4819:     seam of the round, and the outer test asserts that the premise
+4820:     failed and that the barrier never reported a success.  An exception
+4821:     that the production swallowed is never a test oracle.
+4822:     """
+4823: 
+4824:     def __init__(self, reason):
+4825:         super().__init__(reason)
+4826:         self.reason = reason
+4827: 
+4828: 
+4829: class _M09TimeoutApi:
+4830:     """The primitives of a chain whose fault is published by the owner.
+4831: 
+4832:     The chain of the phase is the **real** chain of the round: the
+4833:     session, the handle of the broker, the channel of the round and the
+4834:     worker of its read endpoint.  The façade is the only seam and it
+4835:     does two things and nothing else:
+4836: 
+4837:     * it publishes the ordinary failure of the read of the **current**
+4838:       generation, and it publishes it at the moment of the coordination
+4839:       of the round - the moment at which the effective timeout of the
+4840:       round is decided;
+4841:     * it decides whether the coordination of the round **succeeds**: a
+4842:       coordination whose worker really ended is a confirmed one and a
+4843:       coordination whose worker is still alive is a failed one.
+4844: 
+4845:     The seam never replaces the selection of the outcome, the history
+4846:     of the error, the public stop of the round or a fact of the round:
+4847:     every one of them is the production.
+4848:     """
+4849: 
+4850:     def __init__(self, *, worker_holder=None, confirm_the_worker=False,
+4851:                  hold_the_worker=False):
+4852:         self.lock = threading.Lock()
+4853:         self.frames = []
+4854:         self.final = b''
+4855:         self._outcomes = queue.Queue()
+4856:         self.read_waiting = threading.Event()
+4857:         self.fault_observed = threading.Event()
+4858:         self.eof_observed = threading.Event()
+4859:         self.closed = []
+4860:         self.close_ledger = []
+4861:         self.thread_handles = []
+4862:         self.next_handle = 700
+4863:         # The ordinary failure of the read and the object of it: the
+4864:         # owner of the test keeps the **original** error object and it
+4865:         # compares it with the object that the production really kept.
+4866:         self.fault = None
+4867:         self.fault_object = None
+4868:         self.worker_holder = worker_holder if worker_holder is not None else {}
+4869:         # Whether the coordination of the round waits for the real exit
+4870:         # of the worker.  A coordination that waits is a **confirmed**
+4871:         # one and a coordination that does not wait is a **failed** one
+4872:         # while the worker is still alive.
+4873:         self.confirm_the_worker = confirm_the_worker
+4874:         # The event that holds the worker inside its own release, so
+4875:         # that the failure of the coordination is deterministic.
+4876:         self.hold_the_worker = hold_the_worker
+4877:         self.release_the_worker = threading.Event()
+4878:         self.cancel_calls = 0
+4879:         # The **checked** barrier of the publication of the outcome of
+4880:         # the generation.  The barrier is a **premise** of the test and
+4881:         # not a fact of the production: it observes the immutable
+4882:         # outcome of the **named** generation and it refuses the premise
+4883:         # when the outcome is absent, when it belongs to another
+4884:         # generation, when it does not carry the expected kind of the
+4885:         # ordinary failure or when it does not keep the **exact**
+4886:         # original error object.  A refused premise is never a passed
+4887:         # barrier and the primitive of the round never returns
+4888:         # ``REQUESTED`` as if the barrier had passed.
+4889:         self.barrier_probe = 'EXACT'
+4890:         self.barrier = {
+4891:             'probe': 'EXACT',
+4892:             'expected_generation': None,
+4893:             'probe_generation': None,
+4894:             'observed': False,
+4895:             'observed_generation': None,
+4896:             'observed_error': None,
+4897:             'observed_object': None,
+4898:             'failure': None,
+4899:             'refused': None,
+4900:             'passed': False,
+4901:             'returned': None,
+4902:             'entered_at': None,
+4903:             'observed_at': None,
+4904:             'left_at': None,
+4905:             'return_state': None,
+4906:             'generation': None,
+4907:         }
+4908:         # CORRECTION 17 (M2): the completion of the barrier is published
+4909:         # by the seam itself and the facts of the barrier are **durable**:
+4910:         # the snapshot is persisted as a real phase document when the
+4911:         # barrier is finalised, on the successful path **and** on the
+4912:         # refused path.  A shallow in-memory dictionary alone is not
+4913:         # execution evidence.
+4914:         self.barrier_completed = threading.Event()
+4915:         self.barrier_snapshot = None
+4916:         self.barrier_document = None
+4917:         self.barrier_expectation = None
+4918:         self.barrier_write_error = None
+4919:         # CORRECTION 18 (M2): the **ledger** of the phase and the name of
+4920:         # the barrier of this phase.  The attempt of the barrier is
+4921:         # marked **in the seam itself**: an assertion of the phase that
+4922:         # fails after the seam ran may never relabel the barrier as
+4923:         # ``NOT_RUN``.
+4924:         self.barrier_ledger = None
+4925:         self.barrier_name = None
+4926:         # CORRECTION 18 (M2): the durable document of the barrier is
+4927:         # written **before** the completion is published and the fact of
+4928:         # that write is recorded.
+4929:         self.barrier_persisted = False
+4930: 
+4931:     # -- the explicit outcomes of the reader ------------------------------
+4932:     def publish_read_fault(self):
+4933:         """Publish the ordinary failure of the read, explicitly."""
+4934:         with self.lock:
+4935:             error = self.fault
+4936:             self.fault = None
+4937:         if error is not None:
+4938:             self.publish_outcome('FAULT', error)
+4939:         return error
+4940: 
+4941:     def publish_outcome(self, kind, payload=None):
+4942:         self._outcomes.put((kind, payload))
+4943:         return payload
+4944: 
+4945:     # -- the primitives ----------------------------------------------------
+4946:     def duplicate_current_thread_handle(self):
+4947:         with self.lock:
+4948:             self.next_handle += 1
+4949:             self.thread_handles.append(self.next_handle)
+4950:             return self.next_handle
+4951: 
+4952:     def cancel_synchronous_io(self, handle):
+4953:         self.cancel_calls += 1
+4954:         # The coordination of the round publishes the ordinary failure
+4955:         # of the read of the current generation: the fault is really
+4956:         # published **before** the endpoint consumes the outcome.
+4957:         self.publish_read_fault()
+4958:         worker = self.worker_holder.get('worker')
+4959:         if worker is not None and not self.confirm_the_worker:
+4960:             # RECONCILIATION (N1 correction 14, F5): the cancel
+4961:             # primitive of the round enqueued the fault and returned
+4962:             # **immediately**.  The coordination of the round could then
+4963:             # reach its selection point **before** the worker had
+4964:             # published the immutable outcome of its generation: the
+4965:             # selection point had no published fault and the parallel
+4966:             # fact of the timeout could not be inferred from a later
+4967:             # observation of the fault.
+4968:             #
+4969:             # The primitive now waits, bounded, for the **immutable
+4970:             # outcome of that specific generation** before it returns.
+4971:             # The selection point of the production then really sees the
+4972:             # published fault of the round.  The wait is bounded, it
+4973:             # never decides the outcome of the generation and it never
+4974:             # replaces the error of the round.  The worker of the round
+4975:             # is held inside its own final close and release tail, so
+4976:             # the real bounded join of the coordination still FAILS.
+4977:             #
+4978:             # N1 correction 15 (M2): the wait is a **checked** barrier
+4979:             # and it **fails closed**.  The barrier demands the immutable
+4980:             # outcome of the **exact** generation, the expected kind of
+4981:             # the ordinary failure and the **exact** original error
+4982:             # object, and it demands them **before** the cancel
+4983:             # primitive returns.  A missing outcome, an outcome of
+4984:             # another generation, another kind of failure and another
+4985:             # error object are an **explicit refusal** of the premise of
+4986:             # the test: the primitive never returns ``REQUESTED`` as if
+4987:             # the barrier had passed and the record of the barrier
+4988:             # names the refusal.
+4989:             generation = self.worker_holder.get('generation')
+4990:             if generation is None:
+4991:                 generation = worker._submitted
+4992:             barrier = self.barrier
+4993:             expected_generation = generation
+4994:             probe_generation = generation
+4995:             if self.barrier_probe == 'ABSENT':
+4996:                 # The negative subcase: the barrier waits for the
+4997:                 # outcome of a generation that was never published.
+4998:                 probe_generation = generation + 1000000
+4999:             elif self.barrier_probe == 'WRONG_GENERATION':
+5000:                 # The negative subcase: the premise demands the outcome
+5001:                 # of another generation than the one that the round
+5002:                 # really published.
+5003:                 expected_generation = generation + 1
+5004:             barrier['probe'] = self.barrier_probe
+5005:             barrier['expected_generation'] = expected_generation
+5006:             barrier['probe_generation'] = probe_generation
+5007:             barrier['entered_at'] = time.monotonic()
+5008:             failure = None
+5009:             outcome = None
+5010:             # CORRECTION 18 (M2): the attempt of the barrier is marked
+5011:             # **here**, in the actual seam of the round and not in the
+5012:             # phase that waits for it: an assertion of the phase that
+5013:             # fails after this point may never relabel the barrier as
+5014:             # ``NOT_RUN`` and it may never overwrite the executed
+5015:             # barrier with a synthetic one.
+5016:             if self.barrier_ledger is not None and self.barrier_name:
+5017:                 self.barrier_ledger.attempt(self.barrier_name)
+5018:             # CORRECTION 17 (M2): the barrier is **finalised** on the
+5019:             # successful path **and** on the refused path: the failure,
+5020:             # the return state and the generation and object facts are
+5021:             # recorded, the snapshot is persisted and the completion is
+5022:             # published - always, and never before the facts are there.
+5023:             try:
+5024:                 if self.barrier_probe == 'ABSENT':
+5025:                     outcome = _wait_for_missing_outcome(worker,
+5026:                                                          probe_generation,
+5027:                                                          1.0)
+5028:                 else:
+5029:                     outcome = _wait_for_outcome(worker, probe_generation, 15.0)
+5030:                 barrier['observed_at'] = time.monotonic()
+5031:                 barrier['observed'] = outcome is not None
+5032:                 barrier['observed_generation'] = (
+5033:                     outcome.get('generation')
+5034:                     if outcome is not None else None)
+5035:                 barrier['observed_error'] = (outcome.get('error')
+5036:                                              if outcome is not None else None)
+5037:                 barrier['observed_object'] = (outcome.get('error_object')
+5038:                                              if outcome is not None else None)
+5039:                 if outcome is None:
+5040:                     failure = 'BARRIER_OUTCOME_MISSING'
+5041:                 elif outcome.get('generation') != expected_generation:
+5042:                     failure = 'BARRIER_GENERATION_MISMATCH'
+5043:                 elif outcome.get('error') != 'RuntimeError':
+5044:                     failure = 'BARRIER_ERROR_KIND'
+5045:                 elif outcome.get('error_object') is not self.fault_object:
+5046:                     failure = 'BARRIER_ERROR_OBJECT'
+5047:                 barrier['failure'] = failure
+5048:                 self.worker_holder['published_outcome'] = outcome
+5049:                 if failure is not None:
+5050:                     # The barrier **fails closed**: the primitive of the
+5051:                     # round does not return and the premise of the test is
+5052:                     # refused explicitly.
+5053:                     barrier['refused'] = failure
+5054:                     raise _BarrierRefusal(failure)
+5055:                 barrier['passed'] = True
+5056:                 barrier['returned'] = 'REQUESTED'
+5057:             finally:
+5058:                 # the facts of the barrier are finalised **always**: the
+5059:                 # return state names the path that was taken, the
+5060:                 # generation is the one that was demanded, the snapshot
+5061:                 # is persisted as a real document and the completion is
+5062:                 # published.
+5063:                 barrier['left_at'] = time.monotonic()
+5064:                 barrier['return_state'] = ('REFUSED' if failure is not None
+5065:                                            else 'PASSED')
+5066:                 barrier['generation'] = expected_generation
+5067:                 self.barrier_snapshot = dict(self.barrier)
+5068:                 # CORRECTION 18 (M2): the durable document of the
+5069:                 # barrier is written **before** the completion is
+5070:                 # published: a phase that waits for the completion and
+5071:                 # that reads the persisted document never reads a
+5072:                 # snapshot that was not written.
+5073:                 self._persist_barrier()
+5074:                 self.barrier_completed.set()
+5075:         if self.confirm_the_worker:
+5076:             # The coordination waits for the real exit of the worker:
+5077:             # the bounded join of the coordination is then a confirmed
+5078:             # one.
+5079:             if worker is not None:
+5080:                 worker.join(10.0)
+5081:         return 'REQUESTED'
+5082: 
+5083:     def _persist_barrier(self):
+5084:         """The **durable** facts of the barrier of this round.
+5085: 
+5086:         The facts of the barrier are written as a real phase document:
+5087:         the identity of the observed object is a **boolean** and the
+5088:         type and the detail of the failure are readable.  A shallow
+5089:         in-memory dictionary alone is not execution evidence.
+5090: 
+5091:         The failure of the write never replaces the fact of the barrier:
+5092:         it is recorded and it is visible to the owner of the test.
+5093:         """
+5094:         if not self.barrier_document:
+5095:             return None
+5096:         snapshot = self.barrier_snapshot or dict(self.barrier)
+5097:         observed = snapshot.get('observed_object')
+5098:         document = {
+5099:             'status': 'EXECUTED',
+5100:             'barrier': {key: value for key, value in snapshot.items()
+5101:                         if key != 'observed_object'},
+5102:             'barrier_observed_object_is_original':
+5103:                 observed is self.fault_object,
+5104:             'barrier_observed_object_type': (type(observed).__name__
+5105:                                              if observed is not None else None),
+5106:             'barrier_observed_object_detail': (repr(observed)
+5107:                                                if observed is not None else None),
+5108:             'barrier_expectation': self.barrier_expectation,
+5109:             'barrier_probe': self.barrier_probe,
+5110:             'confirm_the_worker': bool(self.confirm_the_worker),
+5111:             'hold_the_worker': bool(self.hold_the_worker),
+5112:             'cancel_calls': self.cancel_calls,
+5113:             'expected_generation': self.worker_holder.get('generation'),
+5114:             'published_outcome': bool(
+5115:                 self.worker_holder.get('published_outcome')),
+5116:             'barrier_persisted': True,
+5117:             'state': None,
+5118:         }
+5119:         try:
+5120:             path = write_phase(self.barrier_document, document)
+5121:         except BaseException as error:  # noqa: BLE001 - it stays visible
+5122:             self.barrier_write_error = {'type': type(error).__name__,
+5123:                                         'detail': str(error)}
+5124:             return None
+5125:         # CORRECTION 18 (M2): the fact of the durable write is recorded
+5126:         # and it is **consumed** by the phase: a barrier whose document
+5127:         # was not written never certifies the barrier.
+5128:         self.barrier_persisted = True
+5129:         return path
+5130: 
+5131:     def close_handle(self, handle):
+5132:         with self.lock:
+5133:             self.close_ledger.append(handle)
+5134:             self.closed.append(handle)
+5135:         if self.hold_the_worker:
+5136:             # The worker is held inside its own release: it is really
+5137:             # alive and the bounded join of the coordination fails.
+5138:             self.release_the_worker.wait(20.0)
+5139: 
+5140:     def read_stream(self, handle, size):
+5141:         with self.lock:
+5142:             if self.frames:
+5143:                 return self.frames.pop(0)
+5144:         self.read_waiting.set()
+5145:         try:
+5146:             kind, payload = self._outcomes.get(timeout=30.0)
+5147:         except queue.Empty:
+5148:             self.eof_observed.set()
+5149:             return b''
+5150:         if kind == 'FRAME':
+5151:             return payload
+5152:         if kind == 'FAULT':
+5153:             self.fault_observed.set()
+5154:             raise payload
+5155:         self.eof_observed.set()
+5156:         return b''
+5157: 
+5158:     def write_stream(self, handle, data):
+5159:         with self.lock:
+5160:             final = self.final
+5161:             self.final = b''
+5162:         if final:
+5163:             self.publish_outcome('FRAME', final)
+5164:         return len(data)
+5165: 
+5166: 
+5167: def _m09_timeout_phase(document, plan, tmp_path, *, phase, confirm_the_worker,
+5168:                         hold_the_worker, barrier_probe='EXACT',
+5169:                         expect_barrier='PASSED', inventory=None, ledger=None):
+5170:     """The dynamic schedule of the M09 obligation of this group.
+5171: 
+5172:     The schedule is the **production** one: a real ordinary fault is
+5173:     published for the current generation of the read of the real chain,
+5174:     the effective timeout of the round arrives **before** the endpoint
+5175:     consumes the outcome, and the coordination of the round - a
+5176:     confirmed one or a failed one - preserves the exact original error
+5177:     object and its code.  The timeout and the failure of the
+5178:     coordination are **parallel** facts: they never replace the failure
+5179:     that was really published.
+5180: 
+5181:     Every fact of the phase is the fact that the production returned.
+5182: 
+5183:     RECONCILIATION (N1 correction 14, F5): the schedule of the **failed**
+5184:     coordination reached the selection point of the production without a
+5185:     published fault: the cancel primitive of the round enqueued the
+5186:     fault of the read and returned immediately, so the coordination
+5187:     could finish before the worker had published the immutable outcome
+5188:     of its generation.  The parallel fact of the timeout could then not
+5189:     be read at all.  The seam of the failed coordination now publishes
+5190:     the real primitive fault and waits, bounded, for the **immutable
+5191:     outcome of that specific generation** before the cancel primitive
+5192:     returns, while the worker of the round is held inside its own
+5193:     final close and release tail: the real bounded join of the
+5194:     coordination still FAILS and the coordination error stays a
+5195:     **parallel** fact of the original error of the round.  The
+5196:     confirmed coordination and the required order of the schedule
+5197:     (fault published before the timeout, consumed after it) stay
+5198:     separate and unchanged.
+5199: 
+5200:     N1 correction 15 (M2): the wait of the seam for the outcome of the
+5201:     generation is a **checked** barrier and it **fails closed**.  The
+5202:     barrier demands the immutable outcome of the **exact** generation,
+5203:     the expected kind of the ordinary failure and the **exact** original
+5204:     error object **before** the cancel primitive returns, and it stores
+5205:     the checked order of the three facts.  A missing outcome, an outcome
+5206:     of another generation, another kind of failure and another error
+5207:     object are an **explicit refusal** of the premise of the test: the
+5208:     primitive never returns ``REQUESTED`` as if the barrier had passed.
+5209:     The production catches the ordinary exceptions of the seam, so the
+5210:     outer test reads the premise from the record of the barrier itself
+5211:     and it captures that record **before** the main assertions of the
+5212:     phase.
+5213: 
+5214:     The two negative subcases of the barrier (``ABSENT`` and
+5215:     ``WRONG_GENERATION``) drive the **same** failed coordination with a
+5216:     bounded transparent seam that forces an absent outcome and an
+5217:     outcome of another generation.  Their premise is **refused** and
+5218:     they are never counted as a successful failed coordination.
+5219: 
+5220:     The **confirmed** coordination does not use the barrier at all: it
+5221:     waits for the real exit of the worker and the record of the barrier
+5222:     says that it never ran.  The expectation of the phase names the
+5223:     three cases: ``PASSED`` for the failed coordination, ``REFUSED`` for
+5224:     the two negative subcases and ``NOT_APPLICABLE`` for the confirmed
+5225:     coordination.
+5226: 
+5227:     N1 correction 17 (M2): the construction of the chain is **inside**
+5228:     the guard of the phase, the barrier of the publication is waited
+5229:     for **after** the cause of the coordination - never before it - and
+5230:     the facts of the barrier are read from the **persisted** snapshot of
+5231:     the seam.  A phase that was **executed** and that failed is a
+5232:     **FAIL** with its raw facts; only a phase that was never entered is
+5233:     a ``NOT_RUN``.  The result of the phase is written **last**, after
+5234:     the two real stops and after the cleanup of the phase.
+5235:     """
+5236:     clock = ManualClock(1000.0)
+5237:     api = _M09TimeoutApi(confirm_the_worker=confirm_the_worker,
+5238:                           hold_the_worker=hold_the_worker)
+5239:     api.barrier_probe = barrier_probe
+5240:     api.barrier_document = phase + '-barrier'
+5241:     api.barrier_expectation = expect_barrier
+5242:     # CORRECTION 18 (M2): the seam of the round knows the ledger of the
+5243:     # phase and the name of the barrier of this phase: the attempt of
+5244:     # the barrier is marked **in the seam** and never only in the phase
+5245:     # that waits for it.
+5246:     api.barrier_ledger = ledger
+5247:     api.barrier_name = phase + '-barrier'
+5248:     # CORRECTION 17 (M3): the owners of the round of this phase are
+5249:     # registered by the observer of the starts: the observation is armed
+5250:     # for the **whole** phase, the construction of the chain included,
+5251:     # and it is disarmed only after the salvage of the phase.
+5252:     registry = _OwnerRegistry()
+5253:     observer = _StartObserver(registry)
+5254:     fault = RuntimeError('read_fault')
+5255:     api.fault = fault
+5256:     api.fault_object = fault
+5257:     session = None
+5258:     holder = None
+5259:     channel_closes = None
+5260:     channel_facts = None
+5261:     worker = None
+5262:     generation = None
+5263:     written = set()
+5264:     raw = {}
+5265:     # CORRECTION 18 (M2/M3): the errors of this phase are **lists** and
+5266:     # they are never overwritten: a cleanup error is never replaced by a
+5267:     # later one and the first error is never the only one.
+5268:     cleanup_errors = []
+5269:     write_errors = []
+5270:     # CORRECTION 18 (M3): the **exact** objects of the interruptions
+5271:     # that the cleanup of this phase met.
+5272:     interrupts = []
+5273:     # CORRECTION 18 (M2): the **original** failure of this phase.
+5274:     original_failure = {'type': None, 'detail': None}
+5275:     names = (phase, phase + '-construction', phase + '-barrier',
+5276:              phase + '-first', phase + '-second')
+5277: 
+5278:     def record(name, facts):
+5279:         """Write one document of the phase and mark it as **written**.
+5280: 
+5281:         CORRECTION 17 (M2): the document is **persisted first** and it
+5282:         is marked only after the persistence succeeded: a document that
+5283:         the inventory of the outer test names really exists on the disk.
+5284:         """
+5285:         path = write_phase(name, facts)
+5286:         written.add(name)
+5287:         if inventory is not None:
+5288:             inventory.add(name)
+5289:         if ledger is not None:
+5290:             ledger.attempt(name)
+5291:         return path
+5292: 
+5293:     def record_guarded(name, facts):
+5294:         """Write one document and **never** replace an original failure.
+5295: 
+5296:         CORRECTION 18 (M2): the writing of the evidence of a phase that
+5297:         is already failing must never replace the original failure: the
+5298:         error of the write is retained in ``write_errors`` and the phase
+5299:         fails **closed**.
+5300:         """
+5301:         try:
+5302:             return record(name, facts)
+5303:         except BaseException as error:  # noqa: BLE001 - it stays visible
+5304:             write_errors.append({'name': name,
+5305:                                  'type': type(error).__name__,
+5306:                                  'detail': str(error)})
+5307:             _note_interruption(interrupts, error)
+5308:             return None
+5309: 
+5310:     def barrier_identity():
+5311:         """The durable identity facts of the barrier of this phase.
+5312: 
+5313:         CORRECTION 18 (M2): every rewrite of the barrier document keeps
+5314:         the **boolean** of the identity of the original error object: the
+5315:         repr of an object never carries its identity.
+5316:         """
+5317:         snapshot = api.barrier_snapshot or {}
+5318:         observed = snapshot.get('observed_object')
+5319:         return {
+5320:             'barrier_observed_object_is_original':
+5321:                 observed is api.fault_object,
+5322:             'barrier_observed_object_type': (type(observed).__name__
+5323:                                              if observed is not None else None),
+5324:             'barrier_observed_object_detail': (repr(observed)
+5325:                                                if observed is not None else None),
+5326:         }
+5327: 
+5328:     if ledger is not None:
+5329:         for name in names:
+5330:             ledger.plan(name)
+5331:         ledger.attempt(phase + '-construction')
+5332:         # CORRECTION 18 (M2): the overall phase is attempted **before**
+5333:         # the construction of the chain: a construction that failed half
+5334:         # way is an attempted construction **and** an attempted phase -
+5335:         # the phase is never ``NOT_RUN`` when its construction ran.
+5336:         ledger.attempt(phase)
+5337:     observer_patch = observer.install()
+5338:     observer_patch.start()
+5339:     observer.arm()
+5340:     try:
+5341:         try:
+5342:             # CORRECTION 17 (M2): the construction of the chain is
+5343:             # **inside** the guard: a construction that failed half way
+5344:             # is an attempted construction with a durable document.
+5345:             session, holder, channel_closes, channel_facts = _chain(
+5346:                 api, document, plan, tmp_path, clock=clock)
+5347:             # CORRECTION 18 (M2): a **successful** construction has its
+5348:             # own terminal document: the facts are written first and the
+5349:             # ``PASSED`` document is written only after them and the
+5350:             # ledger of the phase is updated only after that.
+5351:             construction_facts = {'construction': 'COMPLETED',
+5352:                                   'session_created': session is not None,
+5353:                                   'holder_keys': sorted(holder),
+5354:                                   'state': getattr(session, 'state', None)}
+5355:             raw[phase + '-construction'] = dict(construction_facts)
+5356:             record(phase + '-construction',
+5357:                    dict(construction_facts, status='EXECUTED'))
+5358:             record(phase + '-construction',
+5359:                    dict(construction_facts, status='PASSED'))
+5360:             if ledger is not None:
+5361:                 ledger.pass_(phase + '-construction')
+5362:             session.start()
+5363:             # The reader of the chain is really inside its read and the
+5364:             # generation of that read is the fact of the worker itself: it
+5365:             # is never a number that the group hard codes.
+5366:             assert api.read_waiting.wait(15.0), \
+5367:                 'the reader of the chain was never inside its read'
+5368:             worker = holder['read_endpoint']._reader
+5369:             assert worker is not None, 'the reader of the chain never started'
+5370:             api.worker_holder['worker'] = worker
+5371:             generation = worker._submitted
+5372:             assert generation >= 1, 'the reader of the chain never submitted'
+5373:             # The **specific** generation of the read that is in flight is
+5374:             # given to the seam of the primitive: the outcome that the
+5375:             # coordination waits for is the outcome of **that** generation
+5376:             # and never a generic event of the worker.
+5377:             api.worker_holder['generation'] = generation
+5378:             # The effective timeout of the round is tightened while the
+5379:             # read is really in flight: the absolute lease of the round
+5380:             # stays in the future and only the bound of the channel
+5381:             # expires.  **This** is the cause of the coordination of the
+5382:             # round and therefore of the barrier of the publication.
+5383:             holder['channel'].bind_deadline(clock.value + 0.5)
+5384:             clock.advance(1.0)
+5385:             # The fault of the read is published by the coordination of the
+5386:             # round and the endpoint finds it before it consumes it.
+5387:             assert api.fault_observed.wait(15.0), \
+5388:                 'the ordinary failure of the read never happened'
+5389:             assert worker.outcome_published.wait(15.0), \
+5390:                 'the outcome of the read was never published'
+5391:             outcome = worker.outcome(generation)
+5392:             assert outcome is not None, 'the outcome of the generation is gone'
+5393:             assert outcome['generation'] == generation, \
+5394:                 'the outcome of another generation was read'
+5395:             assert outcome['error'] == 'RuntimeError', \
+5396:                 'the published failure of the round is not the ordinary one'
+5397:             assert outcome['error_object'] is fault, \
+5398:                 'the outcome of the generation does not keep the original error'
+5399:             # The publication of the outcome of the worker is **not** the
+5400:             # consumption of it by the endpoint: the endpoint attaches the
+5401:             # timeout to the original error object when it raises that
+5402:             # object, and the publication happens before it.  The group
+5403:             # waits for the **real** termination of the reader of the
+5404:             # channel: that is the barrier of the consumption and it is
+5405:             # never a sleep that proves it.
+5406:             reader_thread = getattr(holder['channel'], '_thread', None)
+5407:             assert reader_thread is not None, \
+5408:                 'the reader thread of the channel does not exist'
+5409:             reader_thread.join(15.0)
+5410:             assert not reader_thread.is_alive(), \
+5411:                 'the reader of the channel did not consume the outcome'
+5412:             # N1 correction 17 (M2): the barrier of the publication is
+5413:             # **completed** by the seam at its finalization, and the
+5414:             # finalization happened **after** the cause above.  The
+5415:             # phase waits for the completion - a bounded wait that never
+5416:             # precedes its cause - and it reads the **persisted** snapshot
+5417:             # of the seam.  The seam wrote the document durably at its
+5418:             # finalization, on the successful path and on the refused
+5419:             # path.
+5420:             # The phase attempts the barrier as well: the **seam** is the
+5421:             # authority of the attempt and this call is idempotent.
+5422:             if ledger is not None:
+5423:                 ledger.attempt(phase + '-barrier')
+5424:             if expect_barrier in ('PASSED', 'REFUSED'):
+5425:                 if not api.barrier_completed.wait(15.0):
+5426:                     record_guarded(phase + '-barrier', dict(
+5427:                         barrier_identity(),
+5428:                         status='FAIL',
+5429:                         executed=True,
+5430:                         premise='BARRIER_NOT_COMPLETED',
+5431:                         timeout_seconds=15.0,
+5432:                         barrier_completed=False,
+5433:                         barrier_expectation=expect_barrier,
+5434:                         barrier_probe=barrier_probe,
+5435:                         state=session.state))
+5436:                     if ledger is not None:
+5437:                         ledger.fail(phase + '-barrier', 'BARRIER_NOT_COMPLETED')
+5438:                     raise AssertionError(
+5439:                         'the publication barrier of the round never completed')
+5440:                 # CORRECTION 18 (M2): the error of the durable write of
+5441:                 # the barrier is **consumed** here: a barrier whose
+5442:                 # document was not written never certifies the barrier
+5443:                 # and it never leaves the evidence of the phase as if it
+5444:                 # had passed.
+5445:                 if api.barrier_write_error is not None:
+5446:                     record_guarded(phase + '-barrier', dict(
+5447:                         barrier_identity(),
+5448:                         status='FAIL',
+5449:                         executed=True,
+5450:                         premise='BARRIER_DOCUMENT_NOT_WRITTEN',
+5451:                         barrier_write_error=api.barrier_write_error,
+5452:                         barrier_completed=True,
+5453:                         barrier_expectation=expect_barrier,
+5454:                         barrier_probe=barrier_probe,
+5455:                         state=session.state))
+5456:                     if ledger is not None:
+5457:                         ledger.fail(phase + '-barrier',
+5458:                                     'BARRIER_DOCUMENT_NOT_WRITTEN')
+5459:                     raise AssertionError(
+5460:                         'the durable barrier document of the round was not '
+5461:                         'written: %s' % (api.barrier_write_error,))
+5462:                 barrier = dict(api.barrier_snapshot or {})
+5463:                 raw[phase + '-barrier'] = dict(
+5464:                     barrier_identity(),
+5465:                     barrier=barrier,
+5466:                     barrier_expectation=expect_barrier,
+5467:                     barrier_probe=barrier_probe,
+5468:                     barrier_completed=True,
+5469:                     barrier_persisted=bool(api.barrier_persisted),
+5470:                     barrier_return_state=barrier.get('return_state'),
+5471:                     confirm_the_worker=bool(confirm_the_worker),
+5472:                     hold_the_worker=bool(hold_the_worker),
+5473:                     cancel_calls=api.cancel_calls,
+5474:                     expected_generation=api.worker_holder.get('generation'),
+5475:                     published_outcome=bool(
+5476:                         api.worker_holder.get('published_outcome')),
+5477:                     state=session.state)
+5478:             else:
+5479:                 # The confirmed coordination does not use the barrier: the
+5480:                 # document is written immediately with the empty snapshot
+5481:                 # and **no wait** is performed.
+5482:                 barrier = dict(api.barrier)
+5483:                 raw[phase + '-barrier'] = dict(
+5484:                     barrier_identity(),
+5485:                     barrier=barrier,
+5486:                     barrier_expectation=expect_barrier,
+5487:                     barrier_probe=barrier_probe,
+5488:                     barrier_completed=False,
+5489:                     barrier_persisted=bool(api.barrier_persisted),
+5490:                     barrier_return_state=barrier.get('return_state'),
+5491:                     confirm_the_worker=bool(confirm_the_worker),
+5492:                     hold_the_worker=bool(hold_the_worker),
+5493:                     cancel_calls=api.cancel_calls,
+5494:                     expected_generation=api.worker_holder.get('generation'),
+5495:                     published_outcome=bool(
+5496:                         api.worker_holder.get('published_outcome')),
+5497:                     state=session.state)
+5498:                 record(phase + '-barrier',
+5499:                        dict(raw[phase + '-barrier'], status='EXECUTED'))
+5500:             if expect_barrier == 'PASSED':
+5501:                 assert barrier['failure'] is None, \
+5502:                     'the publication barrier of the round failed: %s' \
+5503:                     % barrier['failure']
+5504:                 assert barrier['passed'] is True, \
+5505:                     'the publication barrier of the round did not pass'
+5506:                 assert barrier['returned'] == 'REQUESTED', \
+5507:                     'the cancel primitive did not return after the barrier'
+5508:                 assert barrier['observed_generation'] == generation, \
+5509:                     'the barrier observed the outcome of another generation'
+5510:                 assert barrier['observed_error'] == 'RuntimeError', \
+5511:                     'the barrier did not observe the ordinary failure'
+5512:                 assert barrier['observed_object'] is fault, \
+5513:                     'the barrier did not observe the original error object'
+5514:                 # CORRECTION 18 (M2): the **durable** document of the
+5515:                 # barrier keeps the identity of the original error object
+5516:                 # as a **boolean**: the repr of an object never carries
+5517:                 # its identity.
+5518:                 assert raw[phase + '-barrier'][
+5519:                     'barrier_observed_object_is_original'] is True, \
+5520:                     'the durable document of the barrier does not keep the ' \
+5521:                     'identity of the original error object'
+5522:                 assert barrier['entered_at'] <= barrier['observed_at'] \
+5523:                     <= barrier['left_at'], \
+5524:                     'the order of the barrier of the publication was not checked'
+5525:                 assert barrier['return_state'] == 'PASSED', \
+5526:                     'the barrier of the publication did not finalise its state'
+5527:             elif expect_barrier == 'REFUSED':
+5528:                 # The negative subcase: the barrier **failed closed** and
+5529:                 # the premise of the test is refused explicitly.  It is
+5530:                 # never counted as a successful failed coordination.
+5531:                 assert barrier['failure'] is not None, \
+5532:                     'the publication barrier of the round did not fail closed'
+5533:                 assert barrier['passed'] is False, \
+5534:                     'the publication barrier of the round reported a success'
+5535:                 assert barrier['returned'] is None, \
+5536:                     'the cancel primitive returned as if the barrier had passed'
+5537:                 assert barrier['refused'] == barrier['failure'], \
+5538:                     'the refusal of the barrier of the publication was not recorded'
+5539:                 assert barrier['return_state'] == 'REFUSED', \
+5540:                     'the refused barrier of the publication did not finalise ' \
+5541:                     'its state'
+5542:             else:
+5543:                 # The **confirmed** coordination: the coordination of the
+5544:                 # round waits for the real exit of the worker and the
+5545:                 # barrier of the publication is **not** used by it.  The
+5546:                 # record of the barrier says so and it is never read as a
+5547:                 # premise that the schedule did not establish.
+5548:                 assert barrier['entered_at'] is None, \
+5549:                     'the barrier of the publication ran in a schedule that ' \
+5550:                     'does not use it'
+5551:                 assert barrier['passed'] is False, \
+5552:                     'the barrier of the publication reported a success in a ' \
+5553:                     'schedule that does not use it'
+5554:             # CORRECTION 18 (M2): the durable document of the barrier is
+5555:             # written **before** the terminal state of the ledger is
+5556:             # updated.
+5557:             record(phase + '-barrier',
+5558:                    dict(raw[phase + '-barrier'], status='PASSED'))
+5559:             if ledger is not None:
+5560:                 ledger.pass_(phase + '-barrier')
+5561:             # The endpoint raised the **original** error object and the
+5562:             # timeout is a **parallel** fact of it.
+5563:             raised = outcome['error_object']
+5564:             parallel = getattr(raised, 'lvw_parallel_timeout', None)
+5565:             assert isinstance(parallel, dict), \
+5566:                 'the timeout did not stay a parallel fact of the failure'
+5567:             assert parallel.get('code') == 'BROKER_PIPE_TIMEOUT'
+5568:             assert parallel.get('generation') == generation
+5569:             coordination = parallel.get('coordination_error')
+5570:             if confirm_the_worker:
+5571:                 # The coordination of the round **succeeded**: the worker
+5572:                 # really ended and the failure of the coordination is not
+5573:                 # a fact of the round.
+5574:                 assert coordination is None, \
+5575:                     'a confirmed coordination was named as a failed one'
+5576:             else:
+5577:                 # The coordination of the round **failed** and the failure
+5578:                 # is a parallel fact: the original error of the round is
+5579:                 # still the error that leaves.
+5580:                 assert coordination == 'BrokerError', \
+5581:                     'the failed coordination was not named as a parallel fact'
+5582:             raw[phase] = {'generation': generation,
+5583:                           'outcome_error': outcome['error'],
+5584:                           'outcome_object': type(outcome['error_object']).__name__,
+5585:                           'parallel_timeout': parallel,
+5586:                           'cancel_calls': api.cancel_calls,
+5587:                           'published_before_cancel_return': bool(
+5588:                               api.worker_holder.get('published_outcome')),
+5589:                           'barrier': barrier,
+5590:                           'barrier_expectation': expect_barrier,
+5591:                           'state': session.state}
+5592:             record(phase, dict(raw[phase], status='EXECUTED'))
+5593:             # The error of the reader of the channel is the error of the
+5594:             # round: the history of the round keeps it and the two public
+5595:             # stops of the round keep it.
+5596:             if ledger is not None:
+5597:                 ledger.attempt(phase + '-first')
+5598:             first = session.stop()
+5599:             first_facts = first['broker_close_facts'] or {}
+5600:             raw[phase + '-first'] = {
+5601:                 'reader_error': first_facts.get('channel_reader_error'),
+5602:                 'state': first['state'],
+5603:                 'retained': first['broker_retained']}
+5604:             record(phase + '-first',
+5605:                    dict(raw[phase + '-first'], status='EXECUTED'))
+5606:             assert first_facts.get('channel_reader_error') == 'RuntimeError', \
+5607:                 'the real fault of the round was replaced by a cancellation'
+5608:             assert first['broker_retained'] is True
+5609:             assert first['state'] == 'UNKNOWN_RETAINED'
+5610:             # CORRECTION 18 (M2): the durable document is written
+5611:             # **before** the terminal state of the ledger is updated.
+5612:             record(phase + '-first',
+5613:                    dict(raw[phase + '-first'], status='PASSED'))
+5614:             if ledger is not None:
+5615:                 ledger.pass_(phase + '-first')
+5616:             if ledger is not None:
+5617:                 ledger.attempt(phase + '-second')
+5618:             second = session.stop()
+5619:             second_facts = second['broker_close_facts'] or {}
+5620:             raw[phase + '-second'] = {
+5621:                 'reader_error': second_facts.get('channel_reader_error'),
+5622:                 'source': second_facts.get('channel_reader_error_source'),
+5623:                 'state': second['state']}
+5624:             record(phase + '-second',
+5625:                    dict(raw[phase + '-second'], status='EXECUTED'))
+5626:             assert second_facts.get('channel_reader_error') == 'RuntimeError', \
+5627:                 'the second attempt lost the error of the reader'
+5628:             assert second_facts.get('channel_reader_error_source') \
+5629:                 == 'REPEATED_CLOSE'
+5630:             assert second['state'] == 'UNKNOWN_RETAINED'
+5631:             # CORRECTION 18 (M2): the durable document is written
+5632:             # **before** the terminal state of the ledger is updated.
+5633:             record(phase + '-second',
+5634:                    dict(raw[phase + '-second'], status='PASSED'))
+5635:             if ledger is not None:
+5636:                 ledger.pass_(phase + '-second')
+5637:         except BaseException as error:
+5638:             # N1 correction 17 (M2): a phase that was **executed** and
+5639:             # that failed is a **FAIL** with the facts that it really
+5640:             # observed.  Only a phase that was **never entered** is left
+5641:             # to the inventory of the outer test, which writes it as
+5642:             # ``NOT_RUN`` without a fact of the phase.
+5643:             #
+5644:             # CORRECTION 18 (M2): the **original** failure is retained
+5645:             # and it is the one that leaves the phase.  The result
+5646:             # document of the phase is written **after** the cleanup and
+5647:             # it carries the original failure **and** the diagnostics of
+5648:             # the cleanup.  The writing of the evidence never replaces
+5649:             # the original failure: it is recorded and the phase fails
+5650:             # **closed**.
+5651:             original_failure['type'] = type(error).__name__
+5652:             original_failure['detail'] = str(error)
+5653:             for name in names:
+5654:                 if name == phase:
+5655:                     # the result of the phase is written after the
+5656:                     # cleanup of the phase
+5657:                     continue
+5658:                 if ledger is not None:
+5659:                     state = ledger.state(name)
+5660:                 else:
+5661:                     state = 'ATTEMPTED' if name in written else 'PLANNED'
+5662:                 if state != 'ATTEMPTED':
+5663:                     continue
+5664:                 # the facts that the phase really observed are kept: the
+5665:                 # barrier of the publication stays in the document of the
+5666:                 # phase that failed
+5667:                 observed = dict(raw.get(name, {}))
+5668:                 if name == phase + '-construction':
+5669:                     observed.setdefault('construction', 'FAILED')
+5670:                 if name.endswith('-barrier'):
+5671:                     if api.barrier_snapshot:
+5672:                         observed.setdefault('barrier',
+5673:                                             dict(api.barrier_snapshot))
+5674:                     observed.update(barrier_identity())
+5675:                 record_guarded(name, dict(observed,
+5676:                                           status='FAIL',
+5677:                                           executed=True,
+5678:                                           reason=type(error).__name__,
+5679:                                           detail=str(error)))
+5680:                 if ledger is not None:
+5681:                     ledger.fail(name, type(error).__name__)
+5682:             raise
+5683:         finally:
+5684:             # The teardown of the owner of the test is bounded and it is
+5685:             # unconditional: the gate is released, the read of the round
+5686:             # is ended, the production wait of the worker is restored and
+5687:             # the worker is stopped and joined.
+5688:             #
+5689:             # CORRECTION 18 (M2/M3): every step of the teardown is
+5690:             # guarded and every error is **retained** in a list: one
+5691:             # exception never skips the owners that follow it and it
+5692:             # never skips the result document of the phase.  The join and
+5693:             # the query of the worker happen **before** the drain and
+5694:             # they are guarded themselves.
+5695:             api.release_the_worker.set()
+5696:             if session is not None:
+5697:                 try:
+5698:                     session.stop()
+5699:                 except BaseException as error:  # noqa: BLE001
+5700:                     cleanup_errors.append({'kind': 'STOP',
+5701:                                            'type': type(error).__name__,
+5702:                                            'detail': str(error)})
+5703:                     _note_interruption(interrupts, error)
+5704:             if worker is not None:
+5705:                 try:
+5706:                     worker.join_bounded(10.0)
+5707:                 except BaseException as error:  # noqa: BLE001
+5708:                     cleanup_errors.append({'kind': 'WORKER_JOIN',
+5709:                                            'type': type(error).__name__,
+5710:                                            'detail': str(error)})
+5711:                     _note_interruption(interrupts, error)
+5712:                 try:
+5713:                     if worker.is_alive():
+5714:                         cleanup_errors.append(
+5715:                             {'kind': 'WORKER', 'type': 'AssertionError',
+5716:                              'detail': 'the worker of the read was left '
+5717:                                        'behind'})
+5718:                 except BaseException as error:  # noqa: BLE001
+5719:                     cleanup_errors.append({'kind': 'WORKER_LIVENESS',
+5720:                                            'type': type(error).__name__,
+5721:                                            'detail': str(error)})
+5722:                     _note_interruption(interrupts, error)
+5723:             # CORRECTION 17 (M3): the owners of the round are drained
+5724:             # **boundedly** and the quiescence is asserted **after** the
+5725:             # drain: an owner that is still alive fails the proof of the
+5726:             # phase and every owner is still attempted.
+5727:             drain = {'salvage': [], 'attempts': [], 'proof': None,
+5728:                      'quiescent': False, 'errors': [], 'all_salvage': []}
+5729:             try:
+5730:                 drain = _drain_owners(
+5731:                     registry, session=session,
+5732:                     channel=(holder or {}).get('channel'), prefix=phase,
+5733:                     release=lambda: api.release_the_worker.set(),
+5734:                     interrupts=interrupts)
+5735:             except BaseException as error:  # noqa: BLE001 - it stays visible
+5736:                 cleanup_errors.append({'kind': 'DRAIN',
+5737:                                        'type': type(error).__name__,
+5738:                                        'detail': str(error)})
+5739:                 _note_interruption(interrupts, error)
+5740:             # CORRECTION 18 (M2): the result of the phase is written
+5741:             # **after** the cleanup and it carries the original failure
+5742:             # **and** every diagnostic of the cleanup.  The phase is
+5743:             # ``PASSED`` only when the proof held, the round was
+5744:             # quiescent and no unexpected cleanup or evidence error
+5745:             # happened.
+5746:             cleanup_detail = _cleanup_detail(cleanup_errors, write_errors)
+5747:             if ledger is not None and ledger.state(phase) == 'ATTEMPTED':
+5748:                 clean = (original_failure['type'] is None
+5749:                          and cleanup_detail is None
+5750:                          and drain['proof'] is None
+5751:                          and drain['quiescent'] is True)
+5752:                 if clean:
+5753:                     written_result = record_guarded(
+5754:                         phase, dict(raw.get(phase, {}), status='PASSED',
+5755:                                     cleanup_errors=[],
+5756:                                     evidence_write_errors=[],
+5757:                                     proof_failure=None,
+5758:                                     quiescent=True))
+5759:                     if written_result is None:
+5760:                         # the evidence of the phase could not be written:
+5761:                         # the phase fails **closed** and it is never
+5762:                         # reported as a success.
+5763:                         ledger.fail(phase, 'EVIDENCE_WRITE_FAILED')
+5764:                         if sys.exc_info()[0] is None:
+5765:                             raise AssertionError(
+5766:                                 'the result document of the phase could not '
+5767:                                 'be written: %s' % (write_errors,))
+5768:                     else:
+5769:                         ledger.pass_(phase)
+5770:                 else:
+5771:                     reason = (original_failure['type'] or 'CleanupError')
+5772:                     detail = _join_details(original_failure['detail'],
+5773:                                            cleanup_detail, drain['proof'])
+5774:                     record_guarded(phase, dict(raw.get(phase, {}),
+5775:                                                status='FAIL',
+5776:                                                executed=True,
+5777:                                                reason=reason,
+5778:                                                detail=detail,
+5779:                                                original_failure=dict(
+5780:                                                    original_failure),
+5781:                                                cleanup_errors=list(
+5782:                                                    cleanup_errors),
+5783:                                                evidence_write_errors=list(
+5784:                                                    write_errors),
+5785:                                                proof_failure=drain['proof'],
+5786:                                                quiescent=drain['quiescent']))
+5787:                     ledger.fail(phase, reason)
+5788:             # CORRECTION 18 (M3): the interruption of the cleanup is
+5789:             # re-raised only when no other failure is unwinding: the
+5790:             # original failure always wins and it is never replaced.
+5791:             if interrupts and sys.exc_info()[0] is None:
+5792:                 raise interrupts[0]
+5793:             if cleanup_detail is not None and sys.exc_info()[0] is None:
+5794:                 raise AssertionError(cleanup_detail)
+5795:             if drain['proof'] is not None and sys.exc_info()[0] is None:
+5796:                 # the owners of the round were not released: the proof of
+5797:                 # the cleanup fails truthfully and the phase fails with it
+5798:                 raise AssertionError(drain['proof'])
+5799:     finally:
+5800:         observer.disarm()
+5801:         observer_patch.stop()
+5802: class _M09Gate:
+5803:     """The transparent gate of the wait of the worker.
+5804: 
+5805:     The gate is a **wrapper** of the production wait of the worker: it
+5806:     calls the **original** wait and it holds the endpoint **after** that
+5807:     wait returned and **before** the endpoint rechecks or consumes the
+5808:     outcome of its own generation.
+5809: 
+5810:     The gate never decides the outcome, never rewrites the history of
+5811:     the error, never touches the selection of the error of the endpoint
+5812:     and never returns a fact of its own: it only decides **when** the
+5813:     endpoint continues.  Every value that the node asserts afterwards is
+5814:     a value that the production returned.
+5815: 
+5816:     The gate holds **one named worker** and it holds it only while the
+5817:     read of the round is really in flight: the frames of the start of
+5818:     the round are never held and the write of the round is never held.
+5819:     """
+5820: 
+5821:     def __init__(self, api):
+5822:         self.api = api
+5823:         self.entered = threading.Event()
+5824:         self.release = threading.Event()
+5825:         self.calls = []
+5826:         self.target = None
+5827:         self.armed = True
+5828: 
+5829:     def install(self, worker_class):
+5830:         """Wrap the production wait of the worker class."""
+5831:         original = worker_class.wait_done
+5832:         gate = self
+5833: 
+5834:         def gated_wait_done(worker, generation, timeout):
+5835:             result = original(worker, generation, timeout)
+5836:             gate.calls.append({'generation': generation,
+5837:                                'timeout': timeout,
+5838:                                'result': bool(result)})
+5839:             if (gate.armed and not result and worker is gate.target
+5840:                     and gate.api.read_waiting.is_set()):
+5841:                 # The endpoint is held **after** the production wait and
+5842:                 # **before** it rechecks its generation.
+5843:                 gate.entered.set()
+5844:                 gate.release.wait(30.0)
+5845:             return result
+5846: 
+5847:         worker_class.wait_done = gated_wait_done
+5848:         return original
+5849: 
+5850: 
+5851: def _wait_for_outcome(worker, generation, seconds):
+5852:     """The immutable outcome of **that** generation of the worker.
+5853: 
+5854:     The generic event of the worker may be stale: the event is only a
+5855:     wake up and the **outcome of the named generation** is the fact that
+5856:     the wait is really about.
+5857:     """
+5858:     deadline = time.monotonic() + seconds
+5859:     while time.monotonic() < deadline:
+5860:         outcome = worker.outcome(generation)
+5861:         if outcome is not None and outcome.get('error') is not None:
+5862:             return outcome
+5863:         worker.outcome_published.wait(0.05)
+5864:     return None
+5865: 
+5866: 
+5867: def _wait_for_missing_outcome(worker, generation, seconds):
+5868:     """Wait, bounded, for the outcome of a generation that never existed.
+5869: 
+5870:     The wait is the **negative** of the barrier of the publication: the
+5871:     outcome of that generation is never published, the wait ends with
+5872:     ``None`` and it never decides an outcome, never writes one and
+5873:     never replaces the error of the round.
+5874:     """
+5875:     deadline = time.monotonic() + seconds
+5876:     while time.monotonic() < deadline:
+5877:         outcome = worker.outcome(generation)
+5878:         if outcome is not None:
+5879:             return outcome
+5880:         time.sleep(0.005)
+5881:     return None
+5882: 
+5883: 
+5884: def _m09_published_fault_phase(document, plan, tmp_path, *, phase,
+5885:                                inventory=None, ledger=None):
+5886:     """The schedule that the contract requires: the fault comes first.
+5887: 
+5888:     The ordinary failure of the read is published **before** the
+5889:     effective timeout of the round arrives and the endpoint consumes the
+5890:     outcome of its generation only **after** the timeout was decided.
+5891: 
+5892:     The order that is driven and recorded is therefore
+5893: 
+5894:         the publication of the fault -> the immutable outcome of that
+5895:         generation exists -> the effective timeout arrives -> the
+5896:         endpoint consumes the outcome.
+5897: 
+5898:     The gate of the schedule is a transparent wrapper of the production
+5899:     wait of the worker: it calls the original wait and it holds the
+5900:     endpoint between the wait and the recheck of its generation.  The
+5901:     fault is published **independently** of the timeout, the outcome of
+5902:     the **named** generation is waited for (the generic event of the
+5903:     worker may be stale) and the timeout of the round is advanced only
+5904:     after the outcome really exists.
+5905: 
+5906:     The error of the round is the **exact original error object** and
+5907:     the timeout is a **parallel** fact of it.  The history of the error
+5908:     keeps it across the channel, the handle of the broker and the two
+5909:     public stops of the round.
+5910: 
+5911:     N1 correction 17 (M2): the construction of the chain is **inside**
+5912:     the guard of the phase, a phase that was **executed** and that
+5913:     failed is a **FAIL** with the facts that it really observed, and
+5914:     the result of the phase is written **last**, after the two real
+5915:     stops and after the cleanup of the phase.  Only a phase that was
+5916:     never entered is left to the inventory of the outer test.
+5917:     """
+5918:     clock = ManualClock(1000.0)
+5919:     api = _M09TimeoutApi()
+5920:     fault = RuntimeError('read_fault')
+5921:     api.fault = fault
+5922:     api.fault_object = fault
+5923:     gate = _M09Gate(api)
+5924:     registry = _OwnerRegistry()
+5925:     observer = _StartObserver(registry)
+5926:     session = None
+5927:     holder = None
+5928:     channel_closes = None
+5929:     channel_facts = None
+5930:     worker = None
+5931:     generation = None
+5932:     trace = []
+5933:     written = set()
+5934:     raw = {}
+5935:     # CORRECTION 18 (M2/M3): the errors of this phase are **lists** and
+5936:     # they are never overwritten: a cleanup error is never replaced by a
+5937:     # later one and the first error is never the only one.
+5938:     cleanup_errors = []
+5939:     write_errors = []
+5940:     # CORRECTION 18 (M3): the **exact** objects of the interruptions
+5941:     # that the cleanup of this phase met.
+5942:     interrupts = []
+5943:     # CORRECTION 18 (M2): the **original** failure of this phase.
+5944:     original_failure = {'type': None, 'detail': None}
+5945:     names = (phase, phase + '-construction', phase + '-first',
+5946:              phase + '-second')
+5947: 
+5948:     def record(name, facts):
+5949:         """Write one document of the phase and mark it as **written**.
+5950: 
+5951:         CORRECTION 17 (M2): the document is **persisted first** and it
+5952:         is marked only after the persistence succeeded.
+5953:         """
+5954:         path = write_phase(name, facts)
+5955:         written.add(name)
+5956:         if inventory is not None:
+5957:             inventory.add(name)
+5958:         if ledger is not None:
+5959:             ledger.attempt(name)
+5960:         return path
+5961: 
+5962:     def record_guarded(name, facts):
+5963:         """Write one document and **never** replace an original failure.
+5964: 
+5965:         CORRECTION 18 (M2): the writing of the evidence of a phase that
+5966:         is already failing must never replace the original failure: the
+5967:         error of the write is retained in ``write_errors`` and the phase
+5968:         fails **closed**.
+5969:         """
+5970:         try:
+5971:             return record(name, facts)
+5972:         except BaseException as error:  # noqa: BLE001 - it stays visible
+5973:             write_errors.append({'name': name,
+5974:                                  'type': type(error).__name__,
+5975:                                  'detail': str(error)})
+5976:             _note_interruption(interrupts, error)
+5977:             return None
+5978: 
+5979:     if ledger is not None:
+5980:         for name in names:
+5981:             ledger.plan(name)
+5982:         ledger.attempt(phase + '-construction')
+5983:         # CORRECTION 18 (M2): the overall phase is attempted **before**
+5984:         # the construction of the chain: a construction that failed half
+5985:         # way is an attempted construction **and** an attempted phase.
+5986:         ledger.attempt(phase)
+5987:     original_wait_done = gate.install(_WindowsPipeWorker)
+5988:     observer_patch = observer.install()
+5989:     observer_patch.start()
+5990:     observer.arm()
+5991:     try:
+5992:         try:
+5993:             # CORRECTION 17 (M2): the construction of the chain is
+5994:             # **inside** the guard of the phase.
+5995:             session, holder, channel_closes, channel_facts = _chain(
+5996:                 api, document, plan, tmp_path, clock=clock)
+5997:             # CORRECTION 18 (M2): a **successful** construction has its
+5998:             # own terminal document: the facts are written first and the
+5999:             # ``PASSED`` document is written only after them.
+6000:             construction_facts = {'construction': 'COMPLETED',
+6001:                                   'session_created': session is not None,
+6002:                                   'holder_keys': sorted(holder),
+6003:                                   'state': getattr(session, 'state', None)}
+6004:             raw[phase + '-construction'] = dict(construction_facts)
+6005:             record(phase + '-construction',
+6006:                    dict(construction_facts, status='EXECUTED'))
+6007:             record(phase + '-construction',
+6008:                    dict(construction_facts, status='PASSED'))
+6009:             if ledger is not None:
+6010:                 ledger.pass_(phase + '-construction')
+6011:             session.start()
+6012:             # The reader of the chain is really inside its read and the
+6013:             # generation of that read is the fact of the worker itself: it
+6014:             # is never a number that the group hard codes.
+6015:             assert api.read_waiting.wait(15.0), \
+6016:                 'the reader of the chain was never inside its read'
+6017:             worker = holder['read_endpoint']._reader
+6018:             assert worker is not None, 'the reader of the chain never started'
+6019:             gate.target = worker
+6020:             generation = worker._submitted
+6021:             assert generation >= 1, 'the reader of the chain never submitted'
+6022:             # The bound of the round is a real deadline: the timeout that
+6023:             # arrives later is the expiry of **this** bound and the absolute
+6024:             # lease of the round stays in the future.
+6025:             holder['channel'].bind_deadline(clock.value + 0.5)
+6026:             # The endpoint is held after its production wait and before it
+6027:             # rechecks its generation.
+6028:             assert gate.entered.wait(15.0), \
+6029:                 'the endpoint was never held at the wait of its generation'
+6030:             trace.append({'step': 'GATE_ENTERED', 'generation': generation,
+6031:                           'clock': clock.value})
+6032:             # The ordinary failure of the read is published
+6033:             # **independently** of the timeout of the round.
+6034:             api.publish_read_fault()
+6035:             assert api.fault_observed.wait(15.0), \
+6036:                 'the ordinary failure of the read never happened'
+6037:             # The **specific** outcome of that generation is waited for: the
+6038:             # generic event of the worker may be stale.
+6039:             outcome = _wait_for_outcome(worker, generation, 15.0)
+6040:             assert outcome is not None, \
+6041:                 'the outcome of the generation was never published'
+6042:             trace.append({'step': 'FAULT_PUBLISHED', 'generation': generation,
+6043:                           'sequence': outcome['sequence'],
+6044:                           'error': outcome['error'],
+6045:                           'clock': clock.value})
+6046:             assert outcome['generation'] == generation, \
+6047:                 'the outcome of another generation was read'
+6048:             assert outcome['error'] == 'RuntimeError', \
+6049:                 'the published failure of the round is not the ordinary one'
+6050:             assert outcome['error_object'] is fault, \
+6051:                 'the outcome of the generation does not keep the original error'
+6052:             # The effective timeout of the round arrives **now**: the fault
+6053:             # is already published and the endpoint has not consumed it.
+6054:             clock.advance(1.0)
+6055:             trace.append({'step': 'TIMEOUT_ARRIVED', 'generation': generation,
+6056:                           'clock': clock.value,
+6057:                           'effective': holder['channel']._effective_deadline()})
+6058:             # The endpoint continues: it rechecks the timeout and it finds
+6059:             # the published outcome of its own generation.
+6060:             gate.release.set()
+6061:             trace.append({'step': 'RELEASED', 'generation': generation,
+6062:                           'clock': clock.value})
+6063:             # The endpoint consumed the outcome: the original error object
+6064:             # carries the timeout as a **parallel** fact.
+6065:             deadline = time.monotonic() + 15.0
+6066:             parallel = None
+6067:             while time.monotonic() < deadline:
+6068:                 parallel = getattr(fault, 'lvw_parallel_timeout', None)
+6069:                 if parallel is not None:
+6070:                     break
+6071:                 time.sleep(0.005)
+6072:             assert isinstance(parallel, dict), \
+6073:                 'the endpoint did not consume the published outcome'
+6074:             trace.append({'step': 'OUTCOME_CONSUMED', 'generation': generation,
+6075:                           'clock': clock.value, 'parallel': parallel})
+6076:             assert parallel.get('code') == 'BROKER_PIPE_TIMEOUT', \
+6077:                 'the timeout did not stay a parallel fact of the failure'
+6078:             assert parallel.get('generation') == generation, \
+6079:                 'the parallel fact names another generation'
+6080:             # The order of the three facts is the order of the contract:
+6081:             # the publication of the fault, the arrival of the timeout and
+6082:             # the consumption of the outcome.
+6083:             steps = [item['step'] for item in trace]
+6084:             assert steps.index('FAULT_PUBLISHED') < steps.index('TIMEOUT_ARRIVED'), \
+6085:                 'the timeout of the round arrived before the fault was published'
+6086:             assert steps.index('TIMEOUT_ARRIVED') < steps.index('OUTCOME_CONSUMED'), \
+6087:                 'the outcome was consumed before the timeout of the round arrived'
+6088:             raw[phase] = {'generation': generation, 'trace': trace,
+6089:                           'outcome_error': outcome['error'],
+6090:                           'outcome_object': type(outcome['error_object']).__name__,
+6091:                           'parallel_timeout': parallel,
+6092:                           'gate_calls': gate.calls,
+6093:                           'state': session.state}
+6094:             record(phase, dict(raw[phase], status='EXECUTED'))
+6095:             # The error of the reader of the channel is the error of the
+6096:             # round: the history of the round keeps it and the two public
+6097:             # stops of the round keep it.
+6098:             if ledger is not None:
+6099:                 ledger.attempt(phase + '-first')
+6100:             first = session.stop()
+6101:             first_facts = first['broker_close_facts'] or {}
+6102:             raw[phase + '-first'] = {
+6103:                 'reader_error': first_facts.get('channel_reader_error'),
+6104:                 'state': first['state'],
+6105:                 'retained': first['broker_retained']}
+6106:             record(phase + '-first',
+6107:                    dict(raw[phase + '-first'], status='EXECUTED'))
+6108:             assert first_facts.get('channel_reader_error') == 'RuntimeError', \
+6109:                 'the real fault of the round was replaced by a cancellation'
+6110:             assert first['broker_retained'] is True
+6111:             assert first['state'] == 'UNKNOWN_RETAINED'
+6112:             # CORRECTION 18 (M2): the durable document is written
+6113:             # **before** the terminal state of the ledger is updated.
+6114:             record(phase + '-first',
+6115:                    dict(raw[phase + '-first'], status='PASSED'))
+6116:             if ledger is not None:
+6117:                 ledger.pass_(phase + '-first')
+6118:             if ledger is not None:
+6119:                 ledger.attempt(phase + '-second')
+6120:             second = session.stop()
+6121:             second_facts = second['broker_close_facts'] or {}
+6122:             raw[phase + '-second'] = {
+6123:                 'reader_error': second_facts.get('channel_reader_error'),
+6124:                 'source': second_facts.get('channel_reader_error_source'),
+6125:                 'state': second['state']}
+6126:             record(phase + '-second',
+6127:                    dict(raw[phase + '-second'], status='EXECUTED'))
+6128:             assert second_facts.get('channel_reader_error') == 'RuntimeError', \
+6129:                 'the second attempt lost the error of the reader'
+6130:             assert second_facts.get('channel_reader_error_source') \
+6131:                 == 'REPEATED_CLOSE'
+6132:             assert second['state'] == 'UNKNOWN_RETAINED'
+6133:             # CORRECTION 18 (M2): the durable document is written
+6134:             # **before** the terminal state of the ledger is updated.
+6135:             record(phase + '-second',
+6136:                    dict(raw[phase + '-second'], status='PASSED'))
+6137:             if ledger is not None:
+6138:                 ledger.pass_(phase + '-second')
+6139:         except BaseException as error:
+6140:             # N1 correction 17 (M2): a phase that was **executed** and
+6141:             # that failed is a **FAIL** with the facts that it really
+6142:             # observed.  Only a phase that was **never entered** is left
+6143:             # to the inventory of the outer test.
+6144:             #
+6145:             # CORRECTION 18 (M2): the **original** failure is retained
+6146:             # and it is the one that leaves the phase; the result
+6147:             # document of the phase is written **after** the cleanup and
+6148:             # it carries the original failure **and** the diagnostics of
+6149:             # the cleanup.  The writing of the evidence never replaces
+6150:             # the original failure.
+6151:             original_failure['type'] = type(error).__name__
+6152:             original_failure['detail'] = str(error)
+6153:             for name in names:
+6154:                 if name == phase:
+6155:                     # the result of the phase is written after the
+6156:                     # cleanup of the phase
+6157:                     continue
+6158:                 if ledger is not None:
+6159:                     state = ledger.state(name)
+6160:                 else:
+6161:                     state = 'ATTEMPTED' if name in written else 'PLANNED'
+6162:                 if state != 'ATTEMPTED':
+6163:                     continue
+6164:                 record_guarded(name, dict(raw.get(name, {}),
+6165:                                           status='FAIL',
+6166:                                           executed=True,
+6167:                                           reason=type(error).__name__,
+6168:                                           detail=str(error),
+6169:                                           trace=list(trace),
+6170:                                           gate_calls=list(gate.calls),
+6171:                                           cancel_calls=api.cancel_calls))
+6172:                 if ledger is not None:
+6173:                     ledger.fail(name, type(error).__name__)
+6174:             raise
+6175:         finally:
+6176:             # The teardown of the owner of the test is bounded and it is
+6177:             # unconditional: the gate is released, the read of the round is
+6178:             # ended, the production wait of the worker is restored and the
+6179:             # worker is stopped and joined.
+6180:             #
+6181:             # CORRECTION 18 (M2/M3): every step of the teardown is
+6182:             # guarded and every error is **retained** in a list: one
+6183:             # exception never skips the owners that follow it and it
+6184:             # never skips the result document of the phase.
+6185:             gate.release.set()
+6186:             api.release_the_worker.set()
+6187:             api.publish_outcome('EOF')
+6188:             _WindowsPipeWorker.wait_done = original_wait_done
+6189:             if session is not None:
+6190:                 try:
+6191:                     session.stop()
+6192:                 except BaseException as error:  # noqa: BLE001
+6193:                     cleanup_errors.append({'kind': 'STOP',
+6194:                                            'type': type(error).__name__,
+6195:                                            'detail': str(error)})
+6196:                     _note_interruption(interrupts, error)
+6197:             if worker is not None:
+6198:                 # The worker is stopped explicitly: the coordination of the
+6199:                 # round was never reached in this schedule and the worker of
+6200:                 # the read would otherwise wait for a request that never
+6201:                 # comes.
+6202:                 try:
+6203:                     worker.stop_accepting()
+6204:                 except BaseException as error:  # noqa: BLE001
+6205:                     cleanup_errors.append({'kind': 'WORKER_STOP',
+6206:                                            'type': type(error).__name__,
+6207:                                            'detail': str(error)})
+6208:                     _note_interruption(interrupts, error)
+6209:                 try:
+6210:                     worker.join_bounded(10.0)
+6211:                 except BaseException as error:  # noqa: BLE001
+6212:                     cleanup_errors.append({'kind': 'WORKER_JOIN',
+6213:                                            'type': type(error).__name__,
+6214:                                            'detail': str(error)})
+6215:                     _note_interruption(interrupts, error)
+6216:                 try:
+6217:                     if worker.is_alive():
+6218:                         cleanup_errors.append(
+6219:                             {'kind': 'WORKER', 'type': 'AssertionError',
+6220:                              'detail': 'the worker of the read was left '
+6221:                                        'behind'})
+6222:                 except BaseException as error:  # noqa: BLE001
+6223:                     cleanup_errors.append({'kind': 'WORKER_LIVENESS',
+6224:                                            'type': type(error).__name__,
+6225:                                            'detail': str(error)})
+6226:                     _note_interruption(interrupts, error)
+6227:             drain = {'salvage': [], 'attempts': [], 'proof': None,
+6228:                      'quiescent': False, 'errors': [], 'all_salvage': []}
+6229:             try:
+6230:                 drain = _drain_owners(
+6231:                     registry, session=session,
+6232:                     channel=(holder or {}).get('channel'), prefix=phase,
+6233:                     release=lambda: (gate.release.set(),
+6234:                                      api.release_the_worker.set()),
+6235:                     interrupts=interrupts)
+6236:             except BaseException as error:  # noqa: BLE001 - it stays visible
+6237:                 cleanup_errors.append({'kind': 'DRAIN',
+6238:                                        'type': type(error).__name__,
+6239:                                        'detail': str(error)})
+6240:                 _note_interruption(interrupts, error)
+6241:             # CORRECTION 18 (M2): the result of the phase is written
+6242:             # **after** the cleanup and it carries the original failure
+6243:             # **and** every diagnostic of the cleanup.  The phase is
+6244:             # ``PASSED`` only when the proof held, the round was
+6245:             # quiescent and no unexpected cleanup or evidence error
+6246:             # happened.
+6247:             cleanup_detail = _cleanup_detail(cleanup_errors, write_errors)
+6248:             if ledger is not None and ledger.state(phase) == 'ATTEMPTED':
+6249:                 clean = (original_failure['type'] is None
+6250:                          and cleanup_detail is None
+6251:                          and drain['proof'] is None
+6252:                          and drain['quiescent'] is True)
+6253:                 if clean:
+6254:                     written_result = record_guarded(
+6255:                         phase, dict(raw.get(phase, {}), status='PASSED',
+6256:                                     cleanup_errors=[],
+6257:                                     evidence_write_errors=[],
+6258:                                     proof_failure=None,
+6259:                                     quiescent=True))
+6260:                     if written_result is None:
+6261:                         # the evidence of the phase could not be written:
+6262:                         # the phase fails **closed**.
+6263:                         ledger.fail(phase, 'EVIDENCE_WRITE_FAILED')
+6264:                         if sys.exc_info()[0] is None:
+6265:                             raise AssertionError(
+6266:                                 'the result document of the phase could not '
+6267:                                 'be written: %s' % (write_errors,))
+6268:                     else:
+6269:                         ledger.pass_(phase)
+6270:                 else:
+6271:                     reason = (original_failure['type'] or 'CleanupError')
+6272:                     detail = _join_details(original_failure['detail'],
+6273:                                            cleanup_detail, drain['proof'])
+6274:                     record_guarded(phase, dict(raw.get(phase, {}),
+6275:                                                status='FAIL',
+6276:                                                executed=True,
+6277:                                                reason=reason,
+6278:                                                detail=detail,
+6279:                                                original_failure=dict(
+6280:                                                    original_failure),
+6281:                                                cleanup_errors=list(
+6282:                                                    cleanup_errors),
+6283:                                                evidence_write_errors=list(
+6284:                                                    write_errors),
+6285:                                                proof_failure=drain['proof'],
+6286:                                                quiescent=drain['quiescent']))
+6287:                     ledger.fail(phase, reason)
+6288:             # CORRECTION 18 (M3): the interruption of the cleanup is
+6289:             # re-raised only when no other failure is unwinding.
+6290:             if interrupts and sys.exc_info()[0] is None:
+6291:                 raise interrupts[0]
+6292:             if cleanup_detail is not None and sys.exc_info()[0] is None:
+6293:                 raise AssertionError(cleanup_detail)
+6294:             if drain['proof'] is not None and sys.exc_info()[0] is None:
+6295:                 # the owners of the round were not released: the proof of
+6296:                 # the cleanup fails truthfully and the phase fails with it
+6297:                 raise AssertionError(drain['proof'])
+6298:     finally:
+6299:         observer.disarm()
+6300:         observer_patch.stop()
+6301: def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_path):
+6302:     """N10-R10 (M09): a real fault of the round is never a benign cancel.
+6303: 
+6304:     Obligation: the worker of an endpoint keeps the **outcome** of
+6305:     every generation it runs: the result, the error, the original error
+6306:     object and the order of the completion.  A failure that was really
+6307:     published **before** the cancellation of the round is the first
+6308:     error of the round: a close that sets the cancel flag afterwards
+6309:     may not replace it and it may not turn it into a benign
+6310:     cancellation.  The identity of the token of the cancel is not a
+6311:     proof: the order of the two facts is the proof.  The error of the
+6312:     reader is a **history**: two real stops of the round keep it and
+6313:     the round stays unknown.
+6314: 
+6315:     Entry: ``_WindowsPipeWorker.outcome``,
+6316:     ``_WindowsPipeWorker.published_before_cancel``,
+6317:     ``_WindowsPipeEndpoint._raise_cancellation``,
+6318:     ``BrokerProcess._keep_reader_error_history`` and
+6319:     ``NativeCustodySession.stop``.  Trigger: the read of the
+6320:     generation fails with an ordinary error, the outcome of the
+6321:     generation is really published and the close of the round asks for
+6322:     the cancellation of the same generation.  Oracle: the original
+6323:     error object is the one that leaves, the code of the error is the
+6324:     code of the real fault and the two stops of the round keep it.
+6325:     Negative: a cancellation may never rewrite a published failure.
+6326:     Returned state: the outcome of the generation is named with its
+6327:     order and its error object.  Salvage: the owner of the test stops
+6328:     the round in every case.
+6329: 
+6330:     CORRECTION 11 (M09): the outcome of the **same** generation is
+6331:     inspected **again** after the coordination of the cancellation, and
+6332:     it is inspected **before** a new timeout is decided.  The published
+6333:     failure of the generation remains the primary error of the round and
+6334:     the failure of the coordination and a new timeout are **parallel**
+6335:     facts: they never replace it and they never hide it.  The group
+6336:     drives the coordination of a cancellation whose fault of the round
+6337:     is published while the coordination runs, and it proves the order
+6338:     of the two facts with the auxiliary static proof of the group.
+6339: 
+6340:     CORRECTION 12 (M09): the auxiliary static proof is **replaced** by
+6341:     the dynamic schedule of the obligation.  The real chain of the round
+6342:     publishes a real ordinary fault for the **current** generation of
+6343:     its read, the effective timeout of the round arrives **before** the
+6344:     endpoint consumes the outcome, and both a **confirmed** and a
+6345:     **failed** coordination of the round preserve the exact original
+6346:     error object and its code: the timeout and the failure of the
+6347:     coordination are parallel facts and they never replace the failure
+6348:     that was really published.  The history of the error keeps it
+6349:     across the channel, the handle of the broker and the two public
+6350:     stops of the round, and the round stays unknown.  The generation of
+6351:     the blocked read is the fact of the worker itself and it is never a
+6352:     number that the group hard codes.
+6353: 
+6354:     CORRECTION 12 (root preflight PF12-01): the **required order** is
+6355:     driven as well and it is driven **distinctly** from the two
+6356:     coordination subcases above.  The ordinary failure of the read is
+6357:     published **first** and the immutable outcome of **that** generation
+6358:     really exists before the effective timeout of the round arrives;
+6359:     the endpoint consumes the outcome only after the timeout was
+6360:     decided.  The gate of that schedule is a transparent wrapper of the
+6361:     production wait of the worker: it calls the original wait and it
+6362:     holds the endpoint between that wait and the recheck of its
+6363:     generation.  The publication, the timeout and the consumption are
+6364:     recorded in their order and the current generation is named with
+6365:     them.  The coordination subcases above remain: they are the ones
+6366:     that drive a **confirmed** and a **failed** coordination of the
+6367:     round, and the failure of the coordination is a parallel fact there.
+6368: 
+6369:     RECONCILIATION (N1 correction 14, F5): the schedule of the **failed**
+6370:     coordination reached the selection point of the production without a
+6371:     published fault.  The cancel primitive of the round enqueued the
+6372:     fault of the read and returned immediately, so the coordination
+6373:     could finish before the worker had published the immutable outcome
+6374:     of its generation, and the parallel fact of the timeout could not
+6375:     be read at all (the phase document of the failed batch of the
+6376:     correction 13 stopped there).
+6377: 
+6378:     The seam of the failed coordination now publishes the **real**
+6379:     primitive fault and waits, bounded, for the **immutable outcome of
+6380:     that specific generation** before the cancel primitive returns,
+6381:     while the worker of the round is held inside its own final close
+6382:     and release tail: the real bounded join of the coordination still
+6383:     FAILS and the coordination error stays a **parallel** fact of the
+6384:     original error of the round.  The confirmed coordination, the
+6385:     required order of the schedule (fault published before the timeout,
+6386:     consumed after it) and the two public stops of the round stay
+6387:     separate and unchanged, no outcome, no history, no selection and
+6388:     no public stop of the production is patched, and no assertion of
+6389:     the group is relaxed.
+6390: 
+6391:     N1 correction 15 (M2): the wait of the seam for the outcome is a
+6392:     **checked** barrier and it **fails closed**.  The barrier demands
+6393:     the immutable outcome of the **exact** generation, the expected kind
+6394:     of the ordinary failure and the **exact** original error object
+6395:     **before** the cancel primitive returns, and it stores the checked
+6396:     monotonic order of the three facts.  A missing outcome, an outcome
+6397:     of another generation, another kind of failure and another error
+6398:     object are an **explicit refusal** of the premise of the test: the
+6399:     primitive never returns ``REQUESTED`` as if the barrier had passed.
+6400:     The production catches the ordinary exceptions of the seam, so the
+6401:     outer test reads the premise from the record of the barrier itself
+6402:     and it captures that record **before** the main assertions of the
+6403:     phase.
+6404: 
+6405:     The two negative subcases of the barrier drive the **same** failed
+6406:     coordination with a bounded transparent seam that forces an absent
+6407:     outcome and an outcome of another generation.  Their premise is
+6408:     **refused** and they are never counted as a successful failed
+6409:     coordination.  The confirmed coordination, the required order of the
+6410:     schedule and the two public stops of the round stay separate and
+6411:     unchanged.
+6412: 
+6413:     N1 correction 16 (M2): the facts of the barrier are written
+6414:     **before** the main assertions of the phase, so a barrier that
+6415:     failed closed keeps its failure, its order and its object even when
+6416:     the main assertions of the phase fail afterwards.  A phase that was
+6417:     **executed** and that failed is a **FAIL** and it keeps the facts
+6418:     that it really observed; only the documents that were genuinely
+6419:     not reached are ``NOT_RUN``.  The **outer** inventory of the group
+6420:     names every main schedule and both negative subcases before they
+6421:     run: the failure of an earlier schedule may never leave the
+6422:     evidence of a later one ambiguous.
+6423:     """
+6424:     # -- N1 correction 17 (M2): the **outer** inventory of the phases of
+6425:     #    this group is installed **before** any setup and before any
+6426:     #    assertion of the group, and it is **complete**: every name that
+6427:     #    a schedule really writes is named here and every name that is
+6428:     #    never entered is written as ``NOT_RUN`` without a fact.
+6429:     #
+6430:     #    The arithmetic of the inventory is derived from the operations
+6431:     #    that are really instrumented:
+6432:     #
+6433:     #    * four timeout schedules with five names each - the result of
+6434:     #      the phase, the construction of the chain, the barrier of the
+6435:     #      publication, the first stop and the second stop - that is 20;
+6436:     #    * the published-before-timeout schedule with four names - the
+6437:     #      result of the phase, the construction of the chain, the first
+6438:     #      stop and the second stop - because its construction is
+6439:     #      instrumented like the construction of the other schedules;
+6440:     #    * the three documents of the earlier work of the group - the
+6441:     #      first stop, the second stop and the coordination;
+6442:     #
+6443:     #    that is 27 names, and every one of them is unique.
+6444:     ledger = _PhaseLedger()
+6445:     r10_documents = []
+6446:     for r10_name in ('r10-timeout-confirmed', 'r10-timeout-failed',
+6447:                       'r10-barrier-absent', 'r10-barrier-wrong-generation'):
+6448:         r10_documents.extend([r10_name, r10_name + '-construction',
+6449:                                r10_name + '-barrier', r10_name + '-first',
+6450:                                r10_name + '-second'])
+6451:     r10_documents.extend(['r10-published-before-timeout',
+6452:                            'r10-published-before-timeout-construction',
+6453:                            'r10-published-before-timeout-first',
+6454:                            'r10-published-before-timeout-second'])
+6455:     r10_documents.extend(['r10-first', 'r10-second', 'r10-coordination'])
+6456:     assert len(r10_documents) == len(set(r10_documents)), \
+6457:         'the inventory of the group names a document twice'
+6458:     for r10_name in r10_documents:
+6459:         ledger.plan(r10_name)
+6460:     r10_inventory = set()
+6461:     r10_raw = {}
+6462:     first_failure = {'type': None}
+6463:     # CORRECTION 17 (M3): the observer of the starts of the round of the
+6464:     # earlier work of the group.
+6465:     early_registry = _OwnerRegistry()
+6466:     early_observer = _StartObserver(early_registry)
+6467:     try:
+6468:         document = _live_plan_document()
+6469:         plan = validate_launch_plan(document, now=time.time())
+6470:         api = _F5Api(read_fault=RuntimeError('read_fault'))
+6471:         # the observation of the starts covers **only** the round of the
+6472:         # earlier work: it is armed before the chain is built and it is
+6473:         # disarmed after the salvage of that round.
+6474:         early_observer_patch = early_observer.install()
+6475:         early_observer_patch.start()
+6476:         early_observer.arm()
+6477:         try:
+6478:             # CORRECTION 18 (M3): the construction of the chain is
+6479:             # **inside** the guard of the round: a construction that
+6480:             # failed half way still owns its teardown and its proof.
+6481:             session = None
+6482:             holder = None
+6483:             channel_closes = None
+6484:             channel_facts = None
+6485:             early_cleanup_errors = []
+6486:             try:
+6487:                 session, holder, channel_closes, channel_facts = _chain(
+6488:                     api, document, plan, tmp_path)
+6489:                 session.start()
+6490:                 reader = holder['read_endpoint']._reader
+6491:                 assert reader is not None, 'the reader of the chain never started'
+6492:                 # The owner of the test publishes the ordinary failure of the
+6493:                 # read and waits for the reader to be really inside its read.
+6494:                 assert api.read_waiting.wait(15.0), \
+6495:                     'the reader of the chain was never inside its read'
+6496:                 # The generation of the read that is really in flight is the
+6497:                 # fact of the worker itself: the two frames of the round were
+6498:                 # read before it and the generation of the blocked read is
+6499:                 # never a number that the group hard codes.
+6500:                 generation = reader._submitted
+6501:                 assert generation >= 1, 'the reader of the chain never submitted'
+6502:                 api.publish_read_fault()
+6503:                 assert api.fault_observed.wait(15.0), \
+6504:                     'the ordinary failure of the read never happened'
+6505:                 # The barrier: the outcome of the generation is really published
+6506:                 # and it carries the **original** error object.
+6507:                 assert reader.outcome_published.wait(15.0), \
+6508:                     'the outcome of the read was never published'
+6509:                 outcome = reader.outcome(generation)
+6510:                 assert outcome is not None, 'the outcome of the generation is gone'
+6511:                 assert outcome['generation'] == generation, \
+6512:                     'the outcome of another generation was read'
+6513:                 assert outcome['error'] == 'RuntimeError'
+6514:                 assert isinstance(outcome['error_object'], RuntimeError)
+6515:                 # The close of the round asks for the cancellation of the same
+6516:                 # generation **after** the failure was published.
+6517:                 holder['channel']._cancel.set()
+6518:                 ledger.attempt('r10-first')
+6519:                 first = session.stop()
+6520:                 first_facts = first['broker_close_facts'] or {}
+6521:                 r10_raw['r10-first'] = {
+6522:                     'generation': generation,
+6523:                     'outcome_error': outcome['error'],
+6524:                     'outcome_object':
+6525:                     type(outcome['error_object']).__name__,
+6526:                     'sequence': outcome['sequence'],
+6527:                     'reader_error':
+6528:                     first_facts.get('channel_reader_error'),
+6529:                     'state': first['state']}
+6530:                 write_phase('r10-first', dict(r10_raw['r10-first'],
+6531:                                               status='EXECUTED'))
+6532:                 r10_inventory.add('r10-first')
+6533:                 assert first_facts.get('channel_reader_error') == 'RuntimeError', \
+6534:                     'the real fault of the round was replaced by a cancellation'
+6535:                 assert first_facts.get('close_cancellation') is None
+6536:                 assert first['broker_retained'] is True
+6537:                 assert first['state'] == 'UNKNOWN_RETAINED'
+6538:                 # CORRECTION 18 (M2): the durable document is written
+6539:                 # **before** the terminal state of the ledger is updated.
+6540:                 write_phase('r10-first', dict(r10_raw['r10-first'],
+6541:                                               status='PASSED'))
+6542:                 ledger.pass_('r10-first')
+6543: 
+6544:                 # The second public stop of the round: the error of the reader is
+6545:                 # a history and it is never lost.
+6546:                 ledger.attempt('r10-second')
+6547:                 second = session.stop()
+6548:                 second_facts = second['broker_close_facts'] or {}
+6549:                 r10_raw['r10-second'] = {
+6550:                     'reader_error': second_facts.get('channel_reader_error'),
+6551:                     'source': second_facts.get('channel_reader_error_source'),
+6552:                     'state': second['state']}
+6553:                 write_phase('r10-second', dict(r10_raw['r10-second'],
+6554:                                                status='EXECUTED'))
+6555:                 r10_inventory.add('r10-second')
+6556:                 assert second_facts.get('channel_reader_error') == 'RuntimeError', \
+6557:                     'the second attempt lost the error of the reader'
+6558:                 assert second_facts.get('channel_reader_error_source') \
+6559:                     == 'REPEATED_CLOSE'
+6560:                 assert second['broker_retained'] is True
+6561:                 assert second['state'] == 'UNKNOWN_RETAINED'
+6562:                 write_phase('r10-second', dict(r10_raw['r10-second'],
+6563:                                                status='PASSED'))
+6564:                 ledger.pass_('r10-second')
+6565:             finally:
+6566:                 # CORRECTION 18 (M3): every step of the teardown is
+6567:                 # guarded and every error is **retained** in a list: one
+6568:                 # exception never skips the drain of the owners and it
+6569:                 # never skips the proof of the cleanup.
+6570:                 if session is not None:
+6571:                     try:
+6572:                         session.stop()
+6573:                     except BaseException as error:  # noqa: BLE001
+6574:                         early_cleanup_errors.append(
+6575:                             {'kind': 'STOP',
+6576:                              'type': type(error).__name__,
+6577:                              'detail': str(error)})
+6578:                 # CORRECTION 17 (M3): the owners of the round of the earlier
+6579:                 # work are drained **boundedly** and the quiescence is
+6580:                 # asserted **after** the drain.
+6581:                 early_drain = {'salvage': [], 'attempts': [], 'proof': None,
+6582:                                'quiescent': False, 'errors': [],
+6583:                                'all_salvage': []}
+6584:                 try:
+6585:                     early_drain = _drain_owners(
+6586:                         early_registry, session=session,
+6587:                         channel=(holder or {}).get('channel'),
+6588:                         prefix='r10-early')
+6589:                 except BaseException as error:  # noqa: BLE001
+6590:                     early_cleanup_errors.append(
+6591:                         {'kind': 'DRAIN',
+6592:                          'type': type(error).__name__,
+6593:                          'detail': str(error)})
+6594:                 if early_drain['proof'] is not None and sys.exc_info()[0] is None:
+6595:                     raise AssertionError(
+6596:                         'the cleanup of the earlier work of the group was not '
+6597:                         'proved: %s' % (early_drain['proof'],))
+6598:                 if early_drain['quiescent'] is not True \
+6599:                         and sys.exc_info()[0] is None:
+6600:                     raise AssertionError(
+6601:                         'the owners of the earlier work of the group were not '
+6602:                         'quiescent')
+6603:                 if early_cleanup_errors and sys.exc_info()[0] is None:
+6604:                     raise AssertionError(
+6605:                         'the cleanup of the earlier work of the group met %s'
+6606:                         % (early_cleanup_errors,))
+6607:         finally:
+6608:             early_observer.disarm()
+6609:             early_observer_patch.stop()
+6610: 
+6611:         # -- the coordination of the cancellation (N1 correction 11, M09):
+6612:         #    the outcome of the **same** generation is inspected **again**
+6613:         #    after the coordination of the cancellation.  The original error
+6614:         #    object of the generation remains the error that leaves and the
+6615:         #    failure of the coordination is a **parallel** fact: it never
+6616:         #    replaces the published failure and it never hides it.
+6617:         gate = threading.Event()
+6618:         entered = threading.Event()
+6619: 
+6620:         class CoordinationApi:
+6621:             """The primitives of a read whose fault is published late."""
+6622: 
+6623:             def duplicate_current_thread_handle(self):
+6624:                 return 705
+6625: 
+6626:             def cancel_synchronous_io(self, handle):
+6627:                 # The request of the cancellation releases the fault of the
+6628:                 # round: the original error of the generation is really
+6629:                 # published **while** the coordination of the cancellation
+6630:                 # runs.
+6631:                 gate.set()
+6632:                 return 'NOT_FOUND'
+6633: 
+6634:             def close_handle(self, handle):
+6635:                 return None
+6636: 
+6637:             def read_stream(self, handle, size):
+6638:                 entered.set()
+6639:                 gate.wait(5.0)
+6640:                 raise RuntimeError('read_fault')
+6641: 
+6642:         # CORRECTION 18 (M2): the attempt of the coordination is marked
+6643:         # **before** the endpoint is created, before the reader is started
+6644:         # and before the first assertion of the coordination: an
+6645:         # operation that really ran is never inventoried as ``NOT_RUN``.
+6646:         ledger.attempt('r10-coordination')
+6647:         # CORRECTION 18 (M3): the coordination round has its **own**
+6648:         # observer and its **own** registry: the reader that it starts is
+6649:         # an owner of that round and it is joined with a bounded wait.
+6650:         coord_registry = _OwnerRegistry()
+6651:         coord_observer = _StartObserver(coord_registry)
+6652:         coord_observer_patch = coord_observer.install()
+6653:         coord_observer_patch.start()
+6654:         coord_observer.arm()
+6655:         endpoint = None
+6656:         reader = None
+6657:         coord_cleanup_errors = []
+6658:         try:
+6659:             endpoint = _WindowsPipeEndpoint(
+6660:                 file_object=_FakeFile('coordination'),
+6661:                 name='coordination',
+6662:                 api=CoordinationApi(),
+6663:                 clock=time.monotonic, handle=706)
+6664:             cancel = _ChannelCancel()
+6665:             holder = {}
+6666: 
+6667:             def run_read():
+6668:                 try:
+6669:                     endpoint.read(None, cancel)
+6670:                 except BaseException as error:  # noqa: BLE001 - it stays visible
+6671:                     holder['error'] = error
+6672: 
+6673:             reader = threading.Thread(target=run_read)
+6674:             reader.start()
+6675:             try:
+6676:                 assert entered.wait(5.0), 'the read never entered the operation'
+6677:                 # The cancellation of the round is published while the read is
+6678:                 # really inside its operation.
+6679:                 cancel.set()
+6680:                 reader.join(10.0)
+6681:                 assert not reader.is_alive(), 'the read of the round was left behind'
+6682:                 error = holder.get('error')
+6683:                 assert isinstance(error, RuntimeError), \
+6684:                     'the original error object of the generation was replaced'
+6685:                 assert str(error) == 'read_fault'
+6686:                 outcome = endpoint._reader.outcome(endpoint._reader._submitted)
+6687:                 assert outcome is not None, 'the outcome of the generation is gone'
+6688:                 assert outcome['error'] == 'RuntimeError'
+6689:                 assert isinstance(outcome['error_object'], RuntimeError)
+6690:                 r10_raw['r10-coordination'] = {
+6691:                     'error': type(error).__name__,
+6692:                     'detail': str(error),
+6693:                     'outcome': outcome['error'],
+6694:                     'parallel': getattr(
+6695:                         error, 'lvw_parallel_cancellation', None) is not None}
+6696:                 write_phase('r10-coordination',
+6697:                             dict(r10_raw['r10-coordination'], status='EXECUTED'))
+6698:                 r10_inventory.add('r10-coordination')
+6699:                 # CORRECTION 18 (M2): the durable document is written
+6700:                 # **before** the terminal state of the ledger is updated.
+6701:                 write_phase('r10-coordination',
+6702:                             dict(r10_raw['r10-coordination'], status='PASSED'))
+6703:                 ledger.pass_('r10-coordination')
+6704:             finally:
+6705:                 # CORRECTION 18 (M3): every step of the cleanup is
+6706:                 # guarded: one exception never skips the close of the
+6707:                 # endpoint and it never skips the owners of the round.
+6708:                 gate.set()
+6709:                 if reader is not None:
+6710:                     try:
+6711:                         reader.join(10.0)
+6712:                     except BaseException as error:  # noqa: BLE001
+6713:                         coord_cleanup_errors.append(
+6714:                             {'kind': 'READER_JOIN',
+6715:                              'type': type(error).__name__,
+6716:                              'detail': str(error)})
+6717:                 if endpoint is not None:
+6718:                     try:
+6719:                         endpoint.close()
+6720:                     except BaseException as error:  # noqa: BLE001
+6721:                         coord_cleanup_errors.append(
+6722:                             {'kind': 'ENDPOINT_CLOSE',
+6723:                              'type': type(error).__name__,
+6724:                              'detail': str(error)})
+6725:                 coord_drain = {'salvage': [], 'attempts': [], 'proof': None,
+6726:                                'quiescent': False, 'errors': [],
+6727:                                'all_salvage': []}
+6728:                 try:
+6729:                     coord_drain = _drain_owners(
+6730:                         coord_registry, prefix='r10-coordination')
+6731:                 except BaseException as error:  # noqa: BLE001
+6732:                     coord_cleanup_errors.append(
+6733:                         {'kind': 'DRAIN',
+6734:                          'type': type(error).__name__,
+6735:                          'detail': str(error)})
+6736:                 if coord_drain['proof'] is not None \
+6737:                         and sys.exc_info()[0] is None:
+6738:                     raise AssertionError(
+6739:                         'the cleanup of the coordination of the round was not '
+6740:                         'proved: %s' % (coord_drain['proof'],))
+6741:                 if coord_cleanup_errors and sys.exc_info()[0] is None:
+6742:                     raise AssertionError(
+6743:                         'the cleanup of the coordination of the round met %s'
+6744:                         % (coord_cleanup_errors,))
+6745:         finally:
+6746:             coord_observer.disarm()
+6747:             coord_observer_patch.stop()
+6748: 
+6749:         # -- THE DYNAMIC SCHEDULE OF THE M09 OBLIGATION (N1 correction 12):
+6750:         #    a real ordinary fault is published for the current generation
+6751:         #    of the real chain, the effective timeout of the round arrives
+6752:         #    **before** the endpoint consumes the outcome and the original
+6753:         #    error object survives both a **confirmed** and a **failed**
+6754:         #    coordination of the round.
+6755:         #
+6756:         #    N1 correction 16 (M2): the **outer** inventory of the phases of
+6757:         #    this group.  Every main schedule and both negative barrier
+6758:         #    subcases are named **before** they run and every document that
+6759:         #    a schedule really wrote is marked in the inventory.  A schedule
+6760:         #    that was never reached is ``NOT_RUN`` and it is never
+6761:         #    ambiguous: the failure of an earlier schedule may never leave
+6762:         #    the evidence of a later one undefined.
+6763:         #
+6764:         #    N1 correction 17 (M2): every schedule of this group writes its
+6765:         #    documents through the ledger of the group: a schedule that was
+6766:         #    executed and that failed is a ``FAIL`` and the schedules that
+6767:         #    were never entered are ``NOT_RUN``.
+6768:         _m09_timeout_phase(document, plan, tmp_path,
+6769:                             phase='r10-timeout-confirmed',
+6770:                             confirm_the_worker=True, hold_the_worker=False,
+6771:                             expect_barrier='NOT_APPLICABLE',
+6772:                             inventory=r10_inventory, ledger=ledger)
+6773:         _m09_timeout_phase(document, plan, tmp_path,
+6774:                             phase='r10-timeout-failed',
+6775:                             confirm_the_worker=False, hold_the_worker=True,
+6776:                             expect_barrier='PASSED',
+6777:                             inventory=r10_inventory, ledger=ledger)
+6778:         # -- N1 correction 15 (M2): the barrier of the publication is
+6779:         #    **checked** and it **fails closed**.  The two negative
+6780:         #    subcases below drive the **same** failed coordination of the
+6781:         #    round with a bounded transparent seam that forces an
+6782:         #    **absent** outcome and an outcome of **another generation**.
+6783:         #    The premise of the test is then **refused** explicitly and
+6784:         #    the subcase is never counted as a successful failed
+6785:         #    coordination: the cancel primitive of the round never
+6786:         #    returns ``REQUESTED`` as if the barrier had passed.
+6787:         _m09_timeout_phase(document, plan, tmp_path,
+6788:                             phase='r10-barrier-absent',
+6789:                             confirm_the_worker=False, hold_the_worker=True,
+6790:                             barrier_probe='ABSENT', expect_barrier='REFUSED',
+6791:                             inventory=r10_inventory, ledger=ledger)
+6792:         _m09_timeout_phase(document, plan, tmp_path,
+6793:                             phase='r10-barrier-wrong-generation',
+6794:                             confirm_the_worker=False, hold_the_worker=True,
+6795:                             barrier_probe='WRONG_GENERATION',
+6796:                             expect_barrier='REFUSED',
+6797:                             inventory=r10_inventory, ledger=ledger)
+6798: 
+6799:         # -- THE REQUIRED ORDER (N1 correction 12, root preflight
+6800:         #    PF12-01): the ordinary failure of the read is published
+6801:         #    **before** the effective timeout of the round arrives and
+6802:         #    the endpoint consumes the outcome of its own generation
+6803:         #    only **after** the timeout was decided.  The gate is a
+6804:         #    transparent wrapper of the production wait of the worker:
+6805:         #    it calls the original wait and it holds the endpoint
+6806:         #    between that wait and the recheck of its generation.
+6807:         _m09_published_fault_phase(document, plan, tmp_path,
+6808:                                    phase='r10-published-before-timeout',
+6809:                                    inventory=r10_inventory, ledger=ledger)
+6810:     except BaseException as error:
+6811:         # CORRECTION 17 (M2): a document of a schedule that was entered
+6812:         # and that failed is a ``FAIL`` with the facts that it really
+6813:         # observed; the schedules that were never entered are ``NOT_RUN``
+6814:         # and they carry no fact.
+6815:         #
+6816:         # CORRECTION 18 (M2): the writing of the evidence **never**
+6817:         # replaces the original failure: the error of the write is
+6818:         # retained and the original failure is the one that leaves.
+6819:         first_failure['type'] = type(error).__name__
+6820:         for r10_name in r10_documents:
+6821:             if ledger.state(r10_name) != 'ATTEMPTED':
+6822:                 continue
+6823:             try:
+6824:                 write_phase(r10_name, dict(r10_raw.get(r10_name, {}),
+6825:                                            status='FAIL',
+6826:                                            executed=True,
+6827:                                            reason=type(error).__name__,
+6828:                                            detail=str(error)))
+6829:             except BaseException as write_error:  # noqa: BLE001
+6830:                 first_failure.setdefault('write_errors', []).append(
+6831:                     {'name': r10_name,
+6832:                      'type': type(write_error).__name__,
+6833:                      'detail': str(write_error)})
+6834:                 continue
+6835:             ledger.fail(r10_name, type(error).__name__)
+6836:         raise
+6837:     finally:
+6838:         # The schedules that were **not** reached are ``NOT_RUN``: they
+6839:         # carry no fact of a schedule that was not established and they
+6840:         # are never ambiguous.  A document that a schedule really wrote
+6841:         # is never overwritten here.
+6842:         #
+6843:         # CORRECTION 18 (M2): a write that fails here never replaces the
+6844:         # original failure of the group: it is retained and it is
+6845:         # reported in the reason of the group.
+6846:         for r10_name in r10_documents:
+6847:             if ledger.state(r10_name) != 'PLANNED':
+6848:                 continue
+6849:             try:
+6850:                 write_phase(r10_name, {'status': 'NOT_RUN',
+6851:                                        'reason': first_failure['type']})
+6852:             except BaseException as write_error:  # noqa: BLE001
+6853:                 first_failure.setdefault('write_errors', []).append(
+6854:                     {'name': r10_name,
+6855:                      'type': type(write_error).__name__,
+6856:                      'detail': str(write_error)})
+6857: 

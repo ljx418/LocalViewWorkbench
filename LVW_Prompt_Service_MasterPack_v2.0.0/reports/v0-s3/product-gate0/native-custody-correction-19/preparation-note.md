@@ -1,0 +1,1 @@
+Root preparation initially stopped before any dispatch because review18 uses top-level Fatal/Major/Minor fields rather than nested counts. Root read the actual schema and normalized those values in memory; original review receipt unchanged. No worker launch or runtime retry occurred.

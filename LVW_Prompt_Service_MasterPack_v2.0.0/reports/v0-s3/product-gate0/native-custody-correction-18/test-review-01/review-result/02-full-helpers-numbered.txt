@@ -1,0 +1,882 @@
+Candidate 0f532a7d86e390dc093b7d78aa5fc36103bdff23; T10 physical lines
+171: def _chain(api, document, plan, tmp_path, *, clock=None):
+172:     """Build the **real** chain of one round.
+173: 
+174:     The chain is the one of the production launcher: the frames of the
+175:     round are published first, then the endpoints, then the channel and
+176:     then the handle of the broker.  Nothing of the chain is replaced by
+177:     a stand-in and the facts of the close are the facts of the
+178:     production.
+179: 
+180:     The clock of the chain may be a clock that only moves when the
+181:     owner of the test moves it: the deadline of the round is then a
+182:     fact of the test and not a fact of the wall of the host.
+183:     """
+184:     return _f5_build_chain(api, document, plan, clock or time.monotonic,
+185:                            time.time, tmp_path)
+186: 
+187: 
+188: def write_phase_not_run(phase, reason):
+189:     """Mark one phase that was **not** executed.
+190: 
+191:     A phase that did not run is never written as if it had run: the
+192:     document names the reason of the failure and it carries **no** fact
+193:     of the phase.  A document of a phase that never ran is never a
+194:     fabricated expectation of the phase.
+195:     """
+196:     return write_phase(phase, {'status': 'NOT_RUN', 'reason': reason})
+197: 
+198: 
+199: class _R07Sentinel(Exception):
+200:     """The deliberate failure of the fixture of one round.
+201: 
+202:     It is a **test** sentinel and nothing else: it is raised on purpose
+203:     at a checkpoint of the fixture of the round and it is caught again
+204:     by the owner of the test.  It is never a broad ``Exception``, it
+205:     never hides a real failure of the production and it is never used
+206:     to swallow one.
+207:     """
+208: 
+209: 
+210: class _R07OrdinaryAssertion(AssertionError):
+211:     """The deliberate **ordinary** assertion of the fixture of one round.
+212: 
+213:     It is a real ``AssertionError`` - the base of this class is the
+214:     ``AssertionError`` of the test - and it carries a **token** that no
+215:     other failure of the group carries.  The assertion of the group is
+216:     really raised and really fails; the token is normalised so that the
+217:     exact token of the failure survives the rewriting of the assertions
+218:     of the test runner.  It is caught by **its own type** and never by a
+219:     broad ``Exception``: an ordinary failure of the group that is not
+220:     this one is never taken for it.
+221:     """
+222: 
+223:     TOKEN = 'N10-R07-CONTROLLED-ORDINARY-ASSERTION'
+224: 
+225: 
+226: class _R07ConstructorFailure(Exception):
+227:     """The deliberate failure of the **construction** of a transport.
+228: 
+229:     It is raised by the seam of the fixture **after** the drain thread
+230:     of the transport was really started: the local variable of the
+231:     transport stays empty and the owner of the drain thread is the
+232:     registry of the fixture.  It is a **test** exception and nothing
+233:     else: it is never a broad ``Exception`` and it never hides a real
+234:     failure of the production.
+235:     """
+236: 
+237: 
+238: class _OwnerRegistry:
+239:     """The registry of the owners that the fixture of this module starts.
+240: 
+241:     The registry is **immediate**: an owner is registered at the moment
+242:     of its construction or of its start and it is never discovered
+243:     later from a product that may have dropped it.  A channel whose
+244:     construction failed half way, a drain thread whose start took
+245:     effect and a worker that the product retained are all in the
+246:     registry, and the salvage of the fixture joins every one of them
+247:     with an explicitly bounded wait.
+248: 
+249:     The registry owns **nothing**: it only remembers.  The product
+250:     keeps its own owners and its own returned state, and the registry
+251:     never claims that the product released a resource.
+252: 
+253:     CORRECTION 17 (M3): the registry also holds the **provenance** of
+254:     every start that the observer of this module saw.  The provenance
+255:     is the proof of the start of an owner: an owner whose start was
+256:     never invoked is ``NEVER_STARTED``, an owner whose start did not
+257:     return is ``UNKNOWN`` and an owner whose start returned is
+258:     ``STARTED``.  The provenance is keyed by the **exact** thread
+259:     object and it is never inferred from a name.
+260:     """
+261: 
+262:     def __init__(self):
+263:         self._lock = threading.Lock()
+264:         self._entries = []
+265:         self._sequence = 0
+266:         self._threads = {}
+267: 
+268:     def register(self, name, owner, *, kind, seam):
+269:         """Register one owner **immediately** and return its entry."""
+270:         with self._lock:
+271:             self._sequence += 1
+272:             entry = {'name': name, 'owner': owner, 'kind': kind,
+273:                      'seam': seam, 'order': self._sequence,
+274:                      'registered_at': time.monotonic(),
+275:                      'start_state': None, 'start_error': None}
+276:             self._entries.append(entry)
+277:             return entry
+278: 
+279:     def mark_starting(self, thread):
+280:         """Register the **exact** thread object before its start.
+281: 
+282:         The registration happens **before** the original start is
+283:         called: a thread whose start does not return is an owner of the
+284:         round from that moment on and it is never forgotten.
+285:         """
+286:         with self._lock:
+287:             self._sequence += 1
+288:             entry = {'name': 'thread:%s#%d' % (thread.name, id(thread)),
+289:                      'owner': thread, 'kind': 'thread',
+290:                      'seam': 'thread.start', 'order': self._sequence,
+291:                      'registered_at': time.monotonic(),
+292:                      'start_state': 'STARTING', 'start_error': None}
+293:             self._entries.append(entry)
+294:             self._threads[id(thread)] = entry
+295:             return entry
+296: 
+297:     def mark_started(self, thread):
+298:         """The start of the thread returned: the owner really started."""
+299:         with self._lock:
+300:             entry = self._threads.get(id(thread))
+301:             if entry is not None:
+302:                 entry['start_state'] = 'STARTED'
+303:             return entry
+304: 
+305:     def mark_failed(self, thread, error):
+306:         """The start of the thread did not return: the owner is unknown."""
+307:         with self._lock:
+308:             entry = self._threads.get(id(thread))
+309:             if entry is not None:
+310:                 entry['start_state'] = 'FAILED'
+311:                 entry['start_error'] = {'type': type(error).__name__,
+312:                                         'detail': str(error)}
+313:             return entry
+314: 
+315:     def pending_starts(self):
+316:         """The starts that did not return yet."""
+317:         with self._lock:
+318:             return sum(1 for item in self._entries
+319:                        if item['kind'] == 'thread'
+320:                        and item['start_state'] == 'STARTING')
+321: 
+322:     def start_provenance(self):
+323:         """The proven provenance of every start that the observer saw."""
+324:         with self._lock:
+325:             return {id(item['owner']): item['start_state']
+326:                     for item in self._entries if item['kind'] == 'thread'}
+327: 
+328:     def generation(self):
+329:         """The number of the owners that the registry holds.
+330: 
+331:         The generation is the **witness** of the quiescence of the
+332:         round: a generation that did not change across a final
+333:         resnapshot means that no new owner appeared after it.
+334:         """
+335:         with self._lock:
+336:             return len(self._entries)
+337: 
+338:     def entries(self):
+339:         """The entries of the registry in the order of their registration."""
+340:         with self._lock:
+341:             return list(self._entries)
+342: 
+343:     def facts(self):
+344:         """The facts of the registry: an owner is named and never guessed."""
+345:         return [{'name': item['name'], 'kind': item['kind'],
+346:                  'seam': item['seam'], 'order': item['order'],
+347:                  'start_state': item['start_state']}
+348:                 for item in self.entries()]
+349: 
+350: 
+351: class _StartObserver:
+352:     """The observer of the starts of the threads of one round.
+353: 
+354:     The observer is installed around the **original**
+355:     ``threading.Thread.start``: it forwards every start and it never
+356:     refuses one, it never blocks one and it never changes a decision of
+357:     the production.  It only **observes** the start and it registers the
+358:     **exact** thread object at the moment of the start, so that a
+359:     thread that the product starts during the stop of the round is an
+360:     owner of the round and it is never forgotten.
+361: 
+362:     The scope of the observer is the **actual** round that the fixture
+363:     builds: the observer is armed before the round is started and it is
+364:     disarmed only after the salvage of that round has finished.
+365:     """
+366: 
+367:     def __init__(self, registry):
+368:         self._registry = registry
+369:         self._original = threading.Thread.start
+370:         self.armed = False
+371:         self.observed = []
+372: 
+373:     def install(self):
+374:         """The context manager that installs the observer."""
+375:         observer = self
+376: 
+377:         def observed_start(thread, *args, **kwargs):
+378:             if not observer.armed:
+379:                 return observer._original(thread, *args, **kwargs)
+380:             observer._registry.mark_starting(thread)
+381:             try:
+382:                 result = observer._original(thread, *args, **kwargs)
+383:             except BaseException as error:  # noqa: BLE001 - it stays visible
+384:                 observer._registry.mark_failed(thread, error)
+385:                 raise
+386:             observer._registry.mark_started(thread)
+387:             observer.observed.append({'id': id(thread), 'name': thread.name})
+388:             return result
+389: 
+390:         return unittest.mock.patch.object(threading.Thread, 'start',
+391:                                           observed_start)
+392: 
+393:     def arm(self):
+394:         """The observation of the starts begins."""
+395:         self.armed = True
+396: 
+397:     def disarm(self):
+398:         """The observation of the starts ends."""
+399:         self.armed = False
+400: 
+401: 
+402: class _PhaseLedger:
+403:     """The ledger of the phases that the group of this module runs.
+404: 
+405:     The ledger remembers what was **entered** and what **ended**.  It
+406:     never decides: a phase that was entered and that failed is a
+407:     ``FAIL`` and only a phase that was never entered is a ``NOT_RUN``.
+408:     The states are ``PLANNED``, ``ATTEMPTED``, ``PASSED``, ``FAIL`` and
+409:     ``NOT_RUN`` and the two last states are terminal.
+410:     """
+411: 
+412:     STATES = ('PLANNED', 'ATTEMPTED', 'PASSED', 'FAIL', 'NOT_RUN')
+413: 
+414:     def __init__(self):
+415:         self._lock = threading.Lock()
+416:         self._states = {}
+417:         self._order = []
+418:         self._reasons = {}
+419: 
+420:     def _plan_locked(self, name):
+421:         if name not in self._states:
+422:             self._states[name] = 'PLANNED'
+423:             self._order.append(name)
+424: 
+425:     def plan(self, name):
+426:         """Name one phase **before** it runs."""
+427:         with self._lock:
+428:             self._plan_locked(name)
+429:             return name
+430: 
+431:     def attempt(self, name):
+432:         """Mark that the operation of the phase was **entered**."""
+433:         with self._lock:
+434:             self._plan_locked(name)
+435:             if self._states[name] == 'PLANNED':
+436:                 self._states[name] = 'ATTEMPTED'
+437:             return self._states[name]
+438: 
+439:     def finish(self, name, state, reason=None):
+440:         """Close one phase; a closed phase is never reopened."""
+441:         with self._lock:
+442:             self._plan_locked(name)
+443:             if self._states[name] in ('PASSED', 'FAIL', 'NOT_RUN'):
+444:                 return self._states[name]
+445:             self._states[name] = state
+446:             if reason is not None:
+447:                 self._reasons[name] = reason
+448:             return state
+449: 
+450:     def pass_(self, name):
+451:         """The phase held every one of its checks."""
+452:         return self.finish(name, 'PASSED')
+453: 
+454:     def fail(self, name, reason=None):
+455:         """The phase was executed and it failed."""
+456:         return self.finish(name, 'FAIL', reason)
+457: 
+458:     def state(self, name):
+459:         """The state of one phase."""
+460:         with self._lock:
+461:             return self._states.get(name, 'PLANNED')
+462: 
+463:     def names(self):
+464:         """The names of the phases in the order of their planning."""
+465:         with self._lock:
+466:             return list(self._order)
+467: 
+468:     def reason(self, name):
+469:         """The reason of the failure of one phase."""
+470:         with self._lock:
+471:             return self._reasons.get(name)
+472: 
+473: 
+474: class _RegistryCustody:
+475:     """The custody seam of the fixture: it registers what it retains.
+476: 
+477:     The custody of the launcher is a **supported** seam of the
+478:     production: a channel registers itself with it **before** it builds
+479:     anything.  The seam of the fixture forwards every call to the
+480:     original custody of the round and it registers the retained owner
+481:     in the registry of the fixture at the moment of the retention.
+482: 
+483:     A channel whose construction failed after its drain thread was
+484:     started is therefore in the registry of the fixture even when the
+485:     constructor never returned the channel to the fixture.
+486:     """
+487: 
+488:     def __init__(self, registry, name, original=None):
+489:         self._registry = registry
+490:         self._name = name
+491:         self._original = original
+492: 
+493:     def retain(self, kind, resource, detail=None, launch=None):
+494:         self._registry.register('%s:%s' % (self._name, kind), resource,
+495:                                 kind=kind, seam='custody.retain')
+496:         if self._original is None:
+497:             return resource
+498:         # The **original** signature of the custody is honoured: the
+499:         # aggregate of a launch takes three arguments and the table of
+500:         # the launcher takes four.
+501:         return self._original.retain(kind, resource, detail)
+502: 
+503:     def forget(self, resource):
+504:         if self._original is None:
+505:             return None
+506:         return self._original.forget(resource)
+507: 
+508: 
+509: def _owner_start_state(thread, hint=None):
+510:     """The start state of one owner of the round.
+511: 
+512:     The state is one of ``'STARTED'``, ``'NEVER_STARTED'`` or
+513:     ``'UNKNOWN'``.  ``UNKNOWN`` is the state of an owner whose start
+514:     did not return and of an owner whose liveness could not be asked:
+515:     such an owner may still come up, it is never taken for an owner
+516:     that never started and it **fails the proof** of the cleanup.
+517: 
+518:     CORRECTION 17 (M3): ``NEVER_STARTED`` is returned **only** when the
+519:     provenance of the start **proves** it: the owner does not exist at
+520:     all, or the registry of the fixture observed that its start was
+521:     never invoked.  An owner without an identity and without a
+522:     provenance is ``UNKNOWN``: it is never guessed to be an owner that
+523:     never started.
+524:     """
+525:     if thread is None:
+526:         return 'NEVER_STARTED'
+527:     # CORRECTION 18 (M3): the query of the identity of the owner is
+528:     # **not** swallowed here any more.  A failure of it is a fact of the
+529:     # cleanup and the guard of the caller records it with its exact type
+530:     # and its exact detail: a silent ``UNKNOWN`` without a diagnostic
+531:     # would hide the failure of the classification and it would let an
+532:     # unknown identity pass for a proved exit.
+533:     ident = getattr(thread, 'ident', None)
+534:     if ident is not None:
+535:         return 'STARTED'
+536:     if hint in ('STARTED', 'NEVER_STARTED', 'UNKNOWN'):
+537:         return hint
+538:     return 'UNKNOWN'
+539: 
+540: 
+541: def _salvage_threads(owners, *, seconds=10.0, states=None, total_seconds=30.0,
+542:                      interrupts=None):
+543:     """Join the owners that really started and report their liveness.
+544: 
+545:     The salvage is the work of the **test** and it is **separate** from
+546:     the returned state of the product: it never renews a deadline of
+547:     the round, it never erases a retained resource of the product and
+548:     it never claims that the product released it.
+549: 
+550:     Every owner that really started is joined with an explicitly
+551:     bounded wait and its liveness is reported.  An owner that never
+552:     started is reported and **never** joined.  An owner whose start
+553:     state is ``UNKNOWN`` is reported as unknown: it is never joined as
+554:     if it had ended and it fails the proof of the cleanup.
+555: 
+556:     CORRECTION 17 (M3): **every** owner is attempted.  A failure of the
+557:     classification of an owner, of its join or of its liveness query
+558:     never aborts the iteration: the error is **retained** in a list
+559:     with its kind, its exact type and its detail, and it fails the
+560:     proof of the cleanup.  The wait of an owner is cropped by the
+561:     remaining budget of the salvage, so that the salvage is bounded as
+562:     a whole.
+563: 
+564:     CORRECTION 18 (M3): the **exact** object of a ``KeyboardInterrupt``
+565:     or of a ``SystemExit`` is retained in the ``interrupts`` list of the
+566:     caller: the identity of the cancellation survives every best effort
+567:     cleanup and it is re-raised by the owner of the cleanup when no
+568:     other failure is unwinding.  The error that is written in the
+569:     document keeps its exact type and its exact detail; the **object**
+570:     itself never enters a document.
+571:     """
+572:     facts = []
+573:     hints = states or {}
+574:     deadline = time.monotonic() + max(0.0, total_seconds)
+575:     for name, thread in owners:
+576:         state = None
+577:         errors = []
+578:         try:
+579:             state = _owner_start_state(thread, hints.get(name))
+580:         except BaseException as error:  # noqa: BLE001 - it stays visible
+581:             errors.append({'kind': 'STATE', 'type': type(error).__name__,
+582:                            'detail': str(error)})
+583:             _note_interruption(interrupts, error)
+584:             state = 'UNKNOWN'
+585:         if state != 'STARTED':
+586:             facts.append({'name': name, 'start_state': state,
+587:                           'started': None if state == 'UNKNOWN' else False,
+588:                           'alive': None, 'joined': None, 'errors': errors})
+589:             continue
+590:         try:
+591:             wait = max(0.0, min(seconds, deadline - time.monotonic()))
+592:             thread.join(wait)
+593:         except BaseException as error:  # noqa: BLE001 - it stays visible
+594:             errors.append({'kind': 'JOIN', 'type': type(error).__name__,
+595:                            'detail': str(error)})
+596:             _note_interruption(interrupts, error)
+597:         alive = None
+598:         try:
+599:             alive = bool(thread.is_alive())
+600:         except BaseException as error:  # noqa: BLE001 - it stays visible
+601:             errors.append({'kind': 'LIVENESS', 'type': type(error).__name__,
+602:                            'detail': str(error)})
+603:             _note_interruption(interrupts, error)
+604:         facts.append({'name': name, 'start_state': state, 'started': True,
+605:                       'alive': alive, 'joined': (alive is False),
+606:                       'errors': errors})
+607:     return facts
+608: 
+609: 
+610: def _note_interruption(interrupts, error):
+611:     """Retain the **exact** object of an interruption of the cleanup.
+612: 
+613:     A ``KeyboardInterrupt`` and a ``SystemExit`` are the identity of the
+614:     cancellation of the round: they are retained as the objects
+615:     themselves and they are re-raised by the owner of the cleanup when
+616:     no other failure is unwinding.
+617:     """
+618:     if interrupts is None:
+619:         return False
+620:     if isinstance(error, (KeyboardInterrupt, SystemExit)):
+621:         interrupts.append(error)
+622:         return True
+623:     return False
+624: 
+625: 
+626: def _assert_salvage_proved(facts, message):
+627:     """The proof that the fixture released every owner that it started.
+628: 
+629:     An owner with an **unknown** start state fails the proof: it is
+630:     never taken for an owner that never started and it is never taken
+631:     for an owner that ended.  An owner that met an error fails the
+632:     proof as well: a cleanup that met an error is never a success.
+633:     """
+634:     for item in facts:
+635:         assert item['start_state'] != 'UNKNOWN', \
+636:             '%s: the owner %s has an unknown start state' \
+637:             % (message, item['name'])
+638:         errors = item.get('errors') or []
+639:         assert not errors, \
+640:             '%s: the owner %s met %s' % (message, item['name'], errors)
+641:         if item['started']:
+642:             assert item['alive'] is False, \
+643:                 '%s: the owner %s was left behind' % (message, item['name'])
+644: 
+645: 
+646: def _prove_salvage(facts, message):
+647:     """The proof of the cleanup of a round, as a **fact**.
+648: 
+649:     The proof is **run** in every case - also while an ordinary failure
+650:     is already unwinding - and it returns the failure of the proof
+651:     instead of raising it: a failure of the proof never replaces the
+652:     failure that is already unwinding and it is never discarded.
+653:     """
+654:     for item in facts:
+655:         errors = item.get('errors') or []
+656:         if item['start_state'] == 'UNKNOWN':
+657:             return '%s: the owner %s has an unknown start state%s' \
+658:                 % (message, item['name'], _errors_suffix(errors))
+659:         if errors:
+660:             return '%s: the owner %s met %s' \
+661:                 % (message, item['name'], errors)
+662:         if item['started'] and item['alive'] is not False:
+663:             return '%s: the owner %s was left behind' % (message, item['name'])
+664:     return None
+665: 
+666: 
+667: def _errors_suffix(errors):
+668:     """The diagnostic of the errors of one owner of the round."""
+669:     if not errors:
+670:         return ''
+671:     return ' (%s)' % (errors,)
+672: 
+673: 
+674: def _capture_stop(session, original_broker=None, *, interrupts=None):
+675:     """The **returned** state of the public stop of a round.
+676: 
+677:     The result of the stop is captured **before** the salvage of the
+678:     fixture: the salvage is the work of the test and it never replaces
+679:     the returned state of the product.  An exception of the stop is
+680:     captured and it is never discarded.
+681: 
+682:     CORRECTION 17 (M3): the live state and the retention of the round
+683:     are read **now**, in the moment of the failure, and the **actual**
+684:     facts of the evidence of the session are kept with their **real**
+685:     keys.  The identities of the retained resource are the live objects
+686:     of the session: the retained broker is compared with the broker of
+687:     the round that was captured **before** the stop, and a broker that
+688:     is gone is ``None`` and never the identity of ``None``.
+689: 
+690:     CORRECTION 18 (M3): a stop that raised and a snapshot of the
+691:     evidence that failed are **facts of the cleanup** and they never
+692:     certify it: the helper ``_stop_proof_failure`` turns them into the
+693:     failure of the proof.  The **exact** object of an interruption is
+694:     retained in the ``interrupts`` list of the caller.
+695:     """
+696:     captured = {'returned': None, 'exception': None, 'live_state': None,
+697:                 'evidence': None, 'evidence_state': None,
+698:                 'evidence_broker_retained': None,
+699:                 'evidence_failures': None,
+700:                 'evidence_background_threads': None,
+701:                 'evidence_closer_start_state': None,
+702:                 'retained_broker_is_original': None,
+703:                 'retained_broker_id': None, 'snapshot_error': None}
+704:     if session is None:
+705:         return captured
+706:     try:
+707:         captured['returned'] = session.stop()
+708:     except BaseException as error:  # noqa: BLE001 - the failure stays visible
+709:         captured['exception'] = {'type': type(error).__name__,
+710:                                  'detail': str(error)}
+711:         _note_interruption(interrupts, error)
+712:     try:
+713:         captured['live_state'] = session.state
+714:         broker = getattr(session, 'broker', None)
+715:         captured['retained_broker_id'] = None if broker is None else id(broker)
+716:         if original_broker is not None:
+717:             captured['retained_broker_is_original'] = \
+718:                 (broker is original_broker)
+719:         evidence = session.evidence()
+720:         captured['evidence'] = evidence
+721:         captured['evidence_state'] = evidence['state']
+722:         captured['evidence_broker_retained'] = evidence['broker_retained']
+723:         captured['evidence_failures'] = list(evidence['failures'])
+724:         captured['evidence_background_threads'] = list(
+725:             evidence['background_threads'])
+726:         captured['evidence_closer_start_state'] = evidence['closer_start_state']
+727:     except BaseException as error:  # noqa: BLE001 - the failure stays visible
+728:         captured['snapshot_error'] = {'type': type(error).__name__,
+729:                                       'detail': str(error)}
+730:         _note_interruption(interrupts, error)
+731:     return captured
+732: 
+733: 
+734: def _stop_proof_failure(captured, message):
+735:     """The failure of the cleanup that the capture of the stop carries.
+736: 
+737:     A stop that raised and a snapshot of the evidence that failed are
+738:     **facts** of the cleanup: they are never ignored and they never
+739:     certify that the round was cleaned.  The helper returns ``None``
+740:     when the capture carries no error at all.
+741:     """
+742:     problems = []
+743:     if captured.get('exception') is not None:
+744:         problems.append('the stop of the round met %s'
+745:                         % (captured['exception'],))
+746:     if captured.get('snapshot_error') is not None:
+747:         problems.append('the snapshot of the evidence of the round met %s'
+748:                         % (captured['snapshot_error'],))
+749:     if not problems:
+750:         return None
+751:     return '%s: %s' % (message, '; '.join(problems))
+752: 
+753: 
+754: def _join_details(*parts):
+755:     """The detail of a failure: every part that carries a fact.
+756: 
+757:     CORRECTION 18 (M2): the original failure of the phase and every
+758:     diagnostic of its cleanup are **joined**: neither of them replaces
+759:     the other and none of them is dropped.
+760:     """
+761:     return '; '.join([part for part in parts if part])
+762: 
+763: 
+764: def _cleanup_detail(cleanup_errors, write_errors):
+765:     """The diagnostic of the cleanup errors of one phase.
+766: 
+767:     CORRECTION 18 (M2): the errors of the cleanup are a **list** and
+768:     they are never overwritten: the detail names **every** one of them
+769:     and it names the errors of the writing of the evidence as well.
+770:     """
+771:     parts = []
+772:     for item in cleanup_errors:
+773:         parts.append('%s: %s' % (item.get('kind'), item.get('detail')))
+774:     for item in write_errors:
+775:         parts.append('the writing of the evidence of %s failed: %s'
+776:                      % (item.get('name'), item.get('detail')))
+777:     if not parts:
+778:         return None
+779:     return '; '.join(parts)
+780: 
+781: 
+782: def _session_owners(session, prefix='session', hints=None):
+783:     """The owners that the session of the round really started.
+784: 
+785:     The registry is read from the session itself: the background
+786:     threads of the round and the closer threads that it really built.
+787:     A closer that never started is reported as such and it is never
+788:     joined.  A thread whose start did not return is **UNKNOWN**: it
+789:     keeps its owner in the session and it may still come up.
+790:     """
+791:     owners = []
+792:     if session is None:
+793:         return owners
+794:     records = getattr(session, '_background_threads', None) or {}
+795:     for kind in sorted(records):
+796:         record = records[kind] or {}
+797:         name = '%s:background-%s' % (prefix, str(kind))
+798:         owners.append((name, record.get('thread')))
+799:         if hints is None:
+800:             continue
+801:         state = record.get('state')
+802:         if state == 'STARTING':
+803:             hints[name] = 'UNKNOWN'
+804:         elif state == 'FAILED' and not record.get('started'):
+805:             hints[name] = 'NEVER_STARTED'
+806:     closer_state = getattr(session, '_closer_start_state', None)
+807:     for index, thread in enumerate(getattr(session, '_closer_threads', None)
+808:                                    or []):
+809:         name = '%s:closer-%d' % (prefix, index)
+810:         owners.append((name, thread))
+811:         if hints is not None and closer_state == 'STARTING':
+812:             hints[name] = 'UNKNOWN'
+813:     return owners
+814: 
+815: 
+816: def _endpoint_owners(prefix, endpoint, hints=None):
+817:     """The owners that one endpoint of the round really started.
+818: 
+819:     The read worker and the write worker of the endpoint are the
+820:     owners that the endpoint really started.  A worker that the
+821:     endpoint **retained** is a worker whose start did not return: its
+822:     state is **UNKNOWN** and it fails the proof of the cleanup.
+823:     """
+824:     owners = []
+825:     if endpoint is None:
+826:         return owners
+827:     for role, label in (('_reader', 'read'), ('_writer', 'write')):
+828:         worker = getattr(endpoint, role, None)
+829:         if worker is None:
+830:             continue
+831:         owners.append(('%s:%s-worker' % (prefix, label), worker))
+832:     for index, worker in enumerate(getattr(endpoint, '_retained', None)
+833:                                    or []):
+834:         name = '%s:retained-%d' % (prefix, index)
+835:         owners.append((name, worker))
+836:         if hints is not None:
+837:             hints[name] = 'UNKNOWN'
+838:     return owners
+839: 
+840: 
+841: def _channel_owners(channel, prefix, hints=None):
+842:     """The owners that the channel of the round really started.
+843: 
+844:     The drain thread of the channel and the workers of its two
+845:     endpoints are the owners of the round that really started.  A worker
+846:     that was never started is reported as such and it is never joined.
+847:     """
+848:     owners = []
+849:     if channel is None:
+850:         return owners
+851:     owners.append((prefix + ':drain', getattr(channel, '_thread', None)))
+852:     if hints is not None:
+853:         # The drain thread of a channel is started **inside** the
+854:         # constructor of the channel: a channel whose construction
+855:         # failed at the start of its drain owns a drain thread whose
+856:         # start did not return and it may still come up.
+857:         hints[prefix + ':drain'] = 'UNKNOWN'
+858:     reader = getattr(channel, '_reader', None)
+859:     writer = getattr(channel, '_writer', None)
+860:     for endpoint, label in ((reader, 'read'), (writer, 'write')):
+861:         owners.extend(_endpoint_owners('%s:%s' % (prefix, label), endpoint,
+862:                                        hints))
+863:     return owners
+864: 
+865: 
+866: def _registry_owners(registry, session=None, channel=None, prefix='round'):
+867:     """Every owner of the round: the registered ones and the live ones.
+868: 
+869:     The registry of the fixture holds the owners that were registered
+870:     **immediately** - a channel that was constructed, an endpoint that
+871:     was built, a session that was created.  The session and the
+872:     channel that are still reachable are added to them, so that a
+873:     thread that the product started after the registration is never
+874:     forgotten.  One owner is never in the list twice: the identity of
+875:     the thread decides and not its name.
+876:     """
+877:     owners = []
+878:     hints = {}
+879:     seen = set()
+880:     kinds = set()
+881: 
+882:     def add(items):
+883:         for name, thread in items:
+884:             key = ('thread', id(thread)) if thread is not None \
+885:                 else ('name', name)
+886:             if key in seen:
+887:                 continue
+888:             seen.add(key)
+889:             owners.append((name, thread))
+890: 
+891:     for entry in registry.entries():
+892:         name = entry['name']
+893:         owner = entry['owner']
+894:         kind = entry['kind']
+895:         kinds.add(kind)
+896:         if kind == 'channel':
+897:             add(_channel_owners(owner, name, hints))
+898:         elif kind == 'endpoint':
+899:             add(_endpoint_owners(name, owner, hints))
+900:         elif kind == 'session':
+901:             add(_session_owners(owner, name, hints))
+902:         else:
+903:             add([(name, owner)])
+904:     if session is not None and 'session' not in kinds:
+905:         add(_session_owners(session, '%s:session' % prefix, hints))
+906:     if channel is not None and 'channel' not in kinds:
+907:         add(_channel_owners(channel, '%s:channel' % prefix, hints))
+908:     # CORRECTION 17 (M3): the provenance of the starts that the
+909:     # observer of the fixture saw is the **proven** provenance of the
+910:     # start of an owner.  It is keyed by the exact thread object and it
+911:     # never replaces the hint of the production: a thread whose start
+912:     # returned is ``STARTED`` and a thread whose start did not return is
+913:     # ``UNKNOWN``.
+914:     provenance = registry.start_provenance() if registry is not None else {}
+915:     for name, thread in owners:
+916:         if thread is None:
+917:             continue
+918:         state = provenance.get(id(thread))
+919:         if state == 'STARTED':
+920:             hints[name] = 'STARTED'
+921:         elif state in ('STARTING', 'FAILED'):
+922:             hints[name] = 'UNKNOWN'
+923:     return owners, hints
+924: 
+925: 
+926: def _drain_owners(registry, session=None, channel=None, prefix='round', *,
+927:                   seconds=10.0, budget=30.0, release=None, interrupts=None):
+928:     """The bounded drain of the owners of one round.
+929: 
+930:     CORRECTION 17 (M3): the drain repeats, **boundedly**, until the
+931:     owners of the round are quiescent and really joined.  The bound of
+932:     the drain is **one** overall bound: the wait of an owner is cropped
+933:     by the remaining budget and the budget is never reset - neither
+934:     between the rounds of the drain nor between the rounds of the test.
+935: 
+936:     The quiescence of the round is asserted **after** the drain and
+937:     never before it: a round that is not quiescent is a failure of the
+938:     cleanup, the gates of the round are still released and **all** the
+939:     registered owners are still attempted.
+940: 
+941:     CORRECTION 18 (M3): the enumeration of the owners and the reading
+942:     of the generation of the registry are **one** observation.  The
+943:     generation is read **before** the exact owners are enumerated and
+944:     it is read **again** right after the enumeration and once more
+945:     after the joined producer threads of the iteration.  All of these
+946:     readings must agree and the **final** exact-owner resnapshot must
+947:     contain every owner of the enumeration: a thread that was started
+948:     between the enumeration and the reading of the generation is never
+949:     certified as quiescent and it is never left behind.
+950: 
+951:     Every error of the drain - the enumeration, the release of the
+952:     gates, the classification of an owner, its join and its liveness
+953:     query - is **retained** in a list with its exact type and its exact
+954:     detail and it fails the proof of the cleanup.  **Every** iteration
+955:     is kept: an error of an earlier iteration is never erased by a
+956:     later iteration that really ended the threads.  A failure never
+957:     aborts the iteration and it never skips the final result of the
+958:     round.  The drain never renews a deadline of the product.
+959:     """
+960:     deadline = time.monotonic() + max(0.0, budget)
+961:     attempts = []
+962:     errors = []
+963:     owners = []
+964:     hints = {}
+965:     salvage = []
+966:     all_salvage = []
+967:     quiescent = False
+968:     while True:
+969:         # the generation of the registry is read **before** the exact
+970:         # owners are enumerated
+971:         generation_before = registry.generation()
+972:         try:
+973:             owners, hints = _registry_owners(registry, session=session,
+974:                                               channel=channel, prefix=prefix)
+975:         except BaseException as error:  # noqa: BLE001 - it stays visible
+976:             errors.append({'kind': 'ENUMERATION',
+977:                            'type': type(error).__name__,
+978:                            'detail': str(error)})
+979:             owners, hints = [], {}
+980:         # ... and it is read **again** right after the enumeration: a
+981:         # start that happened between the two readings is a change of
+982:         # the generation and the enumeration is repeated.
+983:         generation_after = registry.generation()
+984:         snapshot = {'generation_before': generation_before,
+985:                     'generation_after': generation_after,
+986:                     'generation': generation_after,
+987:                     'pending': registry.pending_starts(),
+988:                     'owners': [name for name, _ in owners],
+989:                     'errors': list(errors)}
+990:         attempts.append(snapshot)
+991:         if release is not None:
+992:             try:
+993:                 release()
+994:             except BaseException as error:  # noqa: BLE001 - it stays visible
+995:                 errors.append({'kind': 'RELEASE',
+996:                                'type': type(error).__name__,
+997:                                'detail': str(error)})
+998:         remaining = max(0.0, deadline - time.monotonic())
+999:         salvage = _salvage_threads(owners, states=hints, seconds=seconds,
+1000:                                    total_seconds=remaining,
+1001:                                    interrupts=interrupts)
+1002:         # CORRECTION 18 (M3): **every** iteration of the drain is kept -
+1003:         # the failure of an earlier iteration is never erased by a later
+1004:         # iteration that ended the threads.
+1005:         all_salvage.extend(salvage)
+1006:         # The **final** exact-owner resnapshot: it is taken after the
+1007:         # joined producer threads of this iteration and it must agree
+1008:         # with the enumeration of this iteration.
+1009:         final_generation = registry.generation()
+1010:         try:
+1011:             final_owners, _final_hints = _registry_owners(
+1012:                 registry, session=session, channel=channel, prefix=prefix)
+1013:         except BaseException as error:  # noqa: BLE001 - it stays visible
+1014:             errors.append({'kind': 'FINAL_ENUMERATION',
+1015:                            'type': type(error).__name__,
+1016:                            'detail': str(error)})
+1017:             final_owners = []
+1018:         # and the generation is read **again** after the final
+1019:         # resnapshot: a start that happened during it is a change of the
+1020:         # generation and the drain repeats.
+1021:         final_generation_after = registry.generation()
+1022:         final_names = [name for name, _ in final_owners]
+1023:         missing = [name for name in snapshot['owners']
+1024:                    if name not in final_names]
+1025:         late = [name for name in final_names
+1026:                 if name not in snapshot['owners']]
+1027:         pending = registry.pending_starts()
+1028:         stable = (generation_before == generation_after
+1029:                   and final_generation == generation_after
+1030:                   and final_generation_after == generation_after
+1031:                   and not missing and not late)
+1032:         quiescent = (pending == 0 and stable
+1033:                      and _prove_salvage(salvage, prefix) is None)
+1034:         if quiescent or time.monotonic() >= deadline:
+1035:             break
+1036:         # the drain is **bounded** and it never spins: the next attempt
+1037:         # follows a short pause and it happens inside the same budget
+1038:         time.sleep(0.01)
+1039:     proof = _prove_salvage(all_salvage, prefix)
+1040:     if proof is None and errors:
+1041:         proof = '%s: the drain met %s' % (prefix, errors)
+1042:     return {'owners': owners, 'hints': hints, 'salvage': salvage,
+1043:             'all_salvage': all_salvage,
+1044:             'attempts': attempts, 'proof': proof, 'errors': errors,
+1045:             'quiescent': bool(quiescent)}
+1046: 
+1047: 
+1048: 
+1049: # -- N10-R01: the control handle of a process ------------------------------
+1050: 
+1051: def test_n10_r01_the_control_handle_is_closed_only_after_the_exit(tmp_path):

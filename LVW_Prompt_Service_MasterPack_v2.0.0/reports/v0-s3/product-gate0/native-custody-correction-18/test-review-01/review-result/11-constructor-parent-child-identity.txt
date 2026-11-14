@@ -1,0 +1,289 @@
+Candidate 0f532a7d86e390dc093b7d78aa5fc36103bdff23; exact static identity path
+
+SOURCE test_v0_s3_native_custody_correction10.py.txt
+266:         self._threads = {}
+267: 
+268:     def register(self, name, owner, *, kind, seam):
+269:         """Register one owner **immediately** and return its entry."""
+270:         with self._lock:
+271:             self._sequence += 1
+272:             entry = {'name': name, 'owner': owner, 'kind': kind,
+273:                      'seam': seam, 'order': self._sequence,
+274:                      'registered_at': time.monotonic(),
+275:                      'start_state': None, 'start_error': None}
+276:             self._entries.append(entry)
+277:             return entry
+278: 
+279:     def mark_starting(self, thread):
+280:         """Register the **exact** thread object before its start.
+281: 
+282:         The registration happens **before** the original start is
+283:         called: a thread whose start does not return is an owner of the
+284:         round from that moment on and it is never forgotten.
+285:         """
+488:     def __init__(self, registry, name, original=None):
+489:         self._registry = registry
+490:         self._name = name
+491:         self._original = original
+492: 
+493:     def retain(self, kind, resource, detail=None, launch=None):
+494:         self._registry.register('%s:%s' % (self._name, kind), resource,
+495:                                 kind=kind, seam='custody.retain')
+496:         if self._original is None:
+497:             return resource
+498:         # The **original** signature of the custody is honoured: the
+499:         # aggregate of a launch takes three arguments and the table of
+500:         # the launcher takes four.
+501:         return self._original.retain(kind, resource, detail)
+2792:     def clocked_stream_channel(*args, **kwargs):
+2793:         """The production channel of the round with the clock of the round.
+2794: 
+2795:         The wrapper calls the **original** production constructor and it
+2796:         only binds the clock of the round: it never replaces a method,
+2797:         never decides a deadline and never changes the wiring of the
+2798:         launch.
+2799: 
+2800:         N1 correction 16 (M3): the custody of the launch is the
+2801:         **supported** seam of the production and the wrapper replaces it
+2802:         with the custody seam of the fixture: a channel registers itself
+2803:         with its custody **before** it builds anything, so the registry
+2804:         of the fixture holds the channel even when its construction
+2805:         failed after its drain thread was started.  The original
+2806:         custody of the round receives every call unchanged.
+2807:         """
+2808:         kwargs.setdefault('clock', round_clock['value'])
+2809:         registry = round_registry['value']
+2810:         if registry is not None and kwargs.get('custody') is not None:
+2811:             kwargs['custody'] = _RegistryCustody(registry, 'launch',
+2812:                                                  kwargs['custody'])
+2813:         channel = real_stream_channel(*args, **kwargs)
+2814:         recorder = round_queue_recorder['value']
+2815:         if recorder is not None:
+2816:             recorder(channel)
+2817:         return channel
+2818: 
+2819:     def start_round(round_session, round_api, round_clock_value, registry):
+2820:         """Start one round through the PRODUCTION default launcher.
+2821: 
+2822:         The round is started by the **production** session, with the
+2823:         **production** default launcher and with the **production**
+2824:         ``launch_broker``.  The only seams are the creation of the
+2825:         process, the table of the primitives of the round and the clock
+2826:         of the round: the launcher of the round itself is never
+2827:         replaced by a stand-in.
+2828: 
+2829:         N1 correction 16 (M3): the session of the round is registered
+2830:         in the registry of the fixture **immediately**: the background
+2831:         threads and the closer threads of the round are the owners that
+2832:         the session really started and the product may drop its
+2833:         reference to them.
+2834: 
+2835:         N1 correction 17 (M1): the **returned** state of the public
+2836:         start is the value that this helper returns.  The public
+2837:         ``NativeCustodySession.start`` returns the evidence of the round
+2838:         and never raises for an ordinary failure: the caller reads the
+2839:         value that the public operation really returned and it never
+2840:         reads a later evidence object instead of it.
+2841:         """
+2842:         previous_api_table = api_table['value']
+2843:         previous_clock = round_clock['value']
+2844:         previous_registry = round_registry['value']
+2845:         api_table['value'] = round_api
+2846:         round_clock['value'] = round_clock_value
+2847:         round_registry['value'] = registry
+2848:         registry.register('session', round_session, kind='session',
+2849:                           seam='fixture')
+2850:         try:
+2851:             with unittest.mock.patch.object(broker_module, 'os', _OsView()), \
+2852:                  unittest.mock.patch.object(broker_module, 'subprocess',
+2853:                                             _SubprocessView()), \
+2854:                  unittest.mock.patch.object(broker_module, 'sys', _SysView()), \
+2855:                  unittest.mock.patch.object(broker_module, '_make_endpoint',
+2856:                                             fake_make_endpoint), \
+2857:                  unittest.mock.patch.object(broker_module, 'StreamChannel',
+2858:                                             clocked_stream_channel):
+2859:                 start_return = round_session.start()
+2860:         finally:
+2861:             api_table['value'] = previous_api_table
+2862:             round_clock['value'] = previous_clock
+2863:             round_registry['value'] = previous_registry
+2864:         return start_return
+3972:         controlled_session = NativeCustodySession(
+3973:             plan=controlled_document,
+3974:             run_root=tmp_path / ('controlled-' + checkpoint.lower()),
+3975:             parent_child_remaining_seconds=21600, launcher=None,
+3976:             clock=controlled_clock, wall=time.time, nonce=NONCE)
+3977:         controlled_registry = _OwnerRegistry()
+3978:         # CORRECTION 17 (M3): the observer of the starts of the round of
+3979:         # the subcase.  It is armed before the round is started and it
+3980:         # is disarmed only after the salvage of that round.
+3981:         controlled_observer = _StartObserver(controlled_registry)
+3982:         gate = threading.Event()
+3983:         held = threading.Event()
+3984:         transport = None
+4070:                         original_thread_start = threading.Thread.start
+4071: 
+4072:                         def controlled_custody_channel():
+4073:                             """The exact channel of the custody of the
+4074:                             fixture.
+4075: 
+4076:                             CORRECTION 18 (M3): the ownership of the
+4077:                             drain thread is proven by the **exact**
+4078:                             object that the custody of the fixture
+4079:                             really registered: a name that is similar
+4080:                             never claims the ownership.
+4081:                             """
+4082:                             for entry in controlled_registry.entries():
+4083:                                 if entry['kind'] == 'channel':
+4084:                                     return entry['owner']
+4085:                             return None
+4086: 
+4087:                         def controlled_start_then_raise(thread, *args,
+4088:                                                          **kwargs):
+4089:                             # CORRECTION 18 (M3): the actual attribute of
+4090:                             # the stdlib thread is ``_target`` - a plain
+4091:                             # ``threading.Thread`` has **no** ``target``
+4092:                             # attribute at all and the bound method of
+4093:                             # the target carries its owner in
+4094:                             # ``__self__``.
+4095:                             target = getattr(thread, '_target', None)
+4096:                             owner = getattr(target, '__self__', None)
+4097:                             if not isinstance(owner,
+4098:                                               broker_module.StreamChannel):
+4099:                                 return original_thread_start(thread, *args,
+4100:                                                             **kwargs)
+4101:                             if getattr(owner, '_context', None) \
+4102:                                     is not controlled_core.context:
+4103:                                 return original_thread_start(thread, *args,
+4104:                                                             **kwargs)
+4105:                             # the **exact** custody-owned child: only the
+4106:                             # channel that the custody of the fixture
+4107:                             # really registered is injected into and
+4108:                             # never a thread of the parent that carries
+4109:                             # the same name.
+4110:                             if owner is not controlled_custody_channel():
+4111:                                 return original_thread_start(thread, *args,
+4112:                                                             **kwargs)
+4113:                             injected_starts.append(
+4114:                                 {'id': id(thread), 'name': thread.name,
+4115:                                  'owner_id': id(owner),
+4116:                                  'target_name': getattr(target, '__name__',
+4117:                                                        None),
+4118:                                  'target_owner_is_custody_channel': True})
+4119:                             # the ORIGINAL start really takes effect
+4120:                             original_thread_start(thread, *args, **kwargs)
+4121:                             raise _R07ConstructorFailure(checkpoint)
+4122: 
+4123:                         with unittest.mock.patch.object(
+4124:                                 threading.Thread, 'start',
+4125:                                 controlled_start_then_raise):
+4126:                             transport = broker_module.StreamChannel(
+4127:                                 None, None, read_endpoint=read_endpoint,
+4128:                                 write_endpoint=write_endpoint,
+4129:                                 clock=controlled_clock,
+4130:                                 context=controlled_core.context,
+4131:                                 custody=_RegistryCustody(
+4132:                                     controlled_registry, 'controlled'))
+4133:                     else:
+4160:                     # caught by its own type - never by a broad
+4161:                     # ``Exception``.
+4162:                     try:
+4163:                         assert controlled_session.state == 'NOT_A_STATE', \
+4164:                             _R07OrdinaryAssertion.TOKEN
+4165:                     except AssertionError as error:
+4166:                         # The token of the deliberate assertion is
+4167:                         # normalised: the exact token of the failure
+4168:                         # survives the rewriting of the assertions of
+4169:                         # the test runner.
+4170:                         raise _R07OrdinaryAssertion(
+4171:                             _R07OrdinaryAssertion.TOKEN) from error
+4172:                 elif checkpoint not in ('CONSTRUCTOR_FAILURE',
+4173:                                         'CLOSE_FAILURE'):
+4174:                     # CORRECTION 18 (M3): the ``CLOSE_FAILURE``
+4175:                     # checkpoint is a **cleanup only** case: its failure
+4176:                     # is produced by the cleanup itself and it never
+4177:                     # raises the generic sentinel of the group.
+4178:                     raise _R07Sentinel(checkpoint)
+4179:             finally:
+4378:             # token of the deliberate failure - never a name of a type
+4379:             # and never a non-``None`` check.
+4380:             if checkpoint == 'ORDINARY_ASSERTION':
+4381:                 assert failure['class'] is _R07OrdinaryAssertion, \
+4382:                     'the controlled failure of %s was not the ordinary ' \
+4383:                     'assertion of the group: %s' % (checkpoint, failure)
+4384:                 assert failure['is_assertion_error'] is True, \
+4385:                     'the controlled failure of %s was not an ' \
+4386:                     'AssertionError: %s' % (checkpoint, failure)
+4387:                 assert failure['token'] == _R07OrdinaryAssertion.TOKEN, \
+4388:                     'the controlled failure of %s was not the exact token: %s' \
+4389:                     % (checkpoint, failure)
+4390:             elif checkpoint == 'CONSTRUCTOR_FAILURE':
+4391:                 assert failure['class'] is _R07ConstructorFailure, \
+4392:                     'the controlled failure of %s was not the failure of ' \
+4393:                     'the constructor: %s' % (checkpoint, failure)
+4394:                 assert failure['token'] == 'CONSTRUCTOR_FAILURE', \
+4395:                     'the controlled failure of %s was not the exact token: %s' \
+4396:                     % (checkpoint, failure)
+4397:                 # the seam really took effect on the **exact** drain of
+4398:                 # the child and on nothing else
+4399:                 assert len(controlled['injected_starts']) == 1, \
+4400:                     'the constructor failure of %s did not take effect on ' \
+4401:                     'exactly one drain: %s' \
+4402:                     % (checkpoint, controlled['injected_starts'])
+4403:                 assert controlled['injected_starts'][0]['name'] \
+4404:                     == 'lvw-native-custody-channel', \
+4405:                     'the constructor failure of %s did not take effect on ' \
+4406:                     'the drain of the child: %s' \
+4407:                     % (checkpoint, controlled['injected_starts'])
+
+SOURCE v0_s3_native_broker.py.txt
+5253:         # read the absolute deadline of the round from it and they never
+5254:         # keep a budget of their own.
+5255:         self._context = context
+5256:         self._thread = threading.Thread(target=self._drain, daemon=True,
+5257:                                         name='lvw-native-custody-channel')
+5258:         # The channel registers itself with the custody of the launcher
+5259:         # **before** it builds anything: a channel whose construction
+5260:         # failed half way - an endpoint that could not be built, a
+5261:         # reader thread that did not start - may not leave an endpoint
+5262:         # and a thread without an owner.  The outer owner of the launch
+5263:         # finds the partial channel through this registration and it
+5264:         # never closes the files of the process by itself.
+5265:         self._custody = custody
+5266:         if custody is not None:
+5267:             custody.retain('channel', self, 'constructing')
+5268:         try:
+5269:             self._reader = read_endpoint or _make_endpoint(
+5270:                 reader, name + '-read', clock=clock, api=api, context=context)
+5271:             # The parameter of the constructor is ``write_endpoint`` and
+5272:             # the attribute of the channel is ``_writer``.  The two names
+5273:             # are never mixed: a name that does not exist raises a
+5274:             # ``NameError`` and every construction of a channel of this
+5275:             # package fails with it.
+5276:             self._writer = write_endpoint or _make_endpoint(
+5277:                 writer, name + '-write', clock=clock, api=api, context=context)
+5278:             self._thread.start()
+5279:         except BaseException:
+8066:         thread did not start is found by the outer owner through the
+8067:         aggregate and the files of the process are never closed by the
+8068:         process helper.
+8069: 
+8070:         The admission of the round is asked **again** immediately
+8071:         before the channel is created: a stop that was published while
+8072:         the hash of the executable was paused refuses the channel and
+8073:         the process of the round keeps its owner.
+8074:         """
+8075:         _check_launch_budget(context, 'LAUNCH:BEFORE_CHANNEL')
+8076:         channel = StreamChannel(process.stdout, process.stdin,
+8077:                                 custody=launch, context=context)
+8078:         if deadline is not None:
+8079:             channel.bind_deadline(deadline)
+8080:         return channel
+8081: 
+8082:     return _adopt_broker_process(
+8083:         process,
+8084:         channel_factory=channel_factory,
+8085:         executable=str(executable), executable_sha256=executable_sha256,
+8086:         deadline=deadline, aggregate=launch)
+8087: 
+8088: 

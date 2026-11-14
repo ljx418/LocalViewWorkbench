@@ -1,0 +1,544 @@
+Candidate 0f532a7d86e390dc093b7d78aa5fc36103bdff23; T10 physical lines
+3900:         error = holder.get('error')
+3901:         facts = {'error': type(error).__name__,
+3902:                  'code': getattr(error, 'code', None),
+3903:                  'calls': endpoint._api.calls}
+3904:         write_phase('r07-await-context', facts)
+3905:         assert isinstance(error, BrokerError), \
+3906:             'the await of the endpoint did not name the cancellation'
+3907:         assert error.code == 'BROKER_PIPE_CANCELLED', \
+3908:             'the await of the endpoint did not notice the original context'
+3909:     finally:
+3910:         released.set()
+3911:         reader.join(10.0)
+3912:         endpoint.close()
+3913: 
+3914:     # -- N1 correction 15 (M3): the fixture of the group releases
+3915:     # -- N1 correction 16 (M3): the fixture of the group releases
+3916:     #    **every** gate of the test and joins **every** owner that
+3917:     #    really started - also when an assertion of the group fails.
+3918:     #    The subcases below fail **on purpose** at a meaningful
+3919:     #    checkpoint of a round and they catch **their own** exception
+3920:     #    again: the distinctive sentinel of the group, an **ordinary**
+3921:     #    assertion of the group, a close of the transport of the child
+3922:     #    that fails and a construction of the transport of the child
+3923:     #    that fails **after** its drain thread was really started.
+3924:     #    They are the proof of the negative path of the fixture: a
+3925:     #    failed assertion of the group may never leave a gate of the
+3926:     #    test blocked and it may never leave an owner of the round
+3927:     #    behind.  A receipt of the happy path alone cannot prove the
+3928:     #    negative path.
+3929:     def controlled_failure(checkpoint):
+3930:         """Fail one round of the fixture on purpose at a checkpoint.
+3931: 
+3932:         The round is really started through the PRODUCTION default
+3933:         launcher and the failure of the fixture of the test is raised
+3934:         at the requested checkpoint of the round.  The ``finally`` of
+3935:         the subcase releases every gate of the test, closes the
+3936:         transport of the child where it was constructed, stops the
+3937:         round, joins every owner that really started and **runs the
+3938:         proof of the cleanup** - also while the failure of the subcase
+3939:         is already unwinding.
+3940: 
+3941:         Every failure of the subcase is caught by **its own type**: it
+3942:         is never a broad ``Exception`` and it never swallows a real
+3943:         failure of the production.
+3944: 
+3945:         N1 correction 16 (M3): the owners of the round are registered
+3946:         **immediately** in the registry of the fixture, so the drain
+3947:         thread of a transport whose construction failed is still an
+3948:         owner that the fixture joins.
+3949: 
+3950:         N1 correction 17 (M3): the cleanup region is moved **outward**
+3951:         by one level: it encloses the start of the round **and** the
+3952:         assertion of the state of the round, so a failure of either is
+3953:         cleaned up, joined and proved.  The deliberate failure is
+3954:         **raised inside** the cleanup region and it is **caught outside**
+3955:         of it: the cleanup demonstrably runs while the failure is
+3956:         unwinding and that fact is recorded.  The ``CLOSE_FAILURE``
+3957:         checkpoint is the one case whose failure is produced **by the
+3958:         cleanup itself**: it is recorded with its exact type and its
+3959:         exact message and it never propagates.
+3960:         """
+3961:         controlled_api = Api()
+3962:         controlled_clock = ManualClock(3000.0)
+3963:         controlled_document = plan_document(lease_expires_at=time.time()
+3964:                                             + 120.0)
+3965:         controlled_plan = validate_launch_plan(controlled_document,
+3966:                                                 now=time.time())
+3967:         controlled_api.frames = [
+3968:             _reply_bytes('READY', 'ARMED', {}, controlled_plan, NONCE, 1),
+3969:             _reply_bytes('STATUS', 'RUNNING', {}, controlled_plan, NONCE, 2)]
+3970:         controlled_api.final = _reply_bytes('STOPPED', 'RELEASED', {},
+3971:                                             controlled_plan, NONCE, 3)
+3972:         controlled_session = NativeCustodySession(
+3973:             plan=controlled_document,
+3974:             run_root=tmp_path / ('controlled-' + checkpoint.lower()),
+3975:             parent_child_remaining_seconds=21600, launcher=None,
+3976:             clock=controlled_clock, wall=time.time, nonce=NONCE)
+3977:         controlled_registry = _OwnerRegistry()
+3978:         # CORRECTION 17 (M3): the observer of the starts of the round of
+3979:         # the subcase.  It is armed before the round is started and it
+3980:         # is disarmed only after the salvage of that round.
+3981:         controlled_observer = _StartObserver(controlled_registry)
+3982:         gate = threading.Event()
+3983:         held = threading.Event()
+3984:         transport = None
+3985:         read_endpoint = None
+3986:         write_endpoint = None
+3987:         raised = []
+3988:         close_failures = []
+3989:         injected_starts = []
+3990:         facts = {}
+3991:         controlled_original_broker = None
+3992:         # CORRECTION 18 (M3): the errors of the cleanup of this subcase
+3993:         # are **lists** and they are never overwritten: one exception
+3994:         # never skips the owners that follow it.
+3995:         controlled_cleanup_errors = []
+3996:         # CORRECTION 18 (M3): the **exact** objects of the interruptions
+3997:         # that the cleanup of this subcase met.
+3998:         controlled_interrupts = []
+3999: 
+4000:         def write_facts():
+4001:             """Write the facts of the subcase of the group."""
+4002:             write_phase('r07-controlled-failure-%s' % checkpoint.lower(),
+4003:                         facts)
+4004: 
+4005:         controlled_observer_patch = controlled_observer.install()
+4006:         controlled_observer_patch.start()
+4007:         controlled_observer.arm()
+4008:         try:
+4009:             # (A) The OUTER region: the deliberate failures are caught
+4010:             #     **here**, outside of the entire cleanup region.
+4011:             try:
+4012:                 # (B) The cleanup region: the start of the round and the
+4013:                 #     assertion of its state are **inside** it.
+4014:                 controlled_start_return = start_round(
+4015:                     controlled_session, controlled_api, controlled_clock,
+4016:                     controlled_registry)
+4017:                 controlled_original_broker = getattr(controlled_session,
+4018:                                                       'broker', None)
+4019:                 assert controlled_start_return['state'] == 'RUNNING', \
+4020:                     'the round of the controlled failure did not really start'
+4021:                 controlled_original_read = controlled_session.broker.read
+4022: 
+4023:                 def controlled_gated_read(timeout):
+4024:                     held.set()
+4025:                     gate.wait(30.0)
+4026:                     return controlled_original_read(timeout)
+4027: 
+4028:                 controlled_session.broker.read = controlled_gated_read
+4029:                 # The **established checkpoint** of the parent: the
+4030:                 # attached pump of the round really reached its next
+4031:                 # admission and the admission is really held.
+4032:                 assert held.wait(15.0), \
+4033:                     'the parent of the controlled failure never reached its admission'
+4034:                 if checkpoint in ('CHILD_TRANSPORT', 'CLOSE_FAILURE',
+4035:                                   'CONSTRUCTOR_FAILURE'):
+4036:                     controlled_kernel32 = SyntheticKernel32()
+4037:                     controlled_windows = WindowsApi(
+4038:                         table=synthetic_table(controlled_kernel32))
+4039:                     controlled_core = BrokerCore(
+4040:                         win32=controlled_windows, plan=sealed_plan(),
+4041:                         run_root=tmp_path, clock=controlled_clock)
+4042:                     controlled_core.bind_absolute_deadline(4000.0)
+4043:                     read_endpoint = _WindowsPipeEndpoint(
+4044:                         file_object=_FakeFile('controlled-read'),
+4045:                         name='controlled-read', api=controlled_api,
+4046:                         clock=controlled_clock, handle=930,
+4047:                         context=controlled_core.context)
+4048:                     controlled_registry.register(
+4049:                         'controlled:read-endpoint', read_endpoint,
+4050:                         kind='endpoint', seam='fixture')
+4051:                     write_endpoint = _WindowsPipeEndpoint(
+4052:                         file_object=_FakeFile('controlled-write'),
+4053:                         name='controlled-write', api=controlled_api,
+4054:                         clock=controlled_clock, handle=931,
+4055:                         context=controlled_core.context)
+4056:                     controlled_registry.register(
+4057:                         'controlled:write-endpoint', write_endpoint,
+4058:                         kind='endpoint', seam='fixture')
+4059:                     if checkpoint == 'CONSTRUCTOR_FAILURE':
+4060:                         # CORRECTION 17 (M3): the construction of the
+4061:                         # transport of the child fails **inside** the
+4062:                         # constructor: the ORIGINAL ``Thread.start``
+4063:                         # really takes effect and the exception is
+4064:                         # raised after it.  The seam targets the
+4065:                         # **exact** drain object of this child - the
+4066:                         # thread whose target is the drain of the
+4067:                         # channel of the **context of the child** -
+4068:                         # and it never touches a thread of the parent
+4069:                         # that carries the same name.
+4070:                         original_thread_start = threading.Thread.start
+4071: 
+4072:                         def controlled_custody_channel():
+4073:                             """The exact channel of the custody of the
+4074:                             fixture.
+4075: 
+4076:                             CORRECTION 18 (M3): the ownership of the
+4077:                             drain thread is proven by the **exact**
+4078:                             object that the custody of the fixture
+4079:                             really registered: a name that is similar
+4080:                             never claims the ownership.
+4081:                             """
+4082:                             for entry in controlled_registry.entries():
+4083:                                 if entry['kind'] == 'channel':
+4084:                                     return entry['owner']
+4085:                             return None
+4086: 
+4087:                         def controlled_start_then_raise(thread, *args,
+4088:                                                          **kwargs):
+4089:                             # CORRECTION 18 (M3): the actual attribute of
+4090:                             # the stdlib thread is ``_target`` - a plain
+4091:                             # ``threading.Thread`` has **no** ``target``
+4092:                             # attribute at all and the bound method of
+4093:                             # the target carries its owner in
+4094:                             # ``__self__``.
+4095:                             target = getattr(thread, '_target', None)
+4096:                             owner = getattr(target, '__self__', None)
+4097:                             if not isinstance(owner,
+4098:                                               broker_module.StreamChannel):
+4099:                                 return original_thread_start(thread, *args,
+4100:                                                             **kwargs)
+4101:                             if getattr(owner, '_context', None) \
+4102:                                     is not controlled_core.context:
+4103:                                 return original_thread_start(thread, *args,
+4104:                                                             **kwargs)
+4105:                             # the **exact** custody-owned child: only the
+4106:                             # channel that the custody of the fixture
+4107:                             # really registered is injected into and
+4108:                             # never a thread of the parent that carries
+4109:                             # the same name.
+4110:                             if owner is not controlled_custody_channel():
+4111:                                 return original_thread_start(thread, *args,
+4112:                                                             **kwargs)
+4113:                             injected_starts.append(
+4114:                                 {'id': id(thread), 'name': thread.name,
+4115:                                  'owner_id': id(owner),
+4116:                                  'target_name': getattr(target, '__name__',
+4117:                                                        None),
+4118:                                  'target_owner_is_custody_channel': True})
+4119:                             # the ORIGINAL start really takes effect
+4120:                             original_thread_start(thread, *args, **kwargs)
+4121:                             raise _R07ConstructorFailure(checkpoint)
+4122: 
+4123:                         with unittest.mock.patch.object(
+4124:                                 threading.Thread, 'start',
+4125:                                 controlled_start_then_raise):
+4126:                             transport = broker_module.StreamChannel(
+4127:                                 None, None, read_endpoint=read_endpoint,
+4128:                                 write_endpoint=write_endpoint,
+4129:                                 clock=controlled_clock,
+4130:                                 context=controlled_core.context,
+4131:                                 custody=_RegistryCustody(
+4132:                                     controlled_registry, 'controlled'))
+4133:                     else:
+4134:                         transport = StreamChannel(
+4135:                             None, None, read_endpoint=read_endpoint,
+4136:                             write_endpoint=write_endpoint,
+4137:                             clock=controlled_clock,
+4138:                             context=controlled_core.context,
+4139:                             custody=_RegistryCustody(
+4140:                                 controlled_registry, 'controlled'))
+4141:                         transport.bind_deadline(4000.0)
+4142:                         if checkpoint == 'CLOSE_FAILURE':
+4143:                             # The close of the transport of the child
+4144:                             # fails: the cleanup of the **other**
+4145:                             # endpoint may never be skipped because of
+4146:                             # it and the failure of the close is
+4147:                             # **recorded** with its exact type and its
+4148:                             # exact message.
+4149:                             def controlled_failing_close():
+4150:                                 raise RuntimeError(
+4151:                                     'controlled_close_failure')
+4152: 
+4153:                             transport.close = controlled_failing_close
+4154:                 # The deliberate failure of the fixture of the test is
+4155:                 # **raised** here: it propagates through the cleanup
+4156:                 # region and it is caught **outside** of it.
+4157:                 if checkpoint == 'ORDINARY_ASSERTION':
+4158:                     # An **ordinary** assertion of the group: it is a
+4159:                     # real ``AssertionError`` of the test and it is
+4160:                     # caught by its own type - never by a broad
+4161:                     # ``Exception``.
+4162:                     try:
+4163:                         assert controlled_session.state == 'NOT_A_STATE', \
+4164:                             _R07OrdinaryAssertion.TOKEN
+4165:                     except AssertionError as error:
+4166:                         # The token of the deliberate assertion is
+4167:                         # normalised: the exact token of the failure
+4168:                         # survives the rewriting of the assertions of
+4169:                         # the test runner.
+4170:                         raise _R07OrdinaryAssertion(
+4171:                             _R07OrdinaryAssertion.TOKEN) from error
+4172:                 elif checkpoint not in ('CONSTRUCTOR_FAILURE',
+4173:                                         'CLOSE_FAILURE'):
+4174:                     # CORRECTION 18 (M3): the ``CLOSE_FAILURE``
+4175:                     # checkpoint is a **cleanup only** case: its failure
+4176:                     # is produced by the cleanup itself and it never
+4177:                     # raises the generic sentinel of the group.
+4178:                     raise _R07Sentinel(checkpoint)
+4179:             finally:
+4180:                 # (C) The cleanup region: every gate of the test is
+4181:                 #     released and every owner of the round is
+4182:                 #     released with it, **while** the deliberate
+4183:                 #     failure is unwinding.
+4184:                 #
+4185:                 # CORRECTION 18 (M3): every step of the cleanup is
+4186:                 # guarded and every error is **retained**: an
+4187:                 # interruption of the first close never skips the close
+4188:                 # of the second endpoint and it never skips the owners
+4189:                 # of the round.
+4190:                 gate.set()
+4191:                 controlled_api.frames_ready.set()
+4192:                 try:
+4193:                     # The close of the transport of the child runs in
+4194:                     # its own ``finally``: a close that failed never
+4195:                     # prevents the cleanup of the **other** endpoint
+4196:                     # and every failure of a close is **recorded**.
+4197:                     if transport is not None:
+4198:                         try:
+4199:                             transport.close()
+4200:                         except BaseException as error:  # noqa: BLE001
+4201:                             close_failures.append(
+4202:                                 {'owner': 'controlled:transport',
+4203:                                  'type': type(error).__name__,
+4204:                                  'detail': str(error)})
+4205:                             _note_interruption(controlled_interrupts, error)
+4206:                     for endpoint in (read_endpoint, write_endpoint):
+4207:                         if endpoint is None:
+4208:                             continue
+4209:                         try:
+4210:                             endpoint.close()
+4211:                         except BaseException as error:  # noqa: BLE001
+4212:                             close_failures.append(
+4213:                                 {'owner': getattr(endpoint, '_name',
+4214:                                                   'endpoint'),
+4215:                                  'type': type(error).__name__,
+4216:                                  'detail': str(error)})
+4217:                             _note_interruption(controlled_interrupts, error)
+4218:                 finally:
+4219:                     # The **returned** state of the product is captured
+4220:                     # **before** the salvage of the fixture and the
+4221:                     # proof of the cleanup is **run** while the failure
+4222:                     # of the subcase is already unwinding.
+4223:                     controlled_stop = _capture_stop(
+4224:                         controlled_session,
+4225:                         original_broker=controlled_original_broker,
+4226:                         interrupts=controlled_interrupts)
+4227:                     controlled_api.frames_ready.set()
+4228:                     controlled_broker = getattr(controlled_session,
+4229:                                                 'broker', None)
+4230:                     controlled_channel = getattr(controlled_broker,
+4231:                                                  '_channel', None)
+4232:                     # CORRECTION 17 (M3): the owners of the round are
+4233:                     # drained **boundedly** and the quiescence is
+4234:                     # asserted **after** the drain.
+4235:                     drain = {'salvage': [], 'attempts': [], 'proof': None,
+4236:                              'quiescent': False, 'errors': [],
+4237:                              'all_salvage': []}
+4238:                     try:
+4239:                         drain = _drain_owners(
+4240:                             controlled_registry,
+4241:                             session=controlled_session,
+4242:                             channel=controlled_channel, prefix='controlled',
+4243:                             release=lambda: (gate.set(),
+4244:                                              controlled_api.frames_ready.set()),
+4245:                             interrupts=controlled_interrupts)
+4246:                     except BaseException as error:  # noqa: BLE001
+4247:                         controlled_cleanup_errors.append(
+4248:                             {'kind': 'DRAIN',
+4249:                              'type': type(error).__name__,
+4250:                              'detail': str(error)})
+4251:                         _note_interruption(controlled_interrupts, error)
+4252:                     # CORRECTION 18 (M3): a stop that raised and a
+4253:                     # snapshot of the evidence that failed are facts of
+4254:                     # the cleanup: they never certify it.
+4255:                     stop_proof = _stop_proof_failure(
+4256:                         controlled_stop,
+4257:                         'the controlled failure of %s' % checkpoint)
+4258:                     salvage = drain['salvage']
+4259:                     proof = drain['proof']
+4260:                     if proof is None and stop_proof is not None:
+4261:                         proof = stop_proof
+4262:                     if proof is None and controlled_cleanup_errors:
+4263:                         proof = ('the controlled failure of %s met %s'
+4264:                                  % (checkpoint, controlled_cleanup_errors))
+4265:                     facts = {'checkpoint': checkpoint,
+4266:                              'failure': raised[0] if raised else None,
+4267:                              'gate_released': bool(gate.is_set()),
+4268:                              'stop': controlled_stop,
+4269:                              'close_failures': list(close_failures),
+4270:                              'cleanup_errors':
+4271:                                  list(controlled_cleanup_errors),
+4272:                              'cleanup_ran_while_unwinding':
+4273:                                  sys.exc_info()[0] is not None,
+4274:                              'salvage': salvage,
+4275:                              'all_salvage': drain.get('all_salvage', []),
+4276:                              'drain': drain['attempts'],
+4277:                              'quiescent': drain['quiescent'],
+4278:                              'proof_failure': proof,
+4279:                              'stop_proof_failure': stop_proof,
+4280:                              'injected_starts': list(injected_starts),
+4281:                              'registry': controlled_registry.facts()}
+4282:                     unwinding = sys.exc_info()[0] is not None
+4283:                     try:
+4284:                         write_facts()
+4285:                     except BaseException as write_error:  # noqa: BLE001
+4286:                         controlled_cleanup_errors.append(
+4287:                             {'kind': 'EVIDENCE',
+4288:                              'type': type(write_error).__name__,
+4289:                              'detail': str(write_error)})
+4290:                         _note_interruption(controlled_interrupts,
+4291:                                            write_error)
+4292:                         if not unwinding:
+4293:                             raise AssertionError(
+4294:                                 'the evidence of the controlled failure of %s '
+4295:                                 'could not be written: %s'
+4296:                                 % (checkpoint, write_error))
+4297:                     if proof is not None and not unwinding:
+4298:                         raise AssertionError(proof)
+4299:                     # CORRECTION 18 (M3): the interruption of the
+4300:                     # cleanup is re-raised only when no other failure is
+4301:                     # unwinding: the original failure always wins.
+4302:                     if controlled_interrupts and not unwinding:
+4303:                         raise controlled_interrupts[0]
+4304:         except _R07Sentinel as error:
+4305:             raised.append({'class': _R07Sentinel,
+4306:                            'type': type(error).__name__,
+4307:                            'token': str(error),
+4308:                            'detail': str(error)})
+4309:             facts['failure'] = raised[0]
+4310:             write_facts()
+4311:         except _R07ConstructorFailure as error:
+4312:             raised.append({'class': _R07ConstructorFailure,
+4313:                            'type': type(error).__name__,
+4314:                            'token': str(error),
+4315:                            'detail': str(error)})
+4316:             facts['failure'] = raised[0]
+4317:             write_facts()
+4318:         except _R07OrdinaryAssertion as error:
+4319:             raised.append({'class': _R07OrdinaryAssertion,
+4320:                            'type': type(error).__name__,
+4321:                            'token': str(error),
+4322:                            'detail': str(error),
+4323:                            'is_assertion_error': isinstance(
+4324:                                error, AssertionError)})
+4325:             facts['failure'] = raised[0]
+4326:             write_facts()
+4327:         finally:
+4328:             controlled_observer.disarm()
+4329:             controlled_observer_patch.stop()
+4330:             controlled_api.frames_ready.set()
+4331:         return facts
+4332: 
+4333:     controlled_results = {}
+4334:     for checkpoint in ('PARENT_ADMISSION', 'CHILD_TRANSPORT',
+4335:                        'ORDINARY_ASSERTION', 'CLOSE_FAILURE',
+4336:                        'CONSTRUCTOR_FAILURE'):
+4337:         controlled = controlled_failure(checkpoint)
+4338:         controlled_results[checkpoint] = controlled
+4339:         if checkpoint == 'CLOSE_FAILURE':
+4340:             # CORRECTION 17 (M3): this checkpoint is a **cleanup only**
+4341:             # case: the deliberate failure is produced by the cleanup
+4342:             # itself, it is **recorded**, it never propagates and it is
+4343:             # the **only** failure that may be recorded.  The physical
+4344:             # cleanup of the round is proved by the joins and the
+4345:             # liveness of the owners and not by the injected failure.
+4346:             assert controlled['failure'] is None, \
+4347:                 'the close failure of %s was not a cleanup-only failure' \
+4348:                 % checkpoint
+4349:             assert controlled['cleanup_ran_while_unwinding'] is False, \
+4350:                 'the close failure of %s was claimed to unwind' % checkpoint
+4351:             close_failures = controlled['close_failures']
+4352:             assert len(close_failures) == 1, \
+4353:                 'the close failure of %s was not the only failure: %s' \
+4354:                 % (checkpoint, close_failures)
+4355:             assert close_failures[0]['owner'] == 'controlled:transport', \
+4356:                 'the close failure of %s was not the failure of the ' \
+4357:                 'transport of the child: %s' % (checkpoint, close_failures)
+4358:             assert close_failures[0]['type'] == 'RuntimeError', \
+4359:                 'the close failure of %s was not the exact type: %s' \
+4360:                 % (checkpoint, close_failures)
+4361:             assert close_failures[0]['detail'] == 'controlled_close_failure', \
+4362:                 'the close failure of %s was not the exact message: %s' \
+4363:                 % (checkpoint, close_failures)
+4364:             assert [item for item in close_failures
+4365:                     if item['owner'] != 'controlled:transport'] == [], \
+4366:                 'the close failure of %s was accompanied by another owner: %s' \
+4367:                 % (checkpoint, close_failures)
+4368:             assert [item for item in close_failures
+4369:                     if item['type'] != 'RuntimeError'] == [], \
+4370:                 'the close failure of %s was accompanied by another type: %s' \
+4371:                 % (checkpoint, close_failures)
+4372:         else:
+4373:             failure = controlled['failure']
+4374:             assert failure is not None, \
+4375:                 'the controlled failure of %s did not raise its failure' \
+4376:                 % checkpoint
+4377:             # CORRECTION 17 (M3): the **exact** type and the **exact**
+4378:             # token of the deliberate failure - never a name of a type
+4379:             # and never a non-``None`` check.
+4380:             if checkpoint == 'ORDINARY_ASSERTION':
+4381:                 assert failure['class'] is _R07OrdinaryAssertion, \
+4382:                     'the controlled failure of %s was not the ordinary ' \
+4383:                     'assertion of the group: %s' % (checkpoint, failure)
+4384:                 assert failure['is_assertion_error'] is True, \
+4385:                     'the controlled failure of %s was not an ' \
+4386:                     'AssertionError: %s' % (checkpoint, failure)
+4387:                 assert failure['token'] == _R07OrdinaryAssertion.TOKEN, \
+4388:                     'the controlled failure of %s was not the exact token: %s' \
+4389:                     % (checkpoint, failure)
+4390:             elif checkpoint == 'CONSTRUCTOR_FAILURE':
+4391:                 assert failure['class'] is _R07ConstructorFailure, \
+4392:                     'the controlled failure of %s was not the failure of ' \
+4393:                     'the constructor: %s' % (checkpoint, failure)
+4394:                 assert failure['token'] == 'CONSTRUCTOR_FAILURE', \
+4395:                     'the controlled failure of %s was not the exact token: %s' \
+4396:                     % (checkpoint, failure)
+4397:                 # the seam really took effect on the **exact** drain of
+4398:                 # the child and on nothing else
+4399:                 assert len(controlled['injected_starts']) == 1, \
+4400:                     'the constructor failure of %s did not take effect on ' \
+4401:                     'exactly one drain: %s' \
+4402:                     % (checkpoint, controlled['injected_starts'])
+4403:                 assert controlled['injected_starts'][0]['name'] \
+4404:                     == 'lvw-native-custody-channel', \
+4405:                     'the constructor failure of %s did not take effect on ' \
+4406:                     'the drain of the child: %s' \
+4407:                     % (checkpoint, controlled['injected_starts'])
+4408:             else:
+4409:                 assert failure['class'] is _R07Sentinel, \
+4410:                     'the controlled failure of %s was not the sentinel of ' \
+4411:                     'the group: %s' % (checkpoint, failure)
+4412:                 assert failure['type'] == '_R07Sentinel', \
+4413:                     'the controlled failure of %s was not the exact type: %s' \
+4414:                     % (checkpoint, failure)
+4415:                 assert failure['token'] == checkpoint, \
+4416:                     'the controlled failure of %s was not the exact token: %s' \
+4417:                     % (checkpoint, failure)
+4418:             # CORRECTION 18 (M3): **every** non-close controlled
+4419:             # subcase requires its **own** list of the close failures to
+4420:             # be empty: an unrelated failure of a close of an endpoint
+4421:             # fails the subcase instead of being tolerated next to the
+4422:             # intended failure.  The list of the main round is a
+4423:             # different list and it supplies no coverage here.
+4424:             assert controlled['close_failures'] == [], \
+4425:                 'the controlled failure of %s met an unrelated close ' \
+4426:                 'failure: %s' % (checkpoint, controlled['close_failures'])
+4427:             # the cleanup really ran **while** the deliberate failure was
+4428:             # unwinding: that is the proof of the negative path
+4429:             assert controlled['cleanup_ran_while_unwinding'] is True, \
+4430:                 'the cleanup of the controlled failure of %s did not run ' \
+4431:                 'while the failure was unwinding' % checkpoint
+4432:         assert controlled['gate_released'] is True, \
+4433:             'the gate of the controlled failure of %s stayed blocked' \
+4434:             % checkpoint
+4435:         assert controlled['proof_failure'] is None, \
+4436:             'the cleanup of the controlled failure of %s was not proved: %s' \
+4437:             % (checkpoint, controlled['proof_failure'])
+4438:         assert controlled['quiescent'] is True, \
+4439:             'the owners of the controlled failure of %s were not quiescent' \
+4440:             % checkpoint
+4441:         _assert_salvage_proved(controlled['salvage'],
+4442:                                'the controlled failure of %s' % checkpoint)

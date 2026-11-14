@@ -1,0 +1,1445 @@
+
+SOURCE v0_s3_native_broker.py.txt
+4330:         # The bound of the retry is fixed **once**: a retry that used a
+4331:         # deadline that moved with every round would never expire.
+4332:         bound = self._effective_deadline(deadline)
+4333:         if bound is None:
+4334:             # The retry of a cancellation is **always** bounded: a
+4335:             # worker that never ends may not hold the caller for ever.
+4336:             # The bound of the package is used only when neither the
+4337:             # caller nor the context of the round brought a deadline.
+4338:             bound = self._clock() + CLOSE_JOIN_SECONDS
+4339:         while True:
+4340:             try:
+4341:                 state = self.api.cancel_synchronous_io(self.thread_handle)
+4342:             except BrokerError as error:
+4343:                 self.error = error.code
+4344:                 return 'FAILED'
+4345:             except Exception as error:  # noqa: BLE001 - the failure stays visible
+4346:                 self.error = type(error).__name__
+4347:                 return 'FAILED'
+4348:             if state != 'NOT_FOUND':
+4349:                 return state
+4350:             # The operation was not found: it had not started yet or it
+4351:             # had just finished.  The worker is asked again until the
+4352:             # request of this generation completed or until the thread
+4353:             # of the worker really stopped.
+4354:             with self._condition:
+4355:                 completed = self._completed >= self._submitted
+4670:         """Create and start one worker of this endpoint.
+4671: 
+4672:         The worker is registered with the endpoint **before** it is
+4673:         started.  An endpoint that owns a worker only after the start
+4674:         returned has no owner at all for a worker whose start did not
+4675:         return, and the close of the endpoint could close the file
+4676:         under a worker that is about to read from it.
+4677: 
+4678:         The wait for the handle of the thread of the worker is bounded
+4679:         by the **current** remaining budget of the round.  It never
+4680:         opens a budget of its own and it never waits a fixed number of
+4681:         seconds.
+4682:         """
+4683:         worker = _WindowsPipeWorker(self._api, self._handle, kind=kind,
+4684:                                     action=action, clock=self._clock,
+4685:                                     context=self._context,
+4686:                                     name='lvw-native-custody-pipe-' + kind)
+4687:         # The pre-registration: the endpoint is the owner of the worker
+4688:         # before the thread of the worker exists.
+4689:         if kind == 'read':
+4690:             self._reader = worker
+4691:         else:
+4692:             self._writer = worker
+4693:         try:
+4694:             worker.start()
+4695:         except BaseException:
+4696:             # The start of the worker did not return.  The worker keeps
+4697:             # its owner and it may still come up: it is never forgotten
+4698:             # and it is never closed under.
+4699:             self._retained.append(worker)
+4700:             self.facts['retained_workers'] = len(self._retained)
+4701:             self.facts['worker_alive'] = True
+4702:             raise
+4703:         # The worker acquires the handle of its own thread before it may
+4704:         # be used.  The wait for it is bounded by the remaining budget of
+4705:         # the round.
+4706:         worker.wait_ready(self._remaining(deadline))
+4707:         return worker
+4890:                     'cancel_sequence': outcome.get('cancel_sequence'),
+4891:                     'coordination_error': (type(coordination_error).__name__
+4892:                                            if coordination_error is not None
+4893:                                            else None),
+4894:                 }
+4895:             except Exception:  # noqa: BLE001 - the failure stays visible
+4896:                 pass
+4897:         return error
+4898: 
+4899:     def _cancel(self, worker, deadline=None):
+4900:         """Cancel one worker and prove that it really stopped."""
+4901:         state = worker.request_cancel(self._effective_deadline(deadline))
+4902:         if not worker.join_bounded(self._remaining(deadline)):
+4903:             # The worker did not stop: it keeps its owner reference and
+4904:             # the round becomes unknown.  It is never terminated blindly
+4905:             # and it is never waited for without a bound.
+4906:             self._retained.append(worker)
+4907:             self.facts['retained_workers'] = len(self._retained)
+4908:             self.facts['worker_alive'] = True
+4909:             raise BrokerError('BROKER_PIPE_CANCEL_NOT_CONFIRMED',
+4910:                               '%s:%s' % (self._name, state))
+4911:         if not worker.joined:
+4912:             self._retained.append(worker)
+4913:             self.facts['retained_workers'] = len(self._retained)
+4914:             raise BrokerError('BROKER_PIPE_CANCEL_NOT_CONFIRMED', self._name)
+4915: 
+4916:     def read(self, deadline=None, cancel=None):
+4917:         """Read one block of the pipe, bounded by the deadline.
+4918: 
+4919:         The admission of the generation is asked **before** the worker is
+4920:         started and before the request is submitted: a read that enters
+5230:         self._eof = False
+5231:         self._error = None
+5232:         self._buffer = b''
+5233:         self._deadline = None
+5234:         self._clock = clock or time.monotonic
+5235:         # The cancel flag of the channel names the owner that set it:
+5236:         # only a cancellation that the close of **this** channel
+5237:         # initiated is provable and only a provable one is a normal
+5238:         # fact of the close.
+5239:         self._cancel = _ChannelCancel()
+5240:         # The private state of the close of this channel: the identity
+5241:         # of the close that is running now and the named fact of the
+5242:         # cancellation that this close really initiated.
+5243:         self._close_source = None
+5244:         self._close_sequence = 0
+5245:         self._close_cancellation = None
+5246:         # The cancellation that arrived at the same moment as the
+5247:         # failure of the reader: it is a parallel fact and it never
+5248:         # replaces the failure.
+5249:         self._parallel_cancellation = None
+5250:         self.reader_alive = None
+5251:         self.reader_finished = None
+5252:         # The ONE context of the round.  The channel and its endpoints
+5253:         # read the absolute deadline of the round from it and they never
+5254:         # keep a budget of their own.
+5255:         self._context = context
+5256:         self._thread = threading.Thread(target=self._drain, daemon=True,
+5257:                                         name='lvw-native-custody-channel')
+5258:         # The channel registers itself with the custody of the launcher
+5259:         # **before** it builds anything: a channel whose construction
+5260:         # failed half way - an endpoint that could not be built, a
+5261:         # reader thread that did not start - may not leave an endpoint
+5262:         # and a thread without an owner.  The outer owner of the launch
+5263:         # finds the partial channel through this registration and it
+5264:         # never closes the files of the process by itself.
+5265:         self._custody = custody
+5266:         if custody is not None:
+5267:             custody.retain('channel', self, 'constructing')
+5268:         try:
+5269:             self._reader = read_endpoint or _make_endpoint(
+5270:                 reader, name + '-read', clock=clock, api=api, context=context)
+5271:             # The parameter of the constructor is ``write_endpoint`` and
+5272:             # the attribute of the channel is ``_writer``.  The two names
+5273:             # are never mixed: a name that does not exist raises a
+5274:             # ``NameError`` and every construction of a channel of this
+5275:             # package fails with it.
+5276:             self._writer = write_endpoint or _make_endpoint(
+5277:                 writer, name + '-write', clock=clock, api=api, context=context)
+5278:             self._thread.start()
+5279:         except BaseException:
+5280:             # The construction of the channel did not return: the
+5281:             # channel keeps its owner in the custody of the launcher and
+5282:             # it is never forgotten.
+5283:             raise
+5284: 
+5285:     def bind_context(self, context):
+5286:         """Bind the ONE context of the round to the channel.
+5496:     def read(self, timeout):
+5497:         """One raw frame, ``None`` when nothing arrived, ``b''`` at the end.
+5498: 
+5499:         The wait of the reader is cropped to the **current** effective
+5500:         deadline of the round: the bound of the channel, the absolute
+5501:         deadline of the round and the **published** cleanup deadline of
+5502:         the round are read **again** at the moment of the read.  There is
+5503:         **no positive floor** beyond them: a round whose bound arrived
+5504:         asks for nothing at all and the read becomes a non blocking
+5505:         inspection.
+5506: 
+5507:         The crop applies to **every** reader of the channel: the loop of
+5508:         the broker and the pump of the parent read the same channel and
+5509:         neither of them may wait with a lease of its own.
+5510:         """
+5511:         if self._overflow:
+5512:             raise BrokerError('BROKER_CHANNEL_OVERFLOW')
+5513:         limit = max(0.0, timeout)
+5514:         remaining = self._remaining()
+5515:         if remaining is not None:
+5516:             if remaining <= 0:
+5517:                 # The bound of the round arrived: the read asks for
+5518:                 # nothing and it never opens a wait of its own.
+5519:                 limit = 0.0
+5520:             elif remaining < limit:
+5521:                 limit = remaining
+5522:         try:
+5523:             return self._queue.get(timeout=limit)
+5524:         except queue.Empty:
+5525:             if self._error:
+5526:                 raise BrokerError(self._error)
+5527:             if self._eof:
+5528:                 return b''
+5529:             return None
+5530: 
+
+SOURCE v0_s3_native_custody.py.txt
+805:         self._waiters = []
+806:         self._pending = []
+807:         self._latest_status = None
+808:         self._error = None
+809:         self._eof = False
+810:         self._frames = 0
+811:         # The name of the cancel flag is not ``_stop``: the base class of
+812:         # the thread uses that name for its own method and a shadow of it
+813:         # would break the join of the thread.
+814:         self._stop_event = threading.Event()
+815:         self._finished = threading.Event()
+816: 
+817:     # -- the reading ------------------------------------------------------
+818:     def _remaining(self):
+819:         """The seconds that are left until the current bound of the round.
+820: 
+821:         The value is read **again** at every call: the absolute deadline
+822:         of the round and the **published** cleanup deadline of the round
+823:         are one minimum and the pump never keeps a copy of it.  ``None``
+824:         means that the round did not bind a deadline at all.
+825:         """
+826:         context = self._context
+827:         if context is None:
+828:             return None
+829:         value = context.effective_deadline()
+830:         if value is None:
+831:             return None
+832:         clock = getattr(context, 'clock', None) or self._clock
+833:         return max(0.0, value - clock())
+834: 
+835:     def run(self):
+836:         try:
+837:             while not self._stop_event.is_set():
+838:                 remaining = self._remaining()
+839:                 if remaining is not None and remaining <= 0:
+840:                     # The bound of the round arrived: the pump asks for
+841:                     # nothing more and it ends.  It never waits with a
+842:                     # lease of its own and it never spins on a round
+843:                     # that is over.
+844:                     self._eof = True
+845:                     break
+846:                 raw = self._broker.read(CHANNEL_POLL_SECONDS)
+847:                 if raw is None:
+848:                     continue
+849:                 if raw == b'':
+850:                     self._eof = True
+851:                     break
+852:                 reply = self._decode(raw)
+853:                 self._frames += 1
+854:                 self._deliver(reply)
+855:         except BaseException as error:  # noqa: BLE001 - the failure stays visible
+856:             self._error = error
+857:             if self._on_error is not None:
+858:                 try:
+859:                     self._on_error(error)
+860:                 except BaseException:  # noqa: BLE001 - the failure stays visible
+861:                     pass
+862:         finally:
+863:             with self._lock:
+864:                 for waiter in self._waiters:
+865:                     waiter.event.set()
+866:                 self._waiters = []
+867:             self._finished.set()
+868: 
+869:     def _deliver(self, reply):
+870:         with self._lock:
+871:             for waiter in list(self._waiters):
+872:                 if reply['kind'] in waiter.kinds:
+873:                     waiter.reply = reply
+874:                     waiter.event.set()
+875:                     self._waiters.remove(waiter)
+876:                     return
+877:             if reply['kind'] == 'STATUS':
+878:                 # The status of the round is a snapshot, not a queue: only
+879:                 # the last one is kept.
+880:                 self._latest_status = reply
+881:                 return
+882:             if len(self._pending) >= MAX_FRAMES:
+883:                 raise CustodyError('CUSTODY_FRAME_COUNT_EXCEEDED')
+884:             self._pending.append(reply)
+885: 
+886:     # -- the waiting ------------------------------------------------------
+887:     def take(self, kinds, deadline):
+888:         """Wait for one reply of the wanted kinds, bounded by the deadline.
+889: 
+890:         The **original** context of the round is read **again** at the
+891:         moment of the wait: a deadline that was published after the
+892:         caller built its number shortens this wait.  A number that was
+893:         constructed earlier is never the authority of a wait.
+894:         """
+895:         waiter = _ReplyWaiter(kinds)
+896:         with self._lock:
+897:             for index, reply in enumerate(self._pending):
+898:                 if reply['kind'] in kinds:
+899:                     del self._pending[index]
+900:                     return reply
+901:             if 'STATUS' in kinds and self._latest_status is not None:
+902:                 reply = self._latest_status
+903:                 self._latest_status = None
+904:                 return reply
+905:             if self._error is not None:
+906:                 raise self._error
+907:             if self._eof:
+908:                 raise CustodyError('CUSTODY_CHANNEL_EOF')
+909:             self._waiters.append(waiter)
+910:         limit = deadline
+911:         context = self._context
+912:         if context is not None:
+913:             current = context.effective_deadline()
+914:             if current is not None:
+915:                 limit = current if limit is None else min(limit, current)
+916:         remaining = limit - self._clock()
+917:         if not waiter.event.wait(max(0.0, remaining)):
+918:             with self._lock:
+919:                 if waiter in self._waiters:
+920:                     self._waiters.remove(waiter)
+921:             raise CustodyError('CUSTODY_CHANNEL_TIMEOUT')
+922:         if waiter.reply is not None:
+923:             return waiter.reply
+924:         with self._lock:
+925:             failure = self._error
+926:         if failure is not None:
+927:             raise failure
+928:         raise CustodyError('CUSTODY_CHANNEL_EOF')
+929: 
+1520:         stays unknown.  The original broker of the round keeps its
+1521:         owner, so that the public stop of the round may coordinate it
+1522:         again.
+1523:         """
+1524:         with self._close_lock:
+1525:             if self._closer_started:
+1526:                 return False
+1527:             self._closer_started = True
+1528:             self._closer_start_state = 'STARTING'
+1529:         try:
+1530:             thread = threading.Thread(target=self._closer_main, daemon=True,
+1531:                                       name='lvw-native-custody-closer')
+1532:             self._closer = thread
+1533:             self._closer_threads.append(thread)
+1534:             thread.start()
+1535:         except BaseException as error:  # noqa: BLE001 - the failure stays visible
+1536:             self._failures.append('CUSTODY_CLOSER_START_FAILED:'
+1537:                                    + type(error).__name__)
+1538:             self._latch_unknown_state()
+1539:             with self._close_lock:
+1540:                 # The latch of the closer is not permanent: a later
+1541:                 # attempt may try again and the public stop of the round
+1542:                 # is the recovery entry of the resources.
+1543:                 self._closer_started = False
+1544:                 unpublished = (self._close_state == 'IN_PROGRESS'
+1545:                                and self._close_owner is None)
+1546:                 if unpublished:
+1547:                     self._close_state = 'FINISHED'
+1548:             if unpublished:
+1549:                 self._close_done.set()
+1550:             return False
+1551:         # The start of the closer returned: the thread of the closer
+1552:         # really exists and it may be joined.
+1553:         self._closer_start_state = 'RUNNING'
+1554:         return True
+1555: 
+1556:     def _closer_main(self):
+1557:         """The body of the closer of the round.
+1558: 
+1559:         The end of the **attempt** of the close and the end of the
+1560:         **thread** that performs it are two different facts: the
+1561:         evidence of the round carries both of them.
+1562:         """
+1563:         try:
+1564:             self._close_broker()
+1565:         finally:
+1730:         error of the parent.  A cancellation is cleaned up and it
+1731:         continues to propagate.
+1732:         """
+1733:         if self.state == 'NEW':
+1734:             self.validate()
+1735:         if self.state != 'VALIDATED':
+1736:             raise CustodyError('CUSTODY_STATE_INVALID')
+1737:         self._fix_deadline()
+1738:         launcher = self._launcher or _default_launcher
+1739:         try:
+1740:             try:
+1741:                 self.broker = self._call_launcher(launcher)
+1742:             except (KeyboardInterrupt, SystemExit):
+1743:                 raise
+1744:             except BaseException as error:  # noqa: BLE001 - the failure stays visible
+1745:                 # The refusal of the launcher is a structured refusal of
+1746:                 # the round.  The code of the original error is kept and
+1747:                 # the error is not raised as it is.
+1748:                 self._latch_unknown_state()
+1749:                 self._failures.append(self._launch_failure_code(error))
+1750:                 return self.evidence()
+1751:             if self.broker is None:
+1752:                 self._latch_unknown_state()
+1753:                 self._failures.append('CUSTODY_BROKER_LAUNCH_UNAVAILABLE')
+1754:                 return self.evidence()
+1755:             self._broker_identity = {
+1756:                 'pid': getattr(self.broker, 'pid', None),
+1757:                 'executable': getattr(self.broker, 'executable', None),
+1758:                 'executable_sha256': getattr(self.broker, 'executable_sha256', None),
+1759:                 'identity_source': 'PARENT_ORIGINAL_HANDLE',
+1760:                 'reported_by_the_broker': False,
+1761:             }
+1762:             # The absolute deadline of the round is bound to the handle of
+1763:             # the broker before the first frame of the round is read: the
+1764:             # channel of the round can never outlive the round.
+1765:             try:
+1766:                 self._bind_deadline(self._deadline_mono)
+1767:             except BaseException as error:  # noqa: BLE001 - the failure stays visible
+1768:                 self._failures.append(self._failure_code(error))
+1769:                 self._latch_unknown_state()
+1770:                 self._close_broker()
+1771:                 raise
+1772:             pump = _ChannelPump(self.broker, decode=self._decode_reply,
+1773:                                 clock=self._clock,
+1774:                                 on_error=self._on_pump_error,
+1775:                                 context=self._context)
+1776:             # The start of the background of the round is refused when
+1777:             # the close of the round began already.  The start does not
+1778:             # raise on that refusal: it continues to the exchange of the
+1779:             # start, and the failure that leaves this method is the
+1780:             # failure of the reader of the channel - a cancellation
+1781:             # among them.
+1782:             self._start_background_thread('pump', pump)
+1783:             self._start_heartbeat()
+1784:             ready = self._read_reply(('READY', 'REFUSED'))
+1785:             if ready['kind'] == 'REFUSED':
+1786:                 self._latch_unknown_state()
+1787:                 self._failures.append(ready['detail'].get('code', 'BROKER_REFUSED'))
+1788:                 self._close_broker()
+1789:                 return self.evidence()
+1790:             self._apply_state(ready['state'])
+1791:             if ready['state'] != 'ARMED':
+1792:                 raise CustodyError('CUSTODY_STATE_INVALID')
+1793:             status = self._read_reply(('STATUS', 'REFUSED'))
+1794:             if status['kind'] == 'REFUSED':
+1795:                 self._latch_unknown_state()
+1796:                 self._failures.append(status['detail'].get('code', 'BROKER_REFUSED'))
+1797:                 self._close_broker()
+1798:                 return self.evidence()
+1799:             self._apply_state(status['state'])
+1800:         except (KeyboardInterrupt, SystemExit):
+1801:             # A cancellation is cleaned up and it continues to propagate.
+1802:             self._failures.append('CUSTODY_SESSION_CANCELLED')
+1803:             self._latch_unknown_state()
+1804:             self._close_broker()
+1805:             raise
+1806:         except BaseException as error:  # noqa: BLE001 - the failure stays visible
+1807:             # An ordinary failure of the start is a structured terminal
+1808:             # state of the round.  The handle of the broker is released
+1809:             # even when the exchange of the start failed: the resource of
+1810:             # this round is never left open on purpose and the caller
+1811:             # never has to stop it later.
+1812:             code = self._failure_code(error)
+1813:             if code not in self._failures:
+1814:                 self._failures.append(code)
+1815:             self._latch_unknown_state()
+1816:             self._close_broker()
+1817:             return self.evidence()
+1818:         return self.evidence()
+1819: 
+1820:     def _call_launcher(self, launcher):
+1821:         """Call the launcher of the round with the context of the round.
+1822: 
+1823:         The **context** of the round is handed to the launcher when the
+1824:         launcher accepts it.  The launcher holds the absolute deadline
+1825:         of the round **before** the first side effect of the launch: the
+2343:         return {
+2344:             'kind': 'lvw.s3-native-custody-evidence/1',
+2345:             'state': self.state,
+2346:             'run_id': self.plan.run_id if self.plan is not None else None,
+2347:             'candidate_sha': self.plan.candidate_sha if self.plan is not None else None,
+2348:             'authorization_sha256': (self.plan.authorization_sha256
+2349:                                      if self.plan is not None else None),
+2350:             'grant_authority': 'NOT_VERIFIED',
+2351:             'plan_sha256_proves': 'PLAN_INTEGRITY_ONLY',
+2352:             'plan': self.plan.sealed if self.plan is not None else None,
+2353:             'plan_sha256': (self.plan.sealed_sha256()
+2354:                             if self.plan is not None else None),
+2355:             'broker': self._broker_identity,
+2356:             'broker_channel_reader_finished': self._broker_reader_finished,
+2357:             # Whether the ONE context of the round was handed over to
+2358:             # the launcher of the broker.  ``None`` means that no
+2359:             # launcher was called at all.
+2360:             'launcher_context_propagated': self._launcher_context_propagated,
+2361:             'broker_retained': self.broker is not None,
+2362:             'broker_close_failed': self._broker_close_failed,
+2363:             'broker_close_facts': self._broker_close_facts,
+2364:             'broker_close_facts_required': list(REQUIRED_CLOSE_FACTS),
+2365:             'pump_error': (repr(self._pump.error)
+2366:                            if self._pump is not None and self._pump.error is not None
+2367:                            else None),
+2368:             'heartbeat_alive': bool(self._heartbeat is not None
+2369:                                     and self._heartbeat.is_alive()),
+2370:             'pump_alive': bool(self._pump is not None and self._pump.alive),
+2371:             # The coordination of the close of the round.  ``FINISHED``
+2372:             # means that the attempt of the close ended and it never
+2373:             # means that the resources of the round are released: only
+2374:             # the facts of the close prove that.
+2375:             'close_state': self._close_state,
+2376:             'close_finished': self._close_done.is_set(),
+2377:             'close_generation': self._close_generation,
+2378:             'close_waiters': self._close_waiters,
+2379:             'closer_alive': bool(self._closer is not None and self._closer.is_alive()),
+2380:             # The state of the **start** of the closer and the number of
+2381:             # the closer threads that this session ever built.  A closer
+2382:             # whose start did not return may still come up: it keeps its
+2383:             # owner in the list and it is never forgotten.
+2384:             'closer_start_state': self._closer_start_state,
+2385:             'closer_threads': len(self._closer_threads),
+2386:             # The end of the **thread** of the closer and the end of its
+2387:             # **attempt** are two facts.  The event of the closer is
+2388:             # published inside the thread and it is therefore not a
+2389:             # proof that the thread ended: the evidence asks the thread
+2390:             # itself.
+2391:             'closer_exited': bool(self._closer_exited.is_set()
+2392:                                    and self._closer is not None
+2393:                                    and not self._closer.is_alive()),
+2394:             'background_open': self._background_open,
+2395:             # The state of every background thread of the round.  The
+2396:             # state tells whether the start of the thread returned and
+2397:             # whether the thread really runs: a thread whose start did
+2398:             # not return is never taken for a thread that ended.
+2399:             'background_threads': [{'kind': record['kind'],
+2400:                                     'state': record['state'],
+2401:                                     'started': record['started'],
+2402:                                     'alive': bool(record['thread'].is_alive()),
+2403:                                     'error_type': (type(record['error']).__name__
+2404:                                                    if record['error'] is not None
+2405:                                                    else None)}
+2406:                                    for record in self._background_threads.values()],
+2407:             'cleanup_deadline': self._cleanup_deadline,
+2408:             'broker_deadline_aware': (getattr(self.broker, 'channel_deadline_aware', False)
+2409:                                       is True),
+2410:             'broker_channel_deadline_bound': getattr(self.broker, 'write_deadline', None),
+2411:             'channel': {
+2412:                 'schema': CHANNEL_SCHEMA,
+2413:                 'nonce': self._nonce,
+2414:                 'frames_sent': self._frames_sent,
+2415:                 'frames_received': self._frames_received,
+2416:                 'last_sequence_sent': self._sequence,
+2417:                 'last_sequence_received': self._broker_sequence,
+2418:                 'frame_limit': MAX_FRAMES,
+2419:                 'frame_bytes_limit': MAX_FRAME_BYTES,
+2420:                 'private_to_the_parent': True,
+2421:                 'heartbeat_interval_seconds': HEARTBEAT_INTERVAL_SECONDS,
+2422:                 'heartbeat_missing_seconds': HEARTBEAT_MISSING_SECONDS,
+2423:                 'heartbeat_failure': self._heartbeat_failure,
+2424:                 'last_alive_wall': self._last_alive_wall,
+2425:                 'frame_budget_total': MAX_FRAMES,
+2426:                 'frame_budget_reserved_terminal': RESERVED_TERMINAL_FRAMES,
+2427:                 'stop_cleanup_budget_seconds': STOP_CLEANUP_SECONDS,
+2428:             },
+2429:             'lease': {
+2430:                 'lease_expires_at': self.plan.lease_expires_at if self.plan is not None else None,
+2431:                 'max_runtime_seconds': (self.plan.max_runtime_seconds
+2432:                                         if self.plan is not None else None),
+2433:                 'parent_child_remaining_seconds': self._remaining,
+2434:                 'effective_deadline_wall': self._deadline_wall,
+2435:                 'deadline_extended': False,
+2436:                 'absolute': True,
+2437:             },
+2438:             'terminal': self._terminal,
+2439:             'failures': list(self._failures),
+2440:             # The claims that this package does not make.
+2441:             'native_execution_proven': False,
+2442:             'native_cleanup_proven': False,
+2443:             'gpu_released_proven': False,
+2444:             'port_released_proven': False,
+
+SOURCE test_v0_s3_native_custody_correction07.py.txt
+439: def _f5_build_chain(api, document, plan, clock, wall, run_root):
+440:     """Build the **real** chain of one round.
+441: 
+442:     The chain is the one of the production launcher: the frames of the
+443:     round are published first, then the endpoints, then the channel and
+444:     then the handle of the broker.  Nothing of the chain is replaced by
+445:     a stand-in and the facts of the close are the facts of the
+446:     production.
+447:     """
+448:     holder = {}
+449:     channel_closes = []
+450:     channel_facts = []
+451: 
+452:     class Process:
+453:         pid = 4242
+454:         returncode = 0
+455: 
+456:         def wait(self, timeout=None):
+457:             return 0
+458: 
+459:         def terminate(self):
+460:             return None
+461: 
+462:     def launcher(plan_document_, run_root_, nonce):
+463:         api.final = _reply_bytes('STOPPED', 'RELEASED', {}, plan, nonce, 3)
+464:         api.frames = [_reply_bytes('READY', 'ARMED', {}, plan, nonce, 1),
+465:                       _reply_bytes('STATUS', 'RUNNING', {}, plan, nonce, 2)]
+466:         read_endpoint = _WindowsPipeEndpoint(file_object=_FakeFile('read'),
+467:                                               name='channel-read', api=api,
+468:                                               clock=clock, handle=900)
+469:         write_endpoint = _WindowsPipeEndpoint(file_object=_FakeFile('write'),
+470:                                                name='channel-write', api=api,
+471:                                                clock=clock, handle=901)
+472:         channel = StreamChannel(None, None, read_endpoint=read_endpoint,
+473:                                  write_endpoint=write_endpoint, clock=clock)
+474:         original_close = channel.close
+475: 
+476:         def capturing_close():
+477:             channel_closes.append(1)
+478:             facts = original_close()
+479:             channel_facts.append(facts)
+480:             return facts
+481: 
+482:         channel.close = capturing_close
+483:         broker = BrokerProcess(Process(), 'C:/python.exe', 'a' * 64, channel)
+484:         holder['broker'] = broker
+485:         holder['read_endpoint'] = read_endpoint
+486:         holder['write_endpoint'] = write_endpoint
+487:         holder['channel'] = channel
+488:         return broker
+489: 
+490:     session = NativeCustodySession(plan=document, run_root=run_root,
+491:                                    parent_child_remaining_seconds=21600,
+492:                                    launcher=launcher, clock=clock, wall=wall)
+493:     return session, holder, channel_closes, channel_facts
+494: 
+495: 
+
+PRODUCTION BASELINE {
+  "v0_s3_native_broker.py.txt": {
+    "prior13_immutable_equal": true,
+    "prior13_immutable_sha256": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83"
+  },
+  "v0_s3_native_custody.py.txt": {
+    "prior13_immutable_equal": true,
+    "prior13_immutable_sha256": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581"
+  }
+}
+PRIOR13 RECEIPT
+{
+  "schema": "lvw.n1-correction13.static-production-review/2",
+  "candidate_sha": "41df626f395172d75791892ba439df5f3924bbce",
+  "recommendation": "STATIC_SOURCE_REVIEW_COMPLETE_NO_OPEN_FINDINGS",
+  "counts": {
+    "Fatal": 0,
+    "Major": 0,
+    "Minor": 0
+  },
+  "atom_dispositions": {
+    "M07-A.1": "CLOSED_STATIC",
+    "M07-A.2": "CLOSED_STATIC",
+    "M07-A.3": "CLOSED_STATIC",
+    "M08-A": "CLOSED_STATIC",
+    "M08-B": "CLOSED_STATIC",
+    "M08-C.1": "CLOSED_STATIC",
+    "M08-C.2": "CLOSED_STATIC",
+    "M08-D": "CLOSED_STATIC",
+    "M08-E": "CLOSED_STATIC"
+  },
+  "original_major_dispositions": {
+    "M03": "CLOSED_STATIC",
+    "M05": "CLOSED_STATIC",
+    "M06": "CLOSED_STATIC",
+    "M07": "CLOSED_STATIC",
+    "M08": "CLOSED_STATIC",
+    "M09": "CLOSED_STATIC"
+  },
+  "original_minor_dispositions": {
+    "m03": "CLOSED_STATIC"
+  },
+  "obligation_count": 72,
+  "obligation_status_counts": {
+    "CLOSED_STATIC": 63,
+    "UNCERTAIN": 9,
+    "OPEN": 0
+  },
+  "obligations": [
+    {
+      "id": "N03-R01",
+      "status": "CLOSED_STATIC",
+      "evidence": "B1521-1525,1585-1595,1690-1730: creation keeps original process/thread; exclusive claim decisions govern handoff and direct failure cleanup.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R02",
+      "status": "CLOSED_STATIC",
+      "evidence": "B1535-1566,1569-1577,1602-1624: attribute deletion, NUL release and birth query are independent; cancellation remains associated with original failure.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R03",
+      "status": "CLOSED_STATIC",
+      "evidence": "B1368-1414: validate returned byte extent, assigned/listed agreement and MAX_DESCENDANTS before indexing PID payload.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R04",
+      "status": "CLOSED_STATIC",
+      "evidence": "B2598-2615,2958-2979,3484-3499: failed job HANDLE close retains original pending/retained reference.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R05",
+      "status": "CLOSED_STATIC",
+      "evidence": "B3194-3232: stop executes safe independent steps and records release state before rethrowing first error.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R06",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1741-1754,1800-1817; B7193-7278: failed launch remains recoverable; preregistered raws survive helper cancellation and process removal.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R07",
+      "status": "CLOSED_STATIC",
+      "evidence": "B2481-2499,2683-2805,5742-5748,5886-5899,6095-6138: startup checks, registered inflight owner and established-start settlement preserve original ownership.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R08",
+      "status": "CLOSED_STATIC",
+      "evidence": "B5850-5860,6274-6282,5513-5523,6579-6596,856-862,1145-1161,3412-3415; C910-917: current wait crops and floor-ms adapters.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R09",
+      "status": "CLOSED_STATIC",
+      "evidence": "B4965-5001,5031-5074: each partial write checks live bound; close retries worker/thread HANDLE before closed-file early return.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R10",
+      "status": "CLOSED_STATIC",
+      "evidence": "B4059-4125,4262-4287: queued generation guards consult current original context at actual action dispatch.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R11",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1177-1195,1482-1505: serialized command writes and background UNKNOWN latch prevent late state overwrite.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R12",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1212-1238,1308-1309; B6015-6021,6317-6319: combined direction counts preserve terminal reservation.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R13",
+      "status": "CLOSED_STATIC",
+      "evidence": "B5373-5404,5482-5494: exact/one-over frame and tail limits with current-minimum put timeout.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R14",
+      "status": "CLOSED_STATIC",
+      "evidence": "C2148-2183; B6550-6563,5031-5057: strict close facts require original reader/worker/HANDLE completion; incomplete owner retained.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R15",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1744-1750,1868-1871; B7994-7999,8038-8051,8075-8077: structured refusal, platform/nonce checks and post-Popen effect gates.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N03-R16",
+      "status": "UNCERTAIN",
+      "evidence": "UNCERTAIN: external pins, test compatibility and actual native lifecycle are outside two-production-blob authority.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R01",
+      "status": "CLOSED_STATIC",
+      "evidence": "B1468,1545-1557,1236-1305: failed NUL close leaves original API-owned reference for explicit claim/release.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R02",
+      "status": "CLOSED_STATIC",
+      "evidence": "B1535-1566,1602-1624,1695-1732: independent failed-create cleanup, preserved cancellation and exit prerequisite.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R03",
+      "status": "CLOSED_STATIC",
+      "evidence": "B1831-1878: failed inheritance retains both original pipe ends and independently attempts their close.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R04",
+      "status": "CLOSED_STATIC",
+      "evidence": "B2257-2299,2741-2744,3443-3482: pending and record release share callable current-exit eligibility.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R05",
+      "status": "CLOSED_STATIC",
+      "evidence": "B3343-3358,3370-3401: failed process wait/exit query does not skip later records; original KI/SystemExit retained.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R06",
+      "status": "UNCERTAIN",
+      "evidence": "UNCERTAIN: B2880-2886,3038-3053 preregister reader, but ident-less interrupted late start needs actual lifecycle evidence.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R07",
+      "status": "UNCERTAIN",
+      "evidence": "UNCERTAIN: C1419-1456,1612-1664 show background registration/barrier; actual late-start schedule remains unproved.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R08",
+      "status": "UNCERTAIN",
+      "evidence": "UNCERTAIN: C1423-1450 preserve failed background record; ident-less physical start cannot be resolved statically.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R09",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1530-1553,2312-2320: closer reference precedes start; failed latch can recover; RuntimeError gives UNKNOWN rather than exit.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R10",
+      "status": "CLOSED_STATIC",
+      "evidence": "B6941-6966,7193-7278,7723-7806: durable channel history, persistent failed/unvisited raws and immediate confirmed progress avoid lost or duplicate originals.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R11",
+      "status": "CLOSED_STATIC",
+      "evidence": "B4073-4117,7956-7967,8030-8051,8075-8077: next actual dispatch/hash/channel admissions consult current original context.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R12",
+      "status": "CLOSED_STATIC",
+      "evidence": "B199-208; C267-277,1696-1706: cleanup deadline published once and reused, without renewed lease.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R13",
+      "status": "CLOSED_STATIC",
+      "evidence": "B3057-3065,5850-5860,6274-6282,6579-6596,856-862,1145-1161,3412-3415: current remaining/crops and conservative floor.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R14",
+      "status": "CLOSED_STATIC",
+      "evidence": "B4567-4579,4362-4376,5385-5387,5491-5494: next endpoint, NOT_FOUND and queue-put waits use current minimum.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R15",
+      "status": "CLOSED_STATIC",
+      "evidence": "B4073-4117,4748-4757: context cancellation enforced at queued action dispatch and awaiting endpoint.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R16",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1467-1472,1500-1505: common state lock/latch rejects late non-UNKNOWN application.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R17",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1177-1195,1212-1219,1308-1309: write serialization and combined frame reservation remain atomic.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R18",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1212-1238; B6020-6021,6317-6319: terminal exchange uses reserved allowance, without changing total threshold.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R19",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1905-1923,2037-2108: repeated public stop uses original deadline and same broker, with actual close generation.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R20",
+      "status": "CLOSED_STATIC",
+      "evidence": "B5031-5066: retry unfinished worker/HANDLE before returning already-closed file; B3869-3891 alternate POSIX facts confer no Windows proof.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R21",
+      "status": "CLOSED_STATIC",
+      "evidence": "B6571-6572,6677-6701: handed-over BrokerProcess derives stdin/stdout facts through its channel, without launch raw close.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R22",
+      "status": "CLOSED_STATIC",
+      "evidence": "C2156-2183: only explicit true/zero close facts, finished reader and absent reader error permit dropping broker.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R23",
+      "status": "CLOSED_STATIC",
+      "evidence": "C2216-2256,2284-2322: wait follows current close generation and bounded actual closer join, avoiding self-join.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N05-R24",
+      "status": "UNCERTAIN",
+      "evidence": "UNCERTAIN: exact189 node identity/order/assertions, external pins and actual results were deliberately excluded.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R01",
+      "status": "CLOSED_STATIC",
+      "evidence": "B1180-1198,1264-1288,1705-1713,3449-3461: API/Core process control HANDLE cannot close before confirmed exit.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R02",
+      "status": "CLOSED_STATIC",
+      "evidence": "B1145-1161,1264-1278,1296-1305: recovery floor-ms bound; unconfirmed control retained; incomplete claim returned.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R03",
+      "status": "CLOSED_STATIC",
+      "evidence": "B983-1018,1031-1041,1585-1595,1690-1730: handoff and both cleanup routes use exclusive original API claim state.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R04",
+      "status": "CLOSED_STATIC",
+      "evidence": "B1831-1878: original pipe ends independently cleaned and exact cancellation/primary association kept.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R05",
+      "status": "CLOSED_STATIC",
+      "evidence": "B3057-3097,3244-3255: liveness reread after failed join/wait; live original reader protects HANDLE from pending close.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R06",
+      "status": "CLOSED_STATIC",
+      "evidence": "B3343-3358,3375-3401: per-process finalization retains original cancellation while other safe records proceed.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R07",
+      "status": "CLOSED_STATIC",
+      "evidence": "B2293-2295,2974-2978,3295-3317,3029-3032: confirmed HANDLE close clears record, reader and retained reference, preventing second confirmed close.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R08",
+      "status": "UNCERTAIN",
+      "evidence": "UNCERTAIN: B4683-4702,4443-4448 preregister worker; ident-less interrupted physical scheduling remains unproved.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R09",
+      "status": "CLOSED_STATIC",
+      "evidence": "B8038-8039,5265-5278,7014-7071,7193-7258: initial/partial custody and preregistered failed/unvisited original raw identities remain executable after cancellation.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R10",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1530-1534,2312-2320: original closer registered before start and failed join remains UNKNOWN.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R11",
+      "status": "CLOSED_STATIC",
+      "evidence": "B4220-4227,4354-4376: same-generation cancel/completion and current-minimum NOT_FOUND pause.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R12",
+      "status": "CLOSED_STATIC",
+      "evidence": "B4965-5001: each partial-write effect checks original current absolute/cleanup minimum.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R13",
+      "status": "CLOSED_STATIC",
+      "evidence": "B8152-8160,4073-4117,8030-8051,8075-8077: prebound child context plus queued dispatch and next launch-effect gates.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R14",
+      "status": "CLOSED_STATIC",
+      "evidence": "B6095-6138,5742-5748,5886-5899,5850-5860: finally settlement and actual-start bounded join with current queue wait.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R15",
+      "status": "CLOSED_STATIC",
+      "evidence": "B6550-6563,6658-6701; C2037-2183: same-original recovery keeps unfinished channel/broker and first reader-error history.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R16",
+      "status": "CLOSED_STATIC",
+      "evidence": "B5031-5066: recompute workers/retained/thread HANDLE before closed-file early return.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R17",
+      "status": "CLOSED_STATIC",
+      "evidence": "C2097-2108,2242-2254: new recovery event/generation published and observer follows current in-progress generation.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N07-R18",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1905-1917,1950-1965,2284-2322: repeated public stop coordinates real closer and avoids self-join.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R01",
+      "status": "CLOSED_STATIC",
+      "evidence": "B2741-2744,2909-2911,2933-2936,2316-2325,3449-3461: original shared live-exit callable gates process HANDLE close.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R02",
+      "status": "CLOSED_STATIC",
+      "evidence": "B983-1018,1031-1041,1585-1595,1690-1730: transfer and failed-create cleanup honor exclusive claims.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R03",
+      "status": "CLOSED_STATIC",
+      "evidence": "B2293-2295,2974-2978,3295-3317,3029-3032: successful close notifies all original owners and prevents duplicate confirmed HANDLE cleanup.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R04",
+      "status": "CLOSED_STATIC",
+      "evidence": "B5265-5278,5599-5671,6941-6966,7175,7319-7325: live/partial channel coordinated first; completed channel ownership durably blocks later launch raw closes.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R05",
+      "status": "CLOSED_STATIC",
+      "evidence": "B7014-7071,7193-7278,7330-7369,7774-7806: failed/unvisited originals persist, same-owner paths do not overlap, each initial/retry raw close rereads current minimum.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R06",
+      "status": "CLOSED_STATIC",
+      "evidence": "B4632-4642,4741-4746,4073-4117: initial/post-readiness/queued primitive admission enforce current original context.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R07",
+      "status": "CLOSED_STATIC",
+      "evidence": "C1772-1775,1853-1855,2470; B5099-5109,8152-8160,8049,8075: parent/child propagate original context before transport and next effects.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R08",
+      "status": "CLOSED_STATIC",
+      "evidence": "B4362-4376,7717-7719,6579-6596,7774-7783,7341-7350: process/NOT_FOUND and every raw admission use current original bound.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R09",
+      "status": "CLOSED_STATIC",
+      "evidence": "B5742-5748,5850-5860,5886-5899,6095-6138,6156-6163: startup ownership and all-exit current settlement, established-start actual join.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R10",
+      "status": "CLOSED_STATIC",
+      "evidence": "B4763-4784,4802-4828,4850-4897: exact generation fault selected before timeout coordination and after either success or failure; original object returned.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R11",
+      "status": "CLOSED_STATIC",
+      "evidence": "B5373-5404,5429-5432,5511-5512,5614-5636,6568,6631-6646; C2170-2183: sticky overflow/first reader fault survives repeated close and keeps UNKNOWN.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R12",
+      "status": "UNCERTAIN",
+      "evidence": "UNCERTAIN: actual event schedules, primitive arguments, causal negatives, fixtures and before-salvage artifacts cannot be verified from these production blobs.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R13",
+      "status": "UNCERTAIN",
+      "evidence": "UNCERTAIN: generation-specific fault/timeout/consumption, both coordination outcomes and two real Session.stop histories need excluded execution evidence.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    },
+    {
+      "id": "N10-R14",
+      "status": "UNCERTAIN",
+      "evidence": "UNCERTAIN: original175+14 exact189 node ordering/pins/assertion changes and actual batch evidence were not read or executed.",
+      "dynamic": "NOT_RUN",
+      "native": "NOT_PROVEN"
+    }
+  ],
+  "source_binding": {
+    "candidate_sha": "41df626f395172d75791892ba439df5f3924bbce",
+    "sources": {
+      "v0_s3_native_broker.py": {
+        "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-13/production-review-02/v0_s3_native_broker.py.txt",
+        "sha256": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
+        "bytes": 386807,
+        "lines": 8174
+      },
+      "v0_s3_native_custody.py": {
+        "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-13/production-review-02/v0_s3_native_custody.py.txt",
+        "sha256": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581",
+        "bytes": 114702,
+        "lines": 2470
+      }
+    }
+  },
+  "source_verification": [
+    {
+      "name": "v0_s3_native_broker.py",
+      "sha256": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
+      "bytes": 386807,
+      "lines": 8174,
+      "commit_path": "LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_native_broker.py",
+      "commit_bytes_equal": true,
+      "binding_matches": true,
+      "snapshot": "01-v0_s3_native_broker-numbered.txt"
+    },
+    {
+      "name": "v0_s3_native_custody.py",
+      "sha256": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581",
+      "bytes": 114702,
+      "lines": 2470,
+      "commit_path": "LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_native_custody.py",
+      "commit_bytes_equal": true,
+      "binding_matches": true,
+      "snapshot": "02-v0_s3_native_custody-numbered.txt"
+    }
+  ],
+  "source_hashes_verified": true,
+  "commit_bound_bytes_verified": true,
+  "coordinate": {
+    "stage_id": "R1",
+    "workpack_id": "WP-R1-U3",
+    "gate": "S3_P4_OFFLINE_INTEGRATION_PREPARATION",
+    "state": "RUNNING"
+  },
+  "control_blocking_gate": "S3_P4_N1_CORRECTION13_FROZEN189_VALIDATION_AND_SOURCE_REVIEW",
+  "last_passed_gate": {
+    "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
+    "candidate_sha": "621b1bf386db71bfe08ca2f533fa8ec396b0504b",
+    "receipt": "reports/unified-media/independent-live-15/receipt.json",
+    "decision": "10PASS_0FAIL_0BLOCKED_FATAL0_MAJOR0_HUMAN_ACCEPTED_SCOPE_ONLY",
+    "cpu_checks": 212,
+    "fixed_cases": 10,
+    "passed_cases": 10,
+    "human_signoff": "reports/unified-media/human-signoff-live15.json"
+  },
+  "development_outline": [
+    {
+      "stage_id": "V0-S0",
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "implementation": "ARCHIVED",
+      "machine_acceptance": "NO_GO_HISTORICAL",
+      "independent_review": "COMPLETED_WITH_BLOCKERS",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "V0-S1",
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "R0",
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "implementation": "PARTIAL_REUSED",
+      "machine_acceptance": "SINGLE_IMAGE_SUBSET_ONLY",
+      "independent_review": "NO_SEPARATE_R0_VERDICT",
+      "human_signoff": "NO_SEPARATE_R0_SIGNOFF"
+    },
+    {
+      "stage_id": "R1a",
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "V0-S2",
+      "completed_substeps": 7,
+      "total_substeps": 8,
+      "implementation": "IMPLEMENTED",
+      "machine_acceptance": "COMPLETE_FIXED9_PASSED",
+      "independent_review": "COMPLETE_FATAL0_MAJOR0_MINOR0",
+      "human_signoff": "PENDING"
+    },
+    {
+      "stage_id": "V0-S3",
+      "completed_substeps": 0,
+      "total_substeps": 6,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R1",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "EARLY_SLICE_IMPLEMENTED_FULL_R1_PENDING",
+      "machine_acceptance": "EARLY_SLICE_UM10_ONLY",
+      "independent_review": "EARLY_SLICE_FATAL0_MAJOR0",
+      "human_signoff": "EARLY_SLICE_APPROVED_FULL_R1_PENDING"
+    },
+    {
+      "stage_id": "V1-M1",
+      "completed_substeps": 0,
+      "total_substeps": 3,
+      "implementation": "DESIGN_ONLY",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R2",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R3",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R4",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5a",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5b",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5c",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    }
+  ],
+  "stage_pass_claim": false,
+  "final_independent_acceptance": false,
+  "runtime_authorized": false,
+  "dynamic": "NOT_RUN",
+  "native_behavior": "NOT_PROVEN",
+  "live_implementation_edits_read": false,
+  "candidate_imports": 0,
+  "candidate_compiles_execs": 0,
+  "candidate_tests_collection": 0,
+  "agents_started": 0,
+  "implementer_reports_tests_or_pass_narrative_read": false,
+  "original_ledger_counter_read": false,
+  "write_scope": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-13/production-review-02/review-result",
+  "prior_review_use": "Atom/obligation identities and triggers only; all current source dispositions independently recomputed from production-review-02 bound blobs.",
+  "findings": [],
+  "input_hashes": {
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/AGENTS.md": "80386dacbc34134f21021d0db12a11f646a66bcb2a96f841e32a8c911b1d5d11",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/README.md": "cebce483aaab5bfa64d9a553983b5393f9f37950d5083c64f1ecde1e6c6a7a0f",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/.agent-governance/README.md": "a31398c4ccaaff0fe6bf606357bf223418b95837a489867bb6645c04bcd89225",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/plans/execution-control.json": "a98214a6f8d68e80dcc5c6952f46aaef6da548892bba0629530d9d8dde8eecf1",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/docs/24_EXECUTION_MASTER_PLAN.md": "6762b5526ce291a88460c50922154a64c0dd0cfab958af36d6828c9905799eea",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-13/contract.md": "643e277393c259e6dec04f8612c03937ad40070e9cf71198baf545835f8c751b",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-13/static-correction-01/contract-addendum.md": "46ae9a3b8e697bfa689d19638c09f7da688b9bc6ea9323a1649f31daa689f98a",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-13/scope.json": "3ec7c60112afbbc60f19a5db64c067301f1f174bd0f5e8cff988dd962fd05708",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-13/decision.json": "af6d0dbda44f11041d055678c00b1babf48847c5bcafec2c99a3e52e035bd6cd",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-13/production-review-01/review-result/review.md": "3f4dc8e3a5b0dac4bc0c44bcf9c69d7ab25fcf31d43e2cba680b46d8e6d44870",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-13/production-review-01/review-result/receipt.json": "fd8c77c1b4dc7e6e3666e13829ec95dfb8e2d6440b7f84b840846cfb97111666",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-13/production-review-02/source-binding.json": "f837fd6e0be90e408742ea459bbf600f2fdc946408b941abf56c2294d7e3bbe4"
+  },
+  "symbolic_before_salvage": true,
+  "unresolved_assumptions": [
+    "Static admission and requested primitive arguments do not prove physical native timing or scheduling.",
+    "Ident-less interrupted Core/background/endpoint starts remain uncertain.",
+    "Concurrent full submit queue reachability outside single-inflight path remains uncertain.",
+    "Alternate POSIX transport provides no Windows native proof.",
+    "Tests, exact189 identity/order/assertions, fixture coordination and runtime evidence intentionally excluded."
+  ],
+  "dynamic_coverage_required": [
+    "Completed actual channel plus original process HANDLE failure/retry: exit wait once, HANDLE failure/success only, zero launch raw closes.",
+    "No-channel ordinary stdin failure then exact stdout KI/SystemExit and first stdin KI/SystemExit leaving actual default stdout unvisited; inspect persistent originals before salvage.",
+    "Earlier-success and failed-HANDLE cross-products; preserve exact original cancellation and retry only unresolved originals through same aggregate.",
+    "Tighten absolute/cleanup during process.wait and between initial raw closes, plus already-owned retry; zero new close at expiry and actual original identity retained.",
+    "Real API/Core/recovery requested millisecond arguments at 0/sub-ms/exact1ms/one-over.",
+    "Actual child and parent-pump channel queue waits and parent reply event under context tightening.",
+    "Actual public Session.stop during admitted Popen/hash; original registration before refusal and zero next hash/channel attempts.",
+    "Interrupted-start actual bounded join; M09 three generation-specific timeout/fault schedules and two real public stop histories.",
+    "Separate exact189 identity/order, six prior failure drivers, causal negatives, returned-state and same-owner salvage review."
+  ],
+  "execution_audit": {
+    "methods": [
+      "Read-only text and tokenize-as-data inspection",
+      "stdlib pathlib/json/hashlib review data processing",
+      "git show exact candidate production objects and full byte comparison",
+      "Numbered snapshots and report generation only"
+    ],
+    "candidate_code_loaded_or_executed": false,
+    "http429": false,
+    "approval_refusal": false,
+    "orchestration_skill": "/home/administrator/.agents/skills/orchestration/SKILL.md",
+    "orchestration_guide": "orca-ide skills get orchestration",
+    "review_artifact_verification": {
+      "72_unique_ids_and_original_order": true,
+      "report_receipt_dispositions_equal": true,
+      "artifact_hashes_verified": true,
+      "numbered_sources_match_every_physical_line": true,
+      "source_pins_rechecked_unchanged": true,
+      "git_show_full_bytes_equal": true,
+      "candidate_executed": false
+    }
+  },
+  "artifacts": {
+    "01-v0_s3_native_broker-numbered.txt": {
+      "sha256": "80214896414319330c1f2d511cfac556b5e528a3b7534cb9d048215d4a4ad1ea",
+      "bytes": 444025
+    },
+    "02-v0_s3_native_custody-numbered.txt": {
+      "sha256": "b7d152a3ac4716efaa4d0741fad9c37923525824d59c01ce30a1438fcd721959",
+      "bytes": 131992
+    },
+    "review.md": {
+      "sha256": "a713933015f1f138c09c9b429b96ec2cf7c33c37e09a035e17e9735472bf97e3",
+      "bytes": 31867
+    }
+  }
+}
