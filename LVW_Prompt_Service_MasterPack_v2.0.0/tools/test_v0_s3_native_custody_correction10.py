@@ -104,8 +104,13 @@ from tools.test_v0_s3_native_custody_regressions import (  # noqa: E402
 #: batch of the correction 12 stay in the directory of the correction
 #: 12: they are never overwritten, never deleted and never replaced by
 #: a summary.
+#: CORRECTION 14: the diagnostics of this module are written in the NEW
+#: directory of the correction 14.  The real documents of the failed
+#: batch of the correction 13 stay in the directory of the correction
+#: 13: they are never overwritten, never deleted and never replaced by
+#: a summary.
 EVIDENCE_DIR = (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'
-                / 'implementation-native-custody-correction-13' / 'evidence')
+                / 'implementation-native-custody-correction-14' / 'evidence')
 
 #: The nonce of the private channel of the probes of this module.  It
 #: is a closed form of 32 hexadecimal characters and it is the nonce of
@@ -1558,6 +1563,34 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
     its own.  Returned state: the evidence of the session names the
     propagation of the context.  Salvage: the owner of the test closes
     the round in every case.
+
+    RECONCILIATION (N1 correction 14, F3): the group drove the parent
+    of the round with the clock of the session while the channel of the
+    round and its two endpoints kept the **default** clock of the host
+    (``time.monotonic``).  A deadline of the round was then compared
+    with a clock of **another** domain: the admission of the read of
+    the endpoint refused the round, the reader of the channel failed,
+    the pump of the parent ended at the end of the stream and the
+    group observed **no** admission at all (the phase document of the
+    failed batch of the correction 13 recorded two empty lists).
+
+    The group now builds the channel of the round with the clock of
+    the round - the production class is used unchanged and only its
+    supported clock argument is bound - so that the channel, its two
+    endpoints, their workers, the pump of the parent, the context of
+    the round and the aggregate of the launch read every deadline of
+    the round in ONE domain.  The group then proves the **liveness** of
+    the pump of the parent before it tightens the bound (the next real
+    read of the broker is held at a transparent seam), publishes the
+    **original** cleanup deadline of the round and releases the
+    admission: the original queue method really executes and the
+    recorded argument is the argument that the production really passed
+    to it.  The reply of the parent is bounded by the **published**
+    cleanup deadline of the original context and not by the timeout of
+    the call.  The positive admission and the zero expiry stay two
+    distinct real owner schedules with the identity of the original
+    context, the production is not changed and no assertion of the
+    group is skipped.
     """
     document = _live_plan_document()
     plan = validate_launch_plan(document, now=time.time())
@@ -1585,6 +1618,12 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                 return self.next_handle
 
         def cancel_synchronous_io(self, handle):
+            # RECONCILIATION (N1 correction 14, F3): the round is really
+            # alive now and the reader of the channel is really inside
+            # its read when the round is closed.  The cancellation
+            # releases that read: the reader really ends and no thread
+            # of the round is left behind after the test.
+            self.frames_ready.set()
             return 'REQUESTED'
 
         def close_handle(self, handle):
@@ -1737,6 +1776,37 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                                     handle=handles['next'], context=context)
 
     api_table = api
+    # RECONCILIATION (N1 correction 14, F3): the ONE clock domain of
+    # the round.  The channel of the round and its two endpoints are
+    # built by the **production** launcher and they keep the default
+    # clock of the host (time.monotonic) when the launcher does not
+    # name one, while the context of the round carries the deadlines of
+    # the round in the domain of the clock of the session.  A deadline
+    # of the round was then compared with a clock of **another** domain:
+    # the admission of the read of the endpoint refused the round (the
+    # deadline of the round was in the past for the clock of the host),
+    # the reader of the channel failed, the pump of the parent ended at
+    # the end of the stream and **no** admission was observed at all.
+    #
+    # The channel of the round is therefore built with the clock of the
+    # round: the production class is used unchanged and only its
+    # **supported** clock argument is bound.  The channel, its two
+    # endpoints, the pump of the parent, the context of the round and
+    # the aggregate of the launch then read every deadline of the
+    # round in ONE domain.  The production is not changed.
+    real_stream_channel = broker_module.StreamChannel
+
+    def clocked_stream_channel(*args, **kwargs):
+        """The production channel of the round with the clock of the round.
+
+        The wrapper calls the **original** production constructor and it
+        only binds the clock of the round: it never replaces a method,
+        never decides a deadline and never changes the wiring of the
+        launch.
+        """
+        kwargs.setdefault('clock', clock)
+        return real_stream_channel(*args, **kwargs)
+
     session = NativeCustodySession(plan=document, run_root=tmp_path,
                                    parent_child_remaining_seconds=21600,
                                    launcher=None, clock=clock,
@@ -1750,7 +1820,9 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                                         _SubprocessView()), \
              unittest.mock.patch.object(broker_module, 'sys', _SysView()), \
              unittest.mock.patch.object(broker_module, '_make_endpoint',
-                                        fake_make_endpoint):
+                                        fake_make_endpoint), \
+             unittest.mock.patch.object(broker_module, 'StreamChannel',
+                                        clocked_stream_channel):
             session.start()
         facts = {'context_at_popen':
                  observations['context_at_popen'] is session._context,
@@ -1787,15 +1859,31 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         assert session.broker._context is session._context
         assert session.evidence()['launcher_context_propagated'] is True
 
-        # -- N1 correction 13 (PF13-03): the **real** parent pump reads
-        #    the channel of the round through the BrokerProcess and the
-        #    queue of the channel, and the parent waits for its replies
-        #    on the event of the round.  The recorders are transparent:
-        #    they call the original owner of the wait and they record the
-        #    **actual** argument of it.  The original context of the
-        #    round is tightened before the next admission and the next
-        #    requested argument is the **current** minimum; the zero
-        #    expiry is included.
+        # -- N1 correction 13 (PF13-03) and N1 correction 14 (F3): the
+        #    **real** parent pump reads the channel of the round through
+        #    the BrokerProcess and the queue of the channel, and the
+        #    parent waits for its replies on the event of the round.
+        #    The recorders are transparent: they call the original owner
+        #    of the wait and they record the **actual** argument of it.
+        #    The original context of the round is tightened before the
+        #    next admission and the next requested argument is the
+        #    **current** minimum; the zero expiry is included.
+        #
+        #    RECONCILIATION (F3): the previous fixture of the group
+        #    installed the recorder on a pump that was **already dead**:
+        #    the reader of the channel had failed at the admission of
+        #    its read (the deadline of the round was in the domain of
+        #    the facade and the clock of the endpoint was the clock of
+        #    the host), the channel was at the end of its stream and
+        #    **no** admission of the parent was observed at all.  The
+        #    group now proves the **liveness** of the owner of the read
+        #    before it tightens the bound: the next real read of the
+        #    broker is **held** at the seam of the BrokerProcess, the
+        #    transparent recorder is installed, the ORIGINAL cleanup
+        #    deadline of the round is published and the admission is
+        #    released.  The original queue method really executes and
+        #    the recorded argument is the argument that the production
+        #    really passed to it.
         queue_waits = []
         original_get = session.broker._channel._queue.get
 
@@ -1821,31 +1909,80 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
 
                 event.wait = recording_wait
 
-        # The **published** cleanup deadline of the round shortens the
-        # next read of the parent: the round is not over yet.
-        session._context.publish_cleanup_deadline(clock.value + 0.05)
-        deadline = time.monotonic() + 15.0
-        while time.monotonic() < deadline:
-            if any(value is not None and 0.0 < value <= 0.05 + 1e-9
-                   for value in queue_waits):
-                break
-            time.sleep(0.005)
-        with unittest.mock.patch.object(custody_module, '_ReplyWaiter',
-                                        RecordingWaiter):
-            with pytest.raises(CustodyError):
-                session._read_reply(('READY',), timeout=0.05)
-        facts = {'queue_waits': list(queue_waits),
-                 'reply_waits': list(reply_waits),
-                 'cleanup': clock.value + 0.05}
-        write_phase('r07-pump-current-minimum', facts)
-        assert queue_waits, \
-            'the parent pump never waited for a frame of the round'
-        assert queue_waits[-1] == pytest.approx(0.05), \
-            'the read of the parent pump ignored the current minimum'
-        assert reply_waits, \
-            'the parent never waited for a reply of the round'
-        assert reply_waits[-1] == pytest.approx(0.05), \
-            'the reply event of the parent ignored the current minimum'
+        # The gate of the admission: the next real read of the broker
+        # is held **before** the bound of the round is published.  The
+        # gate calls the original read of the broker: it never decides
+        # a deadline, it never replaces the decision of the production
+        # and it never fabricates an admission.
+        admission_gate = threading.Event()
+        admission_held = threading.Event()
+        original_broker_read = session.broker.read
+
+        def gated_broker_read(timeout):
+            admission_held.set()
+            admission_gate.wait(15.0)
+            return original_broker_read(timeout)
+
+        session.broker.read = gated_broker_read
+        try:
+            # -- the pump of the parent is really alive and it reaches
+            #    its next admission: the liveness of the owner of the
+            #    read is a **fact** of the round and not an assumption.
+            assert admission_held.wait(15.0), \
+                'the parent pump never reached its next admission'
+            queue_waits[:] = []
+            reply_waits[:] = []
+            # The **published** cleanup deadline of the round shortens
+            # the next read of the parent: the round is not over yet.
+            session._context.publish_cleanup_deadline(clock.value + 0.05)
+            # The admission is released: the production reads the
+            # **current** minimum of the ORIGINAL context.
+            admission_gate.set()
+            deadline = time.monotonic() + 15.0
+            while time.monotonic() < deadline:
+                if any(value is not None and 0.0 < value <= 0.05 + 1e-9
+                       for value in queue_waits):
+                    break
+                time.sleep(0.005)
+            # The reply of the parent is bounded by the **published**
+            # cleanup deadline of the ORIGINAL context: the timeout of
+            # the call is longer and it may not shorten it.
+            with unittest.mock.patch.object(custody_module, '_ReplyWaiter',
+                                            RecordingWaiter):
+                with pytest.raises(CustodyError):
+                    session._read_reply(('READY',), timeout=10.0)
+            # The **actual** remaining of the round at the admission: it
+            # is read from the ORIGINAL context and from the clock of
+            # the round and it is never a nominal number.
+            remaining = session._context.effective_deadline() - clock()
+            facts = {'queue_waits': list(queue_waits),
+                     'reply_waits': list(reply_waits),
+                     'cleanup': clock.value + 0.05,
+                     'remaining_at_admission': remaining,
+                     'pump_alive': bool(session._pump is not None
+                                        and not session._pump.finished),
+                     'pump_error': (repr(session._pump.error)
+                                    if session._pump is not None else None),
+                     'session_state': session.state}
+            write_phase('r07-pump-current-minimum', facts)
+            assert queue_waits, \
+                'the parent pump never waited for a frame of the round'
+            assert 0.0 < queue_waits[-1] <= 0.05 + 1e-9, \
+                'the read of the parent pump ignored the current minimum'
+            assert queue_waits[-1] == pytest.approx(remaining), \
+                'the read of the parent pump did not use the actual remaining'
+            assert reply_waits, \
+                'the parent never waited for a reply of the round'
+            assert 0.0 < reply_waits[-1] <= 0.05 + 1e-9, \
+                'the reply event of the parent ignored the current minimum'
+            assert reply_waits[-1] == pytest.approx(remaining), \
+                'the reply event of the parent did not use the actual remaining'
+        finally:
+            # The gate of the owner of the test is released
+            # **unconditionally**: no admission of the parent stays
+            # blocked behind the test and no thread of the test is left
+            # behind.
+            admission_gate.set()
         # The **zero expiry**: the absolute deadline of the round is
         # shortened and every next wait of the parent asks for nothing.
         # The pump of the round ends when the bound of the round
@@ -1868,10 +2005,13 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         zero_pump = custody_module._ChannelPump(
             session.broker, decode=session._decode_reply, clock=clock,
             context=session._context)
-        with unittest.mock.patch.object(custody_module, '_ReplyWaiter',
-                                        RecordingWaiter):
-            with pytest.raises(CustodyError):
-                zero_pump.take(('READY',), clock.value + 0.05)
+        try:
+            with unittest.mock.patch.object(custody_module, '_ReplyWaiter',
+                                            RecordingWaiter):
+                with pytest.raises(CustodyError):
+                    zero_pump.take(('READY',), clock.value + 0.05)
+        finally:
+            zero_pump.stop()
         facts = {'queue_waits': list(queue_waits),
                  'reply_waits': list(reply_waits),
                  'pump_finished': bool(session._pump is not None
@@ -2205,6 +2345,19 @@ def test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread(tmp_path):
     while the real thread of the step is still alive, the join of every
     thread is **unconditional** and no sleep ever proves the exit of a
     thread.
+
+    RECONCILIATION (N1 correction 14, F4): the **unconditional** join
+    of the group was also applied to the thread of the step that
+    **never started**: the seam of that subcase raised before the
+    original start of the thread and the join of the fixture raised
+    ``RuntimeError: cannot join thread before it is started``.  The
+    facts of the start decide now: the start did not return, the
+    thread has **no identity** and it is not alive, so the fixture
+    skips **only** that impossible join.  The unconditional bounded
+    join stays for every thread that really started, an object without
+    an identity is never read as a physical exit of a thread and the
+    causal negative of the group (an unproved start is never released)
+    is unchanged.
     """
     clock = time.monotonic
     release = threading.Event()
@@ -2406,6 +2559,20 @@ def test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread(tmp_path):
     # -- N1 correction 12 (M08-D): a start that never came up stays
     #    **unknown**: the owner is never released and no join of a
     #    thread that never started is attempted.
+    #
+    #    RECONCILIATION (N1 correction 14, F4): the group joined the
+    #    thread of the step **unconditionally** and the thread of this
+    #    subcase never started at all: the seam of the group raised
+    #    **before** the original start of the thread, so the join of
+    #    the fixture raised ``RuntimeError: cannot join thread before
+    #    it is started``.  The facts of the start decide now: the start
+    #    did not return, the thread has **no identity** and it is not
+    #    alive, so the fixture skips **only** that impossible join.
+    #    The unconditional bounded join stays for every thread that
+    #    really started (the two phases above), an object without an
+    #    identity is never read as a physical exit of a thread and the
+    #    causal negative of the group - an unproved start is never
+    #    released - is unchanged.
     owner = _StartupOwner(name='never', clock=time.monotonic,
                           deadline=time.monotonic() + 10.0)
 
@@ -2420,7 +2587,24 @@ def test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread(tmp_path):
         'an unproved start of a step was released'
     assert owner.in_flight is False
     thread = getattr(owner, '_thread', None)
-    if thread is not None:
+    assert thread is not None, \
+        'the owner of the step did not keep the thread of the step'
+    # The **facts** of the start of the thread of the step.
+    start_facts = {'owner_started': owner._started,
+                   'ident': getattr(thread, 'ident', None),
+                   'alive': bool(thread.is_alive()),
+                   'settle': owner.settle(5.0),
+                   'in_flight': owner.in_flight}
+    write_phase('r09-never-started', start_facts)
+    assert owner._started is False, \
+        'the owner of the step claims that the start of its thread returned'
+    assert thread.ident is None, \
+        'the thread of the step really started'
+    assert thread.is_alive() is False, \
+        'the thread of the step is alive although it never started'
+    if thread.ident is not None or thread.is_alive():
+        # A thread that really started is joined **unconditionally** and
+        # with a bounded wait.
         thread.join(5.0)
         assert not thread.is_alive(), \
             'the thread of a startup step was left behind'
@@ -2506,11 +2690,34 @@ class _M09TimeoutApi:
         # of the read of the current generation: the fault is really
         # published **before** the endpoint consumes the outcome.
         self.publish_read_fault()
+        worker = self.worker_holder.get('worker')
+        if worker is not None and not self.confirm_the_worker:
+            # RECONCILIATION (N1 correction 14, F5): the cancel
+            # primitive of the round enqueued the fault and returned
+            # **immediately**.  The coordination of the round could then
+            # reach its selection point **before** the worker had
+            # published the immutable outcome of its generation: the
+            # selection point had no published fault and the parallel
+            # fact of the timeout could not be inferred from a later
+            # observation of the fault.
+            #
+            # The primitive now waits, bounded, for the **immutable
+            # outcome of that specific generation** before it returns.
+            # The selection point of the production then really sees the
+            # published fault of the round.  The wait is bounded, it
+            # never decides the outcome of the generation and it never
+            # replaces the error of the round.  The worker of the round
+            # is held inside its own final close and release tail, so
+            # the real bounded join of the coordination still FAILS.
+            generation = self.worker_holder.get('generation')
+            if generation is None:
+                generation = worker._submitted
+            outcome = _wait_for_outcome(worker, generation, 15.0)
+            self.worker_holder['published_outcome'] = outcome
         if self.confirm_the_worker:
             # The coordination waits for the real exit of the worker:
             # the bounded join of the coordination is then a confirmed
             # one.
-            worker = self.worker_holder.get('worker')
             if worker is not None:
                 worker.join(10.0)
         return 'REQUESTED'
@@ -2565,6 +2772,23 @@ def _m09_timeout_phase(document, plan, tmp_path, *, phase, confirm_the_worker,
     that was really published.
 
     Every fact of the phase is the fact that the production returned.
+
+    RECONCILIATION (N1 correction 14, F5): the schedule of the **failed**
+    coordination reached the selection point of the production without a
+    published fault: the cancel primitive of the round enqueued the
+    fault of the read and returned immediately, so the coordination
+    could finish before the worker had published the immutable outcome
+    of its generation.  The parallel fact of the timeout could then not
+    be read at all.  The seam of the failed coordination now publishes
+    the real primitive fault and waits, bounded, for the **immutable
+    outcome of that specific generation** before the cancel primitive
+    returns, while the worker of the round is held inside its own
+    final close and release tail: the real bounded join of the
+    coordination still FAILS and the coordination error stays a
+    **parallel** fact of the original error of the round.  The
+    confirmed coordination and the required order of the schedule
+    (fault published before the timeout, consumed after it) stay
+    separate and unchanged.
     """
     clock = ManualClock(1000.0)
     api = _M09TimeoutApi(confirm_the_worker=confirm_the_worker,
@@ -2587,6 +2811,11 @@ def _m09_timeout_phase(document, plan, tmp_path, *, phase, confirm_the_worker,
         api.worker_holder['worker'] = worker
         generation = worker._submitted
         assert generation >= 1, 'the reader of the chain never submitted'
+        # The **specific** generation of the read that is in flight is
+        # given to the seam of the primitive: the outcome that the
+        # coordination waits for is the outcome of **that** generation
+        # and never a generic event of the worker.
+        api.worker_holder['generation'] = generation
         # The effective timeout of the round is tightened while the
         # read is really in flight: the absolute lease of the round
         # stays in the future and only the bound of the channel
@@ -2646,6 +2875,8 @@ def _m09_timeout_phase(document, plan, tmp_path, *, phase, confirm_the_worker,
                  'outcome_object': type(outcome['error_object']).__name__,
                  'parallel_timeout': parallel,
                  'cancel_calls': api.cancel_calls,
+                 'published_before_cancel_return': bool(
+                     api.worker_holder.get('published_outcome')),
                  'state': session.state}
         write_phase(phase, facts)
         # The error of the reader of the channel is the error of the
@@ -2986,6 +3217,28 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
     them.  The coordination subcases above remain: they are the ones
     that drive a **confirmed** and a **failed** coordination of the
     round, and the failure of the coordination is a parallel fact there.
+
+    RECONCILIATION (N1 correction 14, F5): the schedule of the **failed**
+    coordination reached the selection point of the production without a
+    published fault.  The cancel primitive of the round enqueued the
+    fault of the read and returned immediately, so the coordination
+    could finish before the worker had published the immutable outcome
+    of its generation, and the parallel fact of the timeout could not
+    be read at all (the phase document of the failed batch of the
+    correction 13 stopped there).
+
+    The seam of the failed coordination now publishes the **real**
+    primitive fault and waits, bounded, for the **immutable outcome of
+    that specific generation** before the cancel primitive returns,
+    while the worker of the round is held inside its own final close
+    and release tail: the real bounded join of the coordination still
+    FAILS and the coordination error stays a **parallel** fact of the
+    original error of the round.  The confirmed coordination, the
+    required order of the schedule (fault published before the timeout,
+    consumed after it) and the two public stops of the round stay
+    separate and unchanged, no outcome, no history, no selection and
+    no public stop of the production is patched, and no assertion of
+    the group is relaxed.
     """
     document = _live_plan_document()
     plan = validate_launch_plan(document, now=time.time())

@@ -151,10 +151,16 @@ class _CancellingEvent:
 #: batch of the correction 12 stay in the directory of the correction
 #: 12 and they are never overwritten, never deleted and never replaced
 #: by a summary.
+#: CORRECTION 14: the diagnostics of the group are written in the NEW
+#: directory of the correction 14.  The real documents of the failed
+#: batch of the correction 13 stay in the directory of the correction
+#: 13 and they are never overwritten, never deleted and never replaced
+#: by a summary.  The environment of the batch may still name the
+#: directory of the attempt of the plan of the root.
 F5_EVIDENCE_DIR = (Path(os.environ['LVW_N1_F5_EVIDENCE_DIR'])
                    if os.environ.get('LVW_N1_F5_EVIDENCE_DIR')
                    else (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'
-                         / 'implementation-native-custody-correction-13'
+                         / 'implementation-native-custody-correction-14'
                          / 'f5-evidence'))
 
 
@@ -610,7 +616,7 @@ def test_n07_r01_the_control_handle_of_an_unconfirmed_process_is_kept():
 
 # -- N07-R02: the recovery keeps the handle until the exit is confirmed ---
 
-def test_n07_r02_the_recovery_keeps_the_handle_until_the_exit_is_confirmed():
+def test_n07_r02_the_recovery_keeps_the_handle_until_the_exit_is_confirmed(tmp_path):
     """N07-R02 (M03): the second recovery releases the confirmed handle.
 
     Obligation: the first coordination of a process whose exit was not
@@ -626,6 +632,17 @@ def test_n07_r02_the_recovery_keeps_the_handle_until_the_exit_is_confirmed():
     Returned state: the report of the recovery names the failures of
     every step.  Salvage: the salvage is the second coordination of the
     owner and it is explicit.
+
+    RECONCILIATION (N1 correction 14, F2): the millisecond subcase of
+    the group builds the **production** core and it built it with
+    ``run_root=None``.  The production constructor does
+    ``Path(run_root)`` and it refuses a ``None``: the boundary of the
+    group never ran at all.  The subcase now drives the core with the
+    **real** controlled run root of the test (the fixture ``tmp_path``,
+    which does not change the identity of the node) and the boundary
+    really executes.  The production is not changed, no permissive
+    ``None`` fallback is added to it and no assertion of the boundary
+    is skipped.
     """
     state = {'exited': False}
 
@@ -816,7 +833,13 @@ def test_n07_r02_the_recovery_keeps_the_handle_until_the_exit_is_confirmed():
         expected = int(actual * 1000)
         clock = ManualClock(origin)
         win32 = RecordingWin32()
-        core = BrokerCore(win32=win32, plan=sealed_plan(), run_root=None,
+        # RECONCILIATION (N1 correction 14, F2): the production core
+        # builds its run root with ``Path(run_root)`` and it refuses a
+        # ``None``: the boundary of the group is driven with the
+        # **real** controlled run root of the test and not with a
+        # permissive fallback.  The production is not changed and no
+        # assertion of the boundary is skipped.
+        core = BrokerCore(win32=win32, plan=sealed_plan(), run_root=tmp_path,
                           clock=clock)
         core.context.bind_absolute_deadline(clock.value + 10.0)
         core.cleanup_deadline(remaining)
