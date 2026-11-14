@@ -1434,6 +1434,80 @@ def test_n03_r08_the_cleanup_of_the_broker_uses_one_absolute_deadline(tmp_path):
     assert requested[0] < 0.01, \
         'the read of the transport used the positive floor of the package'
 
+    # -- N1 correction 13 (M08-C.1): the read of the transport of the
+    #    loop is cropped by the **current** minimum of the original
+    #    context of the round and not only by the lease that the loop
+    #    cached when it fixed its deadline.  The **published** cleanup
+    #    deadline of the round is part of that minimum and the loop
+    #    never asks for more than it allows.
+    context_requested = []
+
+    class ContextTransport:
+        def bind_deadline(self, deadline):
+            self.deadline = deadline
+
+        def write(self, raw):
+            return None
+
+        def read(self, timeout):
+            context_requested.append(timeout)
+            return b''
+
+    context_clock = ManualClock(1000.0)
+    context_core = BrokerCore(win32=RecordingWin32(), plan=sealed_plan(),
+                               run_root=tmp_path, clock=context_clock)
+    # The lease of the round is long: the loop cached it when it fixed
+    # its deadline.
+    context_core.bind_absolute_deadline(1000.0 + 60.0)
+    context_loop = BrokerLoop(core=context_core,
+                              transport=ContextTransport(),
+                              plan=context_core.plan, nonce='a' * 32,
+                              clock=context_clock, wall=lambda: 1000.0)
+    context_loop._deadline_mono = 1000.0 + 60.0
+    # The round publishes its cleanup deadline and it is **shorter**
+    # than the poll cap of the package: the next read of the transport
+    # may not ask for the poll cap.
+    context_core.cleanup_deadline(1000.0 + 0.05)
+    context_loop._loop()
+    assert context_requested, 'the transport of the round was never read'
+    assert context_requested[0] <= 0.05 + 1e-9, \
+        'the read of the transport ignored the current minimum of the round'
+    assert context_requested[0] < 0.25, \
+        'the read of the transport used the cached lease of the loop'
+
+    # The bound of the round that arrived ends the loop with the lease
+    # of the round and not with a failure of the channel: the loop
+    # asks for nothing at all.
+    expired_requested = []
+
+    class ExpiredTransport:
+        def bind_deadline(self, deadline):
+            self.deadline = deadline
+
+        def write(self, raw):
+            return None
+
+        def read(self, timeout):
+            expired_requested.append(timeout)
+            return b''
+
+    expired_clock = ManualClock(1000.0)
+    expired_core = BrokerCore(win32=RecordingWin32(), plan=sealed_plan(),
+                              run_root=tmp_path, clock=expired_clock)
+    expired_core.bind_absolute_deadline(1000.0 + 60.0)
+    expired_core.cleanup_deadline(1000.0 + 0.05)
+    expired_clock.advance(0.06)
+    expired_loop = BrokerLoop(core=expired_core,
+                              transport=ExpiredTransport(),
+                              plan=expired_core.plan, nonce='a' * 32,
+                              clock=expired_clock, wall=lambda: 1000.0)
+    expired_loop._deadline_mono = 1000.0 + 60.0
+    expired_loop._loop()
+    assert not expired_requested, \
+        'the loop read the transport after the bound of the round arrived'
+    assert expired_core.stop_reason == 'LEASE_EXPIRED', \
+        'the loop did not end with the lease of the round'
+
 
 def test_n03_r09_a_partial_windows_write_is_never_a_success():
     """N03-R09 (M08/M09): the write is complete and the handle is closed.

@@ -97,8 +97,13 @@ from tools.test_v0_s3_native_custody_regressions import (  # noqa: E402
 #: batch of the correction 11 stay in the directory of the correction
 #: 11: they are never overwritten, never deleted and never replaced by
 #: a summary.
+#: CORRECTION 13: the diagnostics of this module are written in the NEW
+#: directory of the correction 13.  The real documents of the failed
+#: batch of the correction 12 stay in the directory of the correction
+#: 12: they are never overwritten, never deleted and never replaced by
+#: a summary.
 EVIDENCE_DIR = (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'
-                / 'implementation-native-custody-correction-12' / 'evidence')
+                / 'implementation-native-custody-correction-13' / 'evidence')
 
 #: The nonce of the private channel of the probes of this module.  It
 #: is a closed form of 32 hexadecimal characters and it is the nonce of
@@ -595,6 +600,11 @@ def test_n10_r04_the_launch_aggregate_finds_the_partial_channel():
     """
     order = []
     read_release = threading.Event()
+    # The event of the worker that is really inside its read.  It is
+    # published **before** the wait of the primitive and it is the
+    # barrier of the group: a start that returned does not prove that a
+    # read primitive is still active.
+    worker_inside = threading.Event()
 
     class Process:
         pid = 4242
@@ -634,6 +644,10 @@ def test_n10_r04_the_launch_aggregate_finds_the_partial_channel():
             # The reader of the chain stays inside its read: the
             # channel is partial and its close can never confirm the
             # read end while the reader is alive.
+            # The event is published **before** the wait of the
+            # primitive: the group waits for it before it injects the
+            # interruption of the start.
+            worker_inside.set()
             read_release.wait(20.0)
             return b''
 
@@ -671,6 +685,16 @@ def test_n10_r04_the_launch_aggregate_finds_the_partial_channel():
         # aggregate is its owner.
         original_start(self)
         if self.name == 'lvw-native-custody-channel':
+            # RECONCILIATION (N1 correction 13): the interruption is
+            # injected **after** the worker of the read really entered
+            # its read primitive.  A start that returned does not prove
+            # that a read is still active: the reader of the channel
+            # may end before the cleanup of the launch and it may then
+            # release the channel correctly.  The group therefore waits
+            # for the explicit event of the worker before it injects the
+            # interruption.
+            assert worker_inside.wait(20.0), \
+                'the worker of the read never entered its read primitive'
             raise RuntimeError('thread_start_failed_after_start')
 
     def channel_factory():
@@ -1025,26 +1049,62 @@ def test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel(tmp_path):
     # -- N1 correction 12 (M07-A): a **cancelled** retry of an
     #    unresolved original raw stream keeps the owner of the stream
     #    and the original cancellation is the error that leaves.
-    holder = m07a_interrupted_launch(tmp_path, sealed_plan(), failures=1,
-                                     cancel=True)
-    stdout = holder['stdout']
-    aggregate = holder['aggregate'][0] if holder['aggregate'] else None
-    assert aggregate is not None, 'the interrupted launch lost its owner'
-    release_retained_launches()
-    assert stdout.attempts == 1, \
-        'the raw stream was not closed by the first release'
-    assert stdout.confirmed == 0
-    with pytest.raises(KeyboardInterrupt):
+    #    RECONCILIATION (N1 correction 13): the phase runs on a
+    #    **scoped** table of the launcher.  The table of the launcher
+    #    of this package is shared by the whole batch and the context
+    #    that another check of the batch bound to it is **not** the
+    #    context of this launch: the bound of another round would
+    #    refuse the retry of the raw stream before it starts and the
+    #    cancellation would never be observed at all.  The production
+    #    table is used and it is never emptied by hand.
+    scoped = _LauncherCustody()
+    with unittest.mock.patch.object(broker_module, '_LAUNCHER_CUSTODY',
+                                    scoped):
+        holder = m07a_interrupted_launch(tmp_path, sealed_plan(),
+                                         failures=1, cancel=True)
+        stdout = holder['stdout']
+        aggregate = holder['aggregate'][0] if holder['aggregate'] else None
+        assert aggregate is not None, 'the interrupted launch lost its owner'
         release_retained_launches()
-    assert stdout.attempts == 2, \
-        'the same owner did not retry the raw stream of the launch'
-    assert stdout.confirmed == 0, \
-        'the cancelled retry of the raw stream was read as a close'
-    owned = [item for item in _launcher_custody_items()
-             if item['kind'] == 'stdout' and item['resource'] is stdout]
-    assert owned, 'the cancelled retry forgot the owner of the raw stream'
-    assert [item['name'] for item in aggregate.raw_streams] == ['stdout'], \
-        'the launch forgot a raw stream that was never closed'
+        assert stdout.attempts == 1, \
+            'the raw stream was not closed by the first release'
+        assert stdout.confirmed == 0
+        with pytest.raises(KeyboardInterrupt):
+            release_retained_launches()
+        assert stdout.attempts == 2, \
+            'the same owner did not retry the raw stream of the launch'
+        assert stdout.confirmed == 0, \
+            'the cancelled retry of the raw stream was read as a close'
+        owned = [item for item in _launcher_custody_items()
+                 if item['kind'] == 'stdout' and item['resource'] is stdout]
+        assert owned, 'the cancelled retry forgot the owner of the raw stream'
+        assert [item['name'] for item in aggregate.raw_streams] == ['stdout'], \
+            'the launch forgot a raw stream that was never closed'
+        # The **final** recovery of the **same** owner after the test
+        # released its fault seam: the stream is really closed, the
+        # owner of it is released and the table of the launcher is
+        # empty again.  The recovery is the same owner and it never
+        # opens a budget of its own.
+        stdout.cancel = False
+        release_retained_launches()
+        facts = {'attempts': stdout.attempts, 'confirmed': stdout.confirmed,
+                 'owned': len([item for item in _launcher_custody_items()
+                               if item['kind'] == 'stdout'
+                               and item['resource'] is stdout]),
+                 'raw_streams': [item['name']
+                                 for item in aggregate.raw_streams],
+                 'table': [(item['kind'], repr(item['resource']))
+                           for item in _launcher_custody_items()]}
+        write_phase('r05-final-recovery', facts)
+        assert stdout.confirmed == 1, \
+            'the final recovery did not close the raw stream of the launch'
+        assert stdout.closed is True
+        assert not [item for item in _launcher_custody_items()
+                    if item['kind'] == 'stdout'
+                    and item['resource'] is stdout], \
+            'the table of the launcher kept the closed raw stream'
+        assert aggregate.raw_streams == [], \
+            'the launch still owns a raw stream that was really closed'
 
 
 # -- N10-R06: the admission of a generation -------------------------------
@@ -1852,29 +1912,74 @@ def test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread(tmp_path):
     #    step is cropped to the time that is really left until the
     #    **current** effective deadline of the round.  The owner holds
     #    the original context and it never keeps a copy of a number.
-    context = _RoundContext()
-    context.bind_absolute_deadline(time.monotonic() + 0.5)
-    owner = _StartupOwner(name='inventory', clock=time.monotonic,
-                          deadline=time.monotonic() + 0.5, context=context)
+    #    RECONCILIATION (N1 correction 13): the recorder of the queue
+    #    implements the **whole** signature of ``queue.get``: the owner
+    #    observes the result that is already published with a non
+    #    blocking ``get_nowait`` and that observation is **not** a wait.
+    #    The two are recorded apart and the recorder forwards the
+    #    arguments of the original call.  The schedule of the group
+    #    tightens the deadline of the round **between** two waits and
+    #    the next wait receives the time that is really left.
+    clock = ManualClock(1000.0)
+    context = _RoundContext(clock=clock)
+    context.bind_absolute_deadline(clock.value + 0.5)
+    owner = _StartupOwner(name='inventory', clock=clock,
+                          deadline=clock.value + 0.5, context=context)
+    observed = []
     requested = []
+    first_wait = threading.Event()
     original_get = owner._results.get
 
-    def recording_get(timeout=None):
+    def recording_get(block=True, timeout=None):
+        if block is False:
+            # The observation of the owner asks for the result that is
+            # already published and it never waits for one.
+            observed.append(timeout)
+            return original_get(block=False)
         requested.append(timeout)
-        return original_get(timeout=timeout)
+        if len(requested) == 1:
+            first_wait.set()
+        return original_get(block=True, timeout=timeout)
 
     owner._results.get = recording_get
-    with pytest.raises(BrokerError) as info:
-        owner.await_result()
-    facts = {'requested': list(requested), 'code': info.value.code}
+
+    def tighten():
+        # The deadline of the round is tightened **between** two waits
+        # of the owner: the next wait receives the time that is really
+        # left and it is cropped to it.  The last step expires the
+        # round even when the barrier was never reached: the owner
+        # never waits forever.
+        first_wait.wait(10.0)
+        clock.advance(0.49)
+        time.sleep(0.2)
+        clock.advance(0.02)
+        clock.advance(10.0)
+
+    tightener = threading.Thread(target=tighten, daemon=True,
+                                  name='lvw-n10-r09-tightener')
+    tightener.start()
+    try:
+        with pytest.raises(BrokerError) as info:
+            owner.await_result()
+    finally:
+        tightener.join(10.0)
+        assert not tightener.is_alive(), \
+            'the thread that tightens the deadline was left behind'
+    facts = {'observed': list(observed), 'requested': list(requested),
+             'code': info.value.code}
     write_phase('r09-await-wait', facts)
     assert info.value.code == 'BROKER_STARTUP_DEADLINE_EXCEEDED', \
         'the owner of the step did not refuse the expired round'
+    assert observed, 'the owner of the step never observed its result'
     assert requested, 'the owner of the step never waited for its result'
     assert requested[0] <= 0.05 + 1e-9, \
         'the wait of the owner exceeded the poll cap of the package'
     assert max(requested) <= 0.5 + 1e-9, \
         'the wait of the owner exceeded the remaining of the round'
+    # The wait that followed the tightening received the time that was
+    # really left and it was cropped to it.
+    assert min(requested[1:]) <= 0.01 + 1e-9, \
+        'the wait of the owner was not cropped to the tightened remaining'
 
     # -- N1 correction 12 (M08-D): a start that raised **after** the
     #    thread of the step really came up is not a release.  The owner
@@ -2137,6 +2242,19 @@ def _m09_timeout_phase(document, plan, tmp_path, *, phase, confirm_the_worker,
             'the published failure of the round is not the ordinary one'
         assert outcome['error_object'] is fault, \
             'the outcome of the generation does not keep the original error'
+        # The publication of the outcome of the worker is **not** the
+        # consumption of it by the endpoint: the endpoint attaches the
+        # timeout to the original error object when it raises that
+        # object, and the publication happens before it.  The group
+        # waits for the **real** termination of the reader of the
+        # channel: that is the barrier of the consumption and it is
+        # never a sleep that proves it.
+        reader_thread = getattr(holder['channel'], '_thread', None)
+        assert reader_thread is not None, \
+            'the reader thread of the channel does not exist'
+        reader_thread.join(15.0)
+        assert not reader_thread.is_alive(), \
+            'the reader of the channel did not consume the outcome'
         # The endpoint raised the **original** error object and the
         # timeout is a **parallel** fact of it.
         raised = outcome['error_object']

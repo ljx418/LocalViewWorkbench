@@ -1441,20 +1441,38 @@ def test_n05_r14_an_await_that_is_running_reads_the_tightened_deadline():
     # -- N1 correction 12 (M08-C): the put of the reader of the channel
     #    is cropped to the time that is really left.  There is no
     #    positive floor beyond the remaining of the round.
+    #    RECONCILIATION (N1 correction 13): the **first** frame of the
+    #    reader is delivered **after** the instrumentation of the queue
+    #    is installed.  The channel starts its reader when it is built
+    #    and a frame that was put before the instrumentation is a frame
+    #    that the group never saw.  The reader of the group therefore
+    #    publishes an explicit event when it is really inside its first
+    #    read and a second one when it is really inside its second
+    #    read, and the group releases the two frames one after the
+    #    other.  The reader never returns the end of the file before
+    #    its second frame was delivered.
     class SlowReader:
-        """A read end that delivers one frame and then waits."""
+        """A read end that delivers one frame per explicit release."""
 
         def __init__(self):
-            self.blocks = [b'one\n']
-            self.released = threading.Event()
+            self.blocks = [b'one\n', b'two\n']
+            self.first_entered = threading.Event()
+            self.release_first = threading.Event()
+            self.second_entered = threading.Event()
+            self.release_second = threading.Event()
 
         def read(self, deadline=None, cancel=None):
-            if self.blocks:
-                return self.blocks.pop(0)
-            if not self.released.is_set():
-                self.released.wait(10.0)
-                return b'two\n'
-            return b''
+            if not self.blocks:
+                return b''
+            block = self.blocks[0]
+            if block == b'one\n':
+                self.first_entered.set()
+                self.release_first.wait(10.0)
+            else:
+                self.second_entered.set()
+                self.release_second.wait(10.0)
+            self.blocks.pop(0)
+            return block
 
         def close(self):
             return {'closed': True, 'retained_workers': 0,
@@ -1469,7 +1487,8 @@ def test_n05_r14_an_await_that_is_running_reads_the_tightened_deadline():
                     'worker_thread_handle_released': True}
 
     clock = ManualClock(1000.0)
-    channel = StreamChannel(None, None, read_endpoint=SlowReader(),
+    reader = SlowReader()
+    channel = StreamChannel(None, None, read_endpoint=reader,
                              write_endpoint=BlockWriter(), clock=clock,
                              max_frames=2)
     puts = []
@@ -1479,19 +1498,29 @@ def test_n05_r14_an_await_that_is_running_reads_the_tightened_deadline():
         puts.append(timeout)
         return original_put(item, timeout=timeout)
 
-    channel._queue.put = recording_put
     channel.bind_deadline(clock.value + 10.0)
     try:
+        # The reader of the channel is really inside its **first** read
+        # and the first frame was not delivered yet.
+        assert reader.first_entered.wait(10.0), \
+            'the reader of the channel never entered its first read'
+        # The instrumentation is installed **before** the first frame
+        # exists: the group observes every put of the reader.
+        channel._queue.put = recording_put
+        reader.release_first.set()
         deadline = time.monotonic() + 10.0
-        while not puts and time.monotonic() < deadline:
+        while len(puts) < 1 and time.monotonic() < deadline:
             time.sleep(0.005)
         assert puts, 'the reader of the channel never put a frame'
         assert puts[0] == pytest.approx(0.5), \
             'the put of the reader did not use the wait of the package'
         # The deadline of the round is tightened while the reader waits
-        # for its next frame.
+        # for its next frame and the second frame is delivered exactly
+        # once after the tightening.
         channel.bind_deadline(clock.value + 0.02)
-        channel._reader.released.set()
+        assert reader.second_entered.wait(10.0), \
+            'the reader of the channel never entered its second read'
+        reader.release_second.set()
         deadline = time.monotonic() + 10.0
         while len(puts) < 2 and time.monotonic() < deadline:
             time.sleep(0.005)
@@ -1500,7 +1529,14 @@ def test_n05_r14_an_await_that_is_running_reads_the_tightened_deadline():
             'the put of the reader was not cropped to the remaining'
         assert max(puts) <= 0.5 + 1e-9
     finally:
-        channel._reader.released.set()
+        # The teardown of the owner of the test is unconditional and it
+        # is bounded: the reader is released and the thread of the
+        # channel is joined.
+        reader.release_first.set()
+        reader.release_second.set()
+        channel._thread.join(10.0)
+        assert not channel._thread.is_alive(), \
+            'the reader thread of the channel was left behind'
         channel.close()
 
 

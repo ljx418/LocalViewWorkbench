@@ -1,0 +1,150 @@
+{
+  "batch_executed": false,
+  "batch_result": null,
+  "candidate_base_sha": "29c5215ad44721c60145bad61165b99580cc1898",
+  "changed_source_files": [
+    "tools/v0_s3_native_broker.py",
+    "tools/v0_s3_native_custody.py",
+    "tools/test_v0_s3_native_custody_regressions.py",
+    "tools/test_v0_s3_native_custody_correction05.py",
+    "tools/test_v0_s3_native_custody_correction07.py",
+    "tools/test_v0_s3_native_custody_correction10.py"
+  ],
+  "unchanged_allowed_files": [
+    "tools/test_v0_s3_native_custody.py"
+  ],
+  "closed_static_preserved": [
+    "M05",
+    "M08-A",
+    "M08-B",
+    "M08-D",
+    "M09",
+    "m03",
+    "M06",
+    "M03_exit_safety"
+  ],
+  "coordinate": "V1/R1/WP-R1-U3/S3_P4_OFFLINE_INTEGRATION_PREPARATION",
+  "dynamic_authorized": false,
+  "executed_commands": [
+    {
+      "command": "git status --short / git diff --stat / git log / git merge-base --is-ancestor",
+      "kind": "version_control_read"
+    },
+    {
+      "command": "sha256sum of the seven allowed files",
+      "kind": "digest_read"
+    },
+    {
+      "command": "compile(source_text, name, \"exec\") of the seven files, in memory",
+      "kind": "in_memory_compile"
+    },
+    {
+      "command": "ast.parse + symtable global resolution check of the seven files",
+      "kind": "static_resolution_check"
+    },
+    {
+      "command": "ast extraction of the 189 node ids and comparison with the frozen list",
+      "kind": "static_node_identity_check"
+    },
+    {
+      "command": "the generation of the JSON documents of this report root",
+      "kind": "report_write"
+    }
+  ],
+  "grant_authority": "NOT_VERIFIED",
+  "historical_evidence": "The failed batch of the correction 12 (commit e2d2831) and the reports of the corrections 12/11/10/09/08 are unchanged.  The pre-existing modification of implementation-integration-01/report.md was not touched.  No untracked artefact was removed and no historical report was edited.",
+  "kind": "LVW_N1_CORRECTION13_STATIC_IMPLEMENTATION_RECEIPT/1",
+  "m09_dynamic_coverage": "The three M09 schedules of the correction 12 stay distinct inside the same node id (r10-published-before-timeout, r10-timeout-confirmed, r10-timeout-failed) and the group now waits for the REAL termination of the reader thread of the channel before it asserts the attached parallel facts: the publication of the outcome of the worker is not the consumption of it by the endpoint.  The interrupted-start join of N10-R09 stays driven by the facts of the thread.  Every one of these facts is NOT_RUN until the root runs the finite batch.",
+  "major_closure_claimed": false,
+  "next_owner": "root / gate owner: the independent re-review of the corrected production blobs, the pin of the new candidate and the finite batch of the 189 nodes",
+  "node_count": 189,
+  "node_identity_verified": "statically: the node ids of the five modules were extracted with the AST and compared with the frozen list of the plan of the root of the correction 12; the two lists are identical (189 = 189, same order).  No node was added, renamed, removed or moved.",
+  "node_order_is_binding": true,
+  "not_executed": [
+    "candidate import",
+    "collection",
+    "pytest",
+    "ctypes",
+    "native call",
+    "runtime probe",
+    "helper probe",
+    "service",
+    "GPU",
+    "model",
+    "network",
+    "database",
+    "media",
+    "ledger",
+    "counter",
+    "external agent"
+  ],
+  "not_proven": [
+    "native_execution",
+    "native_cleanup",
+    "gpu_released",
+    "port_released",
+    "sampler",
+    "parent_crash_recovery",
+    "windows_stdin_eof"
+  ],
+  "open_findings_repaired": [
+    "M07-A.1",
+    "M07-A.2",
+    "M07-A.3",
+    "M08-C.1",
+    "M08-C.2",
+    "M08-E"
+  ],
+  "failed_nodes_repaired": [
+    "N05-R14",
+    "N07-R13",
+    "N10-R04",
+    "N10-R05",
+    "N10-R09",
+    "N10-R10"
+  ],
+  "failed_node_causes": {
+    "N05-R14": "The channel starts its reader inside its constructor: the first frame was put before the group installed its recorder, so only one put was observed (assert 1 >= 2).  The reader of the group also returned the end of the file when its single release flag was already set.",
+    "N07-R13": "The assertion asked for no aggregate in the WHOLE table of the launcher, which is shared by the whole batch, and the refused launch keeps an empty bookkeeping owner until the bounded recovery converges it.",
+    "N10-R04": "StreamChannel.close publishes the cancel flag BEFORE it joins the reader thread.  The interruption of the start was injected immediately after the reader thread started, so the reader never reached its read, the admission refused it and the channel was released CORRECTLY: the premise of the group did not prove that a read primitive was still active.",
+    "N10-R05": "The table of the launcher holds the context that the last launch bound to it.  The published cleanup deadline of that context (999.0) was already expired in its own clock (ManualClock 1000.0), so the bounded recovery refused the retry of the raw stream before it started and the KeyboardInterrupt of the original stream never fired.",
+    "N10-R09": "_StartupOwner.await_result observes its result with a non blocking get_nowait(), which calls self.get(block=False).  The recorder of the group had the signature recording_get(timeout=None) and raised TypeError.",
+    "N10-R10": "The group waited for worker.outcome_published and then read lvw_parallel_timeout of the original error object.  The publication happens in the worker; the attachment of the parallel timeout happens later, in the endpoint, when it raises the original error object.  Waiting on the publication is not a consumption barrier."
+  },
+  "previous_candidate_sha": "025146bc41c914b870ffe991c2e0b6dd3a49c160",
+  "previous_evidence_commit": "e2d2831c852c5155d71a0d37700b8a99e640dd2d",
+  "product_gate0": false,
+  "reports": {
+    "atom_matrix": "atom-matrix.md",
+    "changed_assertions": "changed-assertions.md",
+    "node_identity": "node-identity.json",
+    "report": "report.md",
+    "source_pins": "source-pins.json",
+    "static_receipt": "static-implementation-receipt.json",
+    "validation_plan_request": "validation-plan-request.json",
+    "wait_inventory": "wait-inventory.md"
+  },
+  "scope_obeyed": {
+    "written": [
+      "tools/v0_s3_native_broker.py",
+      "tools/v0_s3_native_custody.py",
+      "tools/test_v0_s3_native_custody_regressions.py",
+      "tools/test_v0_s3_native_custody_correction05.py",
+      "tools/test_v0_s3_native_custody_correction07.py",
+      "tools/test_v0_s3_native_custody_correction10.py",
+      "reports/v0-s3/product-gate0/implementation-native-custody-correction-13/"
+    ],
+    "not_touched": [
+      "the seven pinned reports of the correction 12 and the raw evidence of its failed batch",
+      "the pre-existing modification of implementation-integration-01/report.md",
+      "the root packets, the execution control and the MANIFEST",
+      "the trusted guard, the runner and the counter of the root",
+      "every other production owner"
+    ]
+  },
+  "stage_pass_claim": false,
+  "stop_rules": {
+    "first_429": "WAIT_BUDGET: the work stops, there is no retry, no provider switch, no root takeover and no configuration bypass.",
+    "first_approval_refused_or_timed_out": "the work stops and it is never wrapped, never bypassed and never dressed up as a pass."
+  }
+}

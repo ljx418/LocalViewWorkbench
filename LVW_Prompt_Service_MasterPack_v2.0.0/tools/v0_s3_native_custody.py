@@ -786,11 +786,17 @@ class _ChannelPump(threading.Thread):
     channel with the answers of its own heartbeat.
     """
 
-    def __init__(self, broker, *, decode, clock=None, on_error=None):
+    def __init__(self, broker, *, decode, clock=None, on_error=None,
+                 context=None):
         super().__init__(daemon=True, name='lvw-native-custody-channel-pump')
         self._broker = broker
         self._decode = decode
         self._clock = clock or time.monotonic
+        # The ONE context of the round.  The pump reads the **current**
+        # absolute deadline and the **published** cleanup deadline of
+        # the round from it and it never keeps a copy of a deadline of
+        # its own.
+        self._context = context
         # The owner of the round is told about a failure of the pump.
         # A pump that died is not a silent event: the round latches its
         # unknown state and closes itself in a bounded way.
@@ -809,9 +815,34 @@ class _ChannelPump(threading.Thread):
         self._finished = threading.Event()
 
     # -- the reading ------------------------------------------------------
+    def _remaining(self):
+        """The seconds that are left until the current bound of the round.
+
+        The value is read **again** at every call: the absolute deadline
+        of the round and the **published** cleanup deadline of the round
+        are one minimum and the pump never keeps a copy of it.  ``None``
+        means that the round did not bind a deadline at all.
+        """
+        context = self._context
+        if context is None:
+            return None
+        value = context.effective_deadline()
+        if value is None:
+            return None
+        clock = getattr(context, 'clock', None) or self._clock
+        return max(0.0, value - clock())
+
     def run(self):
         try:
             while not self._stop_event.is_set():
+                remaining = self._remaining()
+                if remaining is not None and remaining <= 0:
+                    # The bound of the round arrived: the pump asks for
+                    # nothing more and it ends.  It never waits with a
+                    # lease of its own and it never spins on a round
+                    # that is over.
+                    self._eof = True
+                    break
                 raw = self._broker.read(CHANNEL_POLL_SECONDS)
                 if raw is None:
                     continue
@@ -854,7 +885,13 @@ class _ChannelPump(threading.Thread):
 
     # -- the waiting ------------------------------------------------------
     def take(self, kinds, deadline):
-        """Wait for one reply of the wanted kinds, bounded by the deadline."""
+        """Wait for one reply of the wanted kinds, bounded by the deadline.
+
+        The **original** context of the round is read **again** at the
+        moment of the wait: a deadline that was published after the
+        caller built its number shortens this wait.  A number that was
+        constructed earlier is never the authority of a wait.
+        """
         waiter = _ReplyWaiter(kinds)
         with self._lock:
             for index, reply in enumerate(self._pending):
@@ -870,7 +907,13 @@ class _ChannelPump(threading.Thread):
             if self._eof:
                 raise CustodyError('CUSTODY_CHANNEL_EOF')
             self._waiters.append(waiter)
-        remaining = deadline - self._clock()
+        limit = deadline
+        context = self._context
+        if context is not None:
+            current = context.effective_deadline()
+            if current is not None:
+                limit = current if limit is None else min(limit, current)
+        remaining = limit - self._clock()
         if not waiter.event.wait(max(0.0, remaining)):
             with self._lock:
                 if waiter in self._waiters:
@@ -1728,7 +1771,8 @@ class NativeCustodySession:
                 raise
             pump = _ChannelPump(self.broker, decode=self._decode_reply,
                                 clock=self._clock,
-                                on_error=self._on_pump_error)
+                                on_error=self._on_pump_error,
+                                context=self._context)
             # The start of the background of the round is refused when
             # the close of the round began already.  The start does not
             # raise on that refusal: it continues to the exchange of the

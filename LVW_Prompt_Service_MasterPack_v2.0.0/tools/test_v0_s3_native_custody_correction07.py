@@ -40,6 +40,7 @@ batch lives in the report directory of the batch and the runner of the
 batch is its only authorised entry.
 """
 import ast
+import hashlib
 import json
 import os
 import queue
@@ -144,10 +145,15 @@ class _CancellingEvent:
 #: batch of the correction 11 stay in the directory of the correction
 #: 11 and they are never overwritten, never deleted and never replaced
 #: by a summary.
+#: CORRECTION 13: the diagnostics of the group are written in the NEW
+#: directory of the correction 13.  The real documents of the failed
+#: batch of the correction 12 stay in the directory of the correction
+#: 12 and they are never overwritten, never deleted and never replaced
+#: by a summary.
 F5_EVIDENCE_DIR = (Path(os.environ['LVW_N1_F5_EVIDENCE_DIR'])
                    if os.environ.get('LVW_N1_F5_EVIDENCE_DIR')
                    else (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'
-                         / 'implementation-native-custody-correction-12'
+                         / 'implementation-native-custody-correction-13'
                          / 'f5-evidence'))
 
 
@@ -708,6 +714,83 @@ def test_n07_r02_the_recovery_keeps_the_handle_until_the_exit_is_confirmed():
     assert recovered.value is cancellation
     assert api.retained_handles(), 'the control handle was forgotten'
     assert kernel32.process_handle in kernel32.live
+
+    # -- N1 correction 13 (M08-C.2): the millisecond adapters of the
+    #    production **floor** their value and they never round it **up**.
+    #    A remainder that is smaller than the representable unit asks for
+    #    **no** wait at all and the exit of a process is never inferred
+    #    from a requested zero.  The four exact values - the exact zero,
+    #    a remainder below one millisecond, exactly one millisecond and
+    #    a remainder just above one millisecond - are driven through the
+    #    production adapters of the façade and of the core and the
+    #    requested arguments of the primitives are recorded.
+    recorded = []
+
+    def record_wait(kernel32, handle, timeout):
+        recorded.append(timeout)
+        return 258  # WAIT_TIMEOUT: the exit is not confirmed
+
+    kernel32 = SyntheticKernel32(
+        script={'WaitForSingleObject': record_wait})
+    table = synthetic_table(kernel32)
+    observed = []
+    for remaining, expected in ((0.0, 0), (0.0005, 0), (0.001, 1),
+                                (0.0011, 1)):
+        api = WindowsApi(table=table)
+        api.bind_deadline(1000.0 + remaining, lambda: 1000.0)
+        failures = []
+        cancellations = []
+        requested = api._wait_timeout_ms()
+        confirmed = api._confirm_process_exit(
+            kernel32.process_handle, failures, cancellations,
+            timeout_ms=requested)
+        observed.append({'remaining': remaining, 'requested': requested,
+                         'confirmed': confirmed,
+                         'failures': list(failures)})
+        assert requested == expected, \
+            'the millisecond adapter of the façade did not floor its value'
+        assert confirmed is False, \
+            'the exit of the process was inferred from a requested wait'
+    facts = {'observed': observed, 'recorded': list(recorded)}
+    _f5_write('r02-millisecond-floor', facts)
+    # A remainder that is smaller than the representable unit asks for
+    # **no** primitive call at all: there is no new positive wait.
+    assert recorded == [1, 1], \
+        'the façade asked the primitive for a wait that it did not have'
+
+    # The same boundary through the production adapter of the core: the
+    # wait of a process is cropped to the **current** cleanup deadline
+    # of the round and the exit is never inferred from a requested zero.
+    core_observed = []
+    for remaining, expected in ((0.0, 0), (0.0005, 0), (0.001, 1),
+                                (0.0011, 1)):
+        clock = ManualClock(1000.0)
+        win32 = RecordingWin32()
+        core = BrokerCore(win32=win32, plan=sealed_plan(), run_root=None,
+                          clock=clock)
+        core.context.bind_absolute_deadline(clock.value + 10.0)
+        core.cleanup_deadline(clock.value + remaining)
+        requested = core._wait_timeout_ms()
+        record = {'process_handle': 1234, 'exited': False, 'resumed': True,
+                  'role': 'PROBE'}
+        core._wait_one_process(record)
+        calls = [call for call in win32.calls if call[0] == 'wait_process']
+        core_observed.append({'remaining': remaining,
+                              'requested': requested,
+                              'calls': [call[2] for call in calls],
+                              'exited': record['exited']})
+        assert requested == expected, \
+            'the millisecond adapter of the core did not floor its value'
+        if expected == 0:
+            assert not calls, \
+                'the core asked the primitive for a wait that it did not have'
+            assert record['exited'] is False, \
+                'the exit of the process was inferred from a requested zero'
+        else:
+            assert calls and calls[0][2] == expected, \
+                'the core did not ask the primitive for the cropped wait'
+    facts = {'core': core_observed}
+    _f5_write('r02-millisecond-floor-core', facts)
 
 
 # -- N07-R03: a pipe that was handed over has exactly one owner -----------
@@ -1889,6 +1972,12 @@ def test_n07_r13_every_side_effect_checks_the_shared_context(tmp_path):
     # The published cleanup of the round is part of the effective
     # minimum of the launch: a round whose cleanup expired may not
     # create a process any more.
+    # The **own** owner of this launch: the table of the launcher is
+    # shared by every launch of the batch and a launch that another
+    # check of the batch retained is never confused with the resources
+    # of this one.  The baseline is taken **before** this launch.
+    before = {id(item['resource']) for item in _launcher_custody_items()
+              if item['kind'] == 'aggregate'}
     context = _RoundContext(clock=ManualClock(1000.0))
     context.bind_absolute_deadline(1100.0)
     context.cleanup_deadline(999.0)
@@ -1898,17 +1987,139 @@ def test_n07_r13_every_side_effect_checks_the_shared_context(tmp_path):
         with pytest.raises(BrokerError) as info:
             broker_module.launch_broker(sealed_plan(), tmp_path, 'a' * 32,
                                         context=context)
-    facts = {'code': info.value.code, 'popen': observations['popen']}
+    own = [item for item in _launcher_custody_items()
+           if item['kind'] == 'aggregate'
+           and id(item['resource']) not in before]
+    owner = own[0]['resource'] if own else None
+    facts = {'code': info.value.code, 'popen': observations['popen'],
+             'own_owners': len(own),
+             'owner_process': bool(owner is not None
+                                   and owner.process is not None),
+             'owner_channel': bool(owner is not None
+                                   and owner.channel is not None),
+             'owner_raw': len(owner.raw_streams) if owner is not None else None}
     _f5_write('r13-launch-cleanup', facts)
     assert info.value.code == 'BROKER_STARTUP_DEADLINE_EXCEEDED'
     assert observations['popen'] == 0, \
         'the launch created a process after the cleanup of the round expired'
-    # The table of the launcher is clean again: the launch that was
-    # refused never created a process and it kept no resource.
+    # The refused launch of **this** check kept exactly one owner and
+    # that owner is an **empty** bookkeeping owner: no process, no
+    # channel and no raw stream of it exists.
+    assert len(own) == 1, \
+        'the refused launch did not keep exactly one owner of its own'
+    assert owner.process is None, \
+        'the refused launch kept a process of its own'
+    assert owner.channel is None, \
+        'the refused launch kept a channel of its own'
+    assert owner.raw_streams == [], \
+        'the refused launch kept a raw stream of its own'
+    # The empty owner of **this** launch converges: the bounded
+    # recovery of the launcher removes it and it never touches the
+    # launches that another check of the batch retained.
     release_retained_launches()
     assert not [item for item in _launcher_custody_items()
-                if item['kind'] == 'aggregate'], \
-        'the refused launch kept an owner in the table of the launcher'
+                if item['kind'] == 'aggregate'
+                and item['resource'] is owner], \
+        'the refused launch kept its owner in the table of the launcher'
+
+    # -- N1 correction 13 (M08-E): the **public stop** of the round
+    #    refuses the **next** distinct effect of the launch.  The stop
+    #    is published while the hash of the executable of the launch is
+    #    really in flight and the channel of the round is never built.
+    #    The process that was already admitted is **not** undone: it
+    #    keeps its owner in the table of the launcher and it stays
+    #    reachable and recoverable by the recovery of the launcher.
+    hash_paused = threading.Event()
+    hash_release = threading.Event()
+    hash_calls = []
+
+    class _HashView:
+        """A view of the module hashlib that pauses inside the digest."""
+
+        def sha256(self, *args, **kwargs):
+            hash_calls.append(1)
+            hash_paused.set()
+            hash_release.wait(20.0)
+            return hashlib.sha256(*args, **kwargs)
+
+        def __getattr__(self, item):
+            return getattr(hashlib, item)
+
+    before = {id(item['resource']) for item in _launcher_custody_items()
+              if item['kind'] == 'aggregate'}
+    stopped = NativeCustodySession(plan=document,
+                                   run_root=tmp_path / 'stop-during-hash',
+                                   parent_child_remaining_seconds=21600,
+                                   launcher=None, clock=time.monotonic,
+                                   wall=time.time, nonce='a' * 32)
+    with unittest.mock.patch.object(broker_module, 'os', _OsView()), \
+            unittest.mock.patch.object(broker_module, 'subprocess',
+                                       _SubprocessView()), \
+            unittest.mock.patch.object(broker_module, 'hashlib', _HashView()):
+        starter = threading.Thread(target=stopped.start)
+        starter.start()
+        try:
+            assert hash_paused.wait(15.0), \
+                'the hash of the executable of the launch never ran'
+            # The **public stop** of the round is published while the
+            # hash of the executable is really in flight.
+            stopped.stop()
+            hash_release.set()
+            starter.join(20.0)
+            assert not starter.is_alive(), 'the launch was left behind'
+        finally:
+            hash_release.set()
+            starter.join(20.0)
+    own = [item for item in _launcher_custody_items()
+           if item['kind'] == 'aggregate'
+           and id(item['resource']) not in before]
+    owner = own[0]['resource'] if own else None
+    facts = {'hash_calls': len(hash_calls), 'own_owners': len(own),
+             'owner_channel': bool(owner is not None
+                                   and owner.channel is not None),
+             'owner_process': bool(owner is not None
+                                   and owner.process is not None),
+             'failures': list(stopped.evidence()['failures'])}
+    _f5_write('r13-launch-stop-during-hash', facts)
+    assert len(hash_calls) == 1, \
+        'the hash of the executable of the launch did not run exactly once'
+    assert len(own) == 1, \
+        'the refused launch did not keep exactly one owner of its own'
+    # The **next** distinct effect of the launch was refused: the
+    # channel of the round was never built.
+    assert owner.channel is None, \
+        'the launch built a channel after the public stop of the round'
+    # The process of the round was already admitted and it keeps its
+    # owner: the launch never pretends to undo it and it never skips
+    # the registration of its original resource.
+    assert owner.process is not None, \
+        'the admitted process of the round lost its owner'
+    owned = [item for item in _launcher_custody_items()
+             if item['kind'] == 'process'
+             and item['resource'] is owner.process]
+    assert owned, \
+        'the admitted process of the round is not in the table of the launcher'
+    # The process of the round is reachable and recoverable: the
+    # bounded recovery of the launcher releases it and the owner of the
+    # launch converges.
+    report = release_retained_launches()
+    facts = {'report': report,
+             'owned': len([item for item in _launcher_custody_items()
+                           if item['kind'] == 'aggregate'
+                           and item['resource'] is owner])}
+    _f5_write('r13-launch-stop-during-hash-recovery', facts)
+    assert not [item for item in _launcher_custody_items()
+                if item['kind'] == 'aggregate'
+                and item['resource'] is owner], \
+        'the refused launch kept its owner in the table of the launcher'
+    # The table of the launcher is bound to a **current** context of the
+    # round after this subcase: the published cleanup deadline of the
+    # round that was stopped above must not refuse the recovery of a
+    # later check of the batch.  The production binding is used and the
+    # table of the launcher is never emptied by hand.
+    current = _RoundContext(clock=time.monotonic)
+    current.bind_absolute_deadline(time.monotonic() + 3600.0)
+    broker_module._LAUNCHER_CUSTODY.bind_context(current)
 
 
 # -- N07-R14: the startup owner releases its owner after the real exit -----
