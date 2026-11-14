@@ -1,0 +1,147 @@
+{
+ "artifacts": {
+  "design-receipt.json": {
+   "bytes": 39538,
+   "lines": 322,
+   "sha256": "700903d5804228d4f88d1c83aa0630430481967093f7d07b2773e58788320161"
+  },
+  "design.md": {
+   "bytes": 81001,
+   "lines": 1285,
+   "sha256": "c92f3408768abccff18fd619e2e7d1789d60b0af0adcaef020990ae9c5cd3fb7"
+  },
+  "node-identity.json": {
+   "bytes": 49566,
+   "lines": 1581,
+   "sha256": "50df2f5e3ce073b738a1036566b65ccff09a22b90d9180022c386166154e4cd5"
+  },
+  "node_identity.py": {
+   "bytes": 2802,
+   "lines": 79,
+   "sha256": "20f3e847720775ff016414849b88777b3e638e7df9a7e276a553a3a1d1066313"
+  },
+  "report.md": {
+   "bytes": 23684,
+   "lines": 247,
+   "sha256": "aba85c5910fcf07ba3d2c6c3e5c3cd5917b8505c485ff2db4557cbfa19c14949"
+  },
+  "source-pins.json": {
+   "bytes": 2974,
+   "lines": 107,
+   "sha256": "c2b24aee32541838a1ec14cc7539246c12a5860b92539788aebf5eaa5d0bd92b"
+  },
+  "source_pins.py": {
+   "bytes": 2061,
+   "lines": 63,
+   "sha256": "c35e438eb5137fe2ada4117d0fbb0793008564e525496cc8eecf3bff046199d0"
+  },
+  "static-checks.json": {
+   "bytes": 11343,
+   "lines": 472,
+   "sha256": "6d77deb778b9d5c58a888a1f0435c2aaf4c26eecad2114ff265447943dfaf01f"
+  },
+  "static_checks.py": {
+   "bytes": 12956,
+   "lines": 314,
+   "sha256": "5e8d1c933d3f83b629edb48cd986a5ad3415b54f057ffa1d84785ee3e897cf59"
+  },
+  "validation-plan-request.json": {
+   "bytes": 29927,
+   "lines": 337,
+   "sha256": "2454e07f0d5acdf2779982e02a2cac4339472da7dcb1b427907e843dc71f9252"
+  },
+  "validation_plan_request.py": {
+   "bytes": 9449,
+   "lines": 199,
+   "sha256": "d730da8fa04f7686d0a00cceb4336d7851099422a7ff665396348020a997a915"
+  }
+ },
+ "candidate_base_sha": "4dafa1f316242d8bd348b81c52f375aa37254754",
+ "candidate_module": {
+  "after": {
+   "bytes": 320952,
+   "lines": 6424,
+   "sha256": "5495799f8c2d92f1f7fe78886fb87629057806fb37ad03b85fabe0171a07d43c"
+  },
+  "before": {
+   "bytes": 263082,
+   "lines": 5371,
+   "sha256": "3c1c89e660cf79f1d51b5153de457aa6089d69d077db5d1d9b576f965659b74a"
+  },
+  "path": "tools/test_v0_s3_native_custody_correction10.py"
+ },
+ "candidate_sha": "5495799f8c2d92f1f7fe78886fb87629057806fb37ad03b85fabe0171a07d43c",
+ "candidate_sha_note": "the sha256 of the candidate module tools/test_v0_s3_native_custody_correction10.py in the committed candidate; the sha of the commit is frozen by the root",
+ "changed_files": [
+  "tools/test_v0_s3_native_custody_correction10.py"
+ ],
+ "coordinate": "V1/R1/WP-R1-U3/S3_P4",
+ "denominator": {
+  "changed": false,
+  "count": 189,
+  "frozen_order": true,
+  "unique": 189
+ },
+ "design": {
+  "addendum": "the correction addendum of the root review D1-D5 (design.md section 10) is authoritative over the sections it supersedes",
+  "approved_by_root": true,
+  "file": "reports/v0-s3/product-gate0/implementation-native-custody-correction-17/design.md"
+ },
+ "execution_audit": {
+  "429_or_approval_refusal": false,
+  "candidate_collect": false,
+  "candidate_executed": false,
+  "candidate_import": false,
+  "ctypes": false,
+  "ledger_counter": false,
+  "media_db": false,
+  "methods_used": [
+   "text reads of the seven sources of the denominator",
+   "ast.parse of the five test modules and of the two production sources",
+   "symtable of the edited module (the global names that it reads)",
+   "in-memory compile of the edited module",
+   "sha256 of the sources and of the artifacts",
+   "read-only git show of the baseline blobs"
+  ],
+  "model_gpu": false,
+  "native_call": false,
+  "os_business_process": false,
+  "pytest": false,
+  "runtime_probe": false,
+  "service_network": false
+ },
+ "kind": "lvw.s3-native-custody-correction17-static-implementation-receipt/1",
+ "non_claims": {
+  "candidate_executed": false,
+  "dynamic15": "NOT_RUN",
+  "dynamic16": "NOT_RUN",
+  "human_signoff": false,
+  "major_closure_claimed": false,
+  "native": "NOT_PROVEN",
+  "product_acceptance": false,
+  "runtime_plan_acked": false,
+  "stage_pass": false
+ },
+ "static_checks": {
+  "failed": 0,
+  "file": "reports/v0-s3/product-gate0/implementation-native-custody-correction-17/static-checks.json",
+  "ok": true,
+  "total": 93
+ },
+ "unchanged_files": [
+  "tools/v0_s3_native_broker.py",
+  "tools/v0_s3_native_custody.py",
+  "tools/test_v0_s3_native_custody.py",
+  "tools/test_v0_s3_native_custody_regressions.py",
+  "tools/test_v0_s3_native_custody_correction05.py",
+  "tools/test_v0_s3_native_custody_correction07.py"
+ ],
+ "validation_plan_request": {
+  "batches_max": 1,
+  "commands": 3,
+  "file": "reports/v0-s3/product-gate0/implementation-native-custody-correction-17/validation-plan-request.json",
+  "max_seconds": 300,
+  "node_count": 189,
+  "requested_not_executed": true
+ }
+}
