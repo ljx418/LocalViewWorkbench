@@ -1,0 +1,84 @@
+{
+  "status": "PRELIMINARY_READ_ONLY_INTAKE_AUTHOR_TERMINAL_REPORT_PENDING",
+  "candidate_sha": "66600a1bd692c0149fc7724b624997bf2f40dcc1",
+  "calls": 175,
+  "pass": 174,
+  "fail": 1,
+  "skip": 0,
+  "cleanup_proven_for_batch": true,
+  "failed_nodes": [
+    "tools/test_v0_s3_native_custody_correction07.py::test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner"
+  ],
+  "f5_facts": {
+    "f5-close-cancellation.json": {
+      "phase": "close-cancellation",
+      "broker_retained": false,
+      "channel_reader_error": null,
+      "close_cancellation": {
+        "code": "BROKER_PIPE_CANCELLED",
+        "error_type": "BrokerError",
+        "sequence": 1,
+        "source": "CHANNEL_CLOSE"
+      },
+      "channel_retained_workers": 0
+    },
+    "f5-first.json": {
+      "phase": "first",
+      "broker_retained": true,
+      "channel_reader_error": null,
+      "close_cancellation": {
+        "code": "BROKER_PIPE_CANCELLED",
+        "error_type": "BrokerError",
+        "sequence": 1,
+        "source": "CHANNEL_CLOSE"
+      },
+      "channel_retained_workers": 1
+    },
+    "f5-salvage.json": {
+      "phase": "salvage",
+      "broker_retained": false,
+      "channel_reader_error": null,
+      "close_cancellation": {
+        "code": "BROKER_PIPE_CANCELLED",
+        "error_type": "BrokerError",
+        "sequence": 1,
+        "source": "CHANNEL_CLOSE"
+      },
+      "channel_retained_workers": 0
+    },
+    "f5-second.json": {
+      "phase": "second",
+      "broker_retained": false,
+      "channel_reader_error": null,
+      "close_cancellation": {
+        "code": "BROKER_PIPE_CANCELLED",
+        "error_type": "BrokerError",
+        "sequence": 1,
+        "source": "CHANNEL_CLOSE"
+      },
+      "channel_retained_workers": 0
+    },
+    "f5-unrelated-cancellation.json": {
+      "phase": "unrelated-cancellation",
+      "broker_retained": false,
+      "channel_reader_error": null,
+      "close_cancellation": {
+        "code": "BROKER_PIPE_CANCELLED",
+        "error_type": "BrokerError",
+        "sequence": 1,
+        "source": "CHANNEL_CLOSE"
+      },
+      "channel_retained_workers": 0
+    }
+  },
+  "known_setup_gap": "Test starts unrelated-owner thread but does not wait for its cancel publication before public stop; evidence CHANNEL_CLOSE does not prove external cancel preceded close",
+  "failure_classification": "NOT_FINAL_NO_PRODUCTION_FAULT_CONCLUSION_FROM_THIS_ORDERING",
+  "unreached_subscenarios": [
+    "unrelated cancellation second stop",
+    "ordinary read fault first/second",
+    "partial frame first/second"
+  ],
+  "new_dynamic_authorization": false,
+  "new_candidate_changes_authorized": false,
+  "stage_pass_claim": false
+}
