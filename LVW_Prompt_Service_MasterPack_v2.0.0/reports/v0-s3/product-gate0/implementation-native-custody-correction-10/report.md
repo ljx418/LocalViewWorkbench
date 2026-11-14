@@ -231,6 +231,38 @@ carries are two and they are small:
   of the launch in the dependency order - the channel before the
   process.
 
+## 6.1 The seam that the root authorised for the seventh group
+
+The root answered the specific question of this owner: an **in-process
+fake** that replaces the callable ``subprocess.Popen`` is permitted for
+the offline seventh group and it is the required way to drive the
+**actual** ``default_launcher`` -> ``launch_broker`` path of the
+production.  The fake never calls the original ``Popen`` and it never
+starts an operating system process or an audit event.
+
+The seventh group therefore drives the production launcher of the round
+with four **scoped** views that are bound to the namespace of the broker
+module and that are restored in the ``finally``:
+
+| the seam | what it replaces | what stays production |
+|---|---|---|
+| the creation of the process | the callable ``subprocess.Popen`` | the production ``launch_broker``, the aggregate, the channel and the handover of the handle of the broker |
+| the platform of the round | the view of the module ``os`` **inside the broker module only** (the host keeps the real platform and the guard keeps its own view) | the production refusal of the platform stays in the source and it is only not taken on this host |
+| the executable of the round | the view of the module ``sys`` **inside the broker module only**; the executable is a **bound synthetic fixture** of the round (a local file with known bytes) | the production command builder and the production hash of the executable |
+| the endpoints of the channel | the factory of the endpoints **inside the broker module only** | the production Windows endpoint with the synthetic primitives of the round |
+
+The group observes the state of the launch **at the moment of the
+creation of the process**: the aggregate of the launch is already with
+its owner and the context of the launch is already **the context of the
+session** (the original object, not a copy).  The same context is then
+observed in the channel, in its two endpoints and in the handle of the
+broker, and the hash of the executable is the hash of the bound
+synthetic fixture.
+
+The native claims stay `NOT_PROVEN`: no operating system process, no
+Windows API, no job object, no GPU, no service, no socket, no
+database, no network and no media were used or allowed.
+
 ## 7. The ten fields
 
 | Field | Value |

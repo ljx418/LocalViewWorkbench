@@ -51,6 +51,7 @@ batch lives in the report directory of the batch and the runner of the
 batch is its only authorised entry.
 """
 import ast
+import hashlib
 import json
 import os
 import queue
@@ -75,7 +76,7 @@ from tools.v0_s3_native_broker import (  # noqa: E402 - the path is set above
 from tools.v0_s3_native_custody import (  # noqa: E402 - the path is set above
     CHANNEL_SCHEMA, NativeCustodySession, validate_launch_plan)
 from tools.test_v0_s3_native_custody_correction07 import (  # noqa: E402
-    _FakeFile, _F5Api, _F5ExternalCancelOwner, _f5_build_chain)
+    _FakeFile, _F5Api, _F5ExternalCancelOwner, _f5_build_chain, _reply_bytes)
 from tools.test_v0_s3_native_custody_regressions import (  # noqa: E402
     ManualClock, RecordingWin32, SyntheticKernel32, plan_document, sealed_plan,
     synthetic_table)
@@ -843,175 +844,275 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
     the join of the reader - uses the earlier of the lease and the
     cleanup: there is no unbound window and no new budget of its own.
 
+    The group drives the **production** launcher of the round: the
+    default launcher of the session calls the production ``launch_broker``
+    and the only seam that is replaced is the creation of the process:
+    an in-process fake of ``subprocess.Popen`` that never calls the
+    original and that never starts an operating system process.  The
+    executable that is hashed is a **bound synthetic fixture** of the
+    round and the endpoints of the channel are the production Windows
+    endpoints with the synthetic primitives of the round.
+
     Entry: ``NativeCustodySession._call_launcher``,
-    ``NativeCustodySession.start``, ``launch_broker``,
-    ``_LaunchAggregate``, ``StreamChannel``, ``_WindowsPipeEndpoint``,
-    ``_WindowsPipeWorker``, ``WindowsApi.bind_context``,
-    ``BrokerCore.__init__`` and ``BrokerLoop._stop``.  Trigger: the
-    round publishes its cleanup deadline and the terminal reply is
-    written.  Oracle: every layer of the parent and of the child reads
-    the context and the published cleanup deadline.  Negative: no layer
-    keeps a deadline of its own.  Returned state: the evidence of the
-    session names the propagation of the context.  Salvage: the owner of
-    the test closes the channel that it built.
+    ``NativeCustodySession.start``, ``_default_launcher``,
+    ``launch_broker``, ``_LaunchAggregate``, ``StreamChannel``,
+    ``_WindowsPipeEndpoint``, ``_WindowsPipeWorker``,
+    ``WindowsApi.bind_context``, ``BrokerCore.__init__`` and
+    ``BrokerLoop._stop``.  Trigger: the round publishes its cleanup
+    deadline and the terminal reply is written.  Oracle: the context of
+    the session was already the context of the round when the process
+    was created, when the executable was hashed and when the channel and
+    its endpoints were built; every layer of the child reads the
+    published cleanup deadline.  Negative: no layer keeps a deadline of
+    its own.  Returned state: the evidence of the session names the
+    propagation of the context.  Salvage: the owner of the test closes
+    the round in every case.
     """
     document = _live_plan_document()
     plan = validate_launch_plan(document, now=time.time())
     clock = ManualClock(1000.0)
-    seen = {}
+    observations = {'events': []}
 
-    class Peer:
-        """A peer of the round that answers the two frames of the start."""
-
-        pid = 4242
-        executable = 'C:/python.exe'
-        executable_sha256 = 'a' * 64
-        reader_finished = True
-        channel_deadline_aware = True
+    class Api:
+        """The synthetic primitives of the round."""
 
         def __init__(self):
-            self.inbound = queue.Queue()
-            self._sequence = 0
-            for kind in ('READY', 'STATUS'):
-                self._emit(kind, 'ARMED' if kind == 'READY' else 'RUNNING')
+            self.lock = threading.Lock()
+            self.frames = []
+            self.thread_handles = []
+            self.next_handle = 900
+            # The explicit notification that the round published a
+            # frame: the reader of the round waits for it and it never
+            # ends the stream on a timeout.
+            self.frames_ready = threading.Event()
+            self.final = b''
 
-        def _emit(self, kind, state):
-            self._sequence += 1
-            self.inbound.put(json.dumps(
-                {'schema': CHANNEL_SCHEMA, 'kind': kind,
-                 'run_id': plan.run_id, 'candidate_sha': plan.candidate_sha,
-                 'authorization_sha256': plan.authorization_sha256,
-                 'nonce': NONCE, 'sequence': self._sequence,
-                 'state': state, 'detail': {}}, ensure_ascii=False,
-                sort_keys=True, separators=(',', ':')).encode('utf-8') + b'\n')
+        def duplicate_current_thread_handle(self):
+            with self.lock:
+                self.next_handle += 1
+                self.thread_handles.append(self.next_handle)
+                return self.next_handle
 
-        def bind_channel_deadline(self, deadline):
-            return deadline
+        def cancel_synchronous_io(self, handle):
+            return 'REQUESTED'
 
-        def write(self, raw, deadline=None):
-            # The stop of the round is answered by the **terminal**
-            # frame of the round and by nothing else.
-            try:
-                command = json.loads(raw.decode('utf-8')).get('command')
-            except Exception:  # noqa: BLE001 - the failure stays visible
-                command = None
-            if command == 'STOP':
-                self._emit('STOPPED', 'RELEASED')
+        def close_handle(self, handle):
             return None
 
-        def read(self, timeout):
-            try:
-                return self.inbound.get(timeout=timeout)
-            except queue.Empty:
-                return None
+        def read_stream(self, handle, size):
+            with self.lock:
+                if self.frames:
+                    return self.frames.pop(0)
+            # The reader of the round waits for the explicit frame of
+            # the round; the wait is bounded and it never decides the
+            # end of the stream.
+            self.frames_ready.wait(30.0)
+            with self.lock:
+                if self.frames:
+                    return self.frames.pop(0)
+            return b''
+
+        def write_stream(self, handle, data):
+            # The terminal frame of the round is published by the write
+            # of the stop and by nothing else.
+            with self.lock:
+                final = self.final
+                self.final = b''
+            if final:
+                with self.lock:
+                    self.frames.append(final)
+                self.frames_ready.set()
+            return len(data)
+
+    api = Api()
+    api.frames = [_reply_bytes('READY', 'ARMED', {}, plan, NONCE, 1),
+                  _reply_bytes('STATUS', 'RUNNING', {}, plan, NONCE, 2)]
+    api.final = _reply_bytes('STOPPED', 'RELEASED', {}, plan, NONCE, 3)
+
+    class FakeFile:
+        """A file of the round that counts its own closes."""
+
+        def __init__(self, name):
+            self.name = name
+            self.closes = 0
 
         def close(self):
-            return {'channel_closed': True, 'channel_reader_finished': True,
-                    'channel_reader_error': None, 'close_cancellation': None,
-                    'channel_retained_workers': 0, 'write_end_closed': True,
-                    'read_end_closed': True, 'stdin_closed': True,
-                    'stdout_closed': True, 'process_exited': True,
-                    'exit_code': 0, 'terminated': False,
-                    'process_handle_released': True,
-                    'process_handle_release_method': 'POSIX_PROCESS_EXIT',
-                    'worker_thread_handle_released': True,
-                    'cleanup_budget_seconds': 1.0,
-                    'cleanup_deadline': 1005.0}
+            self.closes += 1
+            return True
 
-    peer = Peer()
+    class FakeHandle:
+        """The original handle of the process of the round."""
 
-    def launcher(plan_, run_root_, nonce_, *, context=None):
-        # The launcher of the production path accepts the context and it
-        # holds it **before** the first side effect of the launch: the
-        # deadline of the round is already bound when the launcher is
-        # entered.
-        seen['context'] = context
-        seen['deadline'] = None if context is None else context.absolute_deadline
-        return peer
+        def __init__(self):
+            self.closed = 0
 
+        def Close(self):
+            self.closed += 1
+            return True
+
+    class FakeProcess:
+        """The process of the round: it is never an operating system one."""
+
+        pid = 4242
+        returncode = 0
+
+        def __init__(self):
+            self.stdin = FakeFile('stdin')
+            self.stdout = FakeFile('stdout')
+            self.stderr = FakeFile('stderr')
+            self._handle = FakeHandle()
+            self.terminated = 0
+            self.waited = 0
+
+        def wait(self, timeout=None):
+            self.waited += 1
+            return 0
+
+        def terminate(self):
+            self.terminated += 1
+            return None
+
+    # The bound synthetic executable of the round: a local file whose
+    # bytes are the bytes that the launcher hashes.  No arbitrary path
+    # and no network is ever read.
+    synthetic_executable = tmp_path / 'synthetic-python.exe'
+    synthetic_executable.write_bytes(b'# the synthetic executable of the round\n')
+    synthetic_digest = hashlib.sha256(
+        synthetic_executable.read_bytes()).hexdigest()
+
+    def fake_popen(command, **kwargs):
+        """The in-process seam of the creation of the process.
+
+        The fake never calls the original ``Popen`` and it never
+        starts an operating system process.  It observes the state of
+        the launch **at the moment of the creation of the process**: the
+        aggregate of the launch is already with its owner and the
+        context of the launch is already the context of the session.
+        """
+        observations['events'].append('popen')
+        observations['command'] = list(command)
+        aggregates = [item['resource'] for item in _launcher_custody_items()
+                      if item['kind'] == 'aggregate']
+        observations['aggregate_at_popen'] = aggregates[-1] if aggregates else None
+        observations['context_at_popen'] = (aggregates[-1].context
+                                           if aggregates else None)
+        return FakeProcess()
+
+    class _OsView:
+        """A view of the module os that reports the platform of the round.
+
+        The view is bound to the **module of the broker** and it never
+        changes the module os of the host: the guard of the batch and
+        every other owner of the host keep the real platform.
+        """
+
+        name = 'nt'
+
+        def __getattr__(self, item):
+            return getattr(os, item)
+
+    class _SubprocessView:
+        """A view of the module subprocess whose Popen is the fake."""
+
+        def Popen(self, command, **kwargs):
+            return fake_popen(command, **kwargs)
+
+        def __getattr__(self, item):
+            return getattr(subprocess, item)
+
+    class _SysView:
+        """A view of the module sys that names the synthetic executable."""
+
+        executable = str(synthetic_executable)
+
+        def __getattr__(self, item):
+            return getattr(sys, item)
+
+    handles = {'next': 900}
+
+    def fake_make_endpoint(file_object, name, *, api=None, clock=None,
+                           context=None):
+        """The endpoints of the round: the production ones.
+
+        The endpoint is the production Windows endpoint and the only
+        thing that is injected is the **synthetic primitive table** of
+        the round: no native library is loaded and no operating system
+        call is made.
+        """
+        handles['next'] += 1
+        return _WindowsPipeEndpoint(file_object=file_object, name=name,
+                                    api=api if api is not None else api_table,
+                                    clock=clock,
+                                    handle=handles['next'], context=context)
+
+    api_table = api
     session = NativeCustodySession(plan=document, run_root=tmp_path,
                                    parent_child_remaining_seconds=21600,
-                                   launcher=launcher, clock=clock,
+                                   launcher=None, clock=clock,
                                    wall=time.time, nonce=NONCE)
     try:
-        session.start()
-        facts = {'context_is_the_session_context':
-                 seen.get('context') is session._context,
-                 'deadline_at_the_launcher': seen.get('deadline'),
-                 'propagated': session.evidence()['launcher_context_propagated']}
-        write_phase('r07-session', facts)
-        assert seen.get('context') is session._context, \
-            'the launcher did not receive the context of the session'
-        assert seen.get('deadline') is not None, \
-            'the launcher had no deadline before the first side effect'
-        assert session.evidence()['launcher_context_propagated'] is True
-
-        # -- the launcher: the aggregate, the channel and the handle of
-        #    the broker hold the context before any side effect -------
-        context = _RoundContext(clock=clock)
-        context.bind_absolute_deadline(2000.0)
-        custody = _LauncherCustody()
-        aggregate = _LaunchAggregate(custody=custody, context=context)
-        aggregate.bind_context(context)
-
-        class Api:
-            def duplicate_current_thread_handle(self):
-                return 701
-
-            def cancel_synchronous_io(self, handle):
-                return 'REQUESTED'
-
-            def close_handle(self, handle):
-                return None
-
-            def read_stream(self, handle, size):
-                return b''
-
-            def write_stream(self, handle, data):
-                return len(data)
-
-        class Process:
-            pid = 4242
-            returncode = None
-
-            def __init__(self):
-                self.stdin = _FakeFile('stdin')
-                self.stdout = _FakeFile('stdout')
-
-        process = Process()
-        channel = StreamChannel(process.stdout, process.stdin,
-                                custody=aggregate, context=context)
-        broker = BrokerProcess(process, 'C:/python.exe', 'a' * 64, channel,
-                               context=aggregate.context)
-        facts = {'aggregate': aggregate.context is context,
-                 'channel': channel._context is context,
-                 'reader_endpoint': channel._reader._context is context,
-                 'writer_endpoint': channel._writer._context is context,
-                 'broker': broker._context is context}
+        # -- the parent: the PRODUCTION default launcher and the
+        #    PRODUCTION launch_broker, with the creation of the process
+        #    replaced by the in-process fake -------------------------
+        with unittest.mock.patch.object(broker_module, 'os', _OsView()), \
+             unittest.mock.patch.object(broker_module, 'subprocess',
+                                        _SubprocessView()), \
+             unittest.mock.patch.object(broker_module, 'sys', _SysView()), \
+             unittest.mock.patch.object(broker_module, '_make_endpoint',
+                                        fake_make_endpoint):
+            session.start()
+        facts = {'context_at_popen':
+                 observations['context_at_popen'] is session._context,
+                 'command': observations.get('command'),
+                 'executable_sha256': getattr(session.broker,
+                                              'executable_sha256', None),
+                 'channel_context':
+                 session.broker._channel._context is session._context,
+                 'reader_context':
+                 session.broker._channel._reader._context is session._context,
+                 'writer_context':
+                 session.broker._channel._writer._context is session._context,
+                 'broker_context':
+                 session.broker._context is session._context,
+                 'events': list(observations['events'])}
         write_phase('r07-launcher', facts)
-        assert aggregate.context is context
-        assert channel._context is context
-        assert channel._reader._context is context
-        assert channel._writer._context is context
-        assert broker._context is context
+        # The context of the round was **already** the context of the
+        # session when the process of the round was created.
+        assert observations.get('context_at_popen') is session._context, \
+            'the launcher did not hold the context of the session before ' \
+            'the creation of the process'
+        # The executable that was hashed is the bound synthetic fixture
+        # of the round and the hash is the one that the round carries.
+        assert observations.get('command', [None])[0] \
+            == str(synthetic_executable), \
+            'the launcher did not use the bound synthetic executable'
+        assert session.broker.executable_sha256 == synthetic_digest, \
+            'the launcher did not hash the bound synthetic executable'
+        # The channel of the launch and its endpoints carry the same
+        # context.
+        assert session.broker._channel._context is session._context
+        assert session.broker._channel._reader._context is session._context
+        assert session.broker._channel._writer._context is session._context
+        assert session.broker._context is session._context
+        assert session.evidence()['launcher_context_propagated'] is True
 
         # -- the child: the core, the loop and the transport share one
         #    context and the cleanup deadline of the round -----------
         kernel32 = SyntheticKernel32()
-        api = WindowsApi(table=synthetic_table(kernel32))
-        child = BrokerCore(win32=api, plan=sealed_plan(), run_root=tmp_path,
-                           clock=clock)
-        assert api._context is child.context, \
+        windows = WindowsApi(table=synthetic_table(kernel32))
+        child = BrokerCore(win32=windows, plan=sealed_plan(),
+                           run_root=tmp_path, clock=clock)
+        assert windows._context is child.context, \
             'the facade of the primitives has no context of the round'
         child.bind_absolute_deadline(2000.0)
         transport = StreamChannel(
             None, None,
             read_endpoint=_WindowsPipeEndpoint(
                 file_object=_FakeFile('read'), name='transport-read',
-                api=Api(), clock=clock, handle=910, context=child.context),
+                api=api, clock=clock, handle=920, context=child.context),
             write_endpoint=_WindowsPipeEndpoint(
                 file_object=_FakeFile('write'), name='transport-write',
-                api=Api(), clock=clock, handle=911, context=child.context),
+                api=api, clock=clock, handle=921, context=child.context),
             clock=clock, context=child.context)
         transport.bind_deadline(2000.0)
         loop = BrokerLoop(core=child, transport=transport, plan=child.plan,
@@ -1026,7 +1127,7 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                  'write_endpoint': transport._writer._effective_deadline(),
                  'write_deadline': transport._writer._write_deadline,
                  'read_endpoint': transport._reader._effective_deadline(),
-                 'api': api._effective_deadline()}
+                 'api': windows._effective_deadline()}
         write_phase('r07-child', facts)
         assert cleanup is not None, 'the round published no cleanup deadline'
         assert transport._effective_deadline() == cleanup, \
@@ -1037,11 +1138,14 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
             'the partial write of the transport kept the long lease'
         assert transport._reader._effective_deadline() == cleanup, \
             'the join of the reader kept the long lease'
-        assert api._effective_deadline() == cleanup, \
+        assert windows._effective_deadline() == cleanup, \
             'the facade of the primitives kept the long lease'
         transport.close()
     finally:
-        session.stop()
+        try:
+            session.stop()
+        except Exception:  # noqa: BLE001 - the evidence keeps the failure
+            pass
 
 
 # -- N10-R08: the retry of a cancellation re-reads the context ------------

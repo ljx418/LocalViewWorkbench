@@ -30,16 +30,16 @@
    "sha256": "35f6c5b0d7c52ab5f7925028571a8084a387317bf21165ebef2e95393655df72"
   },
   "reports/v0-s3/product-gate0/implementation-native-custody-correction-10/report.md": {
-   "bytes": 29342,
-   "sha256": "12ee992241585484478f0dcb23b49a0488b4cd9505a41e992a0f6510db7d3830"
+   "bytes": 31576,
+   "sha256": "2876a62f774f773a3dc3c197d4d22fd67889e1ce00e1cca8e78a45c185028152"
   },
   "tools/test_v0_s3_native_custody_correction07.py": {
    "bytes": 109925,
    "sha256": "6e1485bbac593b1c55ab847729e1c8ef9e1dac1c685924edc333bd10b4f6ca79"
   },
   "tools/test_v0_s3_native_custody_correction10.py": {
-   "bytes": 79463,
-   "sha256": "da8ae17a2287e12a62ef61bf05987d902a3d65c358de4c1c58ef84689fb77317"
+   "bytes": 83715,
+   "sha256": "9cd3138a8810aa2a0e4bd023014755bae4ce1f02103a894a32c0392682031fee"
   },
   "tools/v0_s3_native_broker.py": {
    "bytes": 312923,
@@ -135,9 +135,22 @@
   "section_of_the_report": "section 6: the correction of the preflight review of the root"
  },
  "production_baseline": "66600a1bd692c0149fc7724b624997bf2f40dcc1",
+ "production_changes_beyond_6327bea": "NONE: the correction of this candidate changes the test module and the report only",
  "role": "claude_code_main_implementer",
  "role_note": "the implementation owner of this workpack: Claude Code with the MiniMax model, the role \"\u4e3b\u5b9e\u73b0\u8d1f\u8d23\u4eba\" of .agent-governance/roles.md. It is NOT the role of the gate owner and it signs no Major.",
  "root_package": "reports/v0-s3/product-gate0/native-custody-correction-10",
+ "seam_authorisation": {
+  "answer": "the root authorised an IN-PROCESS fake of the callable subprocess.Popen for the offline seventh group; it must never call the original Popen and it never starts an operating system process or an audit event; the guard stays unchanged and active; the patch is scoped and it is restored in the finally",
+  "applied_to": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r07_the_context_of_the_round_reaches_every_layer",
+  "native_claims": "NOT_PROVEN: no operating system process, no Windows API, no job object, no GPU, no service, no socket, no database, no network and no media",
+  "question_id": "msg_5498cd0eb963",
+  "scoped_views": [
+   "subprocess.Popen inside the broker module",
+   "the platform view of the os module inside the broker module",
+   "the executable of the sys module inside the broker module",
+   "the factory of the endpoints inside the broker module"
+  ]
+ },
  "stage": "R1",
  "static_checks": [
   {
