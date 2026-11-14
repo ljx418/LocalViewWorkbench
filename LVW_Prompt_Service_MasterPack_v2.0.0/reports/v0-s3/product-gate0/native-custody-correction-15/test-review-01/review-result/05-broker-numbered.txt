@@ -1,0 +1,179 @@
+Source: v0_s3_native_broker.py.txt (physical one-based lines)
+
+ 4295     def request_cancel(self, deadline=None):
+ 4296         """Ask for the cancellation of the operation of this worker.
+ 4297 
+ 4298         The request is not a completion.  The caller has to wait for the
+ 4299         real completion of the worker and to join it.
+ 4300 
+ 4301         The cancellation stops the worker from accepting a new task
+ 4302         **first** and it drives the worker to its end: the worker that
+ 4303         is inside an operation is asked to leave it and the worker that
+ 4304         waits for a request is asked to stop waiting.  A cancellation
+ 4305         that reports ``NOT_FOUND`` is repeated, bounded by the shared
+ 4306         deadline, until the worker reports that **this** generation is
+ 4307         done or that the thread really stopped: a cancellation that was
+ 4308         sent once and dropped is not a cancellation.
+ 4309 
+ 4310         The retry never waits on the stop event of the worker: the
+ 4311         worker set that event itself, a moment before, and a wait that
+ 4312         returns at once would end the retry after a single
+ 4313         ``NOT_FOUND``.  The retry waits on its own pause instead, so
+ 4314         that the request of the operating system is really repeated.
+ 4315 
+ 4316         The completion of an **older** generation never releases the
+ 4317         retry: the real completion of the request of this generation is
+ 4318         the number of the completed requests.
+ 4319 
+ 4320         The deadline of the retry is **recomputed on every round** of
+ 4321         the loop: a deadline that was published after the retry started
+ 4322         still shortens it, and the pause of the retry is cropped to the
+ 4323         time that is really left.  A retry that used the number of the
+ 4324         deadline that it found when it started would wait longer than
+ 4325         the round allows.
+ 4326         """
+ 4327         self._request_cancellation()
+ 4328         if self.thread_handle is None:
+ 4329             return 'NO_HANDLE'
+ 4330         # The bound of the retry is fixed **once**: a retry that used a
+ 4331         # deadline that moved with every round would never expire.
+ 4332         bound = self._effective_deadline(deadline)
+ 4333         if bound is None:
+ 4334             # The retry of a cancellation is **always** bounded: a
+ 4335             # worker that never ends may not hold the caller for ever.
+ 4336             # The bound of the package is used only when neither the
+ 4337             # caller nor the context of the round brought a deadline.
+ 4338             bound = self._clock() + CLOSE_JOIN_SECONDS
+ 4339         while True:
+ 4340             try:
+ 4341                 state = self.api.cancel_synchronous_io(self.thread_handle)
+ 4342             except BrokerError as error:
+ 4343                 self.error = error.code
+ 4344                 return 'FAILED'
+ 4345             except Exception as error:  # noqa: BLE001 - the failure stays visible
+ 4346                 self.error = type(error).__name__
+ 4347                 return 'FAILED'
+ 4348             if state != 'NOT_FOUND':
+ 4349                 return state
+ 4350             # The operation was not found: it had not started yet or it
+ 4351             # had just finished.  The worker is asked again until the
+ 4352             # request of this generation completed or until the thread
+ 4353             # of the worker really stopped.
+ 4354             with self._condition:
+ 4355                 completed = self._completed >= self._submitted
+
+ 4899     def _cancel(self, worker, deadline=None):
+ 4900         """Cancel one worker and prove that it really stopped."""
+ 4901         state = worker.request_cancel(self._effective_deadline(deadline))
+ 4902         if not worker.join_bounded(self._remaining(deadline)):
+ 4903             # The worker did not stop: it keeps its owner reference and
+ 4904             # the round becomes unknown.  It is never terminated blindly
+ 4905             # and it is never waited for without a bound.
+ 4906             self._retained.append(worker)
+ 4907             self.facts['retained_workers'] = len(self._retained)
+ 4908             self.facts['worker_alive'] = True
+ 4909             raise BrokerError('BROKER_PIPE_CANCEL_NOT_CONFIRMED',
+ 4910                               '%s:%s' % (self._name, state))
+ 4911         if not worker.joined:
+ 4912             self._retained.append(worker)
+ 4913             self.facts['retained_workers'] = len(self._retained)
+ 4914             raise BrokerError('BROKER_PIPE_CANCEL_NOT_CONFIRMED', self._name)
+ 4915 
+ 4916     def read(self, deadline=None, cancel=None):
+
+ 5230         self._eof = False
+ 5231         self._error = None
+ 5232         self._buffer = b''
+ 5233         self._deadline = None
+ 5234         self._clock = clock or time.monotonic
+ 5235         # The cancel flag of the channel names the owner that set it:
+ 5236         # only a cancellation that the close of **this** channel
+ 5237         # initiated is provable and only a provable one is a normal
+ 5238         # fact of the close.
+ 5239         self._cancel = _ChannelCancel()
+ 5240         # The private state of the close of this channel: the identity
+ 5241         # of the close that is running now and the named fact of the
+ 5242         # cancellation that this close really initiated.
+ 5243         self._close_source = None
+ 5244         self._close_sequence = 0
+ 5245         self._close_cancellation = None
+ 5246         # The cancellation that arrived at the same moment as the
+ 5247         # failure of the reader: it is a parallel fact and it never
+ 5248         # replaces the failure.
+ 5249         self._parallel_cancellation = None
+ 5250         self.reader_alive = None
+ 5251         self.reader_finished = None
+ 5252         # The ONE context of the round.  The channel and its endpoints
+ 5253         # read the absolute deadline of the round from it and they never
+ 5254         # keep a budget of their own.
+ 5255         self._context = context
+ 5256         self._thread = threading.Thread(target=self._drain, daemon=True,
+ 5257                                         name='lvw-native-custody-channel')
+ 5258         # The channel registers itself with the custody of the launcher
+ 5259         # **before** it builds anything: a channel whose construction
+ 5260         # failed half way - an endpoint that could not be built, a
+ 5261         # reader thread that did not start - may not leave an endpoint
+ 5262         # and a thread without an owner.  The outer owner of the launch
+ 5263         # finds the partial channel through this registration and it
+ 5264         # never closes the files of the process by itself.
+ 5265         self._custody = custody
+ 5266         if custody is not None:
+ 5267             custody.retain('channel', self, 'constructing')
+ 5268         try:
+ 5269             self._reader = read_endpoint or _make_endpoint(
+ 5270                 reader, name + '-read', clock=clock, api=api, context=context)
+ 5271             # The parameter of the constructor is ``write_endpoint`` and
+ 5272             # the attribute of the channel is ``_writer``.  The two names
+ 5273             # are never mixed: a name that does not exist raises a
+ 5274             # ``NameError`` and every construction of a channel of this
+ 5275             # package fails with it.
+ 5276             self._writer = write_endpoint or _make_endpoint(
+ 5277                 writer, name + '-write', clock=clock, api=api, context=context)
+ 5278             self._thread.start()
+ 5279         except BaseException:
+ 5280             # The construction of the channel did not return: the
+ 5281             # channel keeps its owner in the custody of the launcher and
+ 5282             # it is never forgotten.
+ 5283             raise
+
+ 5496     def read(self, timeout):
+ 5497         """One raw frame, ``None`` when nothing arrived, ``b''`` at the end.
+ 5498 
+ 5499         The wait of the reader is cropped to the **current** effective
+ 5500         deadline of the round: the bound of the channel, the absolute
+ 5501         deadline of the round and the **published** cleanup deadline of
+ 5502         the round are read **again** at the moment of the read.  There is
+ 5503         **no positive floor** beyond them: a round whose bound arrived
+ 5504         asks for nothing at all and the read becomes a non blocking
+ 5505         inspection.
+ 5506 
+ 5507         The crop applies to **every** reader of the channel: the loop of
+ 5508         the broker and the pump of the parent read the same channel and
+ 5509         neither of them may wait with a lease of its own.
+ 5510         """
+ 5511         if self._overflow:
+ 5512             raise BrokerError('BROKER_CHANNEL_OVERFLOW')
+ 5513         limit = max(0.0, timeout)
+ 5514         remaining = self._remaining()
+ 5515         if remaining is not None:
+ 5516             if remaining <= 0:
+ 5517                 # The bound of the round arrived: the read asks for
+ 5518                 # nothing and it never opens a wait of its own.
+ 5519                 limit = 0.0
+ 5520             elif remaining < limit:
+ 5521                 limit = remaining
+ 5522         try:
+ 5523             return self._queue.get(timeout=limit)
+ 5524         except queue.Empty:
+ 5525             if self._error:
+ 5526                 raise BrokerError(self._error)
+ 5527             if self._eof:
+ 5528                 return b''
+ 5529             return None
+ 5530 
+
+ 6467     def read(self, timeout):
+ 6468         return self._channel.read(timeout)
+ 6469 
+ 6470     def close(self, deadline=None):
+ 6471         """Close the original handle of the broker.

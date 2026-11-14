@@ -1,0 +1,354 @@
+Source: test_v0_s3_native_custody_correction10.py.txt (physical one-based lines)
+
+ 1920         """The endpoints of the round: the production ones.
+ 1921 
+ 1922         The endpoint is the production Windows endpoint and the only
+ 1923         thing that is injected is the **synthetic primitive table** of
+ 1924         the round: no native library is loaded and no operating system
+ 1925         call is made.
+ 1926         """
+ 1927         handles['next'] += 1
+ 1928         return _WindowsPipeEndpoint(
+ 1929             file_object=file_object, name=name,
+ 1930             api=api if api is not None else api_table['value'],
+ 1931             clock=clock,
+ 1932             handle=handles['next'], context=context)
+ 1933 
+ 1934     # The table of the primitives of the round that is **started now**.
+ 1935     # It is a holder and not a plain name: every round of the group has
+ 1936     # its own table and the launcher of a round really reads the table
+ 1937     # of **that** round.
+ 1938     api_table = {'value': api}
+ 1939     # RECONCILIATION (N1 correction 14, F3): the ONE clock domain of
+ 1940     # the round.  The channel of the round and its two endpoints are
+ 1941     # built by the **production** launcher and they keep the default
+ 1942     # clock of the host (time.monotonic) when the launcher does not
+ 1943     # name one, while the context of the round carries the deadlines of
+ 1944     # the round in the domain of the clock of the session.  A deadline
+ 1945     # of the round was then compared with a clock of **another** domain:
+ 1946     # the admission of the read of the endpoint refused the round (the
+ 1947     # deadline of the round was in the past for the clock of the host),
+ 1948     # the reader of the channel failed, the pump of the parent ended at
+ 1949     # the end of the stream and **no** admission was observed at all.
+ 1950     #
+ 1951     # The channel of the round is therefore built with the clock of the
+ 1952     # round: the production class is used unchanged and only its
+ 1953     # **supported** clock argument is bound.  The channel, its two
+ 1954     # endpoints, the pump of the parent, the context of the round and
+ 1955     # the aggregate of the launch then read every deadline of the
+ 1956     # round in ONE domain.  The production is not changed.
+ 1957     real_stream_channel = broker_module.StreamChannel
+ 1958     # The clock of the round that is **started now**.  The channel of
+ 1959     # the round and its two endpoints read the ONE domain of that
+ 1960     # round: the wrapper below binds it and it never decides a deadline
+ 1961     # of its own.
+ 1962     round_clock = {'value': clock}
+ 1963 
+ 1964     def clocked_stream_channel(*args, **kwargs):
+ 1965         """The production channel of the round with the clock of the round.
+ 1966 
+ 1967         The wrapper calls the **original** production constructor and it
+ 1968         only binds the clock of the round: it never replaces a method,
+ 1969         never decides a deadline and never changes the wiring of the
+ 1970         launch.
+ 1971         """
+ 1972         kwargs.setdefault('clock', round_clock['value'])
+ 1973         return real_stream_channel(*args, **kwargs)
+ 1974 
+ 1975     def start_round(round_session, round_api, round_clock_value):
+ 1976         """Start one round through the PRODUCTION default launcher.
+ 1977 
+ 1978         The round is started by the **production** session, with the
+ 1979         **production** default launcher and with the **production**
+ 1980         ``launch_broker``.  The only seams are the creation of the
+ 1981         process, the table of the primitives of the round and the clock
+ 1982         of the round: the launcher of the round itself is never
+ 1983         replaced by a stand-in.
+ 1984         """
+ 1985         previous_api_table = api_table['value']
+ 1986         previous_clock = round_clock['value']
+ 1987         api_table['value'] = round_api
+ 1988         round_clock['value'] = round_clock_value
+ 1989         try:
+ 1990             with unittest.mock.patch.object(broker_module, 'os', _OsView()), \
+ 1991                  unittest.mock.patch.object(broker_module, 'subprocess',
+ 1992                                             _SubprocessView()), \
+ 1993                  unittest.mock.patch.object(broker_module, 'sys', _SysView()), \
+ 1994                  unittest.mock.patch.object(broker_module, '_make_endpoint',
+ 1995                                             fake_make_endpoint), \
+ 1996                  unittest.mock.patch.object(broker_module, 'StreamChannel',
+ 1997                                             clocked_stream_channel):
+ 1998                 round_session.start()
+ 1999         finally:
+ 2000             api_table['value'] = previous_api_table
+ 2001             round_clock['value'] = previous_clock
+ 2002         return round_session
+ 2003 
+ 2004     session = NativeCustodySession(plan=document, run_root=tmp_path,
+ 2005                                    parent_child_remaining_seconds=21600,
+ 2006                                    launcher=None, clock=clock,
+ 2007                                    wall=time.time, nonce=NONCE)
+ 2008     parent_salvage = []
+ 2009     child_transport = None
+ 2010     try:
+ 2011         # -- the parent: the PRODUCTION default launcher and the
+ 2012         #    PRODUCTION launch_broker, with the creation of the process
+ 2013         #    replaced by the in-process fake -------------------------
+ 2014         start_round(session, api, clock)
+ 2015         facts = {'context_at_popen':
+ 2016                  observations['context_at_popen'] is session._context,
+ 2017                  'command': observations.get('command'),
+ 2018                  'executable_sha256': getattr(session.broker,
+
+ 2078         def recording_get(block=True, timeout=None):
+ 2079             queue_waits.append(timeout)
+ 2080             return original_get(block=block, timeout=timeout)
+ 2081 
+ 2082         session.broker._channel._queue.get = recording_get
+ 2083         reply_waits = []
+ 2084         original_waiter = custody_module._ReplyWaiter
+ 2085 
+ 2086         class RecordingWaiter(original_waiter):
+ 2087             """A waiter of a reply that records its actual wait."""
+ 2088 
+ 2089             def __init__(self, kinds):
+ 2090                 super().__init__(kinds)
+ 2091                 event = self.event
+ 2092                 original_wait = event.wait
+ 2093 
+ 2094                 def recording_wait(timeout=None):
+ 2095                     reply_waits.append(timeout)
+ 2096                     return original_wait(timeout)
+ 2097 
+ 2098                 event.wait = recording_wait
+ 2099 
+ 2100         # The gate of the admission: the next real read of the broker
+ 2101         # is held **before** the bound of the round is published.  The
+ 2102         # gate calls the original read of the broker: it never decides
+ 2103         # a deadline, it never replaces the decision of the production
+ 2104         # and it never fabricates an admission.
+ 2105         admission_gate = threading.Event()
+ 2106         admission_held = threading.Event()
+ 2107         original_broker_read = session.broker.read
+ 2108 
+ 2109         def gated_broker_read(timeout):
+ 2110             admission_held.set()
+ 2111             admission_gate.wait(15.0)
+ 2112             return original_broker_read(timeout)
+ 2113 
+ 2114         session.broker.read = gated_broker_read
+ 2115         try:
+ 2116             # -- the pump of the parent is really alive and it reaches
+ 2117             #    its next admission: the liveness of the owner of the
+ 2118             #    read is a **fact** of the round and not an assumption.
+ 2119             assert admission_held.wait(15.0), \
+ 2120                 'the parent pump never reached its next admission'
+ 2121             queue_waits[:] = []
+ 2122             reply_waits[:] = []
+ 2123             # The **published** cleanup deadline of the round shortens
+ 2124             # the next read of the parent: the round is not over yet.
+ 2125             session._context.publish_cleanup_deadline(clock.value + 0.05)
+ 2126             # The admission is released: the production reads the
+ 2127             # **current** minimum of the ORIGINAL context.
+ 2128             admission_gate.set()
+ 2129             deadline = time.monotonic() + 15.0
+ 2130             while time.monotonic() < deadline:
+ 2131                 if any(value is not None and 0.0 < value <= 0.05 + 1e-9
+ 2132                        for value in queue_waits):
+ 2133                     break
+ 2134                 time.sleep(0.005)
+ 2135             # The reply of the parent is bounded by the **published**
+ 2136             # cleanup deadline of the ORIGINAL context: the timeout of
+ 2137             # the call is longer and it may not shorten it.
+ 2138             with unittest.mock.patch.object(custody_module, '_ReplyWaiter',
+ 2139                                             RecordingWaiter):
+ 2140                 with pytest.raises(CustodyError):
+ 2141                     session._read_reply(('READY',), timeout=10.0)
+ 2142             # The **actual** remaining of the round at the admission: it
+ 2143             # is read from the ORIGINAL context and from the clock of
+ 2144             # the round and it is never a nominal number.
+ 2145             remaining = session._context.effective_deadline() - clock()
+ 2146             facts = {'queue_waits': list(queue_waits),
+ 2147                      'reply_waits': list(reply_waits),
+ 2148                      'cleanup': clock.value + 0.05,
+ 2149                      'remaining_at_admission': remaining,
+ 2150                      'pump_alive': bool(session._pump is not None
+ 2151                                         and not session._pump.finished),
+ 2152                      'pump_error': (repr(session._pump.error)
+ 2153                                     if session._pump is not None else None),
+ 2154                      'session_state': session.state}
+ 2155             write_phase('r07-pump-current-minimum', facts)
+ 2156             assert queue_waits, \
+ 2157                 'the parent pump never waited for a frame of the round'
+ 2158             assert 0.0 < queue_waits[-1] <= 0.05 + 1e-9, \
+ 2159                 'the read of the parent pump ignored the current minimum'
+ 2160             assert queue_waits[-1] == pytest.approx(remaining), \
+ 2161                 'the read of the parent pump did not use the actual remaining'
+ 2162             assert reply_waits, \
+ 2163                 'the parent never waited for a reply of the round'
+ 2164             assert 0.0 < reply_waits[-1] <= 0.05 + 1e-9, \
+ 2165                 'the reply event of the parent ignored the current minimum'
+ 2166             assert reply_waits[-1] == pytest.approx(remaining), \
+ 2167                 'the reply event of the parent did not use the actual remaining'
+ 2168         finally:
+ 2169             # The gate of the owner of the test is released
+ 2170             # **unconditionally**: no admission of the parent stays
+ 2171             # blocked behind the test and no thread of the test is left
+ 2172             # behind.
+ 2173             admission_gate.set()
+ 2174         # -- N1 correction 15 (M1): the **zero expiry** on a **public**
+ 2175         #    chain.  The oracle of the zero expiry is not a helper that
+
+ 2200         #
+ 2201         #    The pump of the round is held at the gate while the reply
+ 2202         #    is waited for: the end of the stream of the pump and its
+ 2203         #    error can therefore never preempt the reply that the round
+ 2204         #    owes.
+ 2205         zero_api = Api()
+ 2206         zero_clock = ManualClock(2000.0)
+ 2207         zero_document = plan_document(lease_expires_at=time.time() + 120.0)
+ 2208         zero_plan = validate_launch_plan(zero_document, now=time.time())
+ 2209         zero_api.frames = [
+ 2210             _reply_bytes('READY', 'ARMED', {}, zero_plan, NONCE, 1),
+ 2211             _reply_bytes('STATUS', 'RUNNING', {}, zero_plan, NONCE, 2)]
+ 2212         zero_api.final = _reply_bytes('STOPPED', 'RELEASED', {}, zero_plan,
+ 2213                                       NONCE, 3)
+ 2214         zero_session = NativeCustodySession(
+ 2215             plan=zero_document, run_root=tmp_path / 'zero-round',
+ 2216             parent_child_remaining_seconds=21600, launcher=None,
+ 2217             clock=zero_clock, wall=time.time, nonce=NONCE)
+ 2218         zero_queue_waits = []
+ 2219         zero_reply_waits = []
+ 2220         zero_gate = threading.Event()
+ 2221         zero_held = threading.Event()
+ 2222         zero_salvage = []
+ 2223         try:
+ 2224             start_round(zero_session, zero_api, zero_clock)
+ 2225             assert zero_session.state == 'RUNNING', \
+ 2226                 'the round of the zero expiry did not really start'
+ 2227             # The **attached** pump of the round is the one that the
+ 2228             # production really started: the group never builds a
+ 2229             # replacement for it and it never calls it directly.
+ 2230             zero_attached_pump = zero_session._pump
+ 2231             assert zero_attached_pump is not None, \
+ 2232                 'the round of the zero expiry has no attached pump'
+ 2233             assert zero_attached_pump.is_alive(), \
+ 2234                 'the attached pump of the zero round is not running'
+ 2235             # The queue of the round is observed through the **real**
+ 2236             # method of the production.
+ 2237             zero_original_get = zero_session.broker._channel._queue.get
+ 2238 
+ 2239             def zero_recording_get(block=True, timeout=None):
+ 2240                 zero_queue_waits.append(timeout)
+ 2241                 return zero_original_get(block=block, timeout=timeout)
+ 2242 
+ 2243             zero_session.broker._channel._queue.get = zero_recording_get
+ 2244             original_zero_waiter = custody_module._ReplyWaiter
+ 2245 
+ 2246             class ZeroRecordingWaiter(original_zero_waiter):
+ 2247                 """A waiter of a reply that records its actual wait."""
+ 2248 
+ 2249                 def __init__(self, kinds):
+ 2250                     super().__init__(kinds)
+ 2251                     event = self.event
+ 2252                     original_wait = event.wait
+ 2253 
+ 2254                     def recording_wait(timeout=None):
+ 2255                         zero_reply_waits.append(timeout)
+ 2256                         return original_wait(timeout)
+ 2257 
+ 2258                     event.wait = recording_wait
+ 2259 
+ 2260             # The gate of the admission: the next real read of the
+ 2261             # broker of the round is **held** before the original read
+ 2262             # is called.  The gate forwards the original signature and
+ 2263             # the original result and it decides only the schedule.
+ 2264             zero_original_read = zero_session.broker.read
+ 2265 
+ 2266             def zero_gated_read(timeout):
+ 2267                 zero_held.set()
+ 2268                 zero_gate.wait(30.0)
+ 2269                 return zero_original_read(timeout)
+ 2270 
+ 2271             zero_session.broker.read = zero_gated_read
+ 2272             try:
+ 2273                 assert zero_held.wait(15.0), \
+ 2274                     'the attached pump of the zero round never reached its admission'
+ 2275                 zero_queue_waits[:] = []
+ 2276                 zero_reply_waits[:] = []
+ 2277                 # The **zero expiry** is published on the ORIGINAL
+ 2278                 # context of the round and it is published **before**
+ 2279                 # the next current bound of the round is calculated.
+ 2280                 zero_session._context.bind_absolute_deadline(zero_clock.value)
+ 2281                 # The reply of the parent is really waited for and it
+ 2282                 # asks for **nothing**: the pump of the round is still
+ 2283                 # held at the gate, so its end of stream and its error
+ 2284                 # can never preempt the reply.
+ 2285                 with unittest.mock.patch.object(custody_module, '_ReplyWaiter',
+ 2286                                                 ZeroRecordingWaiter):
+ 2287                     with pytest.raises(CustodyError):
+ 2288                         zero_session._read_reply(('READY',), timeout=10.0)
+ 2289                 # The admission is released: the **attached** pump of
+ 2290                 # the round really performs its next read and the queue
+ 2291                 # of the round is really asked for nothing.
+ 2292                 zero_gate.set()
+ 2293                 deadline = time.monotonic() + 15.0
+ 2294                 while time.monotonic() < deadline:
+ 2295                     if zero_attached_pump.finished:
+ 2296                         break
+ 2297                     time.sleep(0.005)
+ 2298                 facts = {'zero_queue_waits': list(zero_queue_waits),
+ 2299                          'zero_reply_waits': list(zero_reply_waits),
+ 2300                          'zero_pump_finished': bool(zero_attached_pump.finished),
+ 2301                          'zero_pump_error': repr(zero_attached_pump.error),
+ 2302                          'zero_pump_frames': zero_attached_pump.frames,
+ 2303                          'zero_state': zero_session.state,
+ 2304                          'zero_pump_context_is_the_session_context':
+ 2305                              zero_attached_pump._context is zero_session._context,
+ 2306                          'zero_channel_context_is_the_session_context':
+ 2307                              zero_session.broker._channel._context
+ 2308                              is zero_session._context}
+ 2309                 write_phase('r07-zero-public-chain', facts)
+ 2310                 assert zero_queue_waits, \
+ 2311                     'the attached pump of the zero round never waited for a frame'
+ 2312                 assert zero_queue_waits[-1] == 0.0, \
+ 2313                     'the attached pump of the zero round asked for a wait ' \
+ 2314                     'after the expiry'
+ 2315                 assert zero_reply_waits, \
+ 2316                     'the parent of the zero round never waited for a reply'
+ 2317                 assert zero_reply_waits[-1] == 0.0, \
+ 2318                     'the reply event of the zero round asked for a wait ' \
+ 2319                     'after the expiry'
+ 2320                 assert facts['zero_pump_finished'] is True, \
+ 2321                     'the attached pump of the zero round did not end'
+ 2322                 assert facts['zero_pump_context_is_the_session_context'] is True, \
+ 2323                     'the attached pump of the zero round has another context'
+ 2324                 assert facts['zero_channel_context_is_the_session_context'] is True, \
+ 2325                     'the channel of the zero round has another context'
+ 2326             finally:
+ 2327                 # The gate of the test is released **unconditionally**.
+ 2328                 zero_gate.set()
+ 2329         finally:
+ 2330             # The fixture of the zero round is released and the owners
+ 2331             # that it really started are joined with a bounded wait.
+ 2332             # The salvage is separate from the returned state of the
+ 2333             # product: it renews no deadline of the round and it erases
+ 2334             # no retained resource of the product.
+ 2335             zero_gate.set()
+ 2336             zero_api.frames_ready.set()
+ 2337             try:
+ 2338                 zero_session.stop()
+ 2339             except Exception:  # noqa: BLE001 - the evidence keeps the failure
+ 2340                 pass
+ 2341             zero_broker = getattr(zero_session, 'broker', None)
+ 2342             zero_salvage = _salvage_threads(
+ 2343                 _session_owners(zero_session)
+ 2344                 + _channel_owners(getattr(zero_broker, '_channel', None),
+ 2345                                   'zero'))
+ 2346         write_phase('r07-zero-salvage', {'salvage': zero_salvage})
+ 2347         for item in zero_salvage:
+ 2348             if item['started']:
+ 2349                 assert item['alive'] is False, \
+ 2350                     'the owner %s of the zero round was left behind' \
+ 2351                     % item['name']
+ 2352         # -- N1 correction 15 (M1): the **SUPPLEMENT** of the zero

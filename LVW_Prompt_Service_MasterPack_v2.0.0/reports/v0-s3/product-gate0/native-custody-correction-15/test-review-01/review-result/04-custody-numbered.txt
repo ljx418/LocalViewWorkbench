@@ -1,0 +1,349 @@
+Source: v0_s3_native_custody.py.txt (physical one-based lines)
+
+  789     def __init__(self, broker, *, decode, clock=None, on_error=None,
+  790                  context=None):
+  791         super().__init__(daemon=True, name='lvw-native-custody-channel-pump')
+  792         self._broker = broker
+  793         self._decode = decode
+  794         self._clock = clock or time.monotonic
+  795         # The ONE context of the round.  The pump reads the **current**
+  796         # absolute deadline and the **published** cleanup deadline of
+  797         # the round from it and it never keeps a copy of a deadline of
+  798         # its own.
+  799         self._context = context
+  800         # The owner of the round is told about a failure of the pump.
+  801         # A pump that died is not a silent event: the round latches its
+  802         # unknown state and closes itself in a bounded way.
+  803         self._on_error = on_error
+  804         self._lock = threading.Lock()
+  805         self._waiters = []
+  806         self._pending = []
+  807         self._latest_status = None
+  808         self._error = None
+  809         self._eof = False
+  810         self._frames = 0
+  811         # The name of the cancel flag is not ``_stop``: the base class of
+  812         # the thread uses that name for its own method and a shadow of it
+  813         # would break the join of the thread.
+  814         self._stop_event = threading.Event()
+  815         self._finished = threading.Event()
+  816 
+  817     # -- the reading ------------------------------------------------------
+  818     def _remaining(self):
+  819         """The seconds that are left until the current bound of the round.
+  820 
+  821         The value is read **again** at every call: the absolute deadline
+  822         of the round and the **published** cleanup deadline of the round
+  823         are one minimum and the pump never keeps a copy of it.  ``None``
+  824         means that the round did not bind a deadline at all.
+  825         """
+  826         context = self._context
+  827         if context is None:
+  828             return None
+  829         value = context.effective_deadline()
+  830         if value is None:
+  831             return None
+  832         clock = getattr(context, 'clock', None) or self._clock
+  833         return max(0.0, value - clock())
+  834 
+  835     def run(self):
+  836         try:
+  837             while not self._stop_event.is_set():
+  838                 remaining = self._remaining()
+  839                 if remaining is not None and remaining <= 0:
+  840                     # The bound of the round arrived: the pump asks for
+  841                     # nothing more and it ends.  It never waits with a
+  842                     # lease of its own and it never spins on a round
+  843                     # that is over.
+  844                     self._eof = True
+  845                     break
+  846                 raw = self._broker.read(CHANNEL_POLL_SECONDS)
+  847                 if raw is None:
+  848                     continue
+  849                 if raw == b'':
+  850                     self._eof = True
+  851                     break
+  852                 reply = self._decode(raw)
+  853                 self._frames += 1
+  854                 self._deliver(reply)
+  855         except BaseException as error:  # noqa: BLE001 - the failure stays visible
+  856             self._error = error
+  857             if self._on_error is not None:
+  858                 try:
+  859                     self._on_error(error)
+  860                 except BaseException:  # noqa: BLE001 - the failure stays visible
+  861                     pass
+  862         finally:
+  863             with self._lock:
+  864                 for waiter in self._waiters:
+  865                     waiter.event.set()
+  866                 self._waiters = []
+  867             self._finished.set()
+  868 
+  869     def _deliver(self, reply):
+  870         with self._lock:
+  871             for waiter in list(self._waiters):
+  872                 if reply['kind'] in waiter.kinds:
+  873                     waiter.reply = reply
+  874                     waiter.event.set()
+  875                     self._waiters.remove(waiter)
+  876                     return
+  877             if reply['kind'] == 'STATUS':
+  878                 # The status of the round is a snapshot, not a queue: only
+  879                 # the last one is kept.
+  880                 self._latest_status = reply
+  881                 return
+  882             if len(self._pending) >= MAX_FRAMES:
+  883                 raise CustodyError('CUSTODY_FRAME_COUNT_EXCEEDED')
+  884             self._pending.append(reply)
+  885 
+  886     # -- the waiting ------------------------------------------------------
+  887     def take(self, kinds, deadline):
+  888         """Wait for one reply of the wanted kinds, bounded by the deadline.
+  889 
+  890         The **original** context of the round is read **again** at the
+  891         moment of the wait: a deadline that was published after the
+  892         caller built its number shortens this wait.  A number that was
+  893         constructed earlier is never the authority of a wait.
+  894         """
+  895         waiter = _ReplyWaiter(kinds)
+  896         with self._lock:
+  897             for index, reply in enumerate(self._pending):
+  898                 if reply['kind'] in kinds:
+  899                     del self._pending[index]
+  900                     return reply
+  901             if 'STATUS' in kinds and self._latest_status is not None:
+  902                 reply = self._latest_status
+  903                 self._latest_status = None
+  904                 return reply
+  905             if self._error is not None:
+  906                 raise self._error
+  907             if self._eof:
+  908                 raise CustodyError('CUSTODY_CHANNEL_EOF')
+  909             self._waiters.append(waiter)
+  910         limit = deadline
+  911         context = self._context
+  912         if context is not None:
+  913             current = context.effective_deadline()
+  914             if current is not None:
+  915                 limit = current if limit is None else min(limit, current)
+  916         remaining = limit - self._clock()
+  917         if not waiter.event.wait(max(0.0, remaining)):
+  918             with self._lock:
+  919                 if waiter in self._waiters:
+  920                     self._waiters.remove(waiter)
+  921             raise CustodyError('CUSTODY_CHANNEL_TIMEOUT')
+  922         if waiter.reply is not None:
+  923             return waiter.reply
+  924         with self._lock:
+  925             failure = self._error
+  926         if failure is not None:
+  927             raise failure
+  928         raise CustodyError('CUSTODY_CHANNEL_EOF')
+  929 
+  930     # -- the end ----------------------------------------------------------
+  931     def stop(self):
+  932         """Ask the pump to stop.  The pump is joined by its owner."""
+  933         self._stop_event.set()
+  934 
+  935     def join_bounded(self, seconds):
+  936         """Join the pump and report whether it really stopped."""
+  937         self.join(seconds)
+
+ 1270     def _read_reply(self, kinds, *, timeout=None):
+ 1271         """Read the replies of the broker until one of them is wanted.
+ 1272 
+ 1273         The read never blocks the deadline of the round: the transport of
+ 1274         the channel is bounded and the wait is clipped to the remaining
+ 1275         deadline of the round.
+ 1276         """
+ 1277         if self._heartbeat_failure is not None:
+ 1278             raise CustodyError(self._heartbeat_failure)
+ 1279         limit = self.remaining_seconds() if timeout is None else timeout
+ 1280         limit = max(0.0, min(limit, self.remaining_seconds()))
+ 1281         deadline = self._clock() + limit
+ 1282         while True:
+ 1283             pump = self._pump
+ 1284             if pump is None:
+ 1285                 # The reader of the channel is gone.  A cancellation that
+ 1286                 # the reader saw is the failure of the round and it
+ 1287                 # continues to propagate; an ordinary failure of the
+ 1288                 # reader is already named in the failures of the round.
+ 1289                 if isinstance(self._pump_error, (KeyboardInterrupt, SystemExit)):
+ 1290                     raise self._pump_error
+ 1291                 raise CustodyError('CUSTODY_CHANNEL_CLOSED')
+ 1292             reply = pump.take(kinds, deadline)
+ 1293             if reply['kind'] in kinds:
+ 1294                 return reply
+ 1295 
+ 1296     def _decode_reply(self, raw):
+ 1297         """Decode one reply of the broker and check the identity of it."""
+ 1298         reply = decode_reply(raw, run_id=self.plan.run_id,
+ 1299                              candidate_sha=self.plan.candidate_sha,
+
+ 1605             deadline = self._cleanup_deadline_for()
+ 1606         # The stop of the round blocks every later heartbeat, also when
+ 1607         # the close was started by a failure and not by the caller.
+ 1608         self._stopping = True
+ 1609         self._context.request_stop()
+ 1610         self._heartbeat_stop.set()
+ 1611         current = threading.current_thread()
+ 1612         with self._background_cv:
+ 1613             self._background_open = False
+ 1614             while self._background_starting > 0:
+ 1615                 remaining = max(0.0, deadline - self._clock())
+ 1616                 if remaining <= 0.0:
+ 1617                     self._failures.append('CUSTODY_BACKGROUND_START_PENDING')
+ 1618                     break
+ 1619                 self._background_cv.wait(remaining)
+ 1620             heartbeat = self._heartbeat
+ 1621             pump = self._pump
+ 1622             records = dict(self._background_threads)
+ 1623         if heartbeat is not None:
+ 1624             record = records.get('heartbeat')
+ 1625             if record is not None and record['state'] == 'STARTING':
+ 1626                 # The start of this thread did not return: the thread
+ 1627                 # may still come up.  It keeps its owner, it is never
+ 1628                 # joined and it may only clean up.  A thread whose start
+ 1629                 # did not return is never taken for a thread that ended.
+ 1630                 self._failures.append('CUSTODY_BACKGROUND_START_PENDING:heartbeat')
+ 1631                 self._latch_unknown_state()
+ 1632             else:
+ 1633                 if heartbeat is not current and heartbeat.ident is not None:
+ 1634                     heartbeat.join(self._cleanup_remaining(deadline))
+ 1635                 if heartbeat.is_alive():
+ 1636                     self._failures.append('CUSTODY_HEARTBEAT_NOT_STOPPED')
+ 1637                     self._latch_unknown_state()
+ 1638                 else:
+ 1639                     self._heartbeat = None
+ 1640         if pump is not None:
+ 1641             pump.stop()
+ 1642             record = records.get('pump')
+ 1643             if record is not None and record['state'] == 'STARTING':
+ 1644                 # The start of the reader did not return: the thread may
+ 1645                 # still come up.  It keeps its owner and it is never
+ 1646                 # joined: a thread that was not started is not joinable.
+ 1647                 self._failures.append('CUSTODY_BACKGROUND_START_PENDING:pump')
+ 1648                 self._latch_unknown_state()
+ 1649             elif pump is current:
+ 1650                 # The close never joins the thread that runs it: a pump
+ 1651                 # that is the current thread stays alive and keeps its
+ 1652                 # reference with its owner.
+ 1653                 self._failures.append('CUSTODY_PUMP_NOT_STOPPED')
+ 1654                 self._latch_unknown_state()
+ 1655             elif pump.ident is None and not pump.is_alive():
+ 1656                 # The reader never started: it is not a thread of the
+ 1657                 # round and it is never joined.
+ 1658                 self._failures.append('CUSTODY_PUMP_NOT_STARTED')
+ 1659                 self._pump = None
+ 1660             elif not pump.join_bounded(self._cleanup_remaining(deadline)):
+ 1661                 self._failures.append('CUSTODY_PUMP_NOT_STOPPED')
+ 1662                 self._latch_unknown_state()
+ 1663             else:
+ 1664                 self._pump = None
+ 1665 
+ 1666     def _cleanup_remaining(self, deadline=None):
+ 1667         """The seconds that are left until the deadline of the cleanup.
+ 1668 
+ 1669         The name of this helper is **not** ``_remaining``: the session
+ 1670         owns ``_remaining`` as the remaining budget of the parent child
+ 1671         and an instance attribute of the same name would shadow this
+ 1672         method.  A shadowed helper is a ``TypeError`` in every close
+
+ 1709     def start(self):
+ 1710         """Start the broker of the round and take the custody of it.
+ 1711 
+ 1712         The parent keeps the *original* handle of the broker.  The identity
+ 1713         of the broker is therefore read from that handle and never from a
+ 1714         claim of the broker itself: a child that reports its own pid is a
+ 1715         claim and not a proof.
+ 1716 
+ 1717         The **whole** lifecycle of the start is protected: the launcher,
+ 1718         the reading of the identity of the broker, the construction and
+ 1719         the start of the pump and the start of the heartbeat are all
+ 1720         inside one guard.  Every failure of this method releases the
+ 1721         original handle of the broker and the private channel before it
+ 1722         leaves the method: the caller never has to stop a round that
+ 1723         never started.
+ 1724 
+ 1725         A refusal of the launcher, a timeout, a parse error and an
+ 1726         ordinary exception end the same way: the round is closed here
+ 1727         and it ends in a **structured** terminal state that carries the
+ 1728         named code of the failure.  The code of the original error is
+ 1729         kept: a refusal of the broker is never replaced by a generic
+ 1730         error of the parent.  A cancellation is cleaned up and it
+ 1731         continues to propagate.
+ 1732         """
+ 1733         if self.state == 'NEW':
+ 1734             self.validate()
+ 1735         if self.state != 'VALIDATED':
+ 1736             raise CustodyError('CUSTODY_STATE_INVALID')
+ 1737         self._fix_deadline()
+ 1738         launcher = self._launcher or _default_launcher
+ 1739         try:
+ 1740             try:
+ 1741                 self.broker = self._call_launcher(launcher)
+ 1742             except (KeyboardInterrupt, SystemExit):
+ 1743                 raise
+ 1744             except BaseException as error:  # noqa: BLE001 - the failure stays visible
+ 1745                 # The refusal of the launcher is a structured refusal of
+ 1746                 # the round.  The code of the original error is kept and
+ 1747                 # the error is not raised as it is.
+ 1748                 self._latch_unknown_state()
+ 1749                 self._failures.append(self._launch_failure_code(error))
+ 1750                 return self.evidence()
+ 1751             if self.broker is None:
+ 1752                 self._latch_unknown_state()
+ 1753                 self._failures.append('CUSTODY_BROKER_LAUNCH_UNAVAILABLE')
+ 1754                 return self.evidence()
+ 1755             self._broker_identity = {
+ 1756                 'pid': getattr(self.broker, 'pid', None),
+ 1757                 'executable': getattr(self.broker, 'executable', None),
+ 1758                 'executable_sha256': getattr(self.broker, 'executable_sha256', None),
+ 1759                 'identity_source': 'PARENT_ORIGINAL_HANDLE',
+ 1760                 'reported_by_the_broker': False,
+ 1761             }
+ 1762             # The absolute deadline of the round is bound to the handle of
+ 1763             # the broker before the first frame of the round is read: the
+ 1764             # channel of the round can never outlive the round.
+ 1765             try:
+ 1766                 self._bind_deadline(self._deadline_mono)
+ 1767             except BaseException as error:  # noqa: BLE001 - the failure stays visible
+ 1768                 self._failures.append(self._failure_code(error))
+ 1769                 self._latch_unknown_state()
+ 1770                 self._close_broker()
+ 1771                 raise
+ 1772             pump = _ChannelPump(self.broker, decode=self._decode_reply,
+ 1773                                 clock=self._clock,
+ 1774                                 on_error=self._on_pump_error,
+ 1775                                 context=self._context)
+ 1776             # The start of the background of the round is refused when
+ 1777             # the close of the round began already.  The start does not
+ 1778             # raise on that refusal: it continues to the exchange of the
+ 1779             # start, and the failure that leaves this method is the
+ 1780             # failure of the reader of the channel - a cancellation
+ 1781             # among them.
+ 1782             self._start_background_thread('pump', pump)
+ 1783             self._start_heartbeat()
+ 1784             ready = self._read_reply(('READY', 'REFUSED'))
+ 1785             if ready['kind'] == 'REFUSED':
+ 1786                 self._latch_unknown_state()
+ 1787                 self._failures.append(ready['detail'].get('code', 'BROKER_REFUSED'))
+ 1788                 self._close_broker()
+ 1789                 return self.evidence()
+ 1790             self._apply_state(ready['state'])
+ 1791             if ready['state'] != 'ARMED':
+ 1792                 raise CustodyError('CUSTODY_STATE_INVALID')
+ 1793             status = self._read_reply(('STATUS', 'REFUSED'))
+ 1794             if status['kind'] == 'REFUSED':
+ 1795                 self._latch_unknown_state()
+ 1796                 self._failures.append(status['detail'].get('code', 'BROKER_REFUSED'))
+ 1797                 self._close_broker()
+ 1798                 return self.evidence()
+ 1799             self._apply_state(status['state'])
+ 1800         except (KeyboardInterrupt, SystemExit):
+ 1801             # A cancellation is cleaned up and it continues to propagate.
+ 1802             self._failures.append('CUSTODY_SESSION_CANCELLED')
+ 1803             self._latch_unknown_state()
+ 1804             self._close_broker()
+ 1805             raise
