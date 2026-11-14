@@ -114,8 +114,13 @@ from tools.test_v0_s3_native_custody_regressions import (  # noqa: E402
 #: the correction 14 stay in the directory of the correction 14: they
 #: are never overwritten, never deleted and never replaced by a
 #: summary.
+#: CORRECTION 16: the diagnostics of this module are written in the NEW
+#: directory of the correction 16.  The real documents of the batch of
+#: the correction 15 stay in the directory of the correction 15: they
+#: are never overwritten, never deleted and never replaced by a
+#: summary.
 EVIDENCE_DIR = (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'
-                / 'implementation-native-custody-correction-15' / 'evidence')
+                / 'implementation-native-custody-correction-16' / 'evidence')
 
 #: The nonce of the private channel of the probes of this module.  It
 #: is a closed form of 32 hexadecimal characters and it is the nonce of
@@ -131,6 +136,14 @@ NONCE = '0' * 32
 #: observation layer produced and it never widens the set to hide any
 #: other error.
 CANCELLATION_CODES = ('BROKER_PIPE_CANCELLED', 'BROKER_CHANNEL_CANCELLED')
+
+#: The bounded wait of the gate of the admission of the round of the zero
+#: expiry and the bounded wait for the admission itself.  Every wait of
+#: the fixture is bounded and every gate of the fixture is released
+#: unconditionally: a gate that timed out is a **fact** that the group
+#: records and it is never a silent success.
+ZERO_GATE_SECONDS = 30.0
+ZERO_ADMISSION_SECONDS = 15.0
 
 
 def write_phase(phase, document):
@@ -186,24 +199,131 @@ class _R07Sentinel(Exception):
     """
 
 
-def _started_owner(thread):
-    """Whether the owner really started.
+class _R07ConstructorFailure(Exception):
+    """The deliberate failure of the **construction** of a transport.
 
-    A thread whose start did not return and that never ran has **no**
-    identity: it is not a thread of the round and it is never joined.
-    No exit is ever inferred from such an object.
+    It is raised by the seam of the fixture **after** the drain thread
+    of the transport was really started: the local variable of the
+    transport stays empty and the owner of the drain thread is the
+    registry of the fixture.  It is a **test** exception and nothing
+    else: it is never a broad ``Exception`` and it never hides a real
+    failure of the production.
+    """
+
+
+class _OwnerRegistry:
+    """The registry of the owners that the fixture of this module starts.
+
+    The registry is **immediate**: an owner is registered at the moment
+    of its construction or of its start and it is never discovered
+    later from a product that may have dropped it.  A channel whose
+    construction failed half way, a drain thread whose start took
+    effect and a worker that the product retained are all in the
+    registry, and the salvage of the fixture joins every one of them
+    with an explicitly bounded wait.
+
+    The registry owns **nothing**: it only remembers.  The product
+    keeps its own owners and its own returned state, and the registry
+    never claims that the product released a resource.
+    """
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._entries = []
+        self._sequence = 0
+
+    def register(self, name, owner, *, kind, seam):
+        """Register one owner **immediately** and return its entry."""
+        with self._lock:
+            self._sequence += 1
+            entry = {'name': name, 'owner': owner, 'kind': kind,
+                     'seam': seam, 'order': self._sequence,
+                     'registered_at': time.monotonic()}
+            self._entries.append(entry)
+            return entry
+
+    def entries(self):
+        """The entries of the registry in the order of their registration."""
+        with self._lock:
+            return list(self._entries)
+
+    def facts(self):
+        """The facts of the registry: an owner is named and never guessed."""
+        return [{'name': item['name'], 'kind': item['kind'],
+                 'seam': item['seam'], 'order': item['order']}
+                for item in self.entries()]
+
+
+class _RegistryCustody:
+    """The custody seam of the fixture: it registers what it retains.
+
+    The custody of the launcher is a **supported** seam of the
+    production: a channel registers itself with it **before** it builds
+    anything.  The seam of the fixture forwards every call to the
+    original custody of the round and it registers the retained owner
+    in the registry of the fixture at the moment of the retention.
+
+    A channel whose construction failed after its drain thread was
+    started is therefore in the registry of the fixture even when the
+    constructor never returned the channel to the fixture.
+    """
+
+    def __init__(self, registry, name, original=None):
+        self._registry = registry
+        self._name = name
+        self._original = original
+
+    def retain(self, kind, resource, detail=None, launch=None):
+        self._registry.register('%s:%s' % (self._name, kind), resource,
+                                kind=kind, seam='custody.retain')
+        if self._original is None:
+            return resource
+        # The **original** signature of the custody is honoured: the
+        # aggregate of a launch takes three arguments and the table of
+        # the launcher takes four.
+        return self._original.retain(kind, resource, detail)
+
+    def forget(self, resource):
+        if self._original is None:
+            return None
+        return self._original.forget(resource)
+
+
+def _owner_start_state(thread, hint=None):
+    """The start state of one owner of the round.
+
+    The state is one of ``'STARTED'``, ``'NEVER_STARTED'`` or
+    ``'UNKNOWN'``.  ``UNKNOWN`` is the state of an owner whose start
+    did not return and of an owner whose liveness could not be asked:
+    such an owner may still come up, it is never taken for an owner
+    that never started and it **fails the proof** of the cleanup.
+
+    A thread that really started keeps its identity for ever, also
+    after it ended: an owner with an identity was really started and
+    it is joined.  An owner **without** an identity was either never
+    started or its start did not return: the owner of the round knows
+    which one it is and it says so with the hint.
     """
     if thread is None:
-        return False
-    if getattr(thread, 'ident', None) is not None:
-        return True
+        return 'NEVER_STARTED'
     try:
-        return bool(thread.is_alive())
+        ident = getattr(thread, 'ident', None)
     except Exception:  # noqa: BLE001 - the failure stays visible
-        return False
+        return 'UNKNOWN'
+    if ident is not None:
+        return 'STARTED'
+    if hint == 'NEVER_STARTED':
+        return 'NEVER_STARTED'
+    if hint == 'UNKNOWN':
+        return 'UNKNOWN'
+    try:
+        alive = bool(thread.is_alive())
+    except Exception:  # noqa: BLE001 - the failure stays visible
+        return 'UNKNOWN'
+    return 'STARTED' if alive else 'NEVER_STARTED'
 
 
-def _salvage_threads(owners, *, seconds=10.0):
+def _salvage_threads(owners, *, seconds=10.0, states=None):
     """Join the owners that really started and report their liveness.
 
     The salvage is the work of the **test** and it is **separate** from
@@ -213,33 +333,93 @@ def _salvage_threads(owners, *, seconds=10.0):
 
     Every owner that really started is joined with an explicitly
     bounded wait and its liveness is reported.  An owner that never
-    started is reported and **never** joined.
+    started is reported and **never** joined.  An owner whose start
+    state is ``UNKNOWN`` is reported as unknown: it is never joined as
+    if it had ended and it fails the proof of the cleanup.
     """
     facts = []
+    hints = states or {}
     for name, thread in owners:
-        if not _started_owner(thread):
-            facts.append({'name': name, 'started': False, 'alive': None,
-                          'joined': None})
+        state = _owner_start_state(thread, hints.get(name))
+        if state != 'STARTED':
+            facts.append({'name': name, 'start_state': state,
+                          'started': None if state == 'UNKNOWN' else False,
+                          'alive': None, 'joined': None})
             continue
         try:
             thread.join(seconds)
         except RuntimeError:  # pragma: no cover - a thread of another round
-            facts.append({'name': name, 'started': True, 'alive': True,
+            facts.append({'name': name, 'start_state': state,
+                          'started': True, 'alive': True,
                           'joined': False})
             continue
         alive = bool(thread.is_alive())
-        facts.append({'name': name, 'started': True, 'alive': alive,
+        facts.append({'name': name, 'start_state': state,
+                      'started': True, 'alive': alive,
                       'joined': not alive})
     return facts
 
 
-def _session_owners(session):
+def _assert_salvage_proved(facts, message):
+    """The proof that the fixture released every owner that it started.
+
+    An owner with an **unknown** start state fails the proof: it is
+    never taken for an owner that never started and it is never taken
+    for an owner that ended.
+    """
+    for item in facts:
+        assert item['start_state'] != 'UNKNOWN', \
+            '%s: the owner %s has an unknown start state' \
+            % (message, item['name'])
+        if item['started']:
+            assert item['alive'] is False, \
+                '%s: the owner %s was left behind' % (message, item['name'])
+
+
+def _prove_salvage(facts, message):
+    """The proof of the cleanup of a round, as a **fact**.
+
+    The proof is **run** in every case - also while an ordinary failure
+    is already unwinding - and it returns the failure of the proof
+    instead of raising it: a failure of the proof never replaces the
+    failure that is already unwinding and it is never discarded.
+    """
+    for item in facts:
+        if item['start_state'] == 'UNKNOWN':
+            return '%s: the owner %s has an unknown start state' \
+                % (message, item['name'])
+        if item['started'] and item['alive'] is not False:
+            return '%s: the owner %s was left behind' % (message, item['name'])
+    return None
+
+
+def _capture_stop(session):
+    """The **returned** state of the public stop of a round.
+
+    The result of the stop is captured **before** the salvage of the
+    fixture: the salvage is the work of the test and it never replaces
+    the returned state of the product.  An exception of the stop is
+    captured and it is never discarded.
+    """
+    captured = {'returned': None, 'exception': None}
+    if session is None:
+        return captured
+    try:
+        captured['returned'] = session.stop()
+    except BaseException as error:  # noqa: BLE001 - the failure stays visible
+        captured['exception'] = {'type': type(error).__name__,
+                                 'detail': str(error)}
+    return captured
+
+
+def _session_owners(session, prefix='session', hints=None):
     """The owners that the session of the round really started.
 
     The registry is read from the session itself: the background
     threads of the round and the closer threads that it really built.
     A closer that never started is reported as such and it is never
-    joined.
+    joined.  A thread whose start did not return is **UNKNOWN**: it
+    keeps its owner in the session and it may still come up.
     """
     owners = []
     if session is None:
@@ -247,14 +427,51 @@ def _session_owners(session):
     records = getattr(session, '_background_threads', None) or {}
     for kind in sorted(records):
         record = records[kind] or {}
-        owners.append(('background:' + str(kind), record.get('thread')))
+        name = '%s:background-%s' % (prefix, str(kind))
+        owners.append((name, record.get('thread')))
+        if hints is None:
+            continue
+        state = record.get('state')
+        if state == 'STARTING':
+            hints[name] = 'UNKNOWN'
+        elif state == 'FAILED' and not record.get('started'):
+            hints[name] = 'NEVER_STARTED'
+    closer_state = getattr(session, '_closer_start_state', None)
     for index, thread in enumerate(getattr(session, '_closer_threads', None)
                                    or []):
-        owners.append(('closer:%d' % index, thread))
+        name = '%s:closer-%d' % (prefix, index)
+        owners.append((name, thread))
+        if hints is not None and closer_state == 'STARTING':
+            hints[name] = 'UNKNOWN'
     return owners
 
 
-def _channel_owners(channel, prefix):
+def _endpoint_owners(prefix, endpoint, hints=None):
+    """The owners that one endpoint of the round really started.
+
+    The read worker and the write worker of the endpoint are the
+    owners that the endpoint really started.  A worker that the
+    endpoint **retained** is a worker whose start did not return: its
+    state is **UNKNOWN** and it fails the proof of the cleanup.
+    """
+    owners = []
+    if endpoint is None:
+        return owners
+    for role, label in (('_reader', 'read'), ('_writer', 'write')):
+        worker = getattr(endpoint, role, None)
+        if worker is None:
+            continue
+        owners.append(('%s:%s-worker' % (prefix, label), worker))
+    for index, worker in enumerate(getattr(endpoint, '_retained', None)
+                                   or []):
+        name = '%s:retained-%d' % (prefix, index)
+        owners.append((name, worker))
+        if hints is not None:
+            hints[name] = 'UNKNOWN'
+    return owners
+
+
+def _channel_owners(channel, prefix, hints=None):
     """The owners that the channel of the round really started.
 
     The drain thread of the channel and the workers of its two
@@ -265,15 +482,63 @@ def _channel_owners(channel, prefix):
     if channel is None:
         return owners
     owners.append((prefix + ':drain', getattr(channel, '_thread', None)))
+    if hints is not None:
+        # The drain thread of a channel is started **inside** the
+        # constructor of the channel: a channel whose construction
+        # failed at the start of its drain owns a drain thread whose
+        # start did not return and it may still come up.
+        hints[prefix + ':drain'] = 'UNKNOWN'
     reader = getattr(channel, '_reader', None)
     writer = getattr(channel, '_writer', None)
-    if reader is not None:
-        owners.append((prefix + ':read-worker',
-                       getattr(reader, '_reader', None)))
-    if writer is not None:
-        owners.append((prefix + ':write-worker',
-                       getattr(writer, '_writer', None)))
+    for endpoint, label in ((reader, 'read'), (writer, 'write')):
+        owners.extend(_endpoint_owners('%s:%s' % (prefix, label), endpoint,
+                                       hints))
     return owners
+
+
+def _registry_owners(registry, session=None, channel=None, prefix='round'):
+    """Every owner of the round: the registered ones and the live ones.
+
+    The registry of the fixture holds the owners that were registered
+    **immediately** - a channel that was constructed, an endpoint that
+    was built, a session that was created.  The session and the
+    channel that are still reachable are added to them, so that a
+    thread that the product started after the registration is never
+    forgotten.  One owner is never in the list twice: the identity of
+    the thread decides and not its name.
+    """
+    owners = []
+    hints = {}
+    seen = set()
+    kinds = set()
+
+    def add(items):
+        for name, thread in items:
+            key = ('thread', id(thread)) if thread is not None \
+                else ('name', name)
+            if key in seen:
+                continue
+            seen.add(key)
+            owners.append((name, thread))
+
+    for entry in registry.entries():
+        name = entry['name']
+        owner = entry['owner']
+        kind = entry['kind']
+        kinds.add(kind)
+        if kind == 'channel':
+            add(_channel_owners(owner, name, hints))
+        elif kind == 'endpoint':
+            add(_endpoint_owners(name, owner, hints))
+        elif kind == 'session':
+            add(_session_owners(owner, name, hints))
+        else:
+            add([(name, owner)])
+    if session is not None and 'session' not in kinds:
+        add(_session_owners('%s:session' % prefix, session, hints))
+    if channel is not None and 'channel' not in kinds:
+        add(_channel_owners('%s:channel' % prefix, channel, hints))
+    return owners, hints
 
 
 # -- N10-R01: the control handle of a process ------------------------------
@@ -1746,6 +2011,43 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
     after the start of the transport of the child - and they catch the
     **test sentinel** of the group again: they are the proof of the
     negative path of the fixture.
+
+    RECONCILIATION (N1 correction 16, M1): the oracle of the zero
+    expiry is the **public** start of the round itself and it is no
+    longer a second private read after a completed start.  The round is
+    really started through the PRODUCTION default launcher and the
+    reply admission of that very start is the admission that observes
+    the zero expiry: the **attached** pump of the round is held at a
+    transparent gate that calls the original read of the broker, the
+    ORIGINAL context of the round is tightened **before** the current
+    bound of the round is calculated by the admission, the reply of the
+    parent is really waited for with a zero timeout and the attached
+    pump really asks the queue of the round for nothing.  The expected
+    error cause, the returned state and the retention of the round are
+    read from the **returned** evidence of the public start and they
+    are never inferred from a previous successful start or from the
+    identity of the context.  The direct helper of the group stays a
+    **supplement** and it is never the oracle.
+
+    RECONCILIATION (N1 correction 16, M3): the fixture owns a
+    **registry** of the owners that it really starts and every owner is
+    registered **immediately**: a channel that registers itself with
+    its custody before it builds anything, an endpoint that is built
+    and a session that is created.  A drain thread whose start took
+    effect and then failed is therefore an owner that the fixture
+    joins.  The start state of an owner is one of ``STARTED``,
+    ``NEVER_STARTED`` or ``UNKNOWN`` and an **unknown** owner fails the
+    proof of the cleanup: it is never taken for an owner that never
+    started.  Every gate of the fixture - the primitive of the round
+    included - is released in the **outermost** ``finally``, the close
+    of the transport of the child never prevents the cleanup of the
+    other endpoint, every bounded salvage join and every liveness check
+    **runs while an ordinary failure is unwinding** and the returned
+    state of the public stop of the round is captured **before** the
+    salvage.  Five subcases fail on purpose: the **test sentinel**, an
+    **ordinary** assertion, a close of the transport of the child that
+    fails and a construction of the transport of the child that fails
+    **after** its drain thread was really started.
     """
     document = _live_plan_document()
     plan = validate_launch_plan(document, now=time.time())
@@ -1923,13 +2225,23 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         thing that is injected is the **synthetic primitive table** of
         the round: no native library is loaded and no operating system
         call is made.
+
+        N1 correction 16 (M3): the endpoint is registered in the
+        registry of the fixture **immediately**: the workers of the
+        endpoint are started later and the product may drop its
+        reference to them when it closes the endpoint.
         """
         handles['next'] += 1
-        return _WindowsPipeEndpoint(
+        endpoint = _WindowsPipeEndpoint(
             file_object=file_object, name=name,
             api=api if api is not None else api_table['value'],
             clock=clock,
             handle=handles['next'], context=context)
+        registry = round_registry['value']
+        if registry is not None:
+            registry.register('endpoint:%s' % name, endpoint,
+                              kind='endpoint', seam='make_endpoint')
+        return endpoint
 
     # The table of the primitives of the round that is **started now**.
     # It is a holder and not a plain name: every round of the group has
@@ -1960,6 +2272,17 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
     # round: the wrapper below binds it and it never decides a deadline
     # of its own.
     round_clock = {'value': clock}
+    # N1 correction 16 (M3): the registry of the owners that the
+    # fixture really starts.  The registry of the round that is
+    # **started now** is the one that the seams below write into: an
+    # owner is registered **immediately** and it is never discovered
+    # later from a product that may have dropped it.
+    round_registry = {'value': None}
+    # The recorder of the queue of the round that is **started now**.
+    # It is armed only for the round that observes the zero expiry and
+    # it is installed on the queue of the round at the moment of the
+    # construction of its channel.
+    round_queue_recorder = {'value': None}
 
     def clocked_stream_channel(*args, **kwargs):
         """The production channel of the round with the clock of the round.
@@ -1968,11 +2291,27 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         only binds the clock of the round: it never replaces a method,
         never decides a deadline and never changes the wiring of the
         launch.
+
+        N1 correction 16 (M3): the custody of the launch is the
+        **supported** seam of the production and the wrapper replaces it
+        with the custody seam of the fixture: a channel registers itself
+        with its custody **before** it builds anything, so the registry
+        of the fixture holds the channel even when its construction
+        failed after its drain thread was started.  The original
+        custody of the round receives every call unchanged.
         """
         kwargs.setdefault('clock', round_clock['value'])
-        return real_stream_channel(*args, **kwargs)
+        registry = round_registry['value']
+        if registry is not None and kwargs.get('custody') is not None:
+            kwargs['custody'] = _RegistryCustody(registry, 'launch',
+                                                 kwargs['custody'])
+        channel = real_stream_channel(*args, **kwargs)
+        recorder = round_queue_recorder['value']
+        if recorder is not None:
+            recorder(channel)
+        return channel
 
-    def start_round(round_session, round_api, round_clock_value):
+    def start_round(round_session, round_api, round_clock_value, registry):
         """Start one round through the PRODUCTION default launcher.
 
         The round is started by the **production** session, with the
@@ -1981,11 +2320,21 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         process, the table of the primitives of the round and the clock
         of the round: the launcher of the round itself is never
         replaced by a stand-in.
+
+        N1 correction 16 (M3): the session of the round is registered
+        in the registry of the fixture **immediately**: the background
+        threads and the closer threads of the round are the owners that
+        the session really started and the product may drop its
+        reference to them.
         """
         previous_api_table = api_table['value']
         previous_clock = round_clock['value']
+        previous_registry = round_registry['value']
         api_table['value'] = round_api
         round_clock['value'] = round_clock_value
+        round_registry['value'] = registry
+        registry.register('session', round_session, kind='session',
+                          seam='fixture')
         try:
             with unittest.mock.patch.object(broker_module, 'os', _OsView()), \
                  unittest.mock.patch.object(broker_module, 'subprocess',
@@ -1999,6 +2348,7 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         finally:
             api_table['value'] = previous_api_table
             round_clock['value'] = previous_clock
+            round_registry['value'] = previous_registry
         return round_session
 
     session = NativeCustodySession(plan=document, run_root=tmp_path,
@@ -2007,11 +2357,18 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                                    wall=time.time, nonce=NONCE)
     parent_salvage = []
     child_transport = None
+    # N1 correction 16 (M3): the registry of the owners that the
+    # fixture really starts.  Every owner of the parent and of the
+    # child is registered **immediately**.
+    parent_registry = _OwnerRegistry()
+    # The failures of the close of the transport of the child and of
+    # its two endpoints: they are **recorded** and never discarded.
+    child_close_failures = []
     try:
         # -- the parent: the PRODUCTION default launcher and the
         #    PRODUCTION launch_broker, with the creation of the process
         #    replaced by the in-process fake -------------------------
-        start_round(session, api, clock)
+        start_round(session, api, clock, parent_registry)
         facts = {'context_at_popen':
                  observations['context_at_popen'] is session._context,
                  'command': observations.get('command'),
@@ -2171,26 +2528,30 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
             # blocked behind the test and no thread of the test is left
             # behind.
             admission_gate.set()
-        # -- N1 correction 15 (M1): the **zero expiry** on a **public**
-        #    chain.  The oracle of the zero expiry is not a helper that
-        #    the group builds itself: it is a round that is really
-        #    started through the PRODUCTION default launcher, with the
-        #    ORIGINAL context of **that** round and with ONE clock
-        #    domain, and the pump that answers the zero expiry is the
-        #    **attached** pump of that round - the one that the
-        #    production session really started and really owns.
+        # -- N1 correction 16 (M1): the zero expiry on a **public**
+        #    operation that is really in flight.
+        #
+        #    The oracle of the zero expiry is **not** a helper that the
+        #    group builds itself and it is **not** a second private read
+        #    after a completed start.  It is the **public** start of the
+        #    round itself: the round is really started through the
+        #    PRODUCTION default launcher and the reply admission of that
+        #    very start is the admission that observes the zero expiry.
         #
         #    The schedule of the round is bounded at every step:
         #
-        #      1. the round is really started (the READY and the STATUS
-        #         really arrive through the real chain);
-        #      2. the **attached** pump of the round reaches its next
-        #         admission and the admission is **held** at a
-        #         transparent gate - the gate calls the original read
-        #         of the broker and it decides only the schedule;
-        #      3. the **zero expiry** is published on the ORIGINAL
-        #         context of the round and it is published **before**
-        #         the next current bound of the round is calculated;
+        #      1. the round is really started through the PRODUCTION
+        #         default launcher with the ORIGINAL context of **that**
+        #         round and with ONE clock domain;
+        #      2. the **attached** pump of the round - the pump that the
+        #         production session really started and really owns -
+        #         reaches its next admission and the admission is
+        #         **held** at a transparent gate that calls the original
+        #         read of the broker;
+        #      3. the reply admission of the **public** start tightens
+        #         the ORIGINAL context of the round **before** the
+        #         current bound of the round is calculated by the
+        #         admission;
         #      4. the reply of the parent is really waited for and it
         #         asks for **nothing**: the event of the reply is
         #         really waited for with a zero timeout;
@@ -2201,7 +2562,8 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         #    The pump of the round is held at the gate while the reply
         #    is waited for: the end of the stream of the pump and its
         #    error can therefore never preempt the reply that the round
-        #    owes.
+        #    owes.  The gate is released only **after** the wait of the
+        #    admission returned.
         zero_api = Api()
         zero_clock = ManualClock(2000.0)
         zero_document = plan_document(lease_expires_at=time.time() + 120.0)
@@ -2215,140 +2577,223 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
             plan=zero_document, run_root=tmp_path / 'zero-round',
             parent_child_remaining_seconds=21600, launcher=None,
             clock=zero_clock, wall=time.time, nonce=NONCE)
+        zero_registry = _OwnerRegistry()
         zero_queue_waits = []
         zero_reply_waits = []
         zero_gate = threading.Event()
         zero_held = threading.Event()
+        zero_gate_facts = []
+        zero_premise = {}
         zero_salvage = []
-        try:
-            start_round(zero_session, zero_api, zero_clock)
-            assert zero_session.state == 'RUNNING', \
-                'the round of the zero expiry did not really start'
-            # The **attached** pump of the round is the one that the
-            # production really started: the group never builds a
-            # replacement for it and it never calls it directly.
-            zero_attached_pump = zero_session._pump
-            assert zero_attached_pump is not None, \
-                'the round of the zero expiry has no attached pump'
-            assert zero_attached_pump.is_alive(), \
-                'the attached pump of the zero round is not running'
-            # The queue of the round is observed through the **real**
-            # method of the production.
-            zero_original_get = zero_session.broker._channel._queue.get
+        zero_returned = {}
+        zero_channel = None
+        zero_original_broker_read = broker_module.BrokerProcess.read
+        zero_original_waiter = custody_module._ReplyWaiter
+
+        def zero_install_queue_recorder(channel):
+            """The recorder of the queue of the round of the zero expiry.
+
+            The recorder is installed on the queue of the round at the
+            moment of the construction of the channel - **before** the
+            pump of the round is started - and it calls the **original**
+            method of the queue: it records the **actual** argument
+            that the production really passed to it.
+            """
+            original_get = channel._queue.get
 
             def zero_recording_get(block=True, timeout=None):
                 zero_queue_waits.append(timeout)
-                return zero_original_get(block=block, timeout=timeout)
+                return original_get(block=block, timeout=timeout)
 
-            zero_session.broker._channel._queue.get = zero_recording_get
-            original_zero_waiter = custody_module._ReplyWaiter
+            channel._queue.get = zero_recording_get
 
-            class ZeroRecordingWaiter(original_zero_waiter):
-                """A waiter of a reply that records its actual wait."""
+        def zero_gated_broker_read(self, timeout):
+            """The read of the broker of the round, held at the gate.
 
-                def __init__(self, kinds):
-                    super().__init__(kinds)
-                    event = self.event
-                    original_wait = event.wait
+            The gate belongs to the round of the zero expiry only: the
+            context of the handle decides that.  It forwards the
+            original signature and the original result and it decides
+            only the schedule.
+            """
+            if getattr(self, '_context', None) is not zero_session._context:
+                return zero_original_broker_read(self, timeout)
+            zero_held.set()
+            released = zero_gate.wait(ZERO_GATE_SECONDS)
+            zero_gate_facts.append({'released': bool(released),
+                                    'timeout': ZERO_GATE_SECONDS})
+            return zero_original_broker_read(self, timeout)
 
-                    def recording_wait(timeout=None):
-                        zero_reply_waits.append(timeout)
-                        return original_wait(timeout)
+        class ZeroTighteningWaiter(zero_original_waiter):
+            """The waiter of the reply that tightens the ORIGINAL context.
 
-                    event.wait = recording_wait
+            The waiter of the reply is built by the admission of the
+            **public** start of the round and it is built **before**
+            the admission calculates the current bound of the round.
+            The waiter tightens the ORIGINAL context of the round at
+            that exact moment and it records the actual wait of the
+            reply.  It forwards the original signature and the original
+            result and it decides only the schedule.
+            """
 
-            # The gate of the admission: the next real read of the
-            # broker of the round is **held** before the original read
-            # is called.  The gate forwards the original signature and
-            # the original result and it decides only the schedule.
-            zero_original_read = zero_session.broker.read
+            def __init__(self, kinds):
+                super().__init__(kinds)
+                # The premise of the schedule: the attached pump of the
+                # round is really inside its read and it is really held
+                # there.  A schedule that did not reach the admission
+                # fails the premise of the test.
+                zero_premise['pump_at_admission'] = bool(
+                    zero_held.wait(ZERO_ADMISSION_SECONDS))
+                pump = zero_session._pump
+                zero_premise['pump_attached'] = pump is not None
+                zero_premise['pump_eof_at_admission'] = bool(
+                    pump is not None and pump._eof)
+                zero_premise['pump_error_at_admission'] = (
+                    repr(pump.error) if pump is not None else None)
+                # The ORIGINAL context of the round is tightened
+                # **before** the admission calculates the current bound
+                # of the round.
+                zero_session._context.bind_absolute_deadline(
+                    zero_clock.value)
+                zero_premise['tightened_at'] = time.monotonic()
+                zero_premise['effective_at_admission'] = \
+                    zero_session._context.effective_deadline()
+                event = self.event
+                original_wait = event.wait
 
-            def zero_gated_read(timeout):
-                zero_held.set()
-                zero_gate.wait(30.0)
-                return zero_original_read(timeout)
+                def recording_wait(timeout=None):
+                    zero_reply_waits.append(timeout)
+                    result = original_wait(timeout)
+                    # The pump is released **after** the wait of the
+                    # admission returned: the end of the stream of the
+                    # pump and its error can never preempt the reply
+                    # that the round owes.
+                    zero_gate.set()
+                    return result
 
-            zero_session.broker.read = zero_gated_read
-            try:
-                assert zero_held.wait(15.0), \
-                    'the attached pump of the zero round never reached its admission'
-                zero_queue_waits[:] = []
-                zero_reply_waits[:] = []
-                # The **zero expiry** is published on the ORIGINAL
-                # context of the round and it is published **before**
-                # the next current bound of the round is calculated.
-                zero_session._context.bind_absolute_deadline(zero_clock.value)
-                # The reply of the parent is really waited for and it
-                # asks for **nothing**: the pump of the round is still
-                # held at the gate, so its end of stream and its error
-                # can never preempt the reply.
-                with unittest.mock.patch.object(custody_module, '_ReplyWaiter',
-                                                ZeroRecordingWaiter):
-                    with pytest.raises(CustodyError):
-                        zero_session._read_reply(('READY',), timeout=10.0)
-                # The admission is released: the **attached** pump of
-                # the round really performs its next read and the queue
-                # of the round is really asked for nothing.
-                zero_gate.set()
-                deadline = time.monotonic() + 15.0
-                while time.monotonic() < deadline:
-                    if zero_attached_pump.finished:
-                        break
-                    time.sleep(0.005)
-                facts = {'zero_queue_waits': list(zero_queue_waits),
-                         'zero_reply_waits': list(zero_reply_waits),
-                         'zero_pump_finished': bool(zero_attached_pump.finished),
-                         'zero_pump_error': repr(zero_attached_pump.error),
-                         'zero_pump_frames': zero_attached_pump.frames,
-                         'zero_state': zero_session.state,
-                         'zero_pump_context_is_the_session_context':
-                             zero_attached_pump._context is zero_session._context,
-                         'zero_channel_context_is_the_session_context':
-                             zero_session.broker._channel._context
-                             is zero_session._context}
-                write_phase('r07-zero-public-chain', facts)
-                assert zero_queue_waits, \
-                    'the attached pump of the zero round never waited for a frame'
-                assert zero_queue_waits[-1] == 0.0, \
-                    'the attached pump of the zero round asked for a wait ' \
-                    'after the expiry'
-                assert zero_reply_waits, \
-                    'the parent of the zero round never waited for a reply'
-                assert zero_reply_waits[-1] == 0.0, \
-                    'the reply event of the zero round asked for a wait ' \
-                    'after the expiry'
-                assert facts['zero_pump_finished'] is True, \
-                    'the attached pump of the zero round did not end'
-                assert facts['zero_pump_context_is_the_session_context'] is True, \
-                    'the attached pump of the zero round has another context'
-                assert facts['zero_channel_context_is_the_session_context'] is True, \
-                    'the channel of the zero round has another context'
-            finally:
-                # The gate of the test is released **unconditionally**.
-                zero_gate.set()
+                event.wait = recording_wait
+
+        try:
+            with unittest.mock.patch.object(broker_module, 'BrokerProcess',
+                                            'read', zero_gated_broker_read), \
+                 unittest.mock.patch.object(custody_module, '_ReplyWaiter',
+                                            ZeroTighteningWaiter):
+                round_queue_recorder['value'] = zero_install_queue_recorder
+                try:
+                    start_round(zero_session, zero_api, zero_clock,
+                                zero_registry)
+                finally:
+                    round_queue_recorder['value'] = None
+            # The **returned** state of the public start of the round:
+            # it is read before the salvage of the fixture and the
+            # salvage never replaces it.
+            zero_returned = zero_session.evidence()
+            zero_pump = zero_session._pump
+            zero_broker = getattr(zero_session, 'broker', None)
+            zero_channel = getattr(zero_broker, '_channel', None)
+            # The **attached** pump of the round really performed its
+            # read after the gate was released: the queue of the round
+            # was really asked for nothing.
+            deadline = time.monotonic() + 15.0
+            while time.monotonic() < deadline:
+                if zero_pump is not None and zero_pump.finished:
+                    break
+                time.sleep(0.005)
+            facts = {'zero_queue_waits': list(zero_queue_waits),
+                     'zero_reply_waits': list(zero_reply_waits),
+                     'zero_pump_finished': bool(zero_pump is not None
+                                                and zero_pump.finished),
+                     'zero_pump_error': repr(zero_pump.error)
+                     if zero_pump is not None else None,
+                     'zero_pump_frames': zero_pump.frames
+                     if zero_pump is not None else None,
+                     'zero_state': zero_returned.get('state'),
+                     'zero_failures': list(zero_returned.get('failures')
+                                           or []),
+                     'zero_broker_retained': zero_returned.get(
+                         'broker_retained'),
+                     'zero_premise': dict(zero_premise),
+                     'zero_gate_facts': list(zero_gate_facts),
+                     'zero_registry': zero_registry.facts(),
+                     'zero_pump_context_is_the_session_context':
+                         zero_pump is not None
+                         and zero_pump._context is zero_session._context,
+                     'zero_channel_context_is_the_session_context':
+                         zero_channel is not None
+                         and zero_channel._context is zero_session._context}
+            write_phase('r07-zero-public-chain', facts)
+            # The premise of the schedule: the attached pump of the
+            # round was really inside its read and it was really held
+            # there, and the end of its stream never preempted the
+            # reply that the round owes.
+            assert zero_premise['pump_at_admission'] is True, \
+                'the attached pump of the zero round never reached its admission'
+            assert zero_premise['pump_eof_at_admission'] is False, \
+                'the attached pump of the zero round was at the end of its ' \
+                'stream before the admission of the reply'
+            assert zero_premise['pump_error_at_admission'] is None, \
+                'the attached pump of the zero round failed before the ' \
+                'admission of the reply'
+            # The gate was **released** and it never timed out.
+            assert zero_gate_facts, \
+                'the admission of the zero round never reached the gate'
+            assert zero_gate_facts[0]['released'] is True, \
+                'the gate of the admission of the zero round timed out'
+            # The public start of the round really observed the zero
+            # expiry: the reply of the parent asked for **nothing**.
+            assert zero_reply_waits, \
+                'the public start of the zero round never waited for a reply'
+            assert zero_reply_waits[-1] == 0.0, \
+                'the reply event of the zero round asked for a wait ' \
+                'after the expiry'
+            # The **attached** pump of the round really asked the queue
+            # of the round for **nothing**.
+            assert zero_queue_waits, \
+                'the attached pump of the zero round never waited for a frame'
+            assert zero_queue_waits[-1] == 0.0, \
+                'the attached pump of the zero round asked for a wait ' \
+                'after the expiry'
+            assert facts['zero_pump_finished'] is True, \
+                'the attached pump of the zero round did not end'
+            assert facts['zero_pump_context_is_the_session_context'] is True, \
+                'the attached pump of the zero round has another context'
+            assert facts['zero_channel_context_is_the_session_context'] is True, \
+                'the channel of the zero round has another context'
+            # The **expected error cause** of the public start: the
+            # admission of the reply of the round really timed out and
+            # the round latched its unknown state.
+            assert 'CUSTODY_CHANNEL_TIMEOUT' in facts['zero_failures'], \
+                'the public start of the zero round did not name the ' \
+                'timeout of the admission: %s' % (facts['zero_failures'],)
+            assert facts['zero_state'] == 'UNKNOWN_RETAINED', \
+                'the public start of the zero round did not latch its state'
+            # The **retention** of the round is the returned fact of the
+            # product: the group records it and it never claims a
+            # release that the product cannot prove.
+            assert 'broker_retained' in zero_returned, \
+                'the returned state of the public start does not name the ' \
+                'retention of the round'
         finally:
             # The fixture of the zero round is released and the owners
             # that it really started are joined with a bounded wait.
-            # The salvage is separate from the returned state of the
-            # product: it renews no deadline of the round and it erases
-            # no retained resource of the product.
+            # The gate of the test and the primitive of the round are
+            # released **unconditionally**.
             zero_gate.set()
             zero_api.frames_ready.set()
-            try:
-                zero_session.stop()
-            except Exception:  # noqa: BLE001 - the evidence keeps the failure
-                pass
-            zero_broker = getattr(zero_session, 'broker', None)
-            zero_salvage = _salvage_threads(
-                _session_owners(zero_session)
-                + _channel_owners(getattr(zero_broker, '_channel', None),
-                                  'zero'))
-        write_phase('r07-zero-salvage', {'salvage': zero_salvage})
-        for item in zero_salvage:
-            if item['started']:
-                assert item['alive'] is False, \
-                    'the owner %s of the zero round was left behind' \
-                    % item['name']
+            # The **returned** state of the product is captured
+            # **before** the salvage: the salvage of the test is
+            # separate from it and it never discards it.
+            zero_stop = _capture_stop(zero_session)
+            zero_owners, zero_hints = _registry_owners(
+                zero_registry, session=zero_session, channel=zero_channel,
+                prefix='zero')
+            zero_salvage = _salvage_threads(zero_owners, states=zero_hints)
+            zero_proof = _prove_salvage(zero_salvage, 'the round of zero')
+            facts = {'salvage': zero_salvage, 'stop': zero_stop,
+                     'proof_failure': zero_proof,
+                     'registry': zero_registry.facts()}
+            write_phase('r07-zero-salvage', facts)
+            if zero_proof is not None and sys.exc_info()[0] is None:
+                raise AssertionError(zero_proof)
         # -- N1 correction 15 (M1): the **SUPPLEMENT** of the zero
         #    expiry.  The direct helper of the group is kept as a
         #    supplement of the public chain above and it is never the
@@ -2410,6 +2855,7 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         # group may never leave the drain thread of the transport of the
         # child or the workers of its two endpoints behind.
         kernel32 = SyntheticKernel32()
+        kernel32 = SyntheticKernel32()
         windows = WindowsApi(table=synthetic_table(kernel32))
         child = BrokerCore(win32=windows, plan=sealed_plan(),
                            run_root=tmp_path, clock=clock)
@@ -2420,17 +2866,29 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         child_write_endpoint = None
         transport = None
         try:
+            # N1 correction 16 (M3): the endpoints and the transport of
+            # the child are registered **immediately**.  A construction
+            # that failed half way still owns its endpoints and its
+            # drain thread, and the product may drop its reference to
+            # them when it closes them.
             child_read_endpoint = _WindowsPipeEndpoint(
                 file_object=_FakeFile('read'), name='transport-read',
                 api=api, clock=clock, handle=920, context=child.context)
+            parent_registry.register('child:read-endpoint',
+                                     child_read_endpoint,
+                                     kind='endpoint', seam='fixture')
             child_write_endpoint = _WindowsPipeEndpoint(
                 file_object=_FakeFile('write'), name='transport-write',
                 api=api, clock=clock, handle=921, context=child.context)
+            parent_registry.register('child:write-endpoint',
+                                     child_write_endpoint,
+                                     kind='endpoint', seam='fixture')
             transport = StreamChannel(
                 None, None,
                 read_endpoint=child_read_endpoint,
                 write_endpoint=child_write_endpoint,
-                clock=clock, context=child.context)
+                clock=clock, context=child.context,
+                custody=_RegistryCustody(parent_registry, 'child'))
             child_transport = transport
             transport.bind_deadline(2000.0)
             loop = BrokerLoop(core=child, transport=transport, plan=child.plan,
@@ -2463,37 +2921,78 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
             # **unconditional**: it runs also when an assertion of the
             # group failed.  It is the close of the **product** of the
             # child and it is not the salvage of the test owner.
+            #
+            # N1 correction 16 (M3): a close that failed never
+            # prevents the cleanup of the **other** endpoint: every
+            # close of the fixture runs in its own ``finally`` and every
+            # failure of a close is **recorded** and never discarded.
             if transport is not None:
-                transport.close()
+                try:
+                    transport.close()
+                except Exception as error:  # noqa: BLE001 - it stays visible
+                    child_close_failures.append(
+                        {'owner': 'child:transport',
+                         'type': type(error).__name__,
+                         'detail': str(error)})
+                finally:
+                    # A **partial** construction of the transport of the
+                    # child still owns its two endpoints: they are closed
+                    # here and they are never forgotten.
+                    for endpoint in (child_read_endpoint, child_write_endpoint):
+                        if endpoint is None:
+                            continue
+                        try:
+                            endpoint.close()
+                        except Exception as error:  # noqa: BLE001
+                            child_close_failures.append(
+                                {'owner': getattr(endpoint, '_name', 'endpoint'),
+                                 'type': type(error).__name__,
+                                 'detail': str(error)})
             else:
                 # A **partial** construction of the transport of the
                 # child still owns its two endpoints: they are closed
                 # here and they are never forgotten.
                 for endpoint in (child_read_endpoint, child_write_endpoint):
-                    if endpoint is not None:
+                    if endpoint is None:
+                        continue
+                    try:
                         endpoint.close()
+                    except Exception as error:  # noqa: BLE001
+                        child_close_failures.append(
+                            {'owner': getattr(endpoint, '_name', 'endpoint'),
+                             'type': type(error).__name__,
+                             'detail': str(error)})
     finally:
-        # N1 correction 15 (M3): the fixture of the test releases
-        # **every** gate of the test and joins **every** owner that
-        # really started.  The stop of the product keeps its own
-        # deadline and its own returned state; the salvage of the test
-        # is **separate** from it: it renews no deadline of the round,
-        # it erases no retained resource of the product and it never
-        # claims that the product released it.
-        try:
-            session.stop()
-        except Exception:  # noqa: BLE001 - the evidence keeps the failure
-            pass
-        parent_salvage = _salvage_threads(
-            _session_owners(session)
-            + _channel_owners(getattr(getattr(session, 'broker', None),
-                                      '_channel', None), 'parent')
-            + _channel_owners(child_transport, 'child'))
-        write_phase('r07-parent-salvage', {'salvage': parent_salvage})
-    for item in parent_salvage:
-        if item['started']:
-            assert item['alive'] is False, \
-                'the owner %s of the parent was left behind' % item['name']
+        # N1 correction 16 (M3): the fixture of the test releases
+        # **every** gate of the test - the primitive of the round
+        # included - and joins **every** owner that really started.
+        # The stop of the product keeps its own deadline and its own
+        # returned state; the salvage of the test is **separate** from
+        # it: it renews no deadline of the round, it erases no retained
+        # resource of the product and it never claims that the product
+        # released it.
+        #
+        # The **returned** state of the product is captured **before**
+        # the salvage, and the proof of the cleanup is **run** while an
+        # ordinary failure is already unwinding: it never replaces the
+        # failure that is unwinding and it is never discarded.
+        api.frames_ready.set()
+        parent_stop = _capture_stop(session)
+        parent_broker = getattr(session, 'broker', None)
+        parent_channel = getattr(parent_broker, '_channel', None)
+        parent_owners, parent_hints = _registry_owners(
+            parent_registry, session=session, channel=parent_channel,
+            prefix='parent')
+        parent_salvage = _salvage_threads(parent_owners, states=parent_hints)
+        parent_proof = _prove_salvage(parent_salvage, 'the round of the parent')
+        write_phase('r07-parent-salvage',
+                    {'salvage': parent_salvage,
+                     'stop': parent_stop,
+                     'proof_failure': parent_proof,
+                     'child_close_failures': child_close_failures,
+                     'registry': parent_registry.facts()})
+        if parent_proof is not None and sys.exc_info()[0] is None:
+            raise AssertionError(parent_proof)
 
     # -- N1 correction 12 (M08-A): the admission of a generation is
     #    decided at the **dispatch** of the worker and it consults the
@@ -2658,28 +3157,40 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         endpoint.close()
 
     # -- N1 correction 15 (M3): the fixture of the group releases
+    # -- N1 correction 16 (M3): the fixture of the group releases
     #    **every** gate of the test and joins **every** owner that
     #    really started - also when an assertion of the group fails.
-    #    The two subcases below fail **on purpose** at a meaningful
-    #    checkpoint of a round and they catch the **test sentinel** of
-    #    the group again.  They are the proof of the negative path of
-    #    the fixture: a failed assertion of the group may never leave a
-    #    gate of the test blocked and it may never leave an owner of the
-    #    round behind.  A receipt of the happy path alone cannot prove
-    #    the negative path.
+    #    The subcases below fail **on purpose** at a meaningful
+    #    checkpoint of a round and they catch **their own** exception
+    #    again: the distinctive sentinel of the group, an **ordinary**
+    #    assertion of the group, a close of the transport of the child
+    #    that fails and a construction of the transport of the child
+    #    that fails **after** its drain thread was really started.
+    #    They are the proof of the negative path of the fixture: a
+    #    failed assertion of the group may never leave a gate of the
+    #    test blocked and it may never leave an owner of the round
+    #    behind.  A receipt of the happy path alone cannot prove the
+    #    negative path.
     def controlled_failure(checkpoint):
         """Fail one round of the fixture on purpose at a checkpoint.
 
         The round is really started through the PRODUCTION default
-        launcher and the sentinel of the group is raised at the
-        requested checkpoint of the round.  The ``finally`` of the
-        subcase releases every gate of the test, closes the transport of
-        the child where it was constructed, stops the round and joins
-        every owner that really started.
+        launcher and the failure of the fixture of the test is raised
+        at the requested checkpoint of the round.  The ``finally`` of
+        the subcase releases every gate of the test, closes the
+        transport of the child where it was constructed, stops the
+        round, joins every owner that really started and **runs the
+        proof of the cleanup** - also while the failure of the subcase
+        is already unwinding.
 
-        The sentinel is a **distinctive** exception of the test: it is
-        never a broad ``Exception`` and it never swallows a real
+        Every failure of the subcase is caught by **its own** type: it
+        is never a broad ``Exception`` and it never swallows a real
         failure of the production.
+
+        N1 correction 16 (M3): the owners of the round are registered
+        **immediately** in the registry of the fixture, so the drain
+        thread of a transport whose construction failed is still an
+        owner that the fixture joins.
         """
         controlled_api = Api()
         controlled_clock = ManualClock(3000.0)
@@ -2697,14 +3208,18 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
             run_root=tmp_path / ('controlled-' + checkpoint.lower()),
             parent_child_remaining_seconds=21600, launcher=None,
             clock=controlled_clock, wall=time.time, nonce=NONCE)
+        controlled_registry = _OwnerRegistry()
         gate = threading.Event()
         held = threading.Event()
         transport = None
         read_endpoint = None
         write_endpoint = None
         raised = []
+        close_failures = []
+        facts = {}
         try:
-            start_round(controlled_session, controlled_api, controlled_clock)
+            start_round(controlled_session, controlled_api, controlled_clock,
+                        controlled_registry)
             assert controlled_session.state == 'RUNNING', \
                 'the round of the controlled failure did not really start'
             controlled_original_read = controlled_session.broker.read
@@ -2721,7 +3236,8 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                 # admission and the admission is really held.
                 assert held.wait(15.0), \
                     'the parent of the controlled failure never reached its admission'
-                if checkpoint == 'CHILD_TRANSPORT':
+                if checkpoint in ('CHILD_TRANSPORT', 'CLOSE_FAILURE',
+                                  'CONSTRUCTOR_FAILURE'):
                     controlled_kernel32 = SyntheticKernel32()
                     controlled_windows = WindowsApi(
                         table=synthetic_table(controlled_kernel32))
@@ -2734,21 +3250,80 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                         name='controlled-read', api=controlled_api,
                         clock=controlled_clock, handle=930,
                         context=controlled_core.context)
+                    controlled_registry.register(
+                        'controlled:read-endpoint', read_endpoint,
+                        kind='endpoint', seam='fixture')
                     write_endpoint = _WindowsPipeEndpoint(
                         file_object=_FakeFile('controlled-write'),
                         name='controlled-write', api=controlled_api,
                         clock=controlled_clock, handle=931,
                         context=controlled_core.context)
-                    transport = StreamChannel(
-                        None, None, read_endpoint=read_endpoint,
-                        write_endpoint=write_endpoint,
-                        clock=controlled_clock,
-                        context=controlled_core.context)
-                    transport.bind_deadline(4000.0)
+                    controlled_registry.register(
+                        'controlled:write-endpoint', write_endpoint,
+                        kind='endpoint', seam='fixture')
+                    if checkpoint == 'CONSTRUCTOR_FAILURE':
+                        # The construction of the transport of the
+                        # child fails **after** its drain thread was
+                        # really started: the local variable of the
+                        # transport stays empty and the owner of the
+                        # drain thread is the **registry** of the
+                        # fixture, because the channel registers itself
+                        # with its custody **before** it builds
+                        # anything.
+                        controlled_real_channel = broker_module.StreamChannel
+
+                        def controlled_failing_channel(*args, **kwargs):
+                            channel = controlled_real_channel(*args, **kwargs)
+                            raise _R07ConstructorFailure(checkpoint)
+
+                        try:
+                            with unittest.mock.patch.object(
+                                    broker_module, 'StreamChannel',
+                                    controlled_failing_channel):
+                                transport = broker_module.StreamChannel(
+                                    None, None, read_endpoint=read_endpoint,
+                                    write_endpoint=write_endpoint,
+                                    clock=controlled_clock,
+                                    context=controlled_core.context,
+                                    custody=_RegistryCustody(
+                                        controlled_registry, 'controlled'))
+                        except _R07ConstructorFailure as error:
+                            raised.append(type(error).__name__)
+                    else:
+                        transport = StreamChannel(
+                            None, None, read_endpoint=read_endpoint,
+                            write_endpoint=write_endpoint,
+                            clock=controlled_clock,
+                            context=controlled_core.context,
+                            custody=_RegistryCustody(
+                                controlled_registry, 'controlled'))
+                        transport.bind_deadline(4000.0)
+                        if checkpoint == 'CLOSE_FAILURE':
+                            # The close of the transport of the child
+                            # fails: the cleanup of the **other**
+                            # endpoint may never be skipped because of
+                            # it and the failure of the close is
+                            # **recorded**.
+                            def controlled_failing_close():
+                                raise RuntimeError('controlled_close_failure')
+
+                            transport.close = controlled_failing_close
                 # The deliberate failure of the fixture of the test.
-                raise _R07Sentinel(checkpoint)
-            except _R07Sentinel as error:
-                raised.append(type(error).__name__)
+                if checkpoint == 'ORDINARY_ASSERTION':
+                    # An **ordinary** assertion of the group: it is a
+                    # real ``AssertionError`` of the test and it is
+                    # caught by its own type - never by a broad
+                    # ``Exception``.
+                    try:
+                        assert controlled_session.state == 'NOT_A_STATE', \
+                            'the controlled failure of the group is ordinary'
+                    except AssertionError as error:
+                        raised.append(type(error).__name__)
+                elif checkpoint != 'CONSTRUCTOR_FAILURE':
+                    try:
+                        raise _R07Sentinel(checkpoint)
+                    except _R07Sentinel as error:
+                        raised.append(type(error).__name__)
             finally:
                 # The gates of the test are released
                 # **unconditionally** and the owners of the round are
@@ -2757,46 +3332,85 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                 # ends and no wait of the round stays behind.
                 gate.set()
                 controlled_api.frames_ready.set()
-                if transport is not None:
-                    transport.close()
-                else:
-                    for endpoint in (read_endpoint, write_endpoint):
-                        if endpoint is not None:
-                            endpoint.close()
                 try:
-                    controlled_session.stop()
-                except Exception:  # noqa: BLE001 - the evidence keeps the failure
-                    pass
-                controlled_api.frames_ready.set()
+                    # The close of the transport of the child runs in
+                    # its own ``finally``: a close that failed never
+                    # prevents the cleanup of the **other** endpoint and
+                    # every failure of a close is **recorded**.
+                    if transport is not None:
+                        try:
+                            transport.close()
+                        except Exception as error:  # noqa: BLE001
+                            close_failures.append(
+                                {'owner': 'controlled:transport',
+                                 'type': type(error).__name__,
+                                 'detail': str(error)})
+                    for endpoint in (read_endpoint, write_endpoint):
+                        if endpoint is None:
+                            continue
+                        try:
+                            endpoint.close()
+                        except Exception as error:  # noqa: BLE001
+                            close_failures.append(
+                                {'owner': getattr(endpoint, '_name',
+                                                  'endpoint'),
+                                 'type': type(error).__name__,
+                                 'detail': str(error)})
+                finally:
+                    # The **returned** state of the product is captured
+                    # **before** the salvage of the fixture and the
+                    # proof of the cleanup is **run** while the failure
+                    # of the subcase is already unwinding.
+                    controlled_stop = _capture_stop(controlled_session)
+                    controlled_api.frames_ready.set()
+                    controlled_broker = getattr(controlled_session, 'broker',
+                                                None)
+                    controlled_channel = getattr(controlled_broker, '_channel',
+                                                 None)
+                    owners, hints = _registry_owners(
+                        controlled_registry,
+                        session=controlled_session,
+                        channel=controlled_channel, prefix='controlled')
+                    salvage = _salvage_threads(owners, states=hints)
+                    proof = _prove_salvage(salvage, 'the controlled round')
+                    facts = {'checkpoint': checkpoint,
+                             'failure': raised[0] if raised else None,
+                             'gate_released': bool(gate.is_set()),
+                             'stop': controlled_stop,
+                             'close_failures': close_failures,
+                             'salvage': salvage,
+                             'proof_failure': proof,
+                             'registry': controlled_registry.facts()}
+                    write_phase('r07-controlled-failure-%s'
+                                % checkpoint.lower(), facts)
+                    if proof is not None and sys.exc_info()[0] is None:
+                        raise AssertionError(proof)
         finally:
             controlled_api.frames_ready.set()
-        controlled_broker = getattr(controlled_session, 'broker', None)
-        salvage = _salvage_threads(
-            _session_owners(controlled_session)
-            + _channel_owners(getattr(controlled_broker, '_channel', None),
-                              'controlled')
-            + _channel_owners(transport, 'controlled-child'))
-        return {'checkpoint': checkpoint,
-                'sentinel': raised[0] if raised else None,
-                'gate_released': bool(gate.is_set()),
-                'salvage': salvage}
+        return facts
 
-    for checkpoint in ('PARENT_ADMISSION', 'CHILD_TRANSPORT'):
+    controlled_results = {}
+    for checkpoint in ('PARENT_ADMISSION', 'CHILD_TRANSPORT',
+                       'ORDINARY_ASSERTION', 'CLOSE_FAILURE',
+                       'CONSTRUCTOR_FAILURE'):
         controlled = controlled_failure(checkpoint)
-        write_phase('r07-controlled-failure-%s' % checkpoint.lower(),
-                    controlled)
-        assert controlled['sentinel'] == '_R07Sentinel', \
-            'the controlled failure of %s did not raise the sentinel' \
+        controlled_results[checkpoint] = controlled
+        assert controlled['failure'] is not None, \
+            'the controlled failure of %s did not raise its failure' \
             % checkpoint
         assert controlled['gate_released'] is True, \
             'the gate of the controlled failure of %s stayed blocked' \
             % checkpoint
-        for item in controlled['salvage']:
-            if item['started']:
-                assert item['alive'] is False, \
-                    'the owner %s of the controlled failure of %s was left ' \
-                    'behind' % (item['name'], checkpoint)
-
+        assert controlled['proof_failure'] is None, \
+            'the cleanup of the controlled failure of %s was not proved: %s' \
+            % (checkpoint, controlled['proof_failure'])
+        _assert_salvage_proved(controlled['salvage'],
+                               'the controlled failure of %s' % checkpoint)
+    # The close of the transport of the child that fails is **recorded**
+    # and it never prevented the cleanup of the other endpoint.
+    assert any(item['owner'] == 'controlled:transport'
+               for item in controlled_results['CLOSE_FAILURE']['close_failures']), \
+        'the failing close of the transport of the child was not recorded'
 
 # -- N10-R08: the retry of a cancellation re-reads the context ------------
 
@@ -3417,7 +4031,7 @@ class _M09TimeoutApi:
 
 def _m09_timeout_phase(document, plan, tmp_path, *, phase, confirm_the_worker,
                         hold_the_worker, barrier_probe='EXACT',
-                        expect_barrier='PASSED'):
+                        expect_barrier='PASSED', inventory=None):
     """The dynamic schedule of the M09 obligation of this group.
 
     The schedule is the **production** one: a real ordinary fault is
@@ -3486,6 +4100,21 @@ def _m09_timeout_phase(document, plan, tmp_path, *, phase, confirm_the_worker,
     api.fault_object = fault
     worker = None
     written = set()
+
+    def record(name, facts):
+        """Write one document of the phase and mark it as **written**.
+
+        The inventory of the outer test is updated with every document
+        that this phase really wrote: a document that the outer test
+        finds in the inventory is never written a second time and a
+        document that is **not** in the inventory was genuinely not
+        reached.
+        """
+        written.add(name)
+        if inventory is not None:
+            inventory.add(name)
+        return write_phase(name, facts)
+
     try:
         session.start()
         # The reader of the chain is really inside its read and the
@@ -3543,6 +4172,23 @@ def _m09_timeout_phase(document, plan, tmp_path, *, phase, confirm_the_worker,
         # swallowed is never a test oracle: the premise of the barrier
         # is read from the record of the barrier itself.
         barrier = dict(api.barrier)
+        # N1 correction 16 (M2): the facts of the barrier are written
+        # **before** the main assertions of the phase.  A barrier that
+        # failed closed keeps its evidence - the failure, the order and
+        # the object that it observed - even when the main assertions
+        # of the phase fail afterwards.
+        record(phase + '-barrier', {
+            'barrier': barrier,
+            'barrier_expectation': expect_barrier,
+            'barrier_probe': barrier_probe,
+            'confirm_the_worker': bool(confirm_the_worker),
+            'hold_the_worker': bool(hold_the_worker),
+            'cancel_calls': api.cancel_calls,
+            'expected_generation': api.worker_holder.get('generation'),
+            'published_outcome': bool(
+                api.worker_holder.get('published_outcome')),
+            'state': session.state,
+        })
         if expect_barrier == 'PASSED':
             assert barrier['failure'] is None, \
                 'the publication barrier of the round failed: %s' \
@@ -3615,41 +4261,61 @@ def _m09_timeout_phase(document, plan, tmp_path, *, phase, confirm_the_worker,
                  'barrier': barrier,
                  'barrier_expectation': expect_barrier,
                  'state': session.state}
-        write_phase(phase, facts)
-        written.add(phase)
+        record(phase, facts)
         # The error of the reader of the channel is the error of the
         # round: the history of the round keeps it and the two public
         # stops of the round keep it.
         first = session.stop()
         first_facts = first['broker_close_facts'] or {}
-        write_phase(phase + '-first', {
+        record(phase + '-first', {
             'reader_error': first_facts.get('channel_reader_error'),
             'state': first['state'],
             'retained': first['broker_retained']})
-        written.add(phase + '-first')
         assert first_facts.get('channel_reader_error') == 'RuntimeError', \
             'the real fault of the round was replaced by a cancellation'
         assert first['broker_retained'] is True
         assert first['state'] == 'UNKNOWN_RETAINED'
         second = session.stop()
         second_facts = second['broker_close_facts'] or {}
-        write_phase(phase + '-second', {
+        record(phase + '-second', {
             'reader_error': second_facts.get('channel_reader_error'),
             'source': second_facts.get('channel_reader_error_source'),
             'state': second['state']})
-        written.add(phase + '-second')
         assert second_facts.get('channel_reader_error') == 'RuntimeError', \
             'the second attempt lost the error of the reader'
         assert second_facts.get('channel_reader_error_source') \
             == 'REPEATED_CLOSE'
         assert second['state'] == 'UNKNOWN_RETAINED'
     except BaseException as error:
-        # The phase did not run to its end: every document of a phase
-        # that was **not** executed is marked as ``NOT_RUN`` and it
-        # never carries a fact of a phase that was not established.
-        for name in (phase, phase + '-first', phase + '-second'):
-            if name not in written:
-                write_phase_not_run(name, type(error).__name__)
+        # N1 correction 16 (M2): the phase that was **executed** and
+        # that failed is a **FAIL**: it is never written as a phase
+        # that was not executed and it keeps the facts that the phase
+        # really observed.  Only the documents that were **genuinely
+        # not reached** are ``NOT_RUN`` and they never carry a fact of
+        # a phase that was not established.
+        for name in (phase, phase + '-barrier', phase + '-first',
+                     phase + '-second'):
+            if name in written:
+                continue
+            if name == phase:
+                record(name, {
+                    'status': 'FAIL',
+                    'executed': True,
+                    'reason': type(error).__name__,
+                    'detail': str(error),
+                    'barrier': dict(api.barrier),
+                    'barrier_expectation': expect_barrier,
+                    'barrier_probe': barrier_probe,
+                    'cancel_calls': api.cancel_calls,
+                    'expected_generation': api.worker_holder.get(
+                        'generation'),
+                    'published_outcome': bool(
+                        api.worker_holder.get('published_outcome')),
+                    'state': session.state,
+                })
+            else:
+                record(name, {'status': 'NOT_RUN',
+                              'reason': type(error).__name__})
         raise
     finally:
         api.release_the_worker.set()
@@ -3745,7 +4411,8 @@ def _wait_for_missing_outcome(worker, generation, seconds):
     return None
 
 
-def _m09_published_fault_phase(document, plan, tmp_path, *, phase):
+def _m09_published_fault_phase(document, plan, tmp_path, *, phase,
+                              inventory=None):
     """The schedule that the contract requires: the fault comes first.
 
     The ordinary failure of the read is published **before** the
@@ -3770,6 +4437,11 @@ def _m09_published_fault_phase(document, plan, tmp_path, *, phase):
     the timeout is a **parallel** fact of it.  The history of the error
     keeps it across the channel, the handle of the broker and the two
     public stops of the round.
+
+    N1 correction 16 (M2): a phase that was **executed** and that
+    failed is a **FAIL** and it keeps the facts that it really
+    observed.  Only the documents that were genuinely not reached are
+    ``NOT_RUN``.
     """
     clock = ManualClock(1000.0)
     api = _M09TimeoutApi()
@@ -3781,6 +4453,15 @@ def _m09_published_fault_phase(document, plan, tmp_path, *, phase):
     gate = _M09Gate(api)
     worker = None
     trace = []
+    written = set()
+
+    def record(name, facts):
+        """Write one document of the phase and mark it as **written**."""
+        written.add(name)
+        if inventory is not None:
+            inventory.add(name)
+        return write_phase(name, facts)
+
     original_wait_done = gate.install(_WindowsPipeWorker)
     try:
         session.start()
@@ -3866,13 +4547,13 @@ def _m09_published_fault_phase(document, plan, tmp_path, *, phase):
                  'parallel_timeout': parallel,
                  'gate_calls': gate.calls,
                  'state': session.state}
-        write_phase(phase, facts)
+        record(phase, facts)
         # The error of the reader of the channel is the error of the
         # round: the history of the round keeps it and the two public
         # stops of the round keep it.
         first = session.stop()
         first_facts = first['broker_close_facts'] or {}
-        write_phase(phase + '-first', {
+        record(phase + '-first', {
             'reader_error': first_facts.get('channel_reader_error'),
             'state': first['state'],
             'retained': first['broker_retained']})
@@ -3882,7 +4563,7 @@ def _m09_published_fault_phase(document, plan, tmp_path, *, phase):
         assert first['state'] == 'UNKNOWN_RETAINED'
         second = session.stop()
         second_facts = second['broker_close_facts'] or {}
-        write_phase(phase + '-second', {
+        record(phase + '-second', {
             'reader_error': second_facts.get('channel_reader_error'),
             'source': second_facts.get('channel_reader_error_source'),
             'state': second['state']})
@@ -3891,6 +4572,29 @@ def _m09_published_fault_phase(document, plan, tmp_path, *, phase):
         assert second_facts.get('channel_reader_error_source') \
             == 'REPEATED_CLOSE'
         assert second['state'] == 'UNKNOWN_RETAINED'
+    except BaseException as error:
+        # N1 correction 16 (M2): the phase that was **executed** and
+        # that failed is a **FAIL** and it keeps the facts that the
+        # phase really observed.  Only the documents that were
+        # genuinely not reached are ``NOT_RUN``.
+        for name in (phase, phase + '-first', phase + '-second'):
+            if name in written:
+                continue
+            if name == phase:
+                record(name, {
+                    'status': 'FAIL',
+                    'executed': True,
+                    'reason': type(error).__name__,
+                    'detail': str(error),
+                    'trace': list(trace),
+                    'gate_calls': list(gate.calls),
+                    'cancel_calls': api.cancel_calls,
+                    'state': session.state,
+                })
+            else:
+                record(name, {'status': 'NOT_RUN',
+                              'reason': type(error).__name__})
+        raise
     finally:
         # The teardown of the owner of the test is bounded and it is
         # unconditional: the gate is released, the read of the round is
@@ -4026,6 +4730,17 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
     coordination.  The confirmed coordination, the required order of the
     schedule and the two public stops of the round stay separate and
     unchanged.
+
+    N1 correction 16 (M2): the facts of the barrier are written
+    **before** the main assertions of the phase, so a barrier that
+    failed closed keeps its failure, its order and its object even when
+    the main assertions of the phase fail afterwards.  A phase that was
+    **executed** and that failed is a **FAIL** and it keeps the facts
+    that it really observed; only the documents that were genuinely
+    not reached are ``NOT_RUN``.  The **outer** inventory of the group
+    names every main schedule and both negative subcases before they
+    run: the failure of an earlier schedule may never leave the
+    evidence of a later one ambiguous.
     """
     document = _live_plan_document()
     plan = validate_launch_plan(document, now=time.time())
@@ -4172,48 +4887,80 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
         endpoint.close()
 
     # -- THE DYNAMIC SCHEDULE OF THE M09 OBLIGATION (N1 correction 12):
+    # -- THE DYNAMIC SCHEDULE OF THE M09 OBLIGATION (N1 correction 12):
     #    a real ordinary fault is published for the current generation
     #    of the real chain, the effective timeout of the round arrives
     #    **before** the endpoint consumes the outcome and the original
     #    error object survives both a **confirmed** and a **failed**
     #    coordination of the round.
-    _m09_timeout_phase(document, plan, tmp_path,
-                        phase='r10-timeout-confirmed',
-                        confirm_the_worker=True, hold_the_worker=False,
-                        expect_barrier='NOT_APPLICABLE')
-    _m09_timeout_phase(document, plan, tmp_path,
-                        phase='r10-timeout-failed',
-                        confirm_the_worker=False, hold_the_worker=True,
-                        expect_barrier='PASSED')
-    # -- N1 correction 15 (M2): the barrier of the publication is
-    #    **checked** and it **fails closed**.  The two negative
-    #    subcases below drive the **same** failed coordination of the
-    #    round with a bounded transparent seam that forces an **absent**
-    #    outcome and an outcome of **another generation**.  The premise
-    #    of the test is then **refused** explicitly and the subcase is
-    #    never counted as a successful failed coordination: the cancel
-    #    primitive of the round never returns ``REQUESTED`` as if the
-    #    barrier had passed.
-    _m09_timeout_phase(document, plan, tmp_path,
-                        phase='r10-barrier-absent',
-                        confirm_the_worker=False, hold_the_worker=True,
-                        barrier_probe='ABSENT', expect_barrier='REFUSED')
-    _m09_timeout_phase(document, plan, tmp_path,
-                        phase='r10-barrier-wrong-generation',
-                        confirm_the_worker=False, hold_the_worker=True,
-                        barrier_probe='WRONG_GENERATION',
-                        expect_barrier='REFUSED')
+    #
+    #    N1 correction 16 (M2): the **outer** inventory of the phases of
+    #    this group.  Every main schedule and both negative barrier
+    #    subcases are named **before** they run and every document that
+    #    a schedule really wrote is marked in the inventory.  A schedule
+    #    that was never reached is ``NOT_RUN`` and it is never
+    #    ambiguous: the failure of an earlier schedule may never leave
+    #    the evidence of a later one undefined.
+    r10_inventory = set()
+    r10_documents = []
+    for r10_name in ('r10-timeout-confirmed', 'r10-timeout-failed',
+                      'r10-barrier-absent', 'r10-barrier-wrong-generation'):
+        r10_documents.extend([r10_name, r10_name + '-barrier',
+                              r10_name + '-first', r10_name + '-second'])
+    r10_documents.extend(['r10-published-before-timeout',
+                          'r10-published-before-timeout-first',
+                          'r10-published-before-timeout-second'])
+    try:
+        _m09_timeout_phase(document, plan, tmp_path,
+                            phase='r10-timeout-confirmed',
+                            confirm_the_worker=True, hold_the_worker=False,
+                            expect_barrier='NOT_APPLICABLE',
+                            inventory=r10_inventory)
+        _m09_timeout_phase(document, plan, tmp_path,
+                            phase='r10-timeout-failed',
+                            confirm_the_worker=False, hold_the_worker=True,
+                            expect_barrier='PASSED',
+                            inventory=r10_inventory)
+        # -- N1 correction 15 (M2): the barrier of the publication is
+        #    **checked** and it **fails closed**.  The two negative
+        #    subcases below drive the **same** failed coordination of the
+        #    round with a bounded transparent seam that forces an
+        #    **absent** outcome and an outcome of **another generation**.
+        #    The premise of the test is then **refused** explicitly and
+        #    the subcase is never counted as a successful failed
+        #    coordination: the cancel primitive of the round never
+        #    returns ``REQUESTED`` as if the barrier had passed.
+        _m09_timeout_phase(document, plan, tmp_path,
+                            phase='r10-barrier-absent',
+                            confirm_the_worker=False, hold_the_worker=True,
+                            barrier_probe='ABSENT', expect_barrier='REFUSED',
+                            inventory=r10_inventory)
+        _m09_timeout_phase(document, plan, tmp_path,
+                            phase='r10-barrier-wrong-generation',
+                            confirm_the_worker=False, hold_the_worker=True,
+                            barrier_probe='WRONG_GENERATION',
+                            expect_barrier='REFUSED',
+                            inventory=r10_inventory)
 
-    # -- THE REQUIRED ORDER (N1 correction 12, root preflight PF12-01):
-    #    the ordinary failure of the read is published **before** the
-    #    effective timeout of the round arrives and the endpoint consumes
-    #    the outcome of its own generation only **after** the timeout
-    #    was decided.  The gate is a transparent wrapper of the
-    #    production wait of the worker: it calls the original wait and
-    #    it holds the endpoint between that wait and the recheck of its
-    #    generation.
-    _m09_published_fault_phase(document, plan, tmp_path,
-                               phase='r10-published-before-timeout')
+        # -- THE REQUIRED ORDER (N1 correction 12, root preflight
+        #    PF12-01): the ordinary failure of the read is published
+        #    **before** the effective timeout of the round arrives and
+        #    the endpoint consumes the outcome of its own generation
+        #    only **after** the timeout was decided.  The gate is a
+        #    transparent wrapper of the production wait of the worker:
+        #    it calls the original wait and it holds the endpoint
+        #    between that wait and the recheck of its generation.
+        _m09_published_fault_phase(document, plan, tmp_path,
+                                   phase='r10-published-before-timeout',
+                                   inventory=r10_inventory)
+    except BaseException as error:
+        # The schedules that were **not** reached are ``NOT_RUN``: they
+        # carry no fact of a schedule that was not established and they
+        # are never ambiguous.
+        for r10_name in r10_documents:
+            if r10_name not in r10_inventory:
+                write_phase_not_run(r10_name, type(error).__name__)
+        raise
 
 # -- N10-R11: the overflow of the channel is a named failure -------------
 
