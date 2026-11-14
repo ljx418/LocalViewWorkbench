@@ -1,0 +1,256 @@
+{
+  "kind": "lvw.s3-native-custody-correction17-static-design-receipt/1",
+  "coordinate": "V1/R1/WP-R1-U3/S3_P4",
+  "stage": "DESIGN_ONLY",
+  "candidate_base": "4dafa1f316242d8bd348b81c52f375aa37254754",
+  "implementer_branch": "ljx418/lvw-v1-d0-implement",
+  "implementer_worktree": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement",
+  "decision_requested": "DESIGN_ACK_BEFORE_CORRECTION17_SOURCE_EDIT",
+  "governing_packet": {
+    "contract": "reports/v0-s3/product-gate0/native-custody-correction-17/contract.md",
+    "scope": "reports/v0-s3/product-gate0/native-custody-correction-17/scope.json",
+    "decision": "reports/v0-s3/product-gate0/native-custody-correction-17/decision.json",
+    "prior_contract": "reports/v0-s3/product-gate0/native-custody-correction-16/contract.md",
+    "independent_review": "reports/v0-s3/product-gate0/native-custody-correction-16/test-review-01/review-result"
+  },
+  "inputs": {
+    "tools/test_v0_s3_native_custody_correction10.py": {
+      "sha256": "3c1c89e660cf79f1d51b5153de457aa6089d69d077db5d1d9b576f965659b74a",
+      "bytes": 263082,
+      "lines": 5371,
+      "role": "the candidate test module under design (NOT edited)"
+    },
+    "tools/v0_s3_native_broker.py": {
+      "sha256": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
+      "bytes": 386807,
+      "lines": 8174,
+      "role": "production, unchanged"
+    },
+    "tools/v0_s3_native_custody.py": {
+      "sha256": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581",
+      "bytes": 114702,
+      "lines": 2470,
+      "role": "production, unchanged"
+    },
+    "review.md": {
+      "sha256": "6758ef6d3ba377156fbe738590466c248563a925e7b88abfa63555b1f5cce13a",
+      "role": "independent static test/evidence-design review of candidate 4dafa1f (CHANGES_REQUIRED, Fatal 0 / Major 3 / Minor 0)"
+    },
+    "review_receipt.json": {
+      "path": "reports/v0-s3/product-gate0/native-custody-correction-16/test-review-01/review-result/receipt.json",
+      "role": "binding, denominator and the eight removed assertion occurrences"
+    }
+  },
+  "artifacts": {
+    "reports/v0-s3/product-gate0/implementation-native-custody-correction-17/design.md": {
+      "sha256": "4027dac2cf4d1341ed02a64adec7cfacf890135cd09adadb6148d20e89731ce9",
+      "bytes": 63255,
+      "lines": 996,
+      "kind": "NEW"
+    },
+    "reports/v0-s3/product-gate0/implementation-native-custody-correction-17/design-receipt.json": {
+      "kind": "NEW"
+    }
+  },
+  "residual_map": {
+    "M1": {
+      "status_in_correction16_review": "OPEN",
+      "contract_items": ["M1-a", "M1-b", "M1-c", "M1-d", "M1-e"],
+      "design_answer": {
+        "M1-a": "C1 - patch.object(broker_module.BrokerProcess, 'read', zero_gated_broker_read): the class is the target and the replacement is the third positional argument (new), instead of assigning the string 'read' to the module attribute BrokerProcess.",
+        "M1-b": "C2 - the actual error value (pump.error is None, type name) is stored separately from the display repr(pump.error); the premise asserts the actual value.",
+        "M1-c": "C3/C4 - start_round returns the ACTUAL return value of the public NativeCustodySession.start and the zero round uses that captured return as the returned state of the product.",
+        "M1-d": "C5 - the retention oracle checks the VALUE (broker_retained is True), the IDENTITY (session.broker is the object of the round) and the original-handle identity source of the returned evidence, never the presence of the key.",
+        "M1-e": "C6/C7 - one ordered trace E1..E7 (start, pump read entered, reply wait entered/returned, gate released, queue get entered, pump ended) with the required order E1<E2<E3<E4<E5<E6<E7 and seven bounded checked no-EOF/timeout facts N1..N7."
+      }
+    },
+    "M2": {
+      "status_in_correction16_review": "OPEN",
+      "contract_items": ["M2-a", "M2-b", "M2-c", "M2-d", "M2-e", "M2-f", "M2-g"],
+      "design_answer": {
+        "M2-a": "C12 - the complete document list and the ledger are installed at the very top of test_n10_r10, before any setup and before any earlier r10 assertion, and the whole body is guarded.",
+        "M2-b": "C8/C10/C11/C12 - ledger.attempt(name) is called before every construction, every phase body and every stop.",
+        "M2-c": "C10a/C11 - a bounded wait on a new barrier_entered event, then the durable barrier document is written BEFORE the first assertion that depends on the barrier; the barrier facts of the failure path are kept.",
+        "M2-d": "C9/C10/C11/C12 - the failure handler rewrites every ATTEMPTED document as FAIL with the raw facts; a PASSED document is terminal and is never rewritten.",
+        "M2-e": "C10/C11 - the two real stops are marked ATTEMPTED before the call, so an attempted stop that raises is FAIL and never NOT_RUN.",
+        "M2-f": "C9 - record() persists first and marks the name written/attempted only after the write succeeded.",
+        "M2-g": "C12/C13 - the inventory never overwrites a written document, a NOT_RUN document carries no fact of a phase that was not established, and the original failure is never replaced."
+      }
+    },
+    "M3": {
+      "status_in_correction16_review": "OPEN",
+      "contract_items": ["M3-a", "M3-b", "M3-c", "M3-d", "M3-e", "M3-f", "M3-g", "M3-h", "M3-i", "M3-j"],
+      "design_answer": {
+        "M3-a": "C14 - the cleanup region moves one nesting level outward and encloses start_round AND the RUNNING assertion.",
+        "M3-b": "C14/C15 - the deliberate sentinel, ordinary assertion and constructor failures are RAISED inside the cleanup region and CAUGHT outside it; the region records cleanup_ran_while_unwinding as a fact.",
+        "M3-c": "C16 - the seam calls the ORIGINAL threading.Thread.start (the thread really takes effect) and raises _R07ConstructorFailure inside the constructor, not after the constructor returned.",
+        "M3-d": "C16/C17 - the start seam forwards the original start and the original result, is scoped by the production thread name and by an armed flag, and the partial channel custody of B:5266-5267 is retained through the fixture custody.",
+        "M3-e": "C17 - the immediate start registration (STARTING before the original start, STARTED after it returned) plus the quiescence condition pending_starts() == 0 asserted before the final owner snapshot.",
+        "M3-f": "C20 - _capture_stop records the exception AND the live state, the retention and the retained broker identity of that moment, before the salvage; the product deadline is never renewed by the fixture.",
+        "M3-g": "C18 - every owner is attempted even when join or is_alive fails; the error is retained in the facts, alive becomes None and the proof fails; the salvage is bounded (10 s per owner, 30 s total).",
+        "M3-h": "C19 - NEVER_STARTED only with proven provenance from the registry, otherwise UNKNOWN, which fails the proof.",
+        "M3-i": "C21 - the fallback calls of _registry_owners pass the object first and the name second.",
+        "M3-j": "C15/C22 - the exact type and the exact token per checkpoint, and the close oracle rejects any unrelated close/endpoint failure."
+      }
+    }
+  },
+  "change_items": [
+    {"id": "C1", "residual": "M1-a", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "zero-round patch.object block", "lines": "2676-2677", "change": "patch.object(broker_module.BrokerProcess, 'read', zero_gated_broker_read); keep the original signature (self, timeout) and forward to the captured original unbound method", "scope": "the zero-round with block only", "max_wait": "gate 30.0 s", "negative_oracle": "zero_gate_facts empty -> 'the admission of the zero round never reached the gate'; released is False -> 'the gate of the admission of the zero round timed out'"},
+    {"id": "C2", "residual": "M1-b", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "ZeroTighteningWaiter.__init__ and the zero facts", "lines": "2650-2651, 2705-2706, 2733", "change": "store pump_error_is_none / pump_error_type separately from pump_error_repr; assert on the actual value", "scope": "the zero block", "max_wait": null, "negative_oracle": "pump_error_is_none is not True -> 'the attached pump of the zero round failed before the admission of the reply'"},
+    {"id": "C3", "residual": "M1-c", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "start_round", "lines": "2314-2352, call sites 2371, 2682, 3221", "change": "capture and return the actual return value of the public session.start()", "scope": "one helper and three call sites", "max_wait": null, "negative_oracle": "the returned state is not the expected one (oracle Z1)"},
+    {"id": "C4", "residual": "M1-c", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "zero block", "lines": "2689", "change": "zero_returned = the captured start return; the later evidence() is only a cross-check of the state", "scope": "the zero block", "max_wait": null, "negative_oracle": "the later evidence() disagrees with the returned state"},
+    {"id": "C5", "residual": "M1-d", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "zero block retention assertions", "lines": "2723-2774", "change": "the oracles Z1..Z7: state, exact cause, no EOF cause, broker_retained value, retained object identity, parent original handle identity source, pump_error", "scope": "the zero block", "max_wait": null, "negative_oracle": "each oracle has its own named message"},
+    {"id": "C6", "residual": "M1-e", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "zero block seams", "lines": "2580-2586, 2604-2606, 2610-2624, 2663-2670", "change": "one ordered trace E1..E7 recorded at the moment of each event with its actual argument; the required order is E1<E2<E3<E4<E5<E6<E7", "scope": "the zero block", "max_wait": "observation 15.0 s", "negative_oracle": "the recorded order violates the required order"},
+    {"id": "C7", "residual": "M1-e", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "zero block premises", "lines": "2644-2649, 2696-2700, 2814-2818", "change": "the bounded checked no-EOF/timeout facts N1..N7", "scope": "the zero block", "max_wait": "gate 30.0 s, admission 15.0 s, observations 15.0 s", "negative_oracle": "each check has its own named message"},
+    {"id": "C8", "residual": "M2-b", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "_PhaseLedger (NEW, next to _OwnerRegistry)", "lines": "new, after 254", "change": "one small ledger with plan/attempt/pass_/fail/state/names over the states PLANNED, ATTEMPTED, PASSED, FAIL, NOT_RUN", "scope": "the two M09 phase helpers and the r10 test", "max_wait": null, "negative_oracle": "a name that was entered but has no final document is reported by the outer inventory"},
+    {"id": "C9", "residual": "M2-d, M2-f", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "record()", "lines": "4104-4116, 4458-4463", "change": "persist first, mark written/inventory/ledger only after the write succeeded", "scope": "the two phase helpers", "max_wait": null, "negative_oracle": "a document that is marked but does not exist on disk is impossible"},
+    {"id": "C10", "residual": "M2-b, M2-c, M2-d, M2-e", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "_m09_timeout_phase", "lines": "4032-4329", "change": "the attempt ledger, the durable barrier document before the assertions, the FAIL rewrite of every attempted document, the two stops marked attempted", "scope": "that helper", "max_wait": "barrier wait 15.0 s", "negative_oracle": "an attempted document that failed must exist as FAIL; an attempted stop that raised must not be NOT_RUN"},
+    {"id": "C11", "residual": "M2-b, M2-d, M2-e", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "_m09_published_fault_phase", "lines": "4414-4619", "change": "the same three rules at the same call sites", "scope": "that helper", "max_wait": "15.0 s per wait", "negative_oracle": "idem"},
+    {"id": "C12", "residual": "M2-a, M2-g", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation", "lines": "4622-4963 (inventory 4904-4963)", "change": "the complete document list and the ledger are installed at the top; the whole body is guarded; the finally writes NOT_RUN only for the names still PLANNED", "scope": "that test", "max_wait": null, "negative_oracle": "no document of a later schedule may stay ambiguous"},
+    {"id": "C13", "residual": "M2-g", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "write_phase_not_run", "lines": "180-188", "change": "unchanged shape; a NOT_RUN document carries no fact", "scope": null, "max_wait": null, "negative_oracle": "a NOT_RUN document that carries a fact is rejected"},
+    {"id": "C14", "residual": "M3-a, M3-b", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "controlled_failure", "lines": "3174-3390", "change": "the cleanup region moves one nesting level outward and encloses start_round and the RUNNING assertion; the deliberate failure is raised inside it and caught outside it; the region records cleanup_ran_while_unwinding", "scope": "that helper", "max_wait": "salvage 10 s per owner / 30 s total", "negative_oracle": "cleanup_ran_while_unwinding is not True -> the subcase did not prove the cleanup during the unwinding"},
+    {"id": "C15", "residual": "M3-b, M3-j", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "the controlled failure loop", "lines": "3392-3413", "change": "the exact type (type(error) is X) and the exact token (str(error) == checkpoint) per checkpoint: _R07Sentinel / AssertionError / _R07ConstructorFailure / RuntimeError", "scope": "that loop", "max_wait": null, "negative_oracle": "the type is not the expected class or the token differs"},
+    {"id": "C16", "residual": "M3-c, M3-d", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "the constructor seam of the CONSTRUCTOR_FAILURE subcase", "lines": "3273-3291", "change": "wrap threading.Thread.start: forward the original start, then raise _R07ConstructorFailure inside the constructor; scoped by the thread name and by an armed flag", "scope": "that subcase", "max_wait": null, "negative_oracle": "the drain thread is not registered and the exception is not _R07ConstructorFailure"},
+    {"id": "C17", "residual": "M3-d, M3-e", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "_OwnerRegistry and a start-registration seam", "lines": "214-254, new", "change": "mark_starting before the original start and mark_started after it returned, for the five named production threads; pending_starts() is asserted to be 0 before the final owner snapshot", "scope": "the zero block and the controlled subcases", "max_wait": null, "negative_oracle": "pending_starts() != 0 -> 'a start of the round had not returned when the owners were enumerated'"},
+    {"id": "C18", "residual": "M3-g", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "_salvage_threads", "lines": "326-360", "change": "attempt every owner; catch any join and any is_alive failure; retain the error; alive becomes None; the proof fails for such an owner", "scope": "every salvage", "max_wait": "10.0 s per owner, 30.0 s total", "negative_oracle": "an owner with alive is None or error is not None fails the proof"},
+    {"id": "C19", "residual": "M3-h", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "_owner_start_state", "lines": "292-323", "change": "NEVER_STARTED only for a proven provenance hint or a missing thread, otherwise UNKNOWN", "scope": "every salvage", "max_wait": null, "negative_oracle": "an ident-less owner without provenance is UNKNOWN and fails the proof"},
+    {"id": "C20", "residual": "M3-f", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "_capture_stop", "lines": "396-412", "change": "on an exception also record the live state, the retention and the retained broker identity of that moment, before the salvage", "scope": "every salvage", "max_wait": null, "negative_oracle": "the capture without a live state/retention is rejected"},
+    {"id": "C21", "residual": "M3-i", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "_registry_owners", "lines": "537-541", "change": "_session_owners(session, name, hints) and _channel_owners(channel, name, hints): the object first, the name second", "scope": "every salvage", "max_wait": null, "negative_oracle": "a fallback owner that is not enumerated is detected by the proof"},
+    {"id": "C22", "residual": "M3-j", "file": "tools/test_v0_s3_native_custody_correction10.py", "symbol": "the close oracle of the controlled subcases", "lines": "3398-3413, 2929-2964", "change": "exactly one close failure, exact owner, exact type RuntimeError, exact token controlled_close_failure, and no unrelated close/endpoint failure", "scope": "the controlled loop", "max_wait": null, "negative_oracle": "an extra or wrong-typed close failure fails the subcase"}
+  ],
+  "state_tables": {
+    "phase_state_machine": {
+      "states": ["PLANNED", "ATTEMPTED", "PASSED", "FAIL", "NOT_RUN"],
+      "transitions": [
+        {"from": "PLANNED", "event": "the operation is entered (attempt() before the construction, the phase body or the stop call)", "to": "ATTEMPTED", "document": "none yet"},
+        {"from": "PLANNED", "event": "the end of the test and the operation was never entered", "to": "NOT_RUN", "document": "{'status': 'NOT_RUN', 'reason': <type of the first failure>} with no fact of the phase"},
+        {"from": "ATTEMPTED", "event": "the raw facts are written, before the assertions", "to": "ATTEMPTED", "document": "{'status': 'EXECUTED', ...raw facts...}"},
+        {"from": "ATTEMPTED", "event": "every assertion of the operation held", "to": "PASSED", "document": "rewrite: {'status': 'PASSED', ...raw facts...}"},
+        {"from": "ATTEMPTED", "event": "an assertion raised or the operation itself raised", "to": "FAIL", "document": "rewrite: {'status': 'FAIL', 'executed': True, 'reason': <type>, 'detail': <str>, ...raw facts...}"},
+        {"from": "PASSED|FAIL|NOT_RUN", "event": "anything", "to": "unchanged (terminal)", "document": "never overwritten by the inventory"}
+      ]
+    },
+    "document_lifecycle": [
+      {"document": "<phase>-barrier", "written": "before the first assertion that depends on the barrier", "final_status": "PASSED or FAIL, never overwritten"},
+      {"document": "<phase>", "written": "the raw facts, before the assertions", "final_status": "PASSED or FAIL"},
+      {"document": "<phase>-first / <phase>-second", "written": "right after the corresponding actual stop returned", "final_status": "PASSED; FAIL when the attempted stop raised"}
+    ],
+    "controlled_failure_region": [
+      {"region": "A (outer try)", "content": "the catch of the deliberate failure, OUTSIDE the cleanup region"},
+      {"region": "B (inner try)", "content": "start_round, the RUNNING assertion, the construction of the child, the raised deliberate failure"},
+      {"region": "C (inner finally)", "content": "the gate release, the closes, _capture_stop, the owner enumeration, the salvage, the proof, the document; cleanup_ran_while_unwinding is recorded here"},
+      {"region": "D (outermost finally)", "content": "the unconditional release of the frames and of the primitive of the round"}
+    ]
+  },
+  "assertion_mapping": [
+    {"id": "A1", "prior_line": 2225, "removed_predicate": "zero_session.state == 'RUNNING'", "replacement": "Z1+Z2+Z3+Z4+Z5: the returned state of the public start is UNKNOWN_RETAINED, the exact cause CUSTODY_CHANNEL_TIMEOUT is named, CUSTODY_CHANNEL_EOF is not, the retention value is True and the retained broker is the object of the round", "relation": "STRONGER", "why": "a transient live attribute is replaced by the terminal state RETURNED by the public operation, with the exact cause and the actual retained resource"},
+    {"id": "A2", "prior_line": 2231, "removed_predicate": "zero_attached_pump is not None", "replacement": "Z8: zero_pump is zero_session._pump and zero_pump._context is zero_session._context and zero_pump.finished is True", "relation": "STRONGER", "why": "identity and context and a proven end instead of mere presence"},
+    {"id": "A3", "prior_line": 2233, "removed_predicate": "zero_attached_pump.is_alive()", "replacement": "Z8+Z9: the attached pump really ended and really performed the round's own read with the actual timeout 0.0", "relation": "STRONGER", "why": "a liveness snapshot is replaced by a completed lifecycle with the actual argument"},
+    {"id": "A4", "prior_line": 2273, "removed_predicate": "zero_held.wait(15.0)", "replacement": "N1+Z10+Z11: the pump was not at EOF at the admission, the gate was released and did not time out, and the recorded order E1<E2<E3<E4<E5<E6<E7 holds", "relation": "STRONGER", "why": "a bare event fired is replaced by the no-EOF fact, the bounded gate fact and the required ordering"},
+    {"id": "A5", "prior_line": 2349, "removed_predicate": "item['alive'] is False (zero round)", "replacement": "Z12: _assert_salvage_proved over the zero salvage - no UNKNOWN start state, alive is False and joined is True and error is None for every started owner", "relation": "STRONGER", "why": "a per-item check becomes a whole-round proof that also rejects an unknown start, an unjoined owner and a recorded error"},
+    {"id": "A6", "prior_line": 2495, "removed_predicate": "item['alive'] is False (parent round)", "replacement": "the same whole-round proof over parent_salvage, plus the stop exception with the live state and the retention captured before the salvage (C20), plus the quiescence condition (C17)", "relation": "STRONGER", "why": "the parent round gains the whole-round proof, the stop facts and the quiescence"},
+    {"id": "A7", "prior_line": 2788, "removed_predicate": "controlled['sentinel'] == '_R07Sentinel'", "replacement": "C15: type(error) is _R07Sentinel (the class object) and str(error) == checkpoint (the token) and cleanup_ran_while_unwinding is True", "relation": "STRONGER", "why": "a string equality on a type name is replaced by an identity check on the type, the exact token and the proof that the cleanup ran during the unwinding; the exact controlled-failure predicate is restored"},
+    {"id": "A8", "prior_line": 2796, "removed_predicate": "item['alive'] is False (controlled subcases)", "replacement": "the whole-round proof over the salvage facts of every controlled checkpoint (C18/C19) plus the exact close-failure oracle (C22)", "relation": "STRONGER", "why": "a per-item check becomes a whole-round proof for every checkpoint and an exact close oracle"},
+    {"id": "A9", "prior_line": 3398, "removed_predicate": "assert controlled['failure'] is not None (weakened form)", "replacement": "C15: the exact type and the exact token per checkpoint", "relation": "STRONGER", "why": "any non-None failure is replaced by the exact expected failure"},
+    {"id": "A10", "prior_line": 3411, "removed_predicate": "assert any(item['owner'] == 'controlled:transport' ...) (weakened form)", "replacement": "C22: exactly one failure, exact owner, exact type, exact token, and no unrelated close/endpoint failure", "relation": "STRONGER", "why": "the presence of a record is replaced by the exact identity of the failure and the rejection of unrelated failures"}
+  ],
+  "assertion_mapping_summary": {
+    "removed_predicate_units": 7,
+    "removed_prior_occurrences": 8,
+    "mapped_occurrences": 8,
+    "additional_weakened_forms_restored": 2,
+    "explicit_replacements": 10,
+    "weakened_replacements": 0,
+    "dropped_replacements": 0,
+    "statement": "Every removed or weakened assertion of the correction16 candidate is mapped to an equal or stronger predicate; no predicate is weakened or dropped by this design."
+  },
+  "production_change": false,
+  "test_change_in_this_task": false,
+  "node_denominator": {
+    "count": 189,
+    "unique": 189,
+    "exact_frozen_order": true,
+    "changed": false
+  },
+  "public_contracts_changed": false,
+  "thresholds_changed": false,
+  "old_reports_changed": false,
+  "execution_audit": {
+    "candidate_import": false,
+    "candidate_collect": false,
+    "pytest": false,
+    "ctypes": false,
+    "runtime_probe": false,
+    "native_call": false,
+    "os_business_process": false,
+    "model_gpu": false,
+    "service_network": false,
+    "media_db": false,
+    "ledger_counter": false,
+    "implementer_verification_scripts_executed": false,
+    "methods_used": [
+      "read of the pack AGENTS.md, .agent-governance/, plans/execution-control.json and docs/24_EXECUTION_MASTER_PLAN.md",
+      "read of the correction17 contract/scope/decision and of the correction16 contract",
+      "read of the full correction16 independent review result (review.md, receipt.json, evidence 01-06)",
+      "read of the prior15 candidate blob of the test module (git show, read-only) to locate the eight removed predicate occurrences",
+      "sha256sum and wc of the three bound source files",
+      "read-only text reads (grep/sed) of the three bound source files",
+      "stdlib ast.parse of the candidate test module text (static AST only; the module was never imported)",
+      "git rev-parse / git log / git status of the implementer worktree"
+    ],
+    "429_or_approval_refusal": false,
+    "budget_reset": false,
+    "budget_consumed": "static design only; no model, GPU, service, network, media, DB or business-process budget was touched"
+  },
+  "non_claims": {
+    "major_closure_claimed": false,
+    "stage_pass": false,
+    "native": "NOT_PROVEN",
+    "dynamic15": "NOT_RUN",
+    "dynamic16": "NOT_RUN",
+    "product_acceptance": false,
+    "human_signoff": false,
+    "runtime_plan_acked": false,
+    "execution_requested": false,
+    "note": "This receipt closes the DESIGN task only. No source was edited, nothing was committed, no Major is declared closed by the implementer and no Stage, native or product acceptance is claimed."
+  },
+  "requested_root_decision": {
+    "ask": "ACK or reject the correction17 static design (design.md, sections 2-6) and, on ACK only, authorise the implementation scope: tools/test_v0_s3_native_custody_correction10.py plus the NEW reports/v0-s3/product-gate0/implementation-native-custody-correction-17/ directory.",
+    "not_requested": ["human approval", "budget change", "any Stage/native/product claim", "any change of the 189 denominator", "any production change", "any execution"],
+    "separate_ack_required_later": "a frozen finite runtime plan / ACK before any dynamic execution",
+    "worker_state": "the turn ends after this ask; no worker_done is sent while the design ACK is pending"
+  },
+  "ten_field_status": {
+    "coordinate": "V1/R1/WP-R1-U3/S3_P4",
+    "completed_this_round": "the static design of correction17 for the three open Majors M1/M2/M3 of the correction16 independent review",
+    "last_passed_gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW (candidate 621b1bf386db71bfe08ca2f533fa8ec396b0504b, unchanged)",
+    "blocking_gate": "S3_P4_N1_CORRECTION17_STATIC_RESIDUALS (root design ACK, then the static implementation, then an independent review, then a separately ACKed dynamic run)",
+    "global_route": "V1 preparation; the frozen S3_P4 offline integration packet is unchanged",
+    "remaining_work": "root design ACK; the static implementation of C1-C22 in the test module only; an independent static review; a separately frozen and ACKed finite dynamic run; the human sign-off the Stage requires",
+    "next_owner": "coordinator/root for the design review, then the independent reviewer",
+    "authorization": "no runtime requested and none used; static design under the correction17 contract; no 429 and no approval refusal occurred",
+    "evidence": "reports/v0-s3/product-gate0/implementation-native-custody-correction-17/design.md and design-receipt.json",
+    "exact_stop_reason": "DESIGN_REVIEW_REQUIRED_BEFORE_CORRECTION17_SOURCE_EDIT - the design is delivered, the turn ends awaiting the root ACK; dynamic15 NOT_RUN, dynamic16 NOT_RUN, native NOT_PROVEN, stage_pass false"
+  },
+  "development_outline": {
+    "source": "plans/execution-control.json (development_outline)",
+    "completed_total": {
+      "V0-S0": "1/2",
+      "V0-S1": "5/5",
+      "R0": "1/2",
+      "R1a": "5/5",
+      "V0-S2": "7/8",
+      "V0-S3": "0/6",
+      "R1": "0/4",
+      "V1-M1": "0/3",
+      "R2": "0/4",
+      "R3": "0/4",
+      "R4": "0/4",
+      "R5a": "0/4",
+      "R5b": "0/4",
+      "R5c": "0/4"
+    },
+    "current": "R1",
+    "note": "These counts do not promote implementation, machine or independent results to human acceptance."
+  }
+}
