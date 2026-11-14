@@ -1,0 +1,837 @@
+{
+ "checks": [
+  {
+   "check": "pin:tools/test_v0_s3_native_custody.py",
+   "detail": "fe96d2ffd353d3f3f6df4da2b023dd6cfaf58fe730ab6655afbca723ed507d32",
+   "ok": true
+  },
+  {
+   "check": "pin:tools/test_v0_s3_native_custody_correction05.py",
+   "detail": "8563989f078fcd45d44c496a0bea16c1ecf5005513543f6f4e00792e4ed7e130",
+   "ok": true
+  },
+  {
+   "check": "pin:tools/test_v0_s3_native_custody_correction07.py",
+   "detail": "dc74cf7f92e8be6cc2b69c602b9fc0b3fdd765ec8b9b48c4f061dde7bdcd6cdf",
+   "ok": true
+  },
+  {
+   "check": "pin:tools/test_v0_s3_native_custody_regressions.py",
+   "detail": "03250ea0ac64519c57edfbe1be965eb2827b46fc7f2d80b47146e4a5e6e7cb93",
+   "ok": true
+  },
+  {
+   "check": "pin:tools/v0_s3_native_broker.py",
+   "detail": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
+   "ok": true
+  },
+  {
+   "check": "pin:tools/v0_s3_native_custody.py",
+   "detail": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581",
+   "ok": true
+  },
+  {
+   "check": "node-count:tools/test_v0_s3_native_custody.py",
+   "detail": "117 of 117",
+   "ok": true
+  },
+  {
+   "check": "node-count:tools/test_v0_s3_native_custody_regressions.py",
+   "detail": "16 of 16",
+   "ok": true
+  },
+  {
+   "check": "node-count:tools/test_v0_s3_native_custody_correction05.py",
+   "detail": "24 of 24",
+   "ok": true
+  },
+  {
+   "check": "node-count:tools/test_v0_s3_native_custody_correction07.py",
+   "detail": "18 of 18",
+   "ok": true
+  },
+  {
+   "check": "node-count:tools/test_v0_s3_native_custody_correction10.py",
+   "detail": "14 of 14",
+   "ok": true
+  },
+  {
+   "check": "denominator:189",
+   "detail": "189",
+   "ok": true
+  },
+  {
+   "check": "denominator:unique",
+   "detail": "189",
+   "ok": true
+  },
+  {
+   "check": "nodes:names-order-signatures",
+   "detail": "[[\"test_n10_r01_the_control_handle_is_closed_only_after_the_exit\", [\"tmp_path\"], []], [\"test_n10_r02_the_claim_of_the_recovery_and_the_handover_are_exclusive\", [], []], [\"test_n10_r03_every_confirmed_close_notifies_the_owner_of_the_handle\", [\"tmp_path\"], []], [\"test_n10_r04_the_launch_aggregate_finds_the_partial_channel\", [], []], [\"test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel\", [\"tmp_path\"], []], [\"test_n10_r06_an_expired_or_cancelled_call_performs_no_primitive_call\", [], []], [\"test_n10_r07_the_context_of_the_round_reaches_every_layer\", [\"tmp_path\"], []], [\"test_n10_r08_the_retry_of_a_cancellation_re_reads_the_context\", [], []], [\"test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread\", [\"tmp_path\"], []], [\"test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation\", [\"tmp_path\"], []], [\"test_n10_r11_the_overflow_of_the_channel_is_a_named_failure\", [\"tmp_path\"], []], [\"test_n10_r12_the_reader_publishes_its_wait_before_it_waits\", [\"tmp_path\"], []], [\"test_n10_r13_the_fault_is_unlocked_by_the_owner_and_observed_first\", [\"tmp_path\"], []], [\"test_n10_r14_the_closed_obligations_of_the_package_do_not_regress\", [\"tmp_path\"], []]]",
+   "ok": true
+  },
+  {
+   "check": "nodes:no-skip-no-xfail",
+   "detail": "[]",
+   "ok": true
+  },
+  {
+   "check": "module:compiles",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "module:no-assertion-removed",
+   "detail": "407 now, 405 in the baseline",
+   "ok": true
+  },
+  {
+   "check": "module:no-unbound-global",
+   "detail": "[]",
+   "ok": true
+  },
+  {
+   "check": "removed:controlled['sentinel'] == '_R07Sentinel'",
+   "detail": "the predicate is not present",
+   "ok": true
+  },
+  {
+   "check": "removed:zero_session.state == 'RUNNING'",
+   "detail": "the predicate is not present",
+   "ok": true
+  },
+  {
+   "check": "removed:zero_attached_pump is not None",
+   "detail": "the predicate is not present",
+   "ok": true
+  },
+  {
+   "check": "removed:zero_attached_pump.is_alive()",
+   "detail": "the predicate is not present",
+   "ok": true
+  },
+  {
+   "check": "removed:item['alive'] is False",
+   "detail": "the predicate is still present",
+   "ok": true
+  },
+  {
+   "check": "removed:zero_held.wait(15.0)",
+   "detail": "the predicate is not present",
+   "ok": true
+  },
+  {
+   "check": "removed:controlled['failure'] is not None",
+   "detail": "the predicate is not present",
+   "ok": true
+  },
+  {
+   "check": "replacement:failure['class'] is _R07Sentinel",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:failure['token'] == checkpoint",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:failure['class'] is _R07OrdinaryAssertion",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:failure['token'] == _R07OrdinaryAssertion.TOKEN",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:failure['class'] is _R07ConstructorFailure",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:failure['token'] == 'CONSTRUCTOR_FAILURE'",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:facts['zero_state'] == 'UNKNOWN_RETAINED'",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:'CUSTODY_CHANNEL_TIMEOUT' in facts['zero_failures']",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:facts['zero_broker_retained'] is True",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:zero_session.broker is zero_broker",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:zero_pump is zero_session._pump",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:facts['zero_pump_finished'] is True",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:zero_premise['pump_error_is_none'] is True",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:zero_gate_facts[0]['released'] is True",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:zero_reply_waits[-1] == 0.0",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:zero_queue_waits[-1] == 0.0",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:_assert_salvage_proved(zero_salvage",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:_assert_salvage_proved(controlled['salvage']",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:close_failures[0]['owner'] == 'controlled:transport'",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:close_failures[0]['type'] == 'RuntimeError'",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:close_failures[0]['detail'] == 'controlled_close_failure'",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:controlled['cleanup_ran_while_unwinding'] is True",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:controlled['cleanup_ran_while_unwinding'] is False",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:controlled['quiescent'] is True",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:controlled['close_failures'] == []",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:api.barrier_write_error",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:barrier_observed_object_is_original",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:unittest.mock.patch.object(broker_module, 'BrokerProcess',",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:repr(pump.error) if pump is not None else None",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:'broker_retained' in zero_returned",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:controlled['sentinel'] == '_R07Sentinel'",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:assert controlled['failure'] is not None",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:any(item['owner'] == 'controlled:transport'",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:'controlled_close_failure' in detail",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:add(_session_owners('%s:session' % prefix, session, hints))",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:add(_channel_owners('%s:channel' % prefix, channel, hints))",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:getattr(thread, 'target', None)",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:getattr(thread, '_target', None)",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:owner is not controlled_custody_channel()",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:ledger.attempt(phase)",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:ledger.attempt(phase + '-construction')",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:ledger.attempt('r10-coordination')",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:self.barrier_ledger.attempt(self.barrier_name)",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:self._persist_barrier()",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:self.barrier_completed.set()",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:api.barrier_write_error is not None",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:_stop_proof_failure(",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:_note_interruption(",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:controlled_interrupts",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:cleanup_errors.append(",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:all_salvage",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "inventory:unique",
+   "detail": "27",
+   "ok": true
+  },
+  {
+   "check": "inventory:name:r10-timeout-confirmed",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "inventory:name:r10-timeout-failed",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "inventory:name:r10-barrier-absent",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "inventory:name:r10-barrier-wrong-generation",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "inventory:name:r10-published-before-timeout",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "inventory:name:r10-first",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "inventory:name:r10-second",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "inventory:name:r10-coordination",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-1:controlled-present",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-1:start-round-found",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m3-1:running-assert-found",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m3-1:start-inside-the-cleanup-region",
+   "detail": "the try is 4011",
+   "ok": true
+  },
+  {
+   "check": "m3-1:running-inside-the-cleanup-region",
+   "detail": "the try is 4011",
+   "ok": true
+  },
+  {
+   "check": "m3-1:three-exact-handlers",
+   "detail": "3",
+   "ok": true
+  },
+  {
+   "check": "m3-1:handler-outside-the-cleanup-region",
+   "detail": "the handler is at 4304",
+   "ok": true
+  },
+  {
+   "check": "m3-1:handler-outside-the-cleanup-region",
+   "detail": "the handler is at 4311",
+   "ok": true
+  },
+  {
+   "check": "m3-1:handler-outside-the-cleanup-region",
+   "detail": "the handler is at 4318",
+   "ok": true
+  },
+  {
+   "check": "m3-2:no-plain-target-read",
+   "detail": "[]",
+   "ok": true
+  },
+  {
+   "check": "m3-2:underscore-target-read",
+   "detail": "[4095]",
+   "ok": true
+  },
+  {
+   "check": "m3-2:exact-owner-identity-check",
+   "detail": "[4110]",
+   "ok": true
+  },
+  {
+   "check": "m3-2:custody-channel-lookup",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-3:one-sentinel-raise",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m3-3:close-failure-excluded-from-the-sentinel",
+   "detail": "checkpoint not in ('CONSTRUCTOR_FAILURE', 'CLOSE_FAILURE')",
+   "ok": true
+  },
+  {
+   "check": "m3-4:close-failures-empty-assert",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m3-4:assert-in-the-non-close-branch",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-5:drain-present",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-5:two-enumerations",
+   "detail": "2",
+   "ok": true
+  },
+  {
+   "check": "m3-5:three-generation-readings",
+   "detail": "4",
+   "ok": true
+  },
+  {
+   "check": "m3-5:generation-before-the-enumeration",
+   "detail": "[971]",
+   "ok": true
+  },
+  {
+   "check": "m3-5:generation-after-the-enumeration",
+   "detail": "[983, 1009]",
+   "ok": true
+  },
+  {
+   "check": "m3-5:generation-after-the-resnapshot",
+   "detail": "[1021]",
+   "ok": true
+  },
+  {
+   "check": "m3-5:generation-before-key",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-5:generation-after-key",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-5:quiescent-key",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-6:salvage-present",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-6:capture-present",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-6:owner-state-present",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-6:salvage-takes-the-interruptions",
+   "detail": "[\"owners\", \"seconds\", \"states\", \"total_seconds\", \"interrupts\"]",
+   "ok": true
+  },
+  {
+   "check": "m3-6:capture-takes-the-interruptions",
+   "detail": "[\"session\", \"original_broker\", \"interrupts\"]",
+   "ok": true
+  },
+  {
+   "check": "m3-6:classification-not-swallowed",
+   "detail": "[]",
+   "ok": true
+  },
+  {
+   "check": "m3-6:stop-proof-helper",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-6:stop-proof-used",
+   "detail": "3",
+   "ok": true
+  },
+  {
+   "check": "m3-7:controlled-errors-are-a-list",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-7:m09-timeout-errors-are-a-list",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-7:m09-published-errors-are-a-list",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-7:base-exception-guards",
+   "detail": "42",
+   "ok": true
+  },
+  {
+   "check": "m2-1:_m09_timeout_phase-present",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m2-1:_m09_timeout_phase-phase-attempted",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-1:_m09_timeout_phase-chain-found",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-1:_m09_timeout_phase-phase-attempted-before-the-construction",
+   "detail": "5336 < 5345",
+   "ok": true
+  },
+  {
+   "check": "m2-1:_m09_timeout_phase-construction-document",
+   "detail": "2",
+   "ok": true
+  },
+  {
+   "check": "m2-1:_m09_timeout_phase-construction-passed-document",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-1:_m09_published_fault_phase-present",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m2-1:_m09_published_fault_phase-phase-attempted",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-1:_m09_published_fault_phase-chain-found",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-1:_m09_published_fault_phase-phase-attempted-before-the-construction",
+   "detail": "5986 < 5995",
+   "ok": true
+  },
+  {
+   "check": "m2-1:_m09_published_fault_phase-construction-document",
+   "detail": "2",
+   "ok": true
+  },
+  {
+   "check": "m2-1:_m09_published_fault_phase-construction-passed-document",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-2:r10-test-present",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m2-2:coordination-attempt-found",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-2:coordination-endpoint-found",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-2:attempt-before-the-endpoint",
+   "detail": "6646 < 6659",
+   "ok": true
+  },
+  {
+   "check": "m2-2:early-chain-found",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-2:early-chain-inside-its-guard",
+   "detail": "the try is 6486",
+   "ok": true
+  },
+  {
+   "check": "m2-3:seam-present",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m2-3:the-seam-attempts-the-barrier",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-3:the-seam-persists",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-3:the-seam-completes",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-3:persist-before-the-completion",
+   "detail": "5073 < 5074",
+   "ok": true
+  },
+  {
+   "check": "m2-3:the-durable-identity-boolean",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-3:the-phase-consumes-the-write-error",
+   "detail": "3",
+   "ok": true
+  },
+  {
+   "check": "m2-4:_m09_timeout_phase-result-document",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-4:_m09_timeout_phase-result-after-the-cleanup",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m2-4:_m09_timeout_phase-the-handler-skips-the-result",
+   "detail": "2",
+   "ok": true
+  },
+  {
+   "check": "m2-4:_m09_timeout_phase-the-original-failure-is-retained",
+   "detail": "5",
+   "ok": true
+  },
+  {
+   "check": "m2-4:_m09_timeout_phase-the-quiescence-is-required",
+   "detail": "2",
+   "ok": true
+  },
+  {
+   "check": "m2-4:_m09_published_fault_phase-result-document",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-4:_m09_published_fault_phase-result-after-the-cleanup",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m2-4:_m09_published_fault_phase-the-handler-skips-the-result",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-4:_m09_published_fault_phase-the-original-failure-is-retained",
+   "detail": "5",
+   "ok": true
+  },
+  {
+   "check": "m2-4:_m09_published_fault_phase-the-quiescence-is-required",
+   "detail": "2",
+   "ok": true
+  },
+  {
+   "check": "m2-5:_m09_timeout_phase-worker-join-found",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-5:_m09_timeout_phase-worker-join-guarded",
+   "detail": "1 of 1",
+   "ok": true
+  },
+  {
+   "check": "m2-5:_m09_timeout_phase-worker-query-found",
+   "detail": "2",
+   "ok": true
+  },
+  {
+   "check": "m2-5:_m09_published_fault_phase-worker-join-found",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-5:_m09_published_fault_phase-worker-join-guarded",
+   "detail": "1 of 1",
+   "ok": true
+  },
+  {
+   "check": "m2-5:_m09_published_fault_phase-worker-query-found",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "finalisation:document-before-the-ledger",
+   "detail": "[]",
+   "ok": true
+  },
+  {
+   "check": "evidence:directory",
+   "detail": "",
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "ok": true,
+ "total": 166
+}
