@@ -66,7 +66,7 @@ if str(PACK_ROOT) not in sys.path:
     sys.path.insert(0, str(PACK_ROOT))
 
 from tools.v0_s3_native_broker import (  # noqa: E402 - the path is set above
-    BrokerCore, BrokerError, BrokerLoop, BrokerProcess,
+    BrokerCore, BrokerError, BrokerLoop, BrokerProcess, StreamChannel,
     WindowsApi, _WindowsPipeEndpoint, _WindowsPipeWorker,
     _adopt_broker_process, _launcher_custody_items, release_retained_launches,
     role_command)
@@ -74,8 +74,8 @@ from tools.v0_s3_native_custody import (  # noqa: E402 - the path is set above
     CHANNEL_SCHEMA, CustodyError, MAX_FRAMES, NativeCustodySession,
     RESERVED_TERMINAL_FRAMES, _ChannelPump, validate_launch_plan)
 from tools.test_v0_s3_native_custody_regressions import (  # noqa: E402
-    ManualClock, RecordingWin32, SyntheticKernel32, make_session, plan_document,
-    sealed_plan, synthetic_table)
+    ManualClock, RecordingWin32, SyntheticKernel32, make_session,
+    m07a_interrupted_launch, plan_document, sealed_plan, synthetic_table)
 
 #: The facts of a close that proves a release.  Every fact is derived
 #: from the stand-in that produced it and it is never added by default.
@@ -910,7 +910,7 @@ def test_n05_r09_a_closer_that_could_not_start_does_not_latch_the_round(tmp_path
 
 # -- N05-R10: a launch that could not be handed over ---------------------
 
-def test_n05_r10_a_launch_that_could_not_be_handed_over_keeps_its_resources():
+def test_n05_r10_a_launch_that_could_not_be_handed_over_keeps_its_resources(tmp_path):
     """N05-R10 (M07): the launcher keeps the original resources.
 
     Obligation: the launcher registers the original process, its
@@ -923,6 +923,11 @@ def test_n05_r10_a_launch_that_could_not_be_handed_over_keeps_its_resources():
     a pid is never used to find a process again.  Returned state: the
     failure of the adoption is the error that leaves.  Salvage: the
     recovery of the launcher is explicit and it names what it kept.
+
+    CORRECTION 12 (M07-A): a raw stream that the launch could not
+    close is owned by the **launch** and the **same** owner retries it.
+    A retry that fails keeps the owner of the stream and names the
+    failure: a stream is never forgotten without a confirmed close.
     """
     class BrokenProcess:
         pid = 4242
@@ -970,6 +975,28 @@ def test_n05_r10_a_launch_that_could_not_be_handed_over_keeps_its_resources():
     report = release_retained_launches()
     assert 'process' in report['retained']
     assert _launcher_custody_items()
+
+    # -- N1 correction 12 (M07-A): a **failed** retry keeps the owner of
+    #    the raw stream and names the failure.  A stream is never
+    #    forgotten without a confirmed close.
+    holder = m07a_interrupted_launch(tmp_path, sealed_plan(), failures=2)
+    stdout = holder['stdout']
+    aggregate = holder['aggregate'][0] if holder['aggregate'] else None
+    assert aggregate is not None, 'the interrupted launch lost its owner'
+    release_retained_launches()
+    assert stdout.attempts == 1, \
+        'the raw stream was not closed by the first release'
+    assert stdout.confirmed == 0
+    release_retained_launches()
+    assert stdout.attempts == 2, \
+        'the same owner did not retry the raw stream of the launch'
+    assert stdout.confirmed == 0, \
+        'the failed retry of the raw stream was read as a close'
+    owned = [item for item in _launcher_custody_items()
+             if item['kind'] == 'stdout' and item['resource'] is stdout]
+    assert owned, 'the failed retry forgot the owner of the raw stream'
+    assert [item['name'] for item in aggregate.raw_streams] == ['stdout'], \
+        'the launch forgot a raw stream that was never closed'
 
 
 # -- N05-R11: the shared budget of the startup ---------------------------
@@ -1337,6 +1364,144 @@ def test_n05_r14_an_await_that_is_running_reads_the_tightened_deadline():
     release.set()
     worker.join_bounded(5.0)
     endpoint._read_block = original
+
+    # -- N1 correction 12 (M08-C): the wait of the endpoint is cropped
+    #    to the time that is really left until the **current** effective
+    #    deadline of the round.  The requested value of the wait is the
+    #    fact of the test: it is recorded before and after the
+    #    tightening.
+    requested = []
+    original_wait_done = _WindowsPipeWorker.wait_done
+
+    def recording_wait_done(self, generation, timeout):
+        requested.append(timeout)
+        return original_wait_done(self, generation, timeout)
+
+    clock = ManualClock(1000.0)
+
+    class WaitApi:
+        def duplicate_current_thread_handle(self):
+            return 711
+
+        def cancel_synchronous_io(self, handle):
+            return 'REQUESTED'
+
+        def close_handle(self, handle):
+            return None
+
+        def read_stream(self, handle, size):
+            return b''
+
+    endpoint = _WindowsPipeEndpoint(
+        file_object=type('F', (), {'close': lambda self: None})(),
+        name='inprocess-wait', api=WaitApi(), clock=clock, handle=712)
+    waiting = threading.Event()
+
+    def blocking_action(request):
+        waiting.wait(10.0)
+        return b''
+
+    endpoint._read_block = blocking_action
+    holder = {}
+
+    def run_read():
+        try:
+            endpoint.read(clock.value + 10.0, None)
+        except BaseException as error:  # noqa: BLE001 - the failure stays visible
+            holder['error'] = error
+
+    reader = threading.Thread(target=run_read)
+    with unittest.mock.patch.object(_WindowsPipeWorker, 'wait_done',
+                                    recording_wait_done):
+        reader.start()
+        try:
+            deadline = time.monotonic() + 10.0
+            while not requested and time.monotonic() < deadline:
+                time.sleep(0.005)
+            assert requested, 'the endpoint never waited for its worker'
+            # The deadline of the round is tightened while the read runs
+            # and the next wait receives the time that is really left.
+            endpoint.bind_deadline(clock.value + 0.01)
+            deadline = time.monotonic() + 10.0
+            while min(requested) > 0.01 + 1e-9 and time.monotonic() < deadline:
+                time.sleep(0.005)
+            waiting.set()
+            reader.join(10.0)
+            assert not reader.is_alive(), 'the read of the round was left behind'
+            facts = {'requested': list(requested)}
+            assert max(requested) <= 0.05 + 1e-9, \
+                'the wait of the endpoint exceeded the poll cap of the package'
+            assert min(requested) <= 0.01 + 1e-9, \
+                'the wait of the endpoint was not cropped to the remaining'
+        finally:
+            waiting.set()
+            reader.join(10.0)
+            endpoint.close()
+
+    # -- N1 correction 12 (M08-C): the put of the reader of the channel
+    #    is cropped to the time that is really left.  There is no
+    #    positive floor beyond the remaining of the round.
+    class SlowReader:
+        """A read end that delivers one frame and then waits."""
+
+        def __init__(self):
+            self.blocks = [b'one\n']
+            self.released = threading.Event()
+
+        def read(self, deadline=None, cancel=None):
+            if self.blocks:
+                return self.blocks.pop(0)
+            if not self.released.is_set():
+                self.released.wait(10.0)
+                return b'two\n'
+            return b''
+
+        def close(self):
+            return {'closed': True, 'retained_workers': 0,
+                    'worker_thread_handle_released': True}
+
+    class BlockWriter:
+        def write(self, raw, deadline=None, cancel=None):
+            return len(raw)
+
+        def close(self):
+            return {'closed': True, 'retained_workers': 0,
+                    'worker_thread_handle_released': True}
+
+    clock = ManualClock(1000.0)
+    channel = StreamChannel(None, None, read_endpoint=SlowReader(),
+                             write_endpoint=BlockWriter(), clock=clock,
+                             max_frames=2)
+    puts = []
+    original_put = channel._queue.put
+
+    def recording_put(item, timeout=None):
+        puts.append(timeout)
+        return original_put(item, timeout=timeout)
+
+    channel._queue.put = recording_put
+    channel.bind_deadline(clock.value + 10.0)
+    try:
+        deadline = time.monotonic() + 10.0
+        while not puts and time.monotonic() < deadline:
+            time.sleep(0.005)
+        assert puts, 'the reader of the channel never put a frame'
+        assert puts[0] == pytest.approx(0.5), \
+            'the put of the reader did not use the wait of the package'
+        # The deadline of the round is tightened while the reader waits
+        # for its next frame.
+        channel.bind_deadline(clock.value + 0.02)
+        channel._reader.released.set()
+        deadline = time.monotonic() + 10.0
+        while len(puts) < 2 and time.monotonic() < deadline:
+            time.sleep(0.005)
+        assert len(puts) >= 2, 'the reader of the channel never put a frame'
+        assert min(puts) <= 0.02 + 1e-9, \
+            'the put of the reader was not cropped to the remaining'
+        assert max(puts) <= 0.5 + 1e-9
+    finally:
+        channel._reader.released.set()
+        channel.close()
 
 
 # -- N05-R15: the worker coordinates by generation ------------------------

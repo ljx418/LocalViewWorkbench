@@ -1,0 +1,113 @@
+{
+  "batch_executed": false,
+  "batch_result": null,
+  "candidate_base_sha": "b05020a67f0e54d8584505e6ecac52be214ad7fd",
+  "changed_source_files": [
+    "tools/v0_s3_native_broker.py",
+    "tools/test_v0_s3_native_custody_regressions.py",
+    "tools/test_v0_s3_native_custody_correction05.py",
+    "tools/test_v0_s3_native_custody_correction07.py",
+    "tools/test_v0_s3_native_custody_correction10.py"
+  ],
+  "closed_static_preserved": [
+    "M05",
+    "M09",
+    "m03",
+    "M06",
+    "M03_exit_safety"
+  ],
+  "coordinate": "V1/R1/WP-R1-U3/S3_P4_OFFLINE_INTEGRATION_PREPARATION",
+  "dynamic_authorized": false,
+  "executed_commands": [
+    {
+      "command": "git status --short / git diff --stat / git log",
+      "kind": "version_control_read"
+    },
+    {
+      "command": "sha256sum of the seven allowed files",
+      "kind": "digest_read"
+    },
+    {
+      "command": "compile(source_text, name, \"exec\") of the seven files, in memory",
+      "kind": "in_memory_compile"
+    },
+    {
+      "command": "ast.parse + symtable global resolution check of the seven files",
+      "kind": "static_resolution_check"
+    },
+    {
+      "command": "ast extraction of the 189 node ids and comparison with the frozen list",
+      "kind": "static_node_identity_check"
+    },
+    {
+      "command": "the generation of the JSON documents of this report root",
+      "kind": "report_write"
+    }
+  ],
+  "grant_authority": "NOT_VERIFIED",
+  "historical_evidence": "The failed batch of the correction 11 (commit a9660eb) and the reports of the corrections 11/10/09/08 are unchanged.  No untracked artefact was removed and no historical report was edited.",
+  "kind": "LVW_N1_CORRECTION12_STATIC_IMPLEMENTATION_RECEIPT/1",
+  "m09_dynamic_coverage": "The auxiliary AST only proof of N10-R10 was replaced by the dynamic schedule of the obligation inside the same node id: a real ordinary fault for the current generation, the effective timeout before the endpoint consumes it, a confirmed and a failed coordination, the exact original error object, the parallel timeout and the two public stops.",
+  "major_closure_claimed": false,
+  "next_owner": "root / gate owner: the independent review, the pin of the candidate and the finite batch",
+  "node_count": 189,
+  "node_identity_verified": "statically: the node ids of the five modules were extracted with the AST and compared with the frozen list of the plan of the root; the two lists are identical (189 = 189).",
+  "node_order_is_binding": true,
+  "not_executed": [
+    "candidate import",
+    "collection",
+    "pytest",
+    "ctypes",
+    "native call",
+    "runtime probe",
+    "helper probe",
+    "service",
+    "GPU",
+    "model",
+    "network",
+    "database",
+    "media",
+    "ledger",
+    "counter",
+    "external agent"
+  ],
+  "not_proven": [
+    "native_execution",
+    "native_cleanup",
+    "gpu_released",
+    "port_released",
+    "sampler",
+    "parent_crash_recovery",
+    "windows_stdin_eof"
+  ],
+  "open_findings_repaired": [
+    "M07-A",
+    "M08-A",
+    "M08-B",
+    "M08-C",
+    "M08-D",
+    "M08-E"
+  ],
+  "previous_evidence_commit": "a9660eb99c8fb2c89737e69a18e37d29c98a3edf",
+  "product_gate0": false,
+  "reports": {
+    "atomic_coverage": "atomic-coverage.md",
+    "changed_assertions": "changed-assertions.md",
+    "report": "report.md",
+    "source_pins": "source-pins.json",
+    "validation_plan_request": "validation-plan-request.json",
+    "wait_inventory": "wait-inventory.md"
+  },
+  "stage": "R1",
+  "stage_pass_claim": false,
+  "test_defects_reconciled": [
+    "N10-R02",
+    "N10-R04",
+    "N10-R10"
+  ],
+  "unchanged_allowed_files": [
+    "tools/v0_s3_native_custody.py",
+    "tools/test_v0_s3_native_custody.py"
+  ],
+  "workpack": "S3-P4-N1"
+}

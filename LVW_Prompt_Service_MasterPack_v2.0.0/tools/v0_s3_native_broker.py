@@ -87,6 +87,11 @@ POLL_SECONDS = 0.25
 # of at most 50 milliseconds, so that the cancel flag and the absolute
 # deadline of the round are observed even while a peer is silent.
 POLL_SLICE_SECONDS = 0.05
+# The bounded wait of the **put** of the reader of the channel.  The
+# put is cropped to the time that is really left until the current
+# effective deadline of the round and it never asks for more than the
+# round allows.
+CHANNEL_QUEUE_PUT_SECONDS = 0.5
 PIPE_READ_BYTES = 65536
 # The number of the frames of the channel that is reserved for the
 # terminal exchange of the round.  The heartbeat may not spend them: a
@@ -4041,7 +4046,38 @@ class _WindowsPipeWorker(threading.Thread):
                         guard = self._guards.get(generation)
                         if guard is not None:
                             guard_cancel, guard_deadline = guard
-                            if guard_cancel is not None and guard_cancel.is_set():
+                            # The **current** original context of the
+                            # round is consulted at the moment of the
+                            # decision of the dispatch.  A cancellation
+                            # or an expiry that was published **before**
+                            # this decision refuses the admission and
+                            # the primitive is never called at all: the
+                            # captured request of the call is never the
+                            # authority of the decision.
+                            context = self._context
+                            if context is not None:
+                                if context.cancel.is_set():
+                                    cancelled = True
+                                    self.error = 'BROKER_PIPE_CANCELLED'
+                                    self._error_object = _cancel_source_error(
+                                        BrokerError('BROKER_PIPE_CANCELLED',
+                                                    self.kind), context.cancel)
+                                else:
+                                    # The effective minimum is the one
+                                    # of the context: the bound of the
+                                    # call, the **current** absolute
+                                    # deadline of the round and the
+                                    # **published** cleanup deadline.
+                                    current = self._effective_deadline(
+                                        guard_deadline)
+                                    if (current is not None
+                                            and self._clock() >= current):
+                                        cancelled = True
+                                        self.error = 'BROKER_PIPE_TIMEOUT'
+                                        self._error_object = BrokerError(
+                                            'BROKER_PIPE_TIMEOUT', self.kind)
+                            if (not cancelled and guard_cancel is not None
+                                    and guard_cancel.is_set()):
                                 cancelled = True
                                 self.error = 'BROKER_PIPE_CANCELLED'
                                 # The error of the refusal carries the
@@ -4054,7 +4090,7 @@ class _WindowsPipeWorker(threading.Thread):
                                 self._error_object = _cancel_source_error(
                                     BrokerError('BROKER_PIPE_CANCELLED',
                                                 self.kind), guard_cancel)
-                            elif (guard_deadline is not None
+                            elif (not cancelled and guard_deadline is not None
                                   and self._clock() >= guard_deadline):
                                 cancelled = True
                                 self.error = 'BROKER_PIPE_TIMEOUT'
@@ -4597,6 +4633,23 @@ class _WindowsPipeEndpoint:
             return CLOSE_JOIN_SECONDS
         return max(0.0, value - self._clock())
 
+    def _wait_slice(self, effective=None):
+        """The seconds that the next wait of this endpoint may ask for.
+
+        The wait is the ordinary poll slice of the package, cropped to
+        the time that is really left until the **current** effective
+        deadline of the round.  A wait never asks for more than the
+        round allows and it never asks for a positive floor beyond it:
+        an expired round is refused before the wait and a round that is
+        about to expire waits only for the time that is left.
+        """
+        value = POLL_SLICE_SECONDS
+        if effective is None:
+            effective = self._effective_deadline()
+        if effective is not None:
+            value = max(0.0, min(value, effective - self._clock()))
+        return value
+
     def _start(self, kind, action, deadline=None):
         """Create and start one worker of this endpoint.
 
@@ -4679,6 +4732,13 @@ class _WindowsPipeEndpoint:
             effective = self._effective_deadline(deadline)
             if cancel is not None and cancel.is_set():
                 self._raise_cancellation(worker, generation, effective, cancel)
+            context = self._context
+            if context is not None and context.cancel.is_set():
+                # The **original** context of the round is noticed here
+                # as well: the flag of the call and the flag of the
+                # channel are not the only latches of the round.
+                self._raise_cancellation(worker, generation, effective,
+                                        context.cancel)
             if effective is not None and self._clock() >= effective:
                 # Before a **new** timeout is decided, the published
                 # original error of the **same** generation is
@@ -4706,7 +4766,7 @@ class _WindowsPipeEndpoint:
                 if outcome is not None and outcome.get('error') is not None:
                     raise self._parallel_timeout(outcome)
                 raise BrokerError('BROKER_PIPE_TIMEOUT', self._name)
-            if worker.wait_done(generation, POLL_SLICE_SECONDS):
+            if worker.wait_done(generation, self._wait_slice(effective)):
                 break
         outcome = worker.outcome(generation)
         if outcome is not None and outcome.get('error') is not None:
@@ -5308,7 +5368,7 @@ class StreamChannel:
                     while True:
                         self._check_wait()
                         try:
-                            self._queue.put(raw, timeout=0.5)
+                            self._queue.put(raw, timeout=self._put_wait())
                             break
                         except queue.Full:
                             if self._eof:
@@ -5402,6 +5462,20 @@ class StreamChannel:
         remaining = self._remaining()
         if remaining is not None and remaining <= 0:
             raise BrokerError('BROKER_CHANNEL_TIMEOUT')
+
+    def _put_wait(self):
+        """The seconds that the next put of the reader may ask for.
+
+        The put is the bounded wait of the package, cropped to the
+        time that is really left until the **current** effective
+        deadline of the round.  There is no positive floor beyond it:
+        an expired round is refused by the check that precedes the put
+        and the put itself never waits longer than the round allows.
+        """
+        remaining = self._remaining()
+        if remaining is None:
+            return CHANNEL_QUEUE_PUT_SECONDS
+        return max(0.0, min(CHANNEL_QUEUE_PUT_SECONDS, remaining))
 
     def read(self, timeout):
         """One raw frame, ``None`` when nothing arrived, ``b''`` at the end."""
@@ -5589,10 +5663,15 @@ class _StartupOwner:
     only clean up: it may never continue the startup of the round.
     """
 
-    def __init__(self, *, name, clock, deadline):
+    def __init__(self, *, name, clock, deadline, context=None):
         self.name = name
         self._clock = clock
         self._deadline = deadline
+        # The ONE context of the round.  The owner reads the **current**
+        # absolute deadline and the **published** cleanup deadline of
+        # the round from it and it never keeps a copy of a deadline of
+        # its own.
+        self._context = context
         self._results = queue.Queue(maxsize=STARTUP_INFLIGHT_SLOTS)
         self._thread = None
         self._error = None
@@ -5601,7 +5680,9 @@ class _StartupOwner:
         self._expired = False
         # Whether the start of the thread of this owner **returned**.
         # A start that did not return may still come up: the owner keeps
-        # its thread and the round keeps the fact.
+        # its thread and the round keeps the fact.  The flag is never
+        # the authority of the question: the facts of the thread itself
+        # are.
         self._started = False
 
     def start(self, action):
@@ -5611,13 +5692,76 @@ class _StartupOwner:
         start that did not return keeps its owner and the thread of the
         step may still come up.  The owner is never released because
         the start failed.
+
+        A start that raised **after** the thread really came up leaves
+        the flag of the owner unset, and the facts of the thread are
+        consulted instead: the thread of the step is a thread of the
+        round and the owner may join it.
         """
         self._thread = threading.Thread(
             target=self._run, args=(action,), daemon=True,
             name='lvw-native-custody-startup-' + self.name)
-        self._thread.start()
+        try:
+            self._thread.start()
+        except BaseException:
+            # The start did not return: the thread may really have come
+            # up and the facts of the thread decide.
+            self._started = self._thread_facts_started()
+            raise
         self._started = True
         return self
+
+    def _thread_facts_started(self):
+        """Whether the original facts of the thread prove that it started.
+
+        The private flag of the owner is **not** the authority: it is
+        written after the start returned and a start that raised after
+        the thread really came up leaves it unset.  The identity of the
+        thread and its liveness are the facts that decide whether a
+        real join may be attempted.
+        """
+        thread = self._thread
+        if thread is None:
+            return False
+        try:
+            if getattr(thread, 'ident', None) is not None:
+                return True
+        except Exception:  # noqa: BLE001 - the failure stays visible
+            return False
+        try:
+            return bool(thread.is_alive())
+        except Exception:  # noqa: BLE001 - the failure stays visible
+            return False
+
+    def _remaining(self):
+        """The seconds that are left until the current bound of the step.
+
+        The bound is the **current** effective deadline of the original
+        context of the round - its absolute deadline and the published
+        cleanup deadline - together with the deadline that the owner
+        received.  The value is recomputed on every call: a deadline
+        that was published while the step was running shortens the wait
+        that is running.
+        """
+        candidates = []
+        context = self._context
+        if context is not None:
+            absolute = context.absolute_deadline
+            if absolute is not None:
+                candidates.append(absolute)
+            cleanup = context.cleanup_deadline_value()
+            if cleanup is not None:
+                candidates.append(cleanup)
+        if self._deadline is not None:
+            candidates.append(self._deadline)
+        if not candidates:
+            return None
+        return max(0.0, min(candidates) - self._clock())
+
+    def _cancelled(self):
+        """Whether the original context of the round asked for the stop."""
+        context = self._context
+        return context is not None and context.cancel.is_set()
 
     def _run(self, action):
         try:
@@ -5644,13 +5788,38 @@ class _StartupOwner:
             pass
 
     def await_result(self):
-        """Wait for the result of the step, bounded by the deadline."""
+        """Wait for the result of the step, bounded by the deadline.
+
+        The result that is already published is **never** replaced by a
+        refusal of the deadline: the original failure of the step is
+        the error that leaves.
+
+        The wait of the next slice is cropped to the time that is
+        really left until the **current** effective deadline of the
+        original context of the round and there is no positive floor
+        beyond it: an expired round refuses at once.
+        """
         while True:
-            if self._clock() >= self._deadline:
+            try:
+                kind, value = self._results.get_nowait()
+            except queue.Empty:
+                kind = None
+                value = None
+            if kind is not None:
+                if kind == 'error':
+                    raise value
+                return value
+            remaining = self._remaining()
+            if remaining is not None and remaining <= 0:
                 self._expired = True
                 raise BrokerError('BROKER_STARTUP_DEADLINE_EXCEEDED', self.name)
+            if self._cancelled():
+                raise BrokerError('BROKER_STARTUP_CANCELLED', self.name)
+            wait = POLL_SLICE_SECONDS
+            if remaining is not None:
+                wait = max(0.0, min(wait, remaining))
             try:
-                kind, value = self._results.get(timeout=POLL_SLICE_SECONDS)
+                kind, value = self._results.get(timeout=wait)
             except queue.Empty:
                 continue
             if kind == 'error':
@@ -5670,15 +5839,18 @@ class _StartupOwner:
         thread ended.  The settle asks the thread itself: a thread that
         is still running keeps its owner and the round stays unknown.
 
-        A **start that did not return** is unknown as well: the thread
-        of the step may still come up and the owner is never released
-        because the attempt ended.
+        A **start that did not return** is unknown only when the facts
+        of the thread do not prove that it came up.  A thread that
+        really started is joined for real, even when the start raised
+        afterwards: the owner of the step coordinates the thread that it
+        really has and it never releases it without a proof.
         """
         if self._thread is None:
             return True
-        if not self._started:
-            # The start of the thread did not return: the thread may
-            # still come up and the owner is never released.
+        if not self._started and not self._thread_facts_started():
+            # The start of the thread did not return and the thread
+            # really did not come up: it may still come up and the owner
+            # is never released.
             return False
         try:
             self._thread.join(max(0.0, seconds))
@@ -5883,7 +6055,8 @@ class BrokerLoop:
         new budget.
         """
         owner = _StartupOwner(name=stage, clock=self._clock,
-                              deadline=self._deadline_mono)
+                              deadline=self._deadline_mono,
+                              context=self.context)
         self._startup_owner = owner
         self.context.register_inflight(owner)
         try:
@@ -6029,7 +6202,15 @@ class BrokerLoop:
                 return self._stop('LEASE_EXPIRED', 4)
             if self.core.overflowed():
                 return self._stop('BOUND_EXCEEDED', 4)
-            timeout = min(POLL_SECONDS, max(0.01, self._deadline_mono - now))
+            # The read of the transport is bounded by the time that is
+            # really left until the absolute deadline of the round.
+            # There is **no positive floor** beyond it: a round whose
+            # deadline arrived asks for nothing and the loop decides
+            # the lease that arrived.
+            remaining = self._deadline_mono - now
+            if remaining <= 0:
+                return self._stop('LEASE_EXPIRED', 4)
+            timeout = min(POLL_SECONDS, remaining)
             try:
                 raw = self.transport.read(timeout)
             except BrokerError:
@@ -6319,7 +6500,12 @@ class BrokerProcess:
         facts['stdout_closed'] = facts['read_end_closed']
         if not facts['process_exited']:
             try:
-                self._process.wait(timeout=max(0.0, value - self._clock()))
+                # The bound of the cleanup is read **again** here: the
+                # close of the channel may have published a shorter
+                # cleanup deadline of the round and the wait of the
+                # process receives the time that is really left.
+                current = self._cleanup_deadline(deadline)
+                self._process.wait(timeout=max(0.0, current - self._clock()))
                 facts['process_exited'] = True
                 facts['exit_code'] = self._process.returncode
             except Exception:  # noqa: BLE001 - the failure stays visible
@@ -6331,7 +6517,11 @@ class BrokerProcess:
                 except Exception:  # noqa: BLE001 - the failure stays visible
                     pass
                 try:
-                    self._process.wait(timeout=max(0.0, value - self._clock()))
+                    # The bound is read **again** for the retry as well:
+                    # a deadline that was published while the first wait
+                    # ran shortens the retry too.
+                    current = self._cleanup_deadline(deadline)
+                    self._process.wait(timeout=max(0.0, current - self._clock()))
                     facts['process_exited'] = True
                     facts['exit_code'] = self._process.returncode
                 except Exception:  # noqa: BLE001 - the failure stays visible
@@ -6534,6 +6724,12 @@ class _LaunchAggregate:
         self.channel = None
         self.endpoints = []
         self.workers = []
+        # The **original raw streams** of the launch that could not be
+        # closed.  A raw stream is a file of the process of the round:
+        # the launch that created it is its owner and it is retried by
+        # that owner alone.  A stream that is not in this list was
+        # closed with a confirmed close.
+        self.raw_streams = []
         self.context = context
         self.facts = {}
         # Whether the exit of the process of this launch was already
@@ -6608,7 +6804,38 @@ class _LaunchAggregate:
         with self._lock:
             return {'process': self.process, 'channel': self.channel,
                     'endpoints': list(self.endpoints),
-                    'workers': list(self.workers)}
+                    'workers': list(self.workers),
+                    'raw_streams': list(self.raw_streams)}
+
+    # -- the ownership of the original raw streams -------------------------
+    def retain_raw_stream(self, name, stream):
+        """Take the ownership of one original raw stream of this launch.
+
+        A raw stream is a file of the process of the round.  It enters
+        the ownership of **this** launch when its close could not be
+        confirmed: the launch is then the only owner that may retry it
+        and the table of the launcher never releases it behind the back
+        of the launch.
+        """
+        with self._lock:
+            for item in self.raw_streams:
+                if item['stream'] is stream:
+                    return item
+            item = {'name': name, 'stream': stream}
+            self.raw_streams.append(item)
+            return item
+
+    def forget_raw_stream(self, stream):
+        """Leave the ownership of one raw stream: its close was confirmed."""
+        with self._lock:
+            self.raw_streams = [item for item in self.raw_streams
+                                if item['stream'] is not stream]
+        return None
+
+    def pending_raw_streams(self):
+        """The original raw streams that this launch still owns."""
+        with self._lock:
+            return list(self.raw_streams)
 
     # -- the coordinated release ------------------------------------------
     def _release_deadline(self, deadline=None):
@@ -6655,6 +6882,10 @@ class _LaunchAggregate:
         retained = []
         failures = {}
         cancellations = []
+        # The original raw streams that this launch already owns and
+        # whose close was not confirmed yet: they are retried by **this**
+        # owner and by no other one.
+        pending_raw = self.pending_raw_streams()
         channel = self.channel
         if channel is not None:
             facts = {}
@@ -6708,9 +6939,11 @@ class _LaunchAggregate:
             failures.update(outcome['failures'])
             # A raw stream that could not be closed stays a reachable
             # owned resource: it keeps its **original** reference and it
-            # is never replaced by a summary of the failure.
+            # is never replaced by a summary of the failure.  This
+            # launch is the owner of it and it retries it.
             for name, stream in outcome.get('retained_streams') or []:
                 retained.append(name)
+                self.retain_raw_stream(name, stream)
                 if self.custody is not None:
                     self.custody.retain(name, stream, 'close_failed',
                                         launch=self)
@@ -6732,6 +6965,12 @@ class _LaunchAggregate:
                 if self.custody is not None:
                     self.custody.retain('process', process, 'release_failed',
                                          launch=self)
+        # The retry of the original raw streams that this launch owns.
+        # The retry happens **after** the channel and the process were
+        # coordinated: a raw file of a process whose channel took the
+        # files is never closed by the launch.
+        self._release_raw_streams(pending_raw, released, retained, failures,
+                                  cancellations, deadline)
         self.facts = {'released': list(released), 'retained': list(retained),
                       'failures': dict(failures)}
         if cancellations:
@@ -6740,6 +6979,69 @@ class _LaunchAggregate:
             # named next to it.
             raise cancellations[0]
         return self.facts
+
+    def _release_raw_streams(self, items, released, retained, failures,
+                             cancellations, deadline):
+        """Retry the original raw streams that this launch still owns.
+
+        A raw stream is a file of the process of the round.  It is owned
+        by the launch that created it and it is retried **only** by that
+        owner: the table of the launcher never closes it and it never
+        becomes a detached entry that nobody may reach.
+
+        The retry happens under the **current** bound of the release:
+        the deadline of the caller and the deadlines of the original
+        context of the launch are read again and an expired bound never
+        starts a new close.
+
+        A stream that is owned by a channel - a live channel or a
+        partial one - is never closed by the launch: the files of the
+        process belong to the channel and a file that is closed under a
+        live worker is a file that a worker reads from.
+
+        A stream whose close is confirmed is forgotten **before** it
+        leaves the table of the launcher: the confirmed close is
+        recorded and the table never resurrects the stream.
+        """
+        if not items:
+            return
+        if self.channel is not None:
+            # The channel owns the files of the process: the raw
+            # streams are never closed under a live or a partial
+            # channel endpoint.
+            for item in items:
+                retained.append(item['name'])
+                failures['raw_stream'] = 'BROKER_RAW_STREAM_OWNED_BY_CHANNEL'
+            return
+        value = self._release_deadline(deadline)
+        for item in items:
+            stream = item['stream']
+            if value is not None and self._clock() >= value:
+                # An expired bound never starts a new close: the stream
+                # keeps its owner and the round keeps the fact.
+                failures['raw_stream'] = 'BROKER_RAW_STREAM_DEADLINE_EXCEEDED'
+                retained.append(item['name'])
+                continue
+            try:
+                stream.close()
+            except (KeyboardInterrupt, SystemExit) as error:
+                # The original cancellation survives: it is raised after
+                # every safe step of the release and the stream keeps
+                # its owner.
+                cancellations.append(error)
+                failures['raw_stream'] = 'CANCELLED'
+                retained.append(item['name'])
+                continue
+            except Exception as error:  # noqa: BLE001 - the failure stays visible
+                failures['raw_stream'] = type(error).__name__
+                retained.append(item['name'])
+                continue
+            # The close was confirmed: the stream is forgotten by its
+            # owner and by the table of the launcher.
+            self.forget_raw_stream(stream)
+            if self.custody is not None:
+                self.custody.forget(stream)
+            released.append(item['name'])
 
 
 class _LauncherCustody:
@@ -6870,7 +7172,16 @@ class _LauncherCustody:
                 continue
             if item.get('launch') is not None:
                 # The launch of this resource coordinates it: the table
-                # never releases it a second time.
+                # never releases it a second time.  A resource that the
+                # launch released **while** this release was running is
+                # not named by the table any more: the stale snapshot of
+                # the table never resurrects it and never names it as
+                # retained.
+                with self._lock:
+                    owned = any(current['resource'] is item['resource']
+                                for current in self._items)
+                if not owned:
+                    continue
                 keep.append(item)
                 retained.append(item['kind'])
                 continue
@@ -7166,13 +7477,25 @@ def _check_launch_budget(context, stage):
 
     The **original** context of the round is the authority: the
     launcher never keeps a copy of the deadline and it never opens a
-    budget of its own.
+    budget of its own.  The authority is the **effective minimum** of
+    the context - the absolute deadline of the round **and** the
+    published cleanup deadline of the round - and not the absolute
+    deadline alone: a round that published its cleanup deadline and
+    whose cleanup expired is a round that may not create a process any
+    more, even when its absolute lease is still in the future.  The
+    stop of the round, the cancel of the round and the unknown state of
+    the round are honoured here as well.
     """
     if context is None:
         return True
     if context.cancel.is_set() or context.is_unknown():
         raise BrokerError('BROKER_STARTUP_CANCELLED', stage)
-    deadline = context.absolute_deadline
+    if context.stopping.is_set():
+        # The public stop of the round published the stop of the round:
+        # a launch that continues after it would create a process that
+        # nobody may stop any more.
+        raise BrokerError('BROKER_STARTUP_CANCELLED', stage)
+    deadline = context.effective_deadline()
     if deadline is not None and context.clock() >= deadline:
         raise BrokerError('BROKER_STARTUP_DEADLINE_EXCEEDED', stage)
     return True

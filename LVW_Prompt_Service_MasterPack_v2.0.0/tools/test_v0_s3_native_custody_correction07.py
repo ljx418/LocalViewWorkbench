@@ -66,8 +66,8 @@ from tools.v0_s3_native_custody import (  # noqa: E402 - the path is set above
 from tools.test_v0_s3_native_custody_correction05 import (  # noqa: E402
     COMPLETE_CLOSE_FACTS)
 from tools.test_v0_s3_native_custody_regressions import (  # noqa: E402
-    ManualClock, RecordingWin32, SyntheticKernel32, make_session, plan_document,
-    sealed_plan, synthetic_table)
+    ManualClock, RecordingWin32, SyntheticKernel32, make_session,
+    m07a_interrupted_launch, plan_document, sealed_plan, synthetic_table)
 
 
 # -- the helpers of the groups ---------------------------------------------
@@ -139,10 +139,15 @@ class _CancellingEvent:
 #: batch of the correction 10 stay in the directory of the correction
 #: 10 and they are never overwritten, never deleted and never replaced
 #: by a summary.
+#: CORRECTION 12: the diagnostics of the group are written in the NEW
+#: directory of the correction 12.  The real documents of the failed
+#: batch of the correction 11 stay in the directory of the correction
+#: 11 and they are never overwritten, never deleted and never replaced
+#: by a summary.
 F5_EVIDENCE_DIR = (Path(os.environ['LVW_N1_F5_EVIDENCE_DIR'])
                    if os.environ.get('LVW_N1_F5_EVIDENCE_DIR')
                    else (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'
-                         / 'implementation-native-custody-correction-11'
+                         / 'implementation-native-custody-correction-12'
                          / 'f5-evidence'))
 
 
@@ -1209,7 +1214,7 @@ def test_n07_r08_the_endpoint_owns_its_worker_before_the_start():
 
 # -- N07-R09: the launcher keeps the owner of the process and the channel --
 
-def test_n07_r09_the_launcher_keeps_the_owner_of_the_process_and_the_channel():
+def test_n07_r09_the_launcher_keeps_the_owner_of_the_process_and_the_channel(tmp_path):
     """N07-R09 (M07): the launcher owns the process and the channel.
 
     Obligation: the original process of the round is registered with the
@@ -1227,6 +1232,15 @@ def test_n07_r09_the_launcher_keeps_the_owner_of_the_process_and_the_channel():
     launcher never names the same resource twice.  Returned state: the
     table of the launcher names the process.  Salvage: the recovery of
     the launcher is explicit and it names what it kept.
+
+    CORRECTION 12 (M07-A): the launch that never built its channel
+    owns the **original raw streams** that it could not close, and the
+    **same** owner retries them.  A retained reference without a
+    recovery action is not an ownership: the first release returns the
+    original reference of the raw stream, the second release really
+    closes it, the confirmed close happens exactly once and the table of
+    the launcher names the stream no more.  The process and its
+    original handle are never released a second time.
     """
     class Process:
         pid = 4242
@@ -1393,6 +1407,82 @@ def test_n07_r09_the_launcher_keeps_the_owner_of_the_process_and_the_channel():
     assert custody4.release()['retained'] == []
     assert custody4.items() == [], \
         'the table of the launcher kept a detached entry'
+
+    # -- N1 correction 12 (M07-A): the raw streams of a launch that
+    #    never built its channel are owned by the launch and the **same**
+    #    owner retries them.  The first release returns the retained
+    #    original reference, the second release really closes it and the
+    #    table of the launcher names it no more.
+    holder = m07a_interrupted_launch(tmp_path, sealed_plan())
+    assert holder['interrupted'] is True, \
+        'the hash of the launch was not interrupted'
+    process = holder['process']
+    stdout = holder['stdout']
+    aggregate = holder['aggregate'][0] if holder['aggregate'] else None
+    assert aggregate is not None, 'the interrupted launch lost its owner'
+    assert any(item['kind'] == 'process' and item['resource'] is process
+               for item in _launcher_custody_items()), \
+        'the process of the interrupted launch lost its owner'
+    # The first release of the launcher: the process and its original
+    # handle are released and the raw stream that could not be closed
+    # keeps its **original** reference with its owner.
+    release_retained_launches()
+    owned = [item for item in _launcher_custody_items()
+             if item['kind'] == 'stdout' and item['resource'] is stdout]
+    facts = {'stdout_attempts': stdout.attempts,
+             'stdout_confirmed': stdout.confirmed,
+             'terminated': process.terminated,
+             'waited': process.waited,
+             'handle_closes': process._handle.closes,
+             'owned': len(owned),
+             'raw_streams': [item['name'] for item in aggregate.raw_streams]}
+    _f5_write('r09-raw-stream-first', facts)
+    assert owned, 'the raw stream of the launch lost its owner'
+    assert stdout.attempts == 1, \
+        'the raw stream was not closed by the first release'
+    assert stdout.confirmed == 0, \
+        'the failed close of the raw stream was read as a close'
+    # The successful process and handle operations are never repeated.
+    assert process.terminated == 1
+    assert process.waited == 1
+    handle_closes = process._handle.closes
+    assert [item['name'] for item in aggregate.raw_streams] == ['stdout'], \
+        'the launch does not own the raw stream that it could not close'
+    # The **same** owner retries the raw stream: the confirmed close
+    # happens exactly once and the table of the launcher names the
+    # stream no more.
+    release_retained_launches()
+    facts = {'stdout_attempts': stdout.attempts,
+             'stdout_confirmed': stdout.confirmed,
+             'terminated': process.terminated,
+             'waited': process.waited,
+             'handle_closes': process._handle.closes,
+             'owned': len([item for item in _launcher_custody_items()
+                           if item['kind'] == 'stdout'
+                           and item['resource'] is stdout]),
+             'raw_streams': [item['name'] for item in aggregate.raw_streams]}
+    _f5_write('r09-raw-stream-second', facts)
+    assert stdout.attempts == 2, \
+        'the same owner did not retry the raw stream of the launch'
+    assert stdout.confirmed == 1, \
+        'the raw stream of the launch was not closed by its owner'
+    assert stdout.closed is True
+    assert not [item for item in _launcher_custody_items()
+                if item['kind'] == 'stdout' and item['resource'] is stdout], \
+        'the table of the launcher kept the closed raw stream'
+    assert aggregate.raw_streams == [], \
+        'the launch still owns a raw stream that was really closed'
+    assert not [item for item in _launcher_custody_items()
+                if item['kind'] == 'aggregate'
+                and item['resource'] is aggregate], \
+        'the table of the launcher kept a launch that released everything'
+    # The successful process and handle operations are never repeated.
+    assert process.terminated == 1, \
+        'the retry terminated the process of the launch a second time'
+    assert process.waited == 1, \
+        'the retry waited for the process of the launch a second time'
+    assert process._handle.closes == handle_closes, \
+        'the retry closed the original handle of the process a second time'
 
 
 # -- N07-R10: a closer whose start did not return is unknown --------------
@@ -1704,6 +1794,121 @@ def test_n07_r13_every_side_effect_checks_the_shared_context(tmp_path):
     assert report['released'] == ['process']
     assert 0 < process.timeouts[0] <= 1.5, \
         'the recovery opened a budget of its own'
+
+    # -- N1 correction 12 (M08-E): the launch honours the **published**
+    #    cleanup of the round and the **public stop** of the round.  A
+    #    launch that is prepared after the cleanup of the round expired
+    #    creates no process, it hashes no executable and it builds no
+    #    channel - even when the absolute lease of the round is still in
+    #    the future.
+    document = _live_plan_document()
+    observations = {'popen': 0}
+    real_subprocess = broker_module.subprocess
+
+    class FakeProcess:
+        pid = 4242
+        returncode = 0
+
+        def __init__(self):
+            self.stdin = type('S', (), {'close': lambda self: None})()
+            self.stdout = type('S', (), {'close': lambda self: None})()
+            self.stderr = type('S', (), {'close': lambda self: None})()
+
+        def terminate(self):
+            return None
+
+        def wait(self, timeout=None):
+            return 0
+
+    def fake_popen(command, **kwargs):
+        observations['popen'] += 1
+        return FakeProcess()
+
+    class _OsView:
+        """A view of the module os that reports the platform."""
+
+        name = 'nt'
+
+        def __getattr__(self, item):
+            return getattr(os, item)
+
+    class _SubprocessView:
+        """A view of the module subprocess whose Popen is the fake."""
+
+        def Popen(self, command, **kwargs):
+            return fake_popen(command, **kwargs)
+
+        def __getattr__(self, item):
+            return getattr(real_subprocess, item)
+
+    paused = threading.Event()
+    resume = threading.Event()
+    original_command = broker_module.build_broker_command
+
+    def pausing_command(**kwargs):
+        command = original_command(**kwargs)
+        # The launch is paused in its preparation: the next effect of
+        # the launch is the creation of the process.
+        paused.set()
+        resume.wait(30.0)
+        return command
+
+    session = NativeCustodySession(plan=document, run_root=tmp_path,
+                                   parent_child_remaining_seconds=21600,
+                                   launcher=None, clock=time.monotonic,
+                                   wall=time.time, nonce='a' * 32)
+    with unittest.mock.patch.object(broker_module, 'os', _OsView()), \
+            unittest.mock.patch.object(broker_module, 'subprocess',
+                                       _SubprocessView()), \
+            unittest.mock.patch.object(broker_module, 'build_broker_command',
+                                       pausing_command):
+        starter = threading.Thread(target=session.start)
+        starter.start()
+        try:
+            assert paused.wait(15.0), 'the launch was never prepared'
+            # The **public stop** of the round publishes the cleanup of
+            # the round while the absolute lease of the round stays in
+            # the future.
+            session.stop()
+            resume.set()
+            starter.join(20.0)
+            assert not starter.is_alive(), 'the launch was left behind'
+        finally:
+            resume.set()
+            starter.join(20.0)
+    failures = list(session.evidence()['failures'])
+    facts = {'popen': observations['popen'], 'failures': failures,
+             'cleanup': session.evidence()['cleanup_deadline']}
+    _f5_write('r13-launch-stop', facts)
+    assert observations['popen'] == 0, \
+        'the launch created a process after the public stop of the round'
+    assert any('BROKER_STARTUP_CANCELLED' in failure
+               for failure in failures), \
+        'the launch was not refused by the public stop of the round'
+
+    # The published cleanup of the round is part of the effective
+    # minimum of the launch: a round whose cleanup expired may not
+    # create a process any more.
+    context = _RoundContext(clock=ManualClock(1000.0))
+    context.bind_absolute_deadline(1100.0)
+    context.cleanup_deadline(999.0)
+    with unittest.mock.patch.object(broker_module, 'os', _OsView()), \
+            unittest.mock.patch.object(broker_module, 'subprocess',
+                                       _SubprocessView()):
+        with pytest.raises(BrokerError) as info:
+            broker_module.launch_broker(sealed_plan(), tmp_path, 'a' * 32,
+                                        context=context)
+    facts = {'code': info.value.code, 'popen': observations['popen']}
+    _f5_write('r13-launch-cleanup', facts)
+    assert info.value.code == 'BROKER_STARTUP_DEADLINE_EXCEEDED'
+    assert observations['popen'] == 0, \
+        'the launch created a process after the cleanup of the round expired'
+    # The table of the launcher is clean again: the launch that was
+    # refused never created a process and it kept no resource.
+    release_retained_launches()
+    assert not [item for item in _launcher_custody_items()
+                if item['kind'] == 'aggregate'], \
+        'the refused launch kept an owner in the table of the launcher'
 
 
 # -- N07-R14: the startup owner releases its owner after the real exit -----

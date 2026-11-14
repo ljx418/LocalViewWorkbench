@@ -42,7 +42,9 @@ batch is its only authorised entry.
 """
 import ctypes
 import json
+import os
 import queue
+import subprocess
 import sys
 import threading
 import time
@@ -54,10 +56,12 @@ PACK_ROOT = Path(__file__).resolve().parents[1]
 if str(PACK_ROOT) not in sys.path:
     sys.path.insert(0, str(PACK_ROOT))
 
+import tools.v0_s3_native_broker as broker_module  # noqa: E402
 from tools.v0_s3_native_broker import (  # noqa: E402 - the path is set above
     BrokerCore, BrokerError, BrokerLoop, BrokerProcess, CreatedProcess,
-    StreamChannel, WindowsApi, _WindowsPipeEndpoint, _WindowsPipeWorker,
-    _adopt_broker_process, _declare_windows_primitives, _windows_api_types)
+    StreamChannel, WindowsApi, _RoundContext, _WindowsPipeEndpoint,
+    _WindowsPipeWorker, _adopt_broker_process, _declare_windows_primitives,
+    _windows_api_types)
 from tools.v0_s3_native_custody import (  # noqa: E402 - the path is set above
     CHANNEL_SCHEMA, CustodyError, MAX_FRAME_BYTES, NativeCustodySession,
     validate_launch_plan)
@@ -118,6 +122,23 @@ class _Primitive:
 
     def __call__(self, *args):
         return self._table.call(self.name, *args)
+
+
+def structure_of(reference):
+    """The structure that a by-reference argument of the façade points at.
+
+    The production hands a **reference** to a structure to the birth
+    query of a process: ``ctypes.byref(structure)``.  That reference
+    supports neither the assignment nor the reading of a field, and a
+    field that is written on the reference itself raises an
+    ``AttributeError`` before the race that the group drives is ever
+    reached.  The structure is the ``_obj`` of the reference and a
+    typed pointer that is already the structure is returned unchanged.
+    """
+    target = getattr(reference, '_obj', None)
+    if target is None:
+        return reference
+    return target
 
 
 class SyntheticKernel32:
@@ -184,7 +205,7 @@ class SyntheticKernel32:
             self.live[self.thread_handle] = 'thread'
             return 1
         if name == 'GetProcessTimes':
-            creation = args[1]._obj
+            creation = structure_of(args[1])
             creation.dwLowDateTime = self.creation_time & 0xFFFFFFFF
             creation.dwHighDateTime = self.creation_time >> 32
             return 1
@@ -376,6 +397,150 @@ class RecordingWin32:
 
 
 # -- the peer of the parent session -----------------------------------------
+
+class RawStream:
+    """One raw file of the process of a launch.
+
+    The stream counts its own closes: a close that fails is a failed
+    close and a close that is confirmed is a confirmed close.  The
+    identity of the stream is the identity of the **original** file and
+    it is never replaced by a copy of a message.
+    """
+
+    def __init__(self, name, *, failures=0, cancel=False):
+        self.name = name
+        self.remaining_failures = failures
+        self.cancel = cancel
+        self.attempts = 0
+        self.confirmed = 0
+        self.closed = False
+
+    def close(self):
+        self.attempts += 1
+        if self.remaining_failures > 0:
+            self.remaining_failures -= 1
+            raise RuntimeError('raw_stream_close_failed:' + self.name)
+        if self.cancel:
+            raise KeyboardInterrupt('raw_stream_close_cancelled')
+        self.confirmed += 1
+        self.closed = True
+        return True
+
+
+class LaunchHandle:
+    """The original handle of a process of a launch."""
+
+    def __init__(self):
+        self.closes = 0
+
+    def Close(self):
+        self.closes += 1
+        return True
+
+
+class LaunchProcess:
+    """The original process of a launch that never built its channel."""
+
+    pid = 4242
+    returncode = 0
+
+    def __init__(self, *, failures=0, cancel=False):
+        self.terminated = 0
+        self.waited = 0
+        self.stdin = RawStream('stdin')
+        self.stdout = RawStream('stdout', failures=failures, cancel=cancel)
+        self.stderr = RawStream('stderr')
+        self._handle = LaunchHandle()
+
+    def terminate(self):
+        self.terminated += 1
+        return None
+
+    def wait(self, timeout=None):
+        self.waited += 1
+        return 0
+
+
+def m07a_interrupted_launch(run_root, plan, *, failures=1, cancel=False,
+                            nonce='a' * 32):
+    """The production launch whose hash is interrupted before its channel.
+
+    The scenario is the one of the residual M07: the process of the
+    round is created, the **hash** of the executable is interrupted and
+    the channel of the round is never built.  The process of the round
+    keeps its owner in the table of the launcher and the recovery of
+    the launcher is the entry that releases it.
+
+    The seam is the lowest one: the creation of the process and the
+    hash of the executable.  The launcher, the aggregate of the launch,
+    the table of the launcher and the recovery of the launcher are the
+    production ones.
+
+    The holder that is returned names the original process, the original
+    raw stream of its standard output and the table of the launcher.
+    """
+    import hashlib
+    import unittest.mock
+
+    process = LaunchProcess(failures=failures, cancel=cancel)
+    holder = {'process': process, 'stdout': process.stdout,
+              'popen': 0, 'command': None}
+
+    def fake_popen(command, **kwargs):
+        holder['popen'] += 1
+        holder['command'] = list(command)
+        return process
+
+    class _OsView:
+        """A view of the module os that reports the platform."""
+
+        name = 'nt'
+
+        def __getattr__(self, item):
+            return getattr(os, item)
+
+    class _SubprocessView:
+        """A view of the module subprocess whose Popen is the fake."""
+
+        def Popen(self, command, **kwargs):
+            return fake_popen(command, **kwargs)
+
+        def __getattr__(self, item):
+            return getattr(subprocess, item)
+
+    class _HashView:
+        """A view of the module hashlib whose digest is interrupted.
+
+        The interruption happens between the creation of the process and
+        the construction of the channel: the process of the round keeps
+        its owner and the channel of the round never exists.
+        """
+
+        def sha256(self, *args, **kwargs):
+            raise KeyboardInterrupt('hash_interrupted')
+
+        def __getattr__(self, item):
+            return getattr(hashlib, item)
+
+    with unittest.mock.patch.object(broker_module, 'os', _OsView()), \
+            unittest.mock.patch.object(broker_module, 'subprocess',
+                                       _SubprocessView()), \
+            unittest.mock.patch.object(broker_module, 'hashlib', _HashView()):
+        try:
+            broker_module.launch_broker(plan, run_root, nonce)
+        except KeyboardInterrupt:
+            holder['interrupted'] = True
+        else:  # pragma: no cover - the interruption is the premise
+            holder['interrupted'] = False
+    holder['custody'] = [
+        (item['kind'], item['resource'])
+        for item in broker_module._launcher_custody_items()]
+    holder['aggregate'] = [
+        item['resource'] for item in broker_module._launcher_custody_items()
+        if item['kind'] == 'aggregate'
+        and getattr(item['resource'], 'process', None) is process]
+    return holder
+
 
 class RecordingPeer:
     """The in-process stand-in of the original handle of the broker.
@@ -1128,12 +1293,19 @@ def test_n03_r07_the_startup_is_bounded_by_the_absolute_deadline(tmp_path):
     assert transport.writes[0]['detail']['code'] == 'BROKER_STARTUP_DEADLINE_EXCEEDED'
 
 
-def test_n03_r08_the_cleanup_of_the_broker_uses_one_absolute_deadline():
+def test_n03_r08_the_cleanup_of_the_broker_uses_one_absolute_deadline(tmp_path):
     """N03-R08 (M08): every nested wait uses the same absolute deadline.
 
     The close of the channel consumes four seconds of the shared five
     seconds and the two waits of the process time out.  The clock never
     passes the deadline and no wait starts with a fresh timeout.
+
+    CORRECTION 12 (M08-B, M08-C): the bound of the cleanup is read
+    **again** immediately before every wait of the process: a cleanup
+    deadline that the round published while the channel was closed
+    shortens the wait that follows it.  The read of the transport of
+    the loop is cropped to the time that is really left and there is no
+    positive floor beyond it.
     """
     clock = ManualClock(1000.0)
     calls = []
@@ -1176,6 +1348,91 @@ def test_n03_r08_the_cleanup_of_the_broker_uses_one_absolute_deadline():
     assert waits[1][2] == 0.0
     assert facts['process_exited'] is False
     assert facts['cleanup_deadline'] == 1005.0
+
+    # -- N1 correction 12 (M08-B): the bound of the cleanup is read
+    #    **again** immediately before every wait of the process.  The
+    #    close of the channel publishes a **shorter** cleanup deadline
+    #    of the round and the wait of the process receives the time that
+    #    is really left.
+    clock = ManualClock(1000.0)
+    calls = []
+    context = _RoundContext(clock=clock)
+    context.bind_absolute_deadline(1005.0)
+
+    class ContextChannel:
+        reader_finished = True
+
+        def bind_deadline(self, deadline):
+            calls.append(('bind', deadline))
+
+        def close(self):
+            calls.append(('channel', clock.value))
+            # The round publishes a **shorter** cleanup deadline while
+            # the channel is closed and the absolute lease of the round
+            # stays in the future.
+            context.cleanup_deadline(clock.value + 0.5)
+            return {'write_end_closed': True, 'read_end_closed': True,
+                    'reader_finished': True}
+
+    class ContextProcess:
+        pid = 1
+        returncode = None
+
+        def wait(self, timeout=None):
+            calls.append(('wait', clock.value, timeout))
+            clock.value += timeout
+            raise TimeoutError('still running')
+
+        def terminate(self):
+            calls.append(('terminate', clock.value))
+
+    broker = BrokerProcess(ContextProcess(), 'x', 'a' * 64, ContextChannel(),
+                            clock=clock, context=context)
+    broker.write_deadline = 1005.0
+    facts = broker.close()
+    waits = [call for call in calls if call[0] == 'wait']
+    assert waits, 'the process was never waited for'
+    # The wait of the process received the **new** bound of the round
+    # and not the lease that was copied before the channel was closed.
+    assert waits[0][2] == 0.5, \
+        'the wait of the process used the bound that the channel shortened'
+    assert waits[1][2] == 0.0, \
+        'the retry of the wait of the process used a stale bound'
+    assert facts['process_exited'] is False
+    assert facts['cleanup_deadline'] == 1005.0
+
+    # -- N1 correction 12 (M08-C): the read of the transport of the
+    #    loop is cropped to the time that is really left and there is
+    #    **no positive floor** beyond it.
+    clock = ManualClock(1000.0)
+    requested = []
+
+    class FloorTransport:
+        def bind_deadline(self, deadline):
+            self.deadline = deadline
+
+        def write(self, raw):
+            return None
+
+        def read(self, timeout):
+            requested.append(timeout)
+            return b''
+
+    core = BrokerCore(win32=RecordingWin32(), plan=sealed_plan(),
+                      run_root=tmp_path, clock=clock)
+    transport = FloorTransport()
+    loop = BrokerLoop(core=core, transport=transport, plan=core.plan,
+                      nonce='a' * 32, clock=clock, wall=lambda: 1000.0)
+    # The lease of the round leaves five milliseconds: the read of the
+    # transport may not ask for more than that and it may not ask for
+    # the floor of the package.
+    loop._deadline_mono = 1000.005
+    loop._loop()
+    assert requested, 'the transport of the round was never read'
+    assert requested[0] <= 0.005 + 1e-9, \
+        'the read of the transport asked for more than the round allowed'
+    assert requested[0] < 0.01, \
+        'the read of the transport used the positive floor of the package'
 
 
 def test_n03_r09_a_partial_windows_write_is_never_a_success():
