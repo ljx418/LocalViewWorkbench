@@ -1,0 +1,50 @@
+{
+  "kind": "ROOT_DERIVED_NAVIGATION_NOT_EXECUTOR_RECEIPT",
+  "candidate_sha": "b05020a67f0e54d8584505e6ecac52be214ad7fd",
+  "status": "FAILED_RECEIPT_OBSERVED_WORKER_FINAL_REPORT_PENDING",
+  "receipt": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-11/attempt01/native-custody-correction-03.receipt.json",
+  "receipt_sha256": "58a5654e74db1ee2b595874dc40388474e644fb7b8a8597b5ab60ad47410dfe1",
+  "guard": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-11/attempt01/native-custody-correction-11.guard.json",
+  "guard_sha256": "f63760138fcab7cb7cfdf9a2657be731768d5fdd850007a890876aa251e24232",
+  "pytest_exit": 1,
+  "call_count": 189,
+  "pass_count": 186,
+  "fail_count": 3,
+  "skip_count": 0,
+  "cleanup_proven_for_batch": true,
+  "threads_before": [
+    "MainThread"
+  ],
+  "threads_after": [
+    "MainThread"
+  ],
+  "new_or_reused_fds": [],
+  "runtime_denials": [],
+  "preload_window": "CLOSED",
+  "duration_seconds": 30.950615882873535,
+  "failures": [
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r02_the_claim_of_the_recovery_and_the_handover_are_exclusive",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.001777508000486705,
+      "longrepr": "tools/test_v0_s3_native_custody_correction10.py:450: in test_n10_r02_the_claim_of_the_recovery_and_the_handover_are_exclusive\n    assert isinstance(error, BrokerError), \\\nE   AssertionError: the creation did not refuse the refused handover\nE   assert False\nE    +  where False = isinstance(AttributeError(\"'_ctypes.CArgObject' object has no attribute 'dwLowDateTime'\"), BrokerError)"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r04_the_launch_aggregate_finds_the_partial_channel",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.10141848800049047,
+      "longrepr": "tools/test_v0_s3_native_custody_correction10.py:676: in test_n10_r04_the_launch_aggregate_finds_the_partial_channel\n    assert process.terminated == 1\nE   assert 0 == 1\nE    +  where 0 = <test_v0_s3_native_custody_correction10.test_n10_r04_the_launch_aggregate_finds_the_partial_channel.<locals>.Process object at 0x7175b1281be0>.terminated"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.3046621140001662,
+      "longrepr": "tools/test_v0_s3_native_custody_correction10.py:1619: in test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation\n    assert outcome['error'] == 'RuntimeError'\nE   AssertionError: assert None == 'RuntimeError'"
+    }
+  ],
+  "stage_pass": false,
+  "next": "Wait final evidence handoff and b05020a isolated source review, then one consolidated correction; no rerun"
+}
