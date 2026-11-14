@@ -1,0 +1,242 @@
+{
+  "kind": "independent-static-test-evidence-design-review",
+  "candidate_sha": "63b490ae8b5678113fc13ed16fb2a8a54e5ca39c",
+  "coordinate": {
+    "version": "V1",
+    "stage": "R1",
+    "workpack": "WP-R1-U3",
+    "gate": "S3_P4"
+  },
+  "disposition": "CHANGES_REQUIRED",
+  "counts": {
+    "Fatal": 0,
+    "Major": 3,
+    "Minor": 0
+  },
+  "findings": [
+    {
+      "id": "M1",
+      "severity": "Major",
+      "obligation": "F3",
+      "location": "test_v0_s3_native_custody_correction10.py:2005",
+      "title": "Zero reply check uses unstarted internal pump instead of public chain"
+    },
+    {
+      "id": "M2",
+      "severity": "Major",
+      "obligation": "F5",
+      "location": "test_v0_s3_native_custody_correction10.py:2715",
+      "title": "Publication barrier timeout is unchecked and can pass without required ordering"
+    },
+    {
+      "id": "M3",
+      "severity": "Major",
+      "obligation": "F3",
+      "location": "test_v0_s3_native_custody_correction10.py:2040",
+      "title": "Child transport and parent failure paths lack unconditional bounded fixture joins"
+    }
+  ],
+  "sources": {
+    "tools/v0_s3_native_broker.py": {
+      "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-14/test-review-01/v0_s3_native_broker.py.txt",
+      "sha256": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
+      "bytes": 386807,
+      "lines": 8174,
+      "git_show_exact_bytes": true,
+      "prior_independent_candidate_exact_bytes": true
+    },
+    "tools/v0_s3_native_custody.py": {
+      "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-14/test-review-01/v0_s3_native_custody.py.txt",
+      "sha256": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581",
+      "bytes": 114702,
+      "lines": 2470,
+      "git_show_exact_bytes": true,
+      "prior_independent_candidate_exact_bytes": true
+    },
+    "tools/test_v0_s3_native_custody_correction05.py": {
+      "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-14/test-review-01/test_v0_s3_native_custody_correction05.py.txt",
+      "sha256": "8563989f078fcd45d44c496a0bea16c1ecf5005513543f6f4e00792e4ed7e130",
+      "bytes": 114666,
+      "lines": 2531,
+      "git_show_exact_bytes": true
+    },
+    "tools/test_v0_s3_native_custody_correction07.py": {
+      "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-14/test-review-01/test_v0_s3_native_custody_correction07.py.txt",
+      "sha256": "dc74cf7f92e8be6cc2b69c602b9fc0b3fdd765ec8b9b48c4f061dde7bdcd6cdf",
+      "bytes": 152715,
+      "lines": 3282,
+      "git_show_exact_bytes": true
+    },
+    "tools/test_v0_s3_native_custody_correction10.py": {
+      "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-14/test-review-01/test_v0_s3_native_custody_correction10.py.txt",
+      "sha256": "e6ea479e74621f9092457078f6ac58b26757f43192177e6d23ac5ffef4c1a217",
+      "bytes": 183566,
+      "lines": 3817,
+      "git_show_exact_bytes": true
+    }
+  },
+  "plan_sha256": "05ef1549f42bd34d7759959c5409000b9dc1b8344e9d296351a2a213edb409fb",
+  "frozen_node_count": 189,
+  "frozen_order_equal_prior_selected_and_collected": true,
+  "changed_test_names_order_preserved": {
+    "correction05": 24,
+    "correction07": 18,
+    "correction10": 14
+  },
+  "prior_production_mapping": "exact bytes equal candidate41df626 and candidateb5e92af; prior F0/M0/m0 source-only",
+  "dynamic": "NOT_RUN",
+  "native": "NOT_PROVEN",
+  "stage_pass": false,
+  "final_independent_acceptance": false,
+  "candidate_import_compile_exec_collect_pytest": false,
+  "current_raw_results_read": false,
+  "implementer14_reports_static_checks_self_conclusions_read": false,
+  "original_ledger_counter_read": false,
+  "runtime_native_os_business_process_model_gpu_service_network_media_db_actions": false,
+  "agents_started": 0,
+  "production_changed": false,
+  "write_scope": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-14/test-review-01/review-result",
+  "http429": false,
+  "approval_refusal": false,
+  "outline": [
+    {
+      "stage_id": "V0-S0",
+      "completed_substeps": 1,
+      "total_substeps": 2
+    },
+    {
+      "stage_id": "V0-S1",
+      "completed_substeps": 5,
+      "total_substeps": 5
+    },
+    {
+      "stage_id": "R0",
+      "completed_substeps": 1,
+      "total_substeps": 2
+    },
+    {
+      "stage_id": "R1a",
+      "completed_substeps": 5,
+      "total_substeps": 5
+    },
+    {
+      "stage_id": "V0-S2",
+      "completed_substeps": 7,
+      "total_substeps": 8
+    },
+    {
+      "stage_id": "V0-S3",
+      "completed_substeps": 0,
+      "total_substeps": 6
+    },
+    {
+      "stage_id": "R1",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "V1-M1",
+      "completed_substeps": 0,
+      "total_substeps": 3
+    },
+    {
+      "stage_id": "R2",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R3",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R4",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R5a",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R5b",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R5c",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    }
+  ],
+  "uncertainties": [
+    "No execution or collection performed",
+    "Imported frozen helper behavior outside five source blobs is not independently certified",
+    "Actual scheduling/tail/admission arguments and cleanup require separate actual receipts",
+    "Other 133 node bodies not re-reviewed"
+  ],
+  "input_hashes": {
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-14/test-review-01/source-binding.json": "565e02273eaac50d7155124dad20bc394c34b53f22147c4f78f2d6cb2cb96b29",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-14/contract.md": "22fece2f88b3e805d7ab399d44fbfc86ea1289d264e764dde7042b3a9b7f6b6e",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-14/scope.json": "8afd15dc4504e66f27f5e6ad3cff7f42a641db6c6604b15e0e346ca1440852dc",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-14/decision.json": "afcf6fd194f007bb4bde119d518396aa9d14fc5f4d77d3a4f46512da2d97c661",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-14/validation-plan-01/plan.json": "05ef1549f42bd34d7759959c5409000b9dc1b8344e9d296351a2a213edb409fb",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-14/validation-plan-01/ack.json": "cd612a883e78fead7b0d2d37ef1afa70612af5014e7542627a481e88962ed885",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-14/failed-correction13.zip": "9037af991ef240fba884169dcf494f1426d2afd922b7a03826a7575ed719131c",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/AGENTS.md": "80386dacbc34134f21021d0db12a11f646a66bcb2a96f841e32a8c911b1d5d11",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/.agent-governance/README.md": "a31398c4ccaaff0fe6bf606357bf223418b95837a489867bb6645c04bcd89225",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/.agent-governance/anti-false-green.md": "010e915dffb6fffa4fc9ad02eaeb18a9dc26cb6f91a702cfba1c747c78b75241",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/plans/execution-control.json": "0774a9243073e972ba36753c3a02ef209985f5f965232e4fd26979a07114012c",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/docs/24_EXECUTION_MASTER_PLAN.md": "6762b5526ce291a88460c50922154a64c0dd0cfab958af36d6828c9905799eea",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-13/production-review-02/review-result/review.md": "a713933015f1f138c09c9b429b96ec2cf7c33c37e09a035e17e9735472bf97e3",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-13/production-review-02/review-result/receipt.json": "46532c8f69fcbb4abb5f681e38d7fbffceb91ba3320c48d5b57bedd4425ede3a"
+  },
+  "artifacts": {
+    "01-F1-numbered.txt": {
+      "sha256": "1c0483fb49e0bc3bb15240296a76118673860acbea24171a757fc7c55bb34388",
+      "bytes": 17534
+    },
+    "02-F2-numbered.txt": {
+      "sha256": "50de60d7a2b3bab05667ca8608d346a8fb0a936a7b7883f567afccb1bec1783c",
+      "bytes": 14853
+    },
+    "03-F3-numbered.txt": {
+      "sha256": "1d73ddfc56e68f3fd26032fa46a33a787825b043a9f3d4c73ebc155519e16773",
+      "bytes": 21686
+    },
+    "04-F4-numbered.txt": {
+      "sha256": "f8e1fc5e2fbe4cc50f5a79ffd6540e75b50182c67eede7e4537f6c0d00bc4a60",
+      "bytes": 7148
+    },
+    "05-F5-numbered.txt": {
+      "sha256": "4089301685af52e15f2ccc8fc532be1535abb1cfe24ff561b5cb4e04344ab922",
+      "bytes": 22321
+    },
+    "06-production-numbered.txt": {
+      "sha256": "bde3523d8377b7ae792ebdef8f12e6bf130de1cd154135779e0c0e028e257901",
+      "bytes": 25521
+    },
+    "07-parent-numbered.txt": {
+      "sha256": "ca6e7c1ee37bcdea2610cf51faf2902bdf97d620482bf3ffdc054d1964e75efb",
+      "bytes": 7269
+    },
+    "review.md": {
+      "sha256": "f6c6525165b970c4a0df7f593e8c47247d03b5ced3d351c596225896264b3373",
+      "bytes": 14093
+    }
+  },
+  "execution_audit": {
+    "methods": [
+      "read-only text and JSON/zip processing",
+      "git show full byte comparison and git diff",
+      "numbered source excerpt generation"
+    ],
+    "candidate_execution": false,
+    "runtime_validation": false,
+    "review_artifact_hashes_verified": true,
+    "source_pins_rechecked": true,
+    "skill": "/home/administrator/.agents/skills/orchestration/SKILL.md",
+    "guide": "orca-ide skills get orchestration"
+  }
+}

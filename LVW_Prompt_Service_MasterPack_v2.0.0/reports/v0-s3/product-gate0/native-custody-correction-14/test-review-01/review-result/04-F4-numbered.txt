@@ -1,0 +1,128 @@
+Source: test_v0_s3_native_custody_correction10.py.txt
+
+ 2490          'the owner of the step did not refuse the expired round'
+ 2491      assert observed, 'the owner of the step never observed its result'
+ 2492      assert requested, 'the owner of the step never waited for its result'
+ 2493      assert requested[0] <= 0.05 + 1e-9, \
+ 2494          'the wait of the owner exceeded the poll cap of the package'
+ 2495      assert max(requested) <= 0.5 + 1e-9, \
+ 2496          'the wait of the owner exceeded the remaining of the round'
+ 2497      # The wait that followed the tightening received the time that was
+ 2498      # really left and it was cropped to it.
+ 2499      assert min(requested[1:]) <= 0.01 + 1e-9, \
+ 2500          'the wait of the owner was not cropped to the tightened remaining'
+ 2501  
+ 2502      # -- N1 correction 12 (M08-D): a start that raised **after** the
+ 2503      #    thread of the step really came up is not a release.  The owner
+ 2504      #    joins the thread that it really has, it keeps its owner while
+ 2505      #    the thread is alive and a later settle of the **same** owner
+ 2506      #    converges after the real exit of the thread.
+ 2507      tail_release = threading.Event()
+ 2508      original_start = threading.Thread.start
+ 2509  
+ 2510      def failing_start(self):
+ 2511          original_start(self)
+ 2512          if self.name.startswith('lvw-native-custody-startup-'):
+ 2513              raise KeyboardInterrupt('start_interrupted')
+ 2514  
+ 2515      clock = time.monotonic
+ 2516      core = BrokerCore(win32=RecordingWin32(), plan=sealed_plan(),
+ 2517                        run_root=tmp_path, clock=clock)
+ 2518      core.bind_absolute_deadline(clock() + 60.0)
+ 2519      transport = type('T', (), {'bind_deadline': lambda self, value: value,
+ 2520                                 'write': lambda self, raw: None})()
+ 2521      loop = BrokerLoop(core=core, transport=transport, plan=core.plan,
+ 2522                        nonce=NONCE, clock=clock, wall=time.time)
+ 2523      loop._deadline_mono = clock() + 30.0
+ 2524      try:
+ 2525          with unittest.mock.patch.object(threading.Thread, 'start',
+ 2526                                          failing_start):
+ 2527              with pytest.raises(KeyboardInterrupt):
+ 2528                  loop._run_startup('ARM', lambda: tail_release.wait(15.0))
+ 2529          owner = loop._startup_owner
+ 2530          assert owner is not None, 'the owner of the step was never built'
+ 2531          facts = {'started': owner._started,
+ 2532                   'in_flight': owner.in_flight,
+ 2533                   'retained': loop._startup_in_flight is owner}
+ 2534          write_phase('r09-interrupted-start', facts)
+ 2535          # The facts of the thread decided: the thread of the step really
+ 2536          # came up and the owner does not release it.
+ 2537          assert owner._started is True, \
+ 2538              'the facts of the thread of the step were not consulted'
+ 2539          assert loop._startup_in_flight is owner, \
+ 2540              'the owner of an interrupted start was released'
+ 2541          assert owner.in_flight is True
+ 2542          assert owner in core.context.inflight()
+ 2543          # The thread of the step is really alive: the owner is still
+ 2544          # the owner of it.
+ 2545          tail_release.set()
+ 2546          assert owner.settle(10.0) is True, \
+ 2547              'the later settle of the owner did not converge'
+ 2548          assert owner.in_flight is False
+ 2549      finally:
+ 2550          tail_release.set()
+ 2551          for pending in loop.context.inflight():
+ 2552              pending.settle(5.0)
+ 2553          thread = getattr(loop._startup_owner, '_thread', None)
+ 2554          if thread is not None:
+ 2555              thread.join(10.0)
+ 2556              assert not thread.is_alive(), \
+ 2557                  'the thread of a startup step was left behind'
+ 2558  
+ 2559      # -- N1 correction 12 (M08-D): a start that never came up stays
+ 2560      #    **unknown**: the owner is never released and no join of a
+ 2561      #    thread that never started is attempted.
+ 2562      #
+ 2563      #    RECONCILIATION (N1 correction 14, F4): the group joined the
+ 2564      #    thread of the step **unconditionally** and the thread of this
+ 2565      #    subcase never started at all: the seam of the group raised
+ 2566      #    **before** the original start of the thread, so the join of
+ 2567      #    the fixture raised ``RuntimeError: cannot join thread before
+ 2568      #    it is started``.  The facts of the start decide now: the start
+ 2569      #    did not return, the thread has **no identity** and it is not
+ 2570      #    alive, so the fixture skips **only** that impossible join.
+ 2571      #    The unconditional bounded join stays for every thread that
+ 2572      #    really started (the two phases above), an object without an
+ 2573      #    identity is never read as a physical exit of a thread and the
+ 2574      #    causal negative of the group - an unproved start is never
+ 2575      #    released - is unchanged.
+ 2576      owner = _StartupOwner(name='never', clock=time.monotonic,
+ 2577                            deadline=time.monotonic() + 10.0)
+ 2578  
+ 2579      def never_started(self):
+ 2580          raise RuntimeError('start_failed_before_the_thread')
+ 2581  
+ 2582      with unittest.mock.patch.object(threading.Thread, 'start',
+ 2583                                      never_started):
+ 2584          with pytest.raises(RuntimeError):
+ 2585              owner.start(lambda: None)
+ 2586      assert owner.settle(5.0) is False, \
+ 2587          'an unproved start of a step was released'
+ 2588      assert owner.in_flight is False
+ 2589      thread = getattr(owner, '_thread', None)
+ 2590      assert thread is not None, \
+ 2591          'the owner of the step did not keep the thread of the step'
+ 2592      # The **facts** of the start of the thread of the step.
+ 2593      start_facts = {'owner_started': owner._started,
+ 2594                     'ident': getattr(thread, 'ident', None),
+ 2595                     'alive': bool(thread.is_alive()),
+ 2596                     'settle': owner.settle(5.0),
+ 2597                     'in_flight': owner.in_flight}
+ 2598      write_phase('r09-never-started', start_facts)
+ 2599      assert owner._started is False, \
+ 2600          'the owner of the step claims that the start of its thread returned'
+ 2601      assert thread.ident is None, \
+ 2602          'the thread of the step really started'
+ 2603      assert thread.is_alive() is False, \
+ 2604          'the thread of the step is alive although it never started'
+ 2605      if thread.ident is not None or thread.is_alive():
+ 2606          # A thread that really started is joined **unconditionally** and
+ 2607          # with a bounded wait.
+ 2608          thread.join(5.0)
+ 2609          assert not thread.is_alive(), \
+ 2610              'the thread of a startup step was left behind'
+ 2611  
+ 2612  
+ 2613  # -- N10-R10: the outcome of the generation wins --------------------------
+ 2614  
+ 2615  class _M09TimeoutApi:

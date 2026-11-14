@@ -1,0 +1,254 @@
+Source: test_v0_s3_native_custody_correction07.py.txt
+
+  619  def test_n07_r02_the_recovery_keeps_the_handle_until_the_exit_is_confirmed(tmp_path):
+  620      """N07-R02 (M03): the second recovery releases the confirmed handle.
+  621  
+  622      Obligation: the first coordination of a process whose exit was not
+  623      confirmed keeps its control handle; a later coordination that
+  624      confirms the exit closes it and forgets it; the recovery never opens
+  625      a new budget and a cancellation is uploaded after every safe step.
+  626      Entry: ``WindowsApi.release_retained`` and
+  627      ``WindowsApi.create_process_suspended``.  Trigger: the wait of the
+  628      release times out and the process really ends later.  Oracle: the
+  629      first report names the handle as unreleased, the second report names
+  630      it as released and the table of the façade is empty.  Negative: the
+  631      deadline of the recovery is published once and it is never renewed.
+  632      Returned state: the report of the recovery names the failures of
+  633      every step.  Salvage: the salvage is the second coordination of the
+  634      owner and it is explicit.
+  635  
+  636      RECONCILIATION (N1 correction 14, F2): the millisecond subcase of
+  637      the group builds the **production** core and it built it with
+  638      ``run_root=None``.  The production constructor does
+  639      ``Path(run_root)`` and it refuses a ``None``: the boundary of the
+  640      group never ran at all.  The subcase now drives the core with the
+  641      **real** controlled run root of the test (the fixture ``tmp_path``,
+  642      which does not change the identity of the node) and the boundary
+  643      really executes.  The production is not changed, no permissive
+  644      ``None`` fallback is added to it and no assertion of the boundary
+  645      is skipped.
+  646      """
+  647      state = {'exited': False}
+  648  
+  649      def fail_birth(kernel32, *args):
+  650          return 0
+  651  
+  652      def timeout_wait(kernel32, *args):
+  653          return 0 if state['exited'] else 258
+  654  
+  655      kernel32 = SyntheticKernel32(script={'GetProcessTimes': fail_birth,
+  656                                           'WaitForSingleObject': timeout_wait})
+  657      api = WindowsApi(table=synthetic_table(kernel32))
+  658      with pytest.raises(BrokerError):
+  659          api.create_process_suspended(executable='C:/tools/python.exe', arguments=['-s'],
+  660                                       working_directory='C:/round', stdout_handle=0x21,
+  661                                       stderr_handle=0x22, environment=None)
+  662      assert [entry['kind'] for entry in api.retained_handles()] == ['process']
+  663      # The first coordination keeps the control handle: the exit was not
+  664      # confirmed and the process may still be alive.
+  665      report = api.release_retained()
+  666      assert [item['kind'] for item in report] == ['process']
+  667      assert report[0]['released'] is False
+  668      assert 'WaitForSingleObject:exit_not_confirmed' in report[0]['failures']
+  669      assert kernel32.process_handle in kernel32.live
+  670      # The process really ends later, inside the original deadline.
+  671      state['exited'] = True
+  672      report = api.release_retained()
+  673      assert [item['kind'] for item in report] == ['process']
+  674      assert report[0]['released'] is True
+  675      assert api.retained_handles() == []
+  676      assert kernel32.process_handle not in kernel32.live
+  677  
+  678      # The cancellation of the recovery is uploaded after every safe step
+  679      # and it never hides the primary error of the creation.
+  680      #
+  681      # CORRECTION 08 (M03): the second scenario of the group is an
+  682      # **independent** scenario.  It has its own state, its own closure
+  683      # and its own kernel, so that the confirmed exit of the first
+  684      # scenario can never be observed here.  The old group reused the
+  685      # state of the first scenario: the exit of the process was already
+  686      # confirmed, the control handle had been closed inside the creation
+  687      # and the recovery of the façade had nothing left to coordinate.
+  688      state_two = {'exited': False}
+  689      cancellation = KeyboardInterrupt('terminate_cancelled')
+  690      terminations = []
+  691  
+  692      def fail_birth_two(kernel32, *args):
+  693          return 0
+  694  
+  695      def timeout_wait_two(kernel32, *args):
+  696          return 0 if state_two['exited'] else 258
+  697  
+  698      def cancel_terminate_two(kernel32, *args):
+  699          terminations.append(getattr(args[0], 'value', args[0]))
+  700          raise cancellation
+  701  
+  702      kernel32 = SyntheticKernel32(script={'GetProcessTimes': fail_birth_two,
+  703                                           'TerminateProcess': cancel_terminate_two,
+  704                                           'WaitForSingleObject': timeout_wait_two})
+  705      api = WindowsApi(table=synthetic_table(kernel32))
+  706      with pytest.raises(BrokerError) as info:
+  707          api.create_process_suspended(executable='C:/tools/python.exe', arguments=['-s'],
+  708                                       working_directory='C:/round', stdout_handle=0x21,
+  709                                       stderr_handle=0x22, environment=None)
+  710      assert info.value.code == 'BROKER_PROCESS_BIRTH_QUERY_FAILED'
+  711      # The injected cancellation of the termination really happened and
+  712      # the cancellation that stays next to the primary error is the
+  713      # **original** object and not a copy of its message.
+  714      assert terminations, 'the cancellation of the termination never happened'
+  715      assert info.value.lvw_cancelled is cancellation
+  716      assert isinstance(info.value.lvw_cancelled, KeyboardInterrupt)
+  717      # The primary error and the cancellation coexist: the primary error
+  718      # is still the error that leaves the creation.
+  719      assert info.value.code == 'BROKER_PROCESS_BIRTH_QUERY_FAILED'
+  720      # The control handle of the process is still with its owner: the
+  721      # exit of the process was not confirmed and the recovery of the
+  722      # façade can reach the original handle again.
+  723      retained = api.retained_handles()
+  724      assert [entry['kind'] for entry in retained] == ['process']
+  725      assert getattr(retained[0]['handle'], 'value', retained[0]['handle']) \
+  726          == kernel32.process_handle
+  727      assert kernel32.process_handle in kernel32.live
+  728      # The recovery of the façade raises the cancellation of the
+  729      # termination and it keeps the control handle of the process.
+  730      with pytest.raises(KeyboardInterrupt) as recovered:
+  731          api.release_retained()
+  732      assert recovered.value is cancellation
+  733      assert api.retained_handles(), 'the control handle was forgotten'
+  734      assert kernel32.process_handle in kernel32.live
+  735  
+  736      # -- N1 correction 13 (M08-C.2 and PF13-02): the millisecond
+  737      #    adapters of the production **floor** the **actual** remaining
+  738      #    and they never round it **up**.  A remainder that is smaller
+  739      #    than the representable unit asks for **no** wait at all and the
+  740      #    exit of a process is never inferred from a requested zero.
+  741      #
+  742      #    The fixture of the boundary uses a common **zero** clock
+  743      #    origin: the remaining that the production measures is then the
+  744      #    value that the group declares and not the difference of two
+  745      #    large numbers.  A float that is labelled one millisecond need
+  746      #    not remain exactly one millisecond after the subtraction of an
+  747      #    epoch, and the production floor may refuse it correctly while
+  748      #    the group demands one.  The expected values are therefore
+  749      #    derived from the **actual** remaining and the rule itself is
+  750      #    never weakened.
+  751      origin = 0.0
+  752      recorded = []
+  753  
+  754      def record_wait(kernel32, handle, timeout):
+  755          recorded.append(timeout)
+  756          return 258  # WAIT_TIMEOUT: the exit is not confirmed
+  757  
+  758      kernel32 = SyntheticKernel32(
+  759          script={'WaitForSingleObject': record_wait})
+  760      table = synthetic_table(kernel32)
+  761      # The four exact cases: the exact zero, a remainder below the
+  762      # representable unit, exactly the unit and a remainder just above
+  763      # the unit.
+  764      cases = ((0.0, 'zero'), (0.0002, 'below-unit'), (0.001, 'exact-unit'),
+  765               (0.0011, 'one-over'))
+  766      observed = []
+  767      for remaining, label in cases:
+  768          actual = remaining - origin
+  769          expected = int(actual * 1000)
+  770          api = WindowsApi(table=table)
+  771          api.bind_deadline(remaining, lambda: origin)
+  772          failures = []
+  773          cancellations = []
+  774          requested = api._wait_timeout_ms()
+  775          confirmed = api._confirm_process_exit(
+  776              kernel32.process_handle, failures, cancellations,
+  777              timeout_ms=requested)
+  778          observed.append({'label': label, 'remaining': remaining,
+  779                           'actual': actual, 'requested': requested,
+  780                           'confirmed': confirmed,
+  781                           'failures': list(failures)})
+  782          assert requested == expected, \
+  783              'the millisecond adapter of the façade did not floor its value'
+  784          assert requested * 0.001 <= actual, \
+  785              'the requested wait of the façade exceeded the remaining'
+  786          assert confirmed is False, \
+  787              'the exit of the process was inferred from a requested wait'
+  788      facts = {'observed': observed, 'recorded': list(recorded)}
+  789      _f5_write('r02-millisecond-floor', facts)
+  790      # A remainder that is smaller than the representable unit asks for
+  791      # **no** primitive call at all: there is no new positive wait.
+  792      assert recorded == [1, 1], \
+  793          'the façade asked the primitive for a wait that it did not have'
+  794  
+  795      # The same boundary through the **recovery** adapter of the façade:
+  796      # the recovery of the owner publishes its deadline once and it
+  797      # floors the same actual remaining.
+  798      recovery_observed = []
+  799      for remaining, label in cases:
+  800          actual = remaining - origin
+  801          expected = int(actual * 1000)
+  802          api = WindowsApi(table=table)
+  803          api.bind_deadline(remaining, lambda: origin)
+  804          failures = []
+  805          cancellations = []
+  806          requested = api._recovery_timeout_ms()
+  807          confirmed = api._confirm_process_exit(
+  808              kernel32.process_handle, failures, cancellations,
+  809              timeout_ms=requested)
+  810          recovery_observed.append({'label': label, 'remaining': remaining,
+  811                                    'actual': actual, 'requested': requested,
+  812                                    'confirmed': confirmed,
+  813                                    'failures': list(failures)})
+  814          assert requested == expected, \
+  815              'the recovery adapter did not floor the actual remaining'
+  816          assert requested * 0.001 <= actual, \
+  817              'the requested wait of the recovery exceeded the remaining'
+  818          assert confirmed is False, \
+  819              'the exit of the process was inferred from a requested wait'
+  820      facts = {'recovery': recovery_observed, 'recorded': list(recorded)}
+  821      _f5_write('r02-millisecond-floor-recovery', facts)
+  822      # The recovery adapter asks the primitive for the two positive
+  823      # waits only: the two remainders below the unit ask for nothing.
+  824      assert recorded == [1, 1, 1, 1], \
+  825          'the recovery asked the primitive for a wait that it did not have'
+  826  
+  827      # The same boundary through the production adapter of the core: the
+  828      # wait of a process is cropped to the **current** cleanup deadline
+  829      # of the round and the exit is never inferred from a requested zero.
+  830      core_observed = []
+  831      for remaining, label in cases:
+  832          actual = remaining - origin
+  833          expected = int(actual * 1000)
+  834          clock = ManualClock(origin)
+  835          win32 = RecordingWin32()
+  836          # RECONCILIATION (N1 correction 14, F2): the production core
+  837          # builds its run root with ``Path(run_root)`` and it refuses a
+  838          # ``None``: the boundary of the group is driven with the
+  839          # **real** controlled run root of the test and not with a
+  840          # permissive fallback.  The production is not changed and no
+  841          # assertion of the boundary is skipped.
+  842          core = BrokerCore(win32=win32, plan=sealed_plan(), run_root=tmp_path,
+  843                            clock=clock)
+  844          core.context.bind_absolute_deadline(clock.value + 10.0)
+  845          core.cleanup_deadline(remaining)
+  846          requested = core._wait_timeout_ms()
+  847          record = {'process_handle': 1234, 'exited': False, 'resumed': True,
+  848                    'role': 'PROBE'}
+  849          core._wait_one_process(record)
+  850          calls = [call for call in win32.calls if call[0] == 'wait_process']
+  851          core_observed.append({'label': label, 'remaining': remaining,
+  852                                'actual': actual, 'requested': requested,
+  853                                'calls': [call[2] for call in calls],
+  854                                'exited': record['exited']})
+  855          assert requested == expected, \
+  856              'the millisecond adapter of the core did not floor its value'
+  857          assert requested * 0.001 <= actual, \
+  858              'the requested wait of the core exceeded the remaining'
+  859          if expected == 0:
+  860              assert not calls, \
+  861                  'the core asked the primitive for a wait that it did not have'
+  862              assert record['exited'] is False, \
+  863                  'the exit of the process was inferred from a requested zero'
+  864          else:
+  865              assert calls and calls[0][2] == expected, \
+  866                  'the core did not ask the primitive for the cropped wait'
+  867      facts = {'core': core_observed}
+  868      _f5_write('r02-millisecond-floor-core', facts)
+  869  
+  870  

@@ -1,0 +1,449 @@
+Source: v0_s3_native_broker.py.txt
+
+ 2342      """
+ 2343  
+ 2344      def __init__(self, *, win32, plan, run_root, clock=None, wall=None,
+ 2345                   context=None):
+ 2346          self.win32 = win32
+ 2347          self.plan = plan
+ 2348          self.run_root = Path(run_root)
+ 2349          self._clock = clock or time.monotonic
+ 2350          self._wall = wall or time.time
+ 2351          # The ONE context of the round.  The core, the loop, the
+ 2352          # transport of the channel and the endpoints of the channel hold
+ 2353          # this very object: a layer that only copied the number of a
+ 2354          # deadline would be a layer with a deadline of its own.
+ 2355          self.context = context if context is not None else _RoundContext(
+ 2356              clock=self._clock, wall=self._wall)
+ 2357          # The façade of the primitives reads the absolute deadline and
+ 2358          # the published cleanup deadline of the round from the **same**
+ 2359          # context: a recovery of the façade may not open a budget of
+ 2360          # its own.
+ 2361          binder = getattr(self.win32, 'bind_context', None)
+ 2362          if callable(binder):
+ 2363              try:
+ 2364                  binder(self.context)
+ 2365              except BaseException:  # noqa: BLE001 - the failure stays visible
+ 2366                  pass
+
+ 3355                  self.failures.append({'stage': 'wait', 'role': record['role'],
+ 3356                                        'error_type': type(error).__name__})
+ 3357          if self._processes_cancelled:
+ 3358              raise self._processes_cancelled[0]
+ 3359  
+ 3360      def _wait_one_process(self, record):
+ 3361          """Wait for one original process of the round, on its own."""
+ 3362          handle = record.get('process_handle')
+ 3363          if handle is None or record['exited']:
+ 3364              return
+ 3365          if not record['resumed']:
+ 3366              # The process never ran: it is stopped through its own
+ 3367              # suspended handle.
+ 3368              self._terminate_owned(handle, record, 'SUSPENDED_AT_STOP')
+ 3369              return
+ 3370          timeout = self._wait_timeout_ms()
+ 3371          if timeout <= 0:
+ 3372              self.failures.append({'stage': 'wait', 'role': record['role'],
+ 3373                                    'code': 'BROKER_CLEANUP_DEADLINE_EXCEEDED'})
+ 3374              return
+ 3375          try:
+ 3376              record['exited'] = bool(self.win32.wait_process(handle, timeout))
+ 3377          except BrokerError as error:
+ 3378              self.failures.append({'stage': 'wait', 'role': record['role'],
+ 3379                                    'code': error.code})
+ 3380          except (KeyboardInterrupt, SystemExit):
+ 3381              # A cancellation is never turned into an ordinary evidence:
+ 3382              # it leaves the wait of this process and it is raised after
+ 3383              # every other process was coordinated.
+ 3384              raise
+ 3385          except BaseException as error:  # noqa: BLE001 - the failure stays visible
+ 3386              self.failures.append({'stage': 'wait', 'role': record['role'],
+ 3387                                    'error_type': type(error).__name__})
+ 3388              return
+ 3389          if record['exited']:
+ 3390              try:
+ 3391                  record['exit_code'] = self.win32.exit_code(handle)
+ 3392              except BrokerError as error:
+ 3393                  self.failures.append({'stage': 'exit_code', 'role': record['role'],
+ 3394                                        'code': error.code})
+ 3395              except (KeyboardInterrupt, SystemExit):
+ 3396                  # The cancellation of the exit code is a cancellation of
+ 3397                  # the round and it is never swallowed by the evidence.
+ 3398                  raise
+ 3399              except BaseException as error:  # noqa: BLE001 - the failure stays visible
+ 3400                  self.failures.append({'stage': 'exit_code', 'role': record['role'],
+ 3401                                        'error_type': type(error).__name__})
+ 3402  
+ 3403      def _wait_timeout_ms(self):
+ 3404          """The milliseconds that are left until the cleanup deadline.
+ 3405  
+ 3406          The milliseconds are **floored** and they are never rounded
+ 3407          **up**: a remainder that is smaller than the representable unit
+ 3408          is zero and the wait asks for nothing.  A wait that asks for
+ 3409          more than the remaining of the round outlives the round and it
+ 3410          may never be used to infer that the process ended.
+ 3411          """
+ 3412          remaining = self.remaining_cleanup_seconds()
+ 3413          if remaining <= 0:
+ 3414              return 0
+ 3415          return min(WAIT_MILLISECONDS, int(remaining * 1000))
+ 3416  
+
+ 4140              self.release_thread_handle()
+ 4141  
+ 4142      def _complete(self, generation=None):
+ 4143          """Report the real completion of the current request.
+ 4144  
+ 4145          The outcome of the generation is **recorded** here, under the
+ 4146          lock of the worker: the result, the code of the error, the
+ 4147          **original error object** and the order of the completion.  The
+ 4148          record is the history of the request and it is never replaced
+ 4149          by a later one.
+ 4150  
+ 4151          The order of the completion is the order of the events of the
+ 4152          worker: it tells whether a failure was published **before** the
+ 4153          cancellation of the round or after it.  A failure that was
+ 4154          published before the cancellation is a fault of the round and it
+ 4155          stays the first error; a failure that was published after the
+ 4156          cancellation is the consequence of the cancellation.
+ 4157          """
+ 4158          with self._condition:
+ 4159              self._completed += 1
+ 4160              self._sequence += 1
+ 4161              if generation is not None:
+ 4162                  record = {
+ 4163                      'generation': generation,
+ 4164                      'result': self.result,
+ 4165                      'error': self.error,
+ 4166                      'error_object': self._error_object,
+ 4167                      'source': 'WORKER',
+ 4168                      'sequence': self._sequence,
+ 4169                      'cancel_sequence': self._cancel_sequence,
+ 4170                  }
+ 4171                  self._outcomes[generation] = record
+ 4172                  if record['error'] is not None:
+ 4173                      # The failure of this generation is published: a
+ 4174                      # later cancellation of the round may not replace
+ 4175                      # it.
+ 4176                      self.outcome_published.set()
+ 4177              self._condition.notify_all()
+ 4178          self.done.set()
+ 4179          self.state = 'DONE'
+ 4180  
+ 4181      def outcome(self, generation):
+ 4182          """The recorded outcome of one generation of this worker.
+ 4183  
+ 4184          The outcome is the **original** outcome of the request: the
+ 4185          result, the error and the error object of the request that
+ 4186          really ran.  It is ``None`` when the request did not complete.
+ 4187          """
+ 4188          with self._condition:
+ 4189              record = self._outcomes.get(generation)
+ 4190              return dict(record) if record is not None else None
+ 4191  
+ 4192      def published_before_cancel(self, generation):
+ 4193          """Whether the outcome of this generation was published first.
+
+ 4320          The deadline of the retry is **recomputed on every round** of
+ 4321          the loop: a deadline that was published after the retry started
+ 4322          still shortens it, and the pause of the retry is cropped to the
+ 4323          time that is really left.  A retry that used the number of the
+ 4324          deadline that it found when it started would wait longer than
+ 4325          the round allows.
+ 4326          """
+ 4327          self._request_cancellation()
+ 4328          if self.thread_handle is None:
+ 4329              return 'NO_HANDLE'
+ 4330          # The bound of the retry is fixed **once**: a retry that used a
+ 4331          # deadline that moved with every round would never expire.
+ 4332          bound = self._effective_deadline(deadline)
+ 4333          if bound is None:
+ 4334              # The retry of a cancellation is **always** bounded: a
+ 4335              # worker that never ends may not hold the caller for ever.
+ 4336              # The bound of the package is used only when neither the
+ 4337              # caller nor the context of the round brought a deadline.
+ 4338              bound = self._clock() + CLOSE_JOIN_SECONDS
+ 4339          while True:
+ 4340              try:
+ 4341                  state = self.api.cancel_synchronous_io(self.thread_handle)
+ 4342              except BrokerError as error:
+ 4343                  self.error = error.code
+ 4344                  return 'FAILED'
+ 4345              except Exception as error:  # noqa: BLE001 - the failure stays visible
+ 4346                  self.error = type(error).__name__
+ 4347                  return 'FAILED'
+ 4348              if state != 'NOT_FOUND':
+ 4349                  return state
+ 4350              # The operation was not found: it had not started yet or it
+ 4351              # had just finished.  The worker is asked again until the
+
+ 4758              if effective is not None and self._clock() >= effective:
+ 4759                  # Before a **new** timeout is decided, the published
+ 4760                  # original error of the **same** generation is
+ 4761                  # inspected: it remains the primary error of the round
+ 4762                  # and the timeout is a **parallel** fact.
+ 4763                  outcome = worker.outcome(generation)
+ 4764                  if outcome is not None and outcome.get('error') is not None:
+ 4765                      raise self._parallel_timeout(outcome)
+ 4766                  try:
+ 4767                      self._cancel(worker, effective)
+ 4768                  except BrokerError as error:
+ 4769                      # The coordination failed: the published original
+ 4770                      # error of the generation is inspected **again**
+ 4771                      # before the failure of the coordination is
+ 4772                      # decided, and the failure of the coordination
+ 4773                      # stays a parallel fact.
+ 4774                      outcome = worker.outcome(generation)
+ 4775                      if outcome is not None and outcome.get('error') is not None:
+ 4776                          raise self._parallel_timeout(outcome, error)
+ 4777                      raise
+ 4778                  # Again after the coordination: the outcome of the
+ 4779                  # generation is immutable and it is never rewritten by
+ 4780                  # the timeout.
+ 4781                  outcome = worker.outcome(generation)
+ 4782                  if outcome is not None and outcome.get('error') is not None:
+ 4783                      raise self._parallel_timeout(outcome)
+ 4784                  raise BrokerError('BROKER_PIPE_TIMEOUT', self._name)
+ 4785              if worker.wait_done(generation, self._wait_slice(effective)):
+ 4786                  break
+ 4787          outcome = worker.outcome(generation)
+
+ 4899      def _cancel(self, worker, deadline=None):
+ 4900          """Cancel one worker and prove that it really stopped."""
+ 4901          state = worker.request_cancel(self._effective_deadline(deadline))
+ 4902          if not worker.join_bounded(self._remaining(deadline)):
+ 4903              # The worker did not stop: it keeps its owner reference and
+ 4904              # the round becomes unknown.  It is never terminated blindly
+ 4905              # and it is never waited for without a bound.
+ 4906              self._retained.append(worker)
+ 4907              self.facts['retained_workers'] = len(self._retained)
+ 4908              self.facts['worker_alive'] = True
+ 4909              raise BrokerError('BROKER_PIPE_CANCEL_NOT_CONFIRMED',
+ 4910                                '%s:%s' % (self._name, state))
+ 4911          if not worker.joined:
+ 4912              self._retained.append(worker)
+ 4913              self.facts['retained_workers'] = len(self._retained)
+ 4914              raise BrokerError('BROKER_PIPE_CANCEL_NOT_CONFIRMED', self._name)
+ 4915  
+ 4916      def read(self, deadline=None, cancel=None):
+ 4917          """Read one block of the pipe, bounded by the deadline.
+ 4918  
+
+ 5265          self._custody = custody
+ 5266          if custody is not None:
+ 5267              custody.retain('channel', self, 'constructing')
+ 5268          try:
+ 5269              self._reader = read_endpoint or _make_endpoint(
+ 5270                  reader, name + '-read', clock=clock, api=api, context=context)
+ 5271              # The parameter of the constructor is ``write_endpoint`` and
+ 5272              # the attribute of the channel is ``_writer``.  The two names
+ 5273              # are never mixed: a name that does not exist raises a
+ 5274              # ``NameError`` and every construction of a channel of this
+ 5275              # package fails with it.
+ 5276              self._writer = write_endpoint or _make_endpoint(
+ 5277                  writer, name + '-write', clock=clock, api=api, context=context)
+ 5278              self._thread.start()
+ 5279          except BaseException:
+
+ 5509          neither of them may wait with a lease of its own.
+ 5510          """
+ 5511          if self._overflow:
+ 5512              raise BrokerError('BROKER_CHANNEL_OVERFLOW')
+ 5513          limit = max(0.0, timeout)
+ 5514          remaining = self._remaining()
+ 5515          if remaining is not None:
+ 5516              if remaining <= 0:
+ 5517                  # The bound of the round arrived: the read asks for
+ 5518                  # nothing and it never opens a wait of its own.
+ 5519                  limit = 0.0
+ 5520              elif remaining < limit:
+ 5521                  limit = remaining
+ 5522          try:
+ 5523              return self._queue.get(timeout=limit)
+ 5524          except queue.Empty:
+ 5525              if self._error:
+ 5526                  raise BrokerError(self._error)
+ 5527              if self._eof:
+ 5528                  return b''
+ 5529              return None
+ 5530  
+ 5531      def write(self, raw, deadline=None):
+ 5532          """Write one frame, bounded by the deadline of the round.
+ 5533  
+
+ 7130          retained = []
+ 7131          failures = {}
+ 7132          cancellations = []
+ 7133          # The original raw streams that this launch already owns and
+ 7134          # whose close was not confirmed yet: they are retried by **this**
+ 7135          # owner and by no other one.
+ 7136          pending_raw = self.pending_raw_streams()
+ 7137          channel = self.channel
+ 7138          if channel is not None:
+ 7139              facts = {}
+ 7140              try:
+ 7141                  facts = channel.close()
+ 7142              except (KeyboardInterrupt, SystemExit) as error:
+ 7143                  cancellations.append(error)
+ 7144              except BaseException as error:  # noqa: BLE001 - the failure stays visible
+ 7145                  failures['channel'] = type(error).__name__
+ 7146              if not isinstance(facts, dict):
+ 7147                  facts = {}
+ 7148              complete = (bool(facts.get('reader_finished'))
+ 7149                          and bool(facts.get('read_end_closed'))
+ 7150                          and bool(facts.get('write_end_closed'))
+ 7151                          and int(facts.get('channel_retained_workers') or 0) == 0
+ 7152                          and bool(facts.get('worker_thread_handle_released')))
+ 7153              if complete:
+ 7154                  released.append('channel')
+ 7155                  self.forget(channel)
+ 7156                  if self.custody is not None:
+ 7157                      self.custody.forget(channel)
+ 7158              else:
+ 7159                  # A close that returned is not a release: the channel
+ 7160                  # keeps its owner and its original reference.
+ 7161                  failures['channel'] = 'BROKER_CHANNEL_CLOSE_INCOMPLETE'
+ 7162                  retained.append('channel')
+ 7163                  if self.custody is not None:
+ 7164                      self.custody.retain('channel', channel,
+ 7165                                           'release_incomplete', launch=self)
+ 7166          process = self.process
+ 7167          if process is not None:
+ 7168              # The files of the process belong to the channel when the
+ 7169              # channel took them: the process helper never closes them.
+ 7170              # The **durable ownership history** of this launch is the
+ 7171              # authority and not the presence of the channel in the
+ 7172              # active slot: a channel that completed really closed the
+ 7173              # original files of the process and a later release of the
+ 7174              # same owner may not close them a second time.
+ 7175              close_pipes = channel is None and not self._channel_owns_raw
+ 7176              outcome = {'failures': {}, 'exited': False, 'retained_streams': []}
+ 7177              # The original raw streams that **this** launch owns are
+ 7178              # closed by the retry of the raw streams below and by no
+ 7179              # other route: the helper of the process and the retry
+ 7180              # never close the same original.
+ 7181              owned = {item['name']: item['stream'] for item in pending_raw}
+ 7182              # The deadline of the launch is read **again** after the
+ 7183              # channel was coordinated: a cleanup deadline that was
+ 7184              # published in the meantime shortens the wait of the
+ 7185              # process and it is never a number that was copied once.
+ 7186              bound, bound_clock = self._release_bound(deadline, clock)
+ 7187              # The originals that the helper is about to close are
+ 7188              # registered with **this** owner **before** the first
+ 7189              # interruptible step: an interruption may not lose them and
+ 7190              # an original that was never visited keeps an executable
+ 7191              # same-owner recovery route.
+ 7192              if close_pipes:
+ 7193                  self._register_pending_raw(process)
+ 7194              # The original references that the helper could not confirm
+ 7195              # are collected **outside** of its report: a helper that is
+ 7196              # interrupted before it returns does not return its report
+ 7197              # and the unconfirmed references may not be lost with it.
+
+ 7230              # The originals that the helper was about to close are
+ 7231              # reconciled with the facts of the progress record: a
+ 7232              # confirmed close is forgotten and every other original -
+ 7233              # failed **or** never visited - keeps its identity and its
+ 7234              # owner, so that the same owner may really retry it.
+ 7235              for name, stream in self._reconcile_pending_raw(process,
+ 7236                                                               close_pipes):
+ 7237                  if not any(known[1] is stream for known in retained_raw):
+ 7238                      retained_raw.append((name, stream))
+ 7239              for name, stream in retained_raw:
+ 7240                  retained.append(name)
+ 7241                  self.retain_raw_stream(name, stream)
+ 7242                  if self.custody is not None:
+ 7243                      # The detail is a label and never the authority:
+ 7244                      # the **identity** of the original is the authority.
+ 7245                      # A close that failed and a close that was never
+ 7246                      # attempted are named apart.
+ 7247                      detail = ('close_failed' if id(stream) in failed_ids
+ 7248                                else 'close_unconfirmed')
+ 7249                      self.custody.retain(name, stream, detail, launch=self)
+ 7250              # The original process is forgotten **only** when its exit
+ 7251              # was confirmed and the original handle of the process was
+ 7252              # released.  A close of the handle that failed keeps the
+ 7253              # process with its owner and the same owner may retry it.
+ 7254              handle_released = bool(record.get('handle_released'))
+ 7255              if self.process_exit_confirmed and handle_released:
+ 7256                  released.append('process')
+ 7257                  with self._lock:
+ 7258                      self.process = None
+ 7259                  if self.custody is not None:
+ 7260                      self.custody.forget(process)
+ 7261              else:
+ 7262                  retained.append('process')
+ 7263                  if self.custody is not None:
+ 7264                      self.custody.retain('process', process, 'release_failed',
+ 7265                                           launch=self)
+ 7266          # The retry of the original raw streams that this launch owns.
+ 7267          # The retry happens **after** the channel and the process were
+ 7268          # coordinated: a raw file of a process whose channel took the
+ 7269          # files is never closed by the launch.
+ 7270          self._release_raw_streams(pending_raw, released, retained, failures,
+ 7271                                    cancellations, deadline, clock)
+ 7272          self.facts = {'released': list(released), 'retained': list(retained),
+ 7273                        'failures': dict(failures)}
+ 7274          if cancellations:
+ 7275              # The original cancellation is raised after every safe step
+ 7276              # of the release was executed and the ordinary failures stay
+ 7277              # named next to it.
+ 7278              raise cancellations[0]
+ 7279          return self.facts
+
+ 7487              items = list(self._items)
+ 7488          keep = []
+ 7489          for item in items:
+ 7490              if item['kind'] == 'aggregate':
+ 7491                  launch = item['resource']
+ 7492                  bound, bound_clock = self._effective_bound(deadline)
+ 7493                  try:
+ 7494                      # The deadline of the table is read **again** for
+ 7495                      # every launch: a cleanup deadline that was
+ 7496                      # published in the meantime shortens the release of
+ 7497                      # the launch.  The clock of its domain travels with
+ 7498                      # it: a launch never compares a deadline of the
+ 7499                      # round with a clock of another domain.
+ 7500                      report = launch.release(deadline=bound, clock=bound_clock)
+ 7501                  except (KeyboardInterrupt, SystemExit) as error:
+ 7502                      cancellations.append(error)
+ 7503                      report = {'released': [], 'retained': ['launch']}
+ 7504                  except BaseException:  # noqa: BLE001 - the failure stays visible
+ 7505                      report = {'released': [], 'retained': ['launch']}
+ 7506                  released.extend(report.get('released') or [])
+ 7507                  names = list(report.get('retained') or [])
+ 7508                  retained.extend(names)
+ 7509                  if names:
+ 7510                      keep.append(item)
+ 7511                  continue
+ 7512              if item.get('launch') is not None:
+ 7513                  # The launch of this resource coordinates it: the table
+ 7514                  # never releases it a second time.  A resource that the
+ 7515                  # launch released **while** this release was running is
+ 7516                  # not named by the table any more: the stale snapshot of
+ 7517                  # the table never resurrects it and never names it as
+ 7518                  # retained.
+ 7519                  with self._lock:
+ 7520                      owned = any(current['resource'] is item['resource']
+ 7521                                  for current in self._items)
+ 7522                  if not owned:
+ 7523                      continue
+ 7524                  keep.append(item)
+ 7525                  retained.append(item['kind'])
+ 7526                  continue
+ 7527              resource = item['resource']
+
+ 7552              # The table is rebuilt from the entries that are **still**
+ 7553              # in it: an entry that was forgotten while the release ran -
+ 7554              # a process that the aggregate of its launch released - is
+ 7555              # never resurrected as a detached entry.  The entries that
+ 7556              # were added while the release ran are new resources of the
+ 7557              # round and they are kept.
+ 7558              kept = {id(item['resource']) for item in keep}
+ 7559              snapshot = {id(item['resource']) for item in items}
+ 7560              self._items = [item for item in self._items
+ 7561                             if id(item['resource']) not in snapshot
+ 7562                             or id(item['resource']) in kept]
+ 7563          if cancellations:
+ 7564              raise cancellations[0]
+ 7565          return {'released': list(released), 'retained': list(retained)}

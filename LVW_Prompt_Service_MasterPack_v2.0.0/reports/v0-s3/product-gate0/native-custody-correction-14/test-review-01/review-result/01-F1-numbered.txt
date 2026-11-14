@@ -1,0 +1,271 @@
+Source: test_v0_s3_native_custody_correction05.py.txt
+
+ 1122          def __getattr__(self, item):
+ 1123              return getattr(os, item)
+ 1124  
+ 1125      def run_fault_scenario(run_root, process, phase):
+ 1126          """One no-channel scenario: the release, the facts, the recovery.
+ 1127  
+ 1128          The scenario runs on a **scoped** table of the launcher: the
+ 1129          table of the package is shared by the whole batch and the
+ 1130          context that another check of the batch bound to it is not the
+ 1131          context of this launch.  The production table is used and it is
+ 1132          never emptied by hand.
+ 1133  
+ 1134          RECONCILIATION (N1 correction 14, F1): the table of the launcher
+ 1135          converges **one release later** and not in the release that
+ 1136          closed the last original.  The reconciliation of the registered
+ 1137          originals of a release names the unresolved ones as **retained**
+ 1138          before the retry of the same release closes them: the report of
+ 1139          that release therefore names a retained name that is already
+ 1140          closed when the report is read.  The aggregate that the table
+ 1141          keeps is an **empty bookkeeping owner** - it has no process, no
+ 1142          channel and no original raw stream any more and it needs no
+ 1143          primitive work at all.
+ 1144  
+ 1145          The scenario proves that empty owner, records it honestly and
+ 1146          then permits **ONE** further explicit release of the **same**
+ 1147          owner under the **same** original positive deadline.  That
+ 1148          release performs **zero** close, terminate and wait and it
+ 1149          converges the table to the empty state.  The table is never
+ 1150          emptied by hand, the deadline is never renewed, the loop is
+ 1151          never repeated until the table is green and no check of a
+ 1152          retained resource is relaxed.
+ 1153          """
+ 1154          scoped = _LauncherCustody()
+ 1155          # The ONE absolute deadline of this scenario.  The first
+ 1156          # release, the recovery of the same owner and the final
+ 1157          # convergence use the **same** positive deadline: a release
+ 1158          # never opens a budget of its own and a convergence never
+ 1159          # renews a lease.
+ 1160          deadline = time.monotonic() + 30.0
+ 1161          with unittest.mock.patch.object(broker_module, '_LAUNCHER_CUSTODY',
+ 1162                                          scoped):
+ 1163              holder = m07a_interrupted_launch(run_root, sealed_plan(),
+ 1164                                               process=process)
+ 1165              assert holder['interrupted'] is True, \
+ 1166                  'the hash of the launch was not interrupted'
+ 1167              aggregate = holder['aggregate'][0] if holder['aggregate'] else None
+ 1168              assert aggregate is not None, \
+ 1169                  'the interrupted launch lost its owner'
+ 1170              cancellation = None
+ 1171              report = None
+ 1172              with unittest.mock.patch.object(broker_module, 'os',
+ 1173                                              FaultOsView()):
+ 1174                  try:
+ 1175                      report = scoped.release(deadline=deadline)
+ 1176                  except (KeyboardInterrupt, SystemExit) as error:
+ 1177                      # The **original** cancellation object is the error
+ 1178                      # that leaves.
+ 1179                      cancellation = error
+ 1180              first_facts = {'cancellation': (type(cancellation).__name__
+ 1181                                              if cancellation is not None
+ 1182                                              else None),
+ 1183                             'report': report,
+ 1184                             'deadline': deadline,
+ 1185                             'raw_streams': [(item['name'], repr(item['stream']))
+ 1186                                             for item in aggregate.raw_streams],
+ 1187                             'owned': sorted((item['kind'],
+ 1188                                              repr(item['resource']))
+ 1189                                             for item in scoped.items()),
+ 1190                             'process_owned': aggregate.process is process,
+ 1191                             'terminated': process.terminated,
+ 1192                             'waited': process.waited,
+ 1193                             'handle_attempts': process._handle.attempts,
+ 1194                             'handle_closed': process._handle.closed,
+ 1195                             'stdin_attempts': process.stdin.attempts,
+ 1196                             'stdout_attempts': process.stdout.attempts}
+ 1197              write_phase('%s-first' % phase, first_facts)
+ 1198              # The recovery of the **same** owner: every unresolved
+ 1199              # original is really closed and the table converges.
+ 1200              with unittest.mock.patch.object(broker_module, 'os',
+ 1201                                              FaultOsView()):
+ 1202                  recovered = scoped.release(deadline=deadline)
+ 1203              recovered_facts = {'recovered': recovered,
+ 1204                             'deadline': deadline,
+ 1205                             'raw_streams': [(item['name'], repr(item['stream']))
+ 1206                                             for item in aggregate.raw_streams],
+ 1207                             'owned': sorted((item['kind'],
+ 1208                                              repr(item['resource']))
+ 1209                                             for item in scoped.items()),
+ 1210                             'stdin_attempts': process.stdin.attempts,
+ 1211                             'stdout_attempts': process.stdout.attempts,
+ 1212                             'stdin_closed': process.stdin.closed,
+ 1213                             'stdout_closed': process.stdout.closed,
+ 1214                             'handle_attempts': process._handle.attempts,
+ 1215                             'handle_closed': process._handle.closed,
+ 1216                             'terminated': process.terminated,
+ 1217                             'waited': process.waited}
+ 1218              write_phase('%s-recovery' % phase, recovered_facts)
+ 1219              # -- the state of the table **before** the salvage: the
+ 1220              #    table may keep **only** the empty bookkeeping owner of
+ 1221              #    the aggregate.  Every original of the launch was really
+ 1222              #    closed and the name that is kept is the name of a
+ 1223              #    snapshot of an earlier release of the same owner.
+ 1224              retained_items = scoped.items()
+ 1225              empty_facts = {
+ 1226                  'owned': sorted((item['kind'], repr(item['resource']))
+ 1227                                  for item in retained_items),
+ 1228                  'process_is_none': aggregate.process is None,
+ 1229                  'channel_is_none': aggregate.channel is None,
+ 1230                  'raw_streams': [item['name'] for item in aggregate.raw_streams],
+ 1231                  'workers': len(aggregate.workers),
+ 1232                  'endpoints': len(aggregate.endpoints),
+ 1233                  'stdin_closed': process.stdin.closed,
+ 1234                  'stdout_closed': process.stdout.closed,
+ 1235                  'stdin_confirmed': bool(
+ 1236                      aggregate.progress.fact('stream:stdin').get('closed')),
+ 1237                  'stdout_confirmed': bool(
+ 1238                      aggregate.progress.fact('stream:stdout').get('closed')),
+ 1239                  'handle_attempts': process._handle.attempts,
+ 1240                  'handle_closed': process._handle.closed,
+ 1241                  'terminated': process.terminated,
+ 1242                  'waited': process.waited,
+ 1243              }
+ 1244              write_phase('%s-empty-owner' % phase, empty_facts)
+ 1245              assert [item['kind'] for item in retained_items] in ([], ['aggregate']), \
+ 1246                  'the table of the launcher kept an original resource of the launch'
+ 1247              assert aggregate.process is None, \
+ 1248                  'the aggregate of the launch still owns the process'
+ 1249              assert aggregate.channel is None, \
+ 1250                  'the aggregate of the launch still owns a channel'
+ 1251              assert aggregate.raw_streams == [], \
+ 1252                  'the aggregate of the launch still owns an original raw stream'
+ 1253              assert aggregate.workers == [] and aggregate.endpoints == [], \
+ 1254                  'the aggregate of the launch still owns a live worker or endpoint'
+ 1255              assert process.stdin.closed is True, \
+ 1256                  'the original input of the launch was not really closed'
+ 1257              assert process.stdout.closed is True, \
+ 1258                  'the original output of the launch was not really closed'
+ 1259              assert empty_facts['stdin_confirmed'] is True, \
+ 1260                  'the close of the original input was not confirmed by its owner'
+ 1261              assert empty_facts['stdout_confirmed'] is True, \
+ 1262                  'the close of the original output was not confirmed by its owner'
+ 1263              assert process._handle.closed == 1, \
+ 1264                  'the original handle of the process was not closed exactly once'
+ 1265              # -- ONE further explicit release of the **same** owner
+ 1266              #    under the **same** deadline.  It converges the table
+ 1267              #    and it performs **zero** primitive work: no close, no
+ 1268              #    terminate and no wait.
+ 1269              with unittest.mock.patch.object(broker_module, 'os',
+ 1270                                              FaultOsView()):
+ 1271                  converged = scoped.release(deadline=deadline)
+ 1272              converged_facts = {'converged': converged,
+ 1273                             'deadline': deadline,
+ 1274                             'owned': sorted((item['kind'],
+ 1275                                              repr(item['resource']))
+ 1276                                              for item in scoped.items()),
+ 1277                             'stdin_attempts': process.stdin.attempts,
+ 1278                             'stdout_attempts': process.stdout.attempts,
+ 1279                             'stdin_closed': process.stdin.closed,
+ 1280                             'stdout_closed': process.stdout.closed,
+ 1281                             'handle_attempts': process._handle.attempts,
+ 1282                             'handle_closed': process._handle.closed,
+ 1283                             'terminated': process.terminated,
+ 1284                             'waited': process.waited}
+ 1285              write_phase('%s-converge' % phase, converged_facts)
+ 1286              # The table of the launcher converges: every original of
+ 1287              # the launch was really released by its owner.
+ 1288              assert scoped.items() == [], \
+ 1289                  'the table of the launcher kept an item of the launch'
+ 1290              assert (converged or {}).get('retained') == [], \
+ 1291                  'the convergence of the table retained a resource'
+ 1292              # The convergence performed **zero** primitive work.
+ 1293              assert converged_facts['stdin_attempts'] \
+ 1294                  == recovered_facts['stdin_attempts'], \
+ 1295                  'the convergence closed the original input a second time'
+ 1296              assert converged_facts['stdout_attempts'] \
+ 1297                  == recovered_facts['stdout_attempts'], \
+ 1298                  'the convergence closed the original output a second time'
+ 1299              assert converged_facts['handle_attempts'] \
+ 1300                  == recovered_facts['handle_attempts'], \
+ 1301                  'the convergence closed the original handle a second time'
+ 1302              assert converged_facts['handle_closed'] \
+ 1303                  == recovered_facts['handle_closed'], \
+ 1304                  'the convergence closed the original handle more than once'
+ 1305              assert converged_facts['terminated'] \
+ 1306                  == recovered_facts['terminated'], \
+ 1307                  'the convergence terminated the process a second time'
+ 1308              assert converged_facts['waited'] \
+ 1309                  == recovered_facts['waited'], \
+ 1310                  'the convergence waited for the process a second time'
+ 1311          return aggregate, cancellation, first_facts, recovered_facts
+ 1312  
+ 1313      # -- the cross-product one: an ordinary failure of the standard
+ 1314      #    input, then the **exact** KeyboardInterrupt of the standard
+ 1315      #    output.  The ordinary failure happened before the
+ 1316      #    interruption and it may not be lost with the report of the
+ 1317      #    helper.
+ 1318      stdin_a = FaultStream('stdin', failure=RuntimeError('stdin_close_failed'))
+ 1319      cancel_a = KeyboardInterrupt('stdout_close_cancelled')
+ 1320      stdout_a = FaultStream('stdout', cancel=cancel_a)
+ 1321      process_a = FaultProcess(stdin=stdin_a, stdout=stdout_a)
+ 1322      aggregate_a, cancellation_a, first_a, facts = run_fault_scenario(
+ 1323          tmp_path / 'ordinary-then-cancel', process_a,
+ 1324          'r10-ordinary-then-cancel')
+ 1325      assert cancellation_a is cancel_a, \
+ 1326          'the original cancellation object was replaced'
+ 1327      assert [name for name, _ref in first_a['raw_streams']] == \
+ 1328          ['stdin', 'stdout'], \
+ 1329          'the launch lost an unresolved original of the interrupted release'
+ 1330      assert facts['stdin_closed'] is True, \
+ 1331          'the same owner did not recover the ordinary failure of the input'
+ 1332      assert facts['stdout_closed'] is True, \
+ 1333          'the same owner did not recover the interrupted output'
+ 1334      assert stdin_a.attempts == 2, \
+ 1335          'the failed input of the launch was not retried by its owner'
+ 1336      assert stdout_a.attempts == 2, \
+ 1337          'the interrupted output of the launch was not retried by its owner'
+ 1338  
+ 1339      # -- the companion schedule: the **first** raw close is the exact
+ 1340      #    KeyboardInterrupt and the standard output is never visited.
+ 1341      stdin_b = FaultStream('stdin', cancel=KeyboardInterrupt('stdin_cancelled'))
+ 1342      stdout_b = FaultStream('stdout')
+ 1343      process_b = FaultProcess(stdin=stdin_b, stdout=stdout_b)
+ 1344      aggregate_b, cancellation_b, first_b, facts = run_fault_scenario(
+ 1345          tmp_path / 'cancel-first', process_b, 'r10-cancel-first')
+ 1346      assert isinstance(cancellation_b, KeyboardInterrupt), \
+ 1347          'the cancellation of the first raw close was swallowed'
+ 1348      assert first_b['stdout_attempts'] == 0, \
+ 1349          'the output of the launch was closed although it was never visited'
+ 1350      assert [name for name, _ref in first_b['raw_streams']] == \
+ 1351          ['stdin', 'stdout'], \
+ 1352          'the launch lost the original that was never visited'
+ 1353      assert facts['stdin_closed'] is True, \
+ 1354          'the same owner did not recover the interrupted input'
+ 1355      assert facts['stdout_closed'] is True, \
+ 1356          'the same owner did not recover the original that was never visited'
+ 1357  
+ 1358      # -- the cross-product with an earlier **success** and a failing
+ 1359      #    original HANDLE: the confirmed close is never repeated, the
+ 1360      #    exit is never confirmed again and only the HANDLE and the
+ 1361      #    unresolved original are retried.
+ 1362      stdin_c = FaultStream('stdin')
+ 1363      stdout_c = FaultStream('stdout', failure=RuntimeError('stdout_failed'))
+ 1364      process_c = FaultProcess(stdin=stdin_c, stdout=stdout_c,
+ 1365                               handle_failures=1)
+ 1366      aggregate_c, cancellation_c, first_c, facts = run_fault_scenario(
+ 1367          tmp_path / 'success-then-handle', process_c,
+ 1368          'r10-success-then-handle')
+ 1369      assert cancellation_c is None, \
+ 1370          'the release raised a cancellation that never happened'
+ 1371      assert [name for name, _ref in first_c['raw_streams']] == ['stdout'], \
+ 1372          'the launch owns an original whose close was confirmed'
+ 1373      assert stdin_c.attempts == 1, \
+ 1374          'the confirmed close of the input was repeated'
+ 1375      assert stdout_c.attempts == 2, \
+ 1376          'the failed output of the launch was not retried by its owner'
+ 1377      assert process_c._handle.attempts == 2, \
+ 1378          'the original handle of the process was not retried'
+ 1379      assert process_c._handle.closed == 1, \
+ 1380          'the original handle of the process was not really closed'
+ 1381      assert process_c.terminated == 1, \
+ 1382          'the process of the launch was terminated a second time'
+ 1383      assert process_c.waited == 1, \
+ 1384          'the process of the launch was waited for a second time'
+ 1385      assert facts['stdout_closed'] is True, \
+ 1386          'the same owner did not recover the failed output'
+ 1387  
+ 1388  
+ 1389  # -- N05-R11: the shared budget of the startup ---------------------------
+ 1390  

@@ -1,0 +1,387 @@
+Source: test_v0_s3_native_custody_correction10.py.txt
+
+ 2685              return self.next_handle
+ 2686  
+ 2687      def cancel_synchronous_io(self, handle):
+ 2688          self.cancel_calls += 1
+ 2689          # The coordination of the round publishes the ordinary failure
+ 2690          # of the read of the current generation: the fault is really
+ 2691          # published **before** the endpoint consumes the outcome.
+ 2692          self.publish_read_fault()
+ 2693          worker = self.worker_holder.get('worker')
+ 2694          if worker is not None and not self.confirm_the_worker:
+ 2695              # RECONCILIATION (N1 correction 14, F5): the cancel
+ 2696              # primitive of the round enqueued the fault and returned
+ 2697              # **immediately**.  The coordination of the round could then
+ 2698              # reach its selection point **before** the worker had
+ 2699              # published the immutable outcome of its generation: the
+ 2700              # selection point had no published fault and the parallel
+ 2701              # fact of the timeout could not be inferred from a later
+ 2702              # observation of the fault.
+ 2703              #
+ 2704              # The primitive now waits, bounded, for the **immutable
+ 2705              # outcome of that specific generation** before it returns.
+ 2706              # The selection point of the production then really sees the
+ 2707              # published fault of the round.  The wait is bounded, it
+ 2708              # never decides the outcome of the generation and it never
+ 2709              # replaces the error of the round.  The worker of the round
+ 2710              # is held inside its own final close and release tail, so
+ 2711              # the real bounded join of the coordination still FAILS.
+ 2712              generation = self.worker_holder.get('generation')
+ 2713              if generation is None:
+ 2714                  generation = worker._submitted
+ 2715              outcome = _wait_for_outcome(worker, generation, 15.0)
+ 2716              self.worker_holder['published_outcome'] = outcome
+ 2717          if self.confirm_the_worker:
+ 2718              # The coordination waits for the real exit of the worker:
+ 2719              # the bounded join of the coordination is then a confirmed
+ 2720              # one.
+ 2721              if worker is not None:
+ 2722                  worker.join(10.0)
+ 2723          return 'REQUESTED'
+ 2724  
+ 2725      def close_handle(self, handle):
+ 2726          with self.lock:
+ 2727              self.close_ledger.append(handle)
+ 2728              self.closed.append(handle)
+ 2729          if self.hold_the_worker:
+ 2730              # The worker is held inside its own release: it is really
+ 2731              # alive and the bounded join of the coordination fails.
+ 2732              self.release_the_worker.wait(20.0)
+ 2733  
+ 2734      def read_stream(self, handle, size):
+ 2735          with self.lock:
+ 2736              if self.frames:
+ 2737                  return self.frames.pop(0)
+ 2738          self.read_waiting.set()
+ 2739          try:
+ 2740              kind, payload = self._outcomes.get(timeout=30.0)
+
+ 2790      (fault published before the timeout, consumed after it) stay
+ 2791      separate and unchanged.
+ 2792      """
+ 2793      clock = ManualClock(1000.0)
+ 2794      api = _M09TimeoutApi(confirm_the_worker=confirm_the_worker,
+ 2795                            hold_the_worker=hold_the_worker)
+ 2796      session, holder, channel_closes, channel_facts = _chain(
+ 2797          api, document, plan, tmp_path, clock=clock)
+ 2798      fault = RuntimeError('read_fault')
+ 2799      api.fault = fault
+ 2800      api.fault_object = fault
+ 2801      worker = None
+ 2802      try:
+ 2803          session.start()
+ 2804          # The reader of the chain is really inside its read and the
+ 2805          # generation of that read is the fact of the worker itself: it
+ 2806          # is never a number that the group hard codes.
+ 2807          assert api.read_waiting.wait(15.0), \
+ 2808              'the reader of the chain was never inside its read'
+ 2809          worker = holder['read_endpoint']._reader
+ 2810          assert worker is not None, 'the reader of the chain never started'
+ 2811          api.worker_holder['worker'] = worker
+ 2812          generation = worker._submitted
+ 2813          assert generation >= 1, 'the reader of the chain never submitted'
+ 2814          # The **specific** generation of the read that is in flight is
+ 2815          # given to the seam of the primitive: the outcome that the
+ 2816          # coordination waits for is the outcome of **that** generation
+ 2817          # and never a generic event of the worker.
+ 2818          api.worker_holder['generation'] = generation
+ 2819          # The effective timeout of the round is tightened while the
+ 2820          # read is really in flight: the absolute lease of the round
+ 2821          # stays in the future and only the bound of the channel
+ 2822          # expires.
+ 2823          holder['channel'].bind_deadline(clock.value + 0.5)
+ 2824          clock.advance(1.0)
+ 2825          # The fault of the read is published by the coordination of the
+ 2826          # round and the endpoint finds it before it consumes it.
+ 2827          assert api.fault_observed.wait(15.0), \
+ 2828              'the ordinary failure of the read never happened'
+ 2829          assert worker.outcome_published.wait(15.0), \
+ 2830              'the outcome of the read was never published'
+ 2831          outcome = worker.outcome(generation)
+ 2832          assert outcome is not None, 'the outcome of the generation is gone'
+ 2833          assert outcome['generation'] == generation, \
+ 2834              'the outcome of another generation was read'
+ 2835          assert outcome['error'] == 'RuntimeError', \
+ 2836              'the published failure of the round is not the ordinary one'
+ 2837          assert outcome['error_object'] is fault, \
+ 2838              'the outcome of the generation does not keep the original error'
+ 2839          # The publication of the outcome of the worker is **not** the
+ 2840          # consumption of it by the endpoint: the endpoint attaches the
+ 2841          # timeout to the original error object when it raises that
+ 2842          # object, and the publication happens before it.  The group
+ 2843          # waits for the **real** termination of the reader of the
+ 2844          # channel: that is the barrier of the consumption and it is
+ 2845          # never a sleep that proves it.
+ 2846          reader_thread = getattr(holder['channel'], '_thread', None)
+ 2847          assert reader_thread is not None, \
+ 2848              'the reader thread of the channel does not exist'
+ 2849          reader_thread.join(15.0)
+ 2850          assert not reader_thread.is_alive(), \
+ 2851              'the reader of the channel did not consume the outcome'
+ 2852          # The endpoint raised the **original** error object and the
+ 2853          # timeout is a **parallel** fact of it.
+ 2854          raised = outcome['error_object']
+ 2855          parallel = getattr(raised, 'lvw_parallel_timeout', None)
+ 2856          assert isinstance(parallel, dict), \
+ 2857              'the timeout did not stay a parallel fact of the failure'
+ 2858          assert parallel.get('code') == 'BROKER_PIPE_TIMEOUT'
+ 2859          assert parallel.get('generation') == generation
+ 2860          coordination = parallel.get('coordination_error')
+ 2861          if confirm_the_worker:
+ 2862              # The coordination of the round **succeeded**: the worker
+ 2863              # really ended and the failure of the coordination is not
+ 2864              # a fact of the round.
+ 2865              assert coordination is None, \
+ 2866                  'a confirmed coordination was named as a failed one'
+ 2867          else:
+ 2868              # The coordination of the round **failed** and the failure
+ 2869              # is a parallel fact: the original error of the round is
+ 2870              # still the error that leaves.
+ 2871              assert coordination == 'BrokerError', \
+ 2872                  'the failed coordination was not named as a parallel fact'
+ 2873          facts = {'generation': generation,
+ 2874                   'outcome_error': outcome['error'],
+ 2875                   'outcome_object': type(outcome['error_object']).__name__,
+ 2876                   'parallel_timeout': parallel,
+ 2877                   'cancel_calls': api.cancel_calls,
+ 2878                   'published_before_cancel_return': bool(
+ 2879                       api.worker_holder.get('published_outcome')),
+ 2880                   'state': session.state}
+ 2881          write_phase(phase, facts)
+ 2882          # The error of the reader of the channel is the error of the
+ 2883          # round: the history of the round keeps it and the two public
+ 2884          # stops of the round keep it.
+ 2885          first = session.stop()
+ 2886          first_facts = first['broker_close_facts'] or {}
+ 2887          write_phase(phase + '-first', {
+ 2888              'reader_error': first_facts.get('channel_reader_error'),
+ 2889              'state': first['state'],
+ 2890              'retained': first['broker_retained']})
+ 2891          assert first_facts.get('channel_reader_error') == 'RuntimeError', \
+ 2892              'the real fault of the round was replaced by a cancellation'
+ 2893          assert first['broker_retained'] is True
+ 2894          assert first['state'] == 'UNKNOWN_RETAINED'
+ 2895          second = session.stop()
+ 2896          second_facts = second['broker_close_facts'] or {}
+ 2897          write_phase(phase + '-second', {
+ 2898              'reader_error': second_facts.get('channel_reader_error'),
+ 2899              'source': second_facts.get('channel_reader_error_source'),
+ 2900              'state': second['state']})
+ 2901          assert second_facts.get('channel_reader_error') == 'RuntimeError', \
+ 2902              'the second attempt lost the error of the reader'
+ 2903          assert second_facts.get('channel_reader_error_source') \
+ 2904              == 'REPEATED_CLOSE'
+ 2905          assert second['state'] == 'UNKNOWN_RETAINED'
+ 2906      finally:
+ 2907          api.release_the_worker.set()
+ 2908          try:
+ 2909              session.stop()
+ 2910          except Exception:  # noqa: BLE001 - the evidence keeps the failure
+ 2911              pass
+ 2912          if worker is not None:
+ 2913              worker.join_bounded(10.0)
+ 2914              assert not worker.is_alive(), \
+ 2915                  'the worker of the read was left behind'
+ 2916  
+
+ 2967  def _wait_for_outcome(worker, generation, seconds):
+ 2968      """The immutable outcome of **that** generation of the worker.
+ 2969  
+ 2970      The generic event of the worker may be stale: the event is only a
+ 2971      wake up and the **outcome of the named generation** is the fact that
+ 2972      the wait is really about.
+ 2973      """
+ 2974      deadline = time.monotonic() + seconds
+ 2975      while time.monotonic() < deadline:
+ 2976          outcome = worker.outcome(generation)
+ 2977          if outcome is not None and outcome.get('error') is not None:
+ 2978              return outcome
+ 2979          worker.outcome_published.wait(0.05)
+ 2980      return None
+ 2981  
+
+ 3020      try:
+ 3021          session.start()
+ 3022          # The reader of the chain is really inside its read and the
+ 3023          # generation of that read is the fact of the worker itself: it
+ 3024          # is never a number that the group hard codes.
+ 3025          assert api.read_waiting.wait(15.0), \
+ 3026              'the reader of the chain was never inside its read'
+ 3027          worker = holder['read_endpoint']._reader
+ 3028          assert worker is not None, 'the reader of the chain never started'
+ 3029          gate.target = worker
+ 3030          generation = worker._submitted
+ 3031          assert generation >= 1, 'the reader of the chain never submitted'
+ 3032          # The bound of the round is a real deadline: the timeout that
+ 3033          # arrives later is the expiry of **this** bound and the absolute
+ 3034          # lease of the round stays in the future.
+ 3035          holder['channel'].bind_deadline(clock.value + 0.5)
+ 3036          # The endpoint is held after its production wait and before it
+ 3037          # rechecks its generation.
+ 3038          assert gate.entered.wait(15.0), \
+ 3039              'the endpoint was never held at the wait of its generation'
+ 3040          trace.append({'step': 'GATE_ENTERED', 'generation': generation,
+ 3041                        'clock': clock.value})
+ 3042          # The ordinary failure of the read is published
+ 3043          # **independently** of the timeout of the round.
+ 3044          api.publish_read_fault()
+ 3045          assert api.fault_observed.wait(15.0), \
+ 3046              'the ordinary failure of the read never happened'
+ 3047          # The **specific** outcome of that generation is waited for: the
+ 3048          # generic event of the worker may be stale.
+ 3049          outcome = _wait_for_outcome(worker, generation, 15.0)
+ 3050          assert outcome is not None, \
+ 3051              'the outcome of the generation was never published'
+ 3052          trace.append({'step': 'FAULT_PUBLISHED', 'generation': generation,
+ 3053                        'sequence': outcome['sequence'],
+ 3054                        'error': outcome['error'],
+ 3055                        'clock': clock.value})
+ 3056          assert outcome['generation'] == generation, \
+ 3057              'the outcome of another generation was read'
+ 3058          assert outcome['error'] == 'RuntimeError', \
+ 3059              'the published failure of the round is not the ordinary one'
+ 3060          assert outcome['error_object'] is fault, \
+ 3061              'the outcome of the generation does not keep the original error'
+ 3062          # The effective timeout of the round arrives **now**: the fault
+ 3063          # is already published and the endpoint has not consumed it.
+ 3064          clock.advance(1.0)
+ 3065          trace.append({'step': 'TIMEOUT_ARRIVED', 'generation': generation,
+ 3066                        'clock': clock.value,
+ 3067                        'effective': holder['channel']._effective_deadline()})
+ 3068          # The endpoint continues: it rechecks the timeout and it finds
+ 3069          # the published outcome of its own generation.
+ 3070          gate.release.set()
+ 3071          trace.append({'step': 'RELEASED', 'generation': generation,
+ 3072                        'clock': clock.value})
+ 3073          # The endpoint consumed the outcome: the original error object
+ 3074          # carries the timeout as a **parallel** fact.
+ 3075          deadline = time.monotonic() + 15.0
+ 3076          parallel = None
+ 3077          while time.monotonic() < deadline:
+ 3078              parallel = getattr(fault, 'lvw_parallel_timeout', None)
+ 3079              if parallel is not None:
+ 3080                  break
+ 3081              time.sleep(0.005)
+ 3082          assert isinstance(parallel, dict), \
+ 3083              'the endpoint did not consume the published outcome'
+ 3084          trace.append({'step': 'OUTCOME_CONSUMED', 'generation': generation,
+ 3085                        'clock': clock.value, 'parallel': parallel})
+ 3086          assert parallel.get('code') == 'BROKER_PIPE_TIMEOUT', \
+ 3087              'the timeout did not stay a parallel fact of the failure'
+ 3088          assert parallel.get('generation') == generation, \
+ 3089              'the parallel fact names another generation'
+ 3090          # The order of the three facts is the order of the contract:
+ 3091          # the publication of the fault, the arrival of the timeout and
+ 3092          # the consumption of the outcome.
+ 3093          steps = [item['step'] for item in trace]
+ 3094          assert steps.index('FAULT_PUBLISHED') < steps.index('TIMEOUT_ARRIVED'), \
+ 3095              'the timeout of the round arrived before the fault was published'
+ 3096          assert steps.index('TIMEOUT_ARRIVED') < steps.index('OUTCOME_CONSUMED'), \
+ 3097              'the outcome was consumed before the timeout of the round arrived'
+ 3098          facts = {'generation': generation, 'trace': trace,
+ 3099                   'outcome_error': outcome['error'],
+ 3100                   'outcome_object': type(outcome['error_object']).__name__,
+ 3101                   'parallel_timeout': parallel,
+ 3102                   'gate_calls': gate.calls,
+ 3103                   'state': session.state}
+ 3104          write_phase(phase, facts)
+ 3105          # The error of the reader of the channel is the error of the
+ 3106          # round: the history of the round keeps it and the two public
+ 3107          # stops of the round keep it.
+ 3108          first = session.stop()
+ 3109          first_facts = first['broker_close_facts'] or {}
+ 3110          write_phase(phase + '-first', {
+ 3111              'reader_error': first_facts.get('channel_reader_error'),
+ 3112              'state': first['state'],
+ 3113              'retained': first['broker_retained']})
+ 3114          assert first_facts.get('channel_reader_error') == 'RuntimeError', \
+ 3115              'the real fault of the round was replaced by a cancellation'
+ 3116          assert first['broker_retained'] is True
+ 3117          assert first['state'] == 'UNKNOWN_RETAINED'
+ 3118          second = session.stop()
+ 3119          second_facts = second['broker_close_facts'] or {}
+ 3120          write_phase(phase + '-second', {
+ 3121              'reader_error': second_facts.get('channel_reader_error'),
+ 3122              'source': second_facts.get('channel_reader_error_source'),
+ 3123              'state': second['state']})
+ 3124          assert second_facts.get('channel_reader_error') == 'RuntimeError', \
+ 3125              'the second attempt lost the error of the reader'
+ 3126          assert second_facts.get('channel_reader_error_source') \
+ 3127              == 'REPEATED_CLOSE'
+ 3128          assert second['state'] == 'UNKNOWN_RETAINED'
+ 3129      finally:
+ 3130          # The teardown of the owner of the test is bounded and it is
+ 3131          # unconditional: the gate is released, the read of the round is
+ 3132          # ended, the production wait of the worker is restored and the
+ 3133          # worker is stopped and joined.
+ 3134          gate.release.set()
+ 3135          api.release_the_worker.set()
+ 3136          api.publish_outcome('EOF')
+ 3137          _WindowsPipeWorker.wait_done = original_wait_done
+ 3138          try:
+ 3139              session.stop()
+ 3140          except Exception:  # noqa: BLE001 - the evidence keeps the failure
+ 3141              pass
+ 3142          if worker is not None:
+ 3143              # The worker is stopped explicitly: the coordination of the
+ 3144              # round was never reached in this schedule and the worker of
+ 3145              # the read would otherwise wait for a request that never
+ 3146              # comes.
+ 3147              worker.stop_accepting()
+ 3148              worker.join_bounded(10.0)
+ 3149              assert not worker.is_alive(), \
+ 3150                  'the worker of the read was left behind'
+ 3151  
+ 3152  
+
+ 3300                                      'source':
+ 3301                                      second_facts.get('channel_reader_error_source'),
+ 3302                                      'state': second['state']})
+ 3303          assert second_facts.get('channel_reader_error') == 'RuntimeError', \
+ 3304              'the second attempt lost the error of the reader'
+ 3305          assert second_facts.get('channel_reader_error_source') \
+ 3306              == 'REPEATED_CLOSE'
+ 3307          assert second['broker_retained'] is True
+ 3308          assert second['state'] == 'UNKNOWN_RETAINED'
+ 3309      finally:
+ 3310          try:
+ 3311              session.stop()
+ 3312          except Exception:  # noqa: BLE001 - the evidence keeps the failure
+ 3313              pass
+ 3314  
+ 3315      # -- the coordination of the cancellation (N1 correction 11, M09):
+ 3316      #    the outcome of the **same** generation is inspected **again**
+ 3317      #    after the coordination of the cancellation.  The original error
+ 3318      #    object of the generation remains the error that leaves and the
+ 3319      #    failure of the coordination is a **parallel** fact: it never
+ 3320      #    replaces the published failure and it never hides it.
+ 3321      gate = threading.Event()
+ 3322      entered = threading.Event()
+
+
+ 3387      # -- THE DYNAMIC SCHEDULE OF THE M09 OBLIGATION (N1 correction 12):
+ 3388      #    a real ordinary fault is published for the current generation
+ 3389      #    of the real chain, the effective timeout of the round arrives
+ 3390      #    **before** the endpoint consumes the outcome and the original
+ 3391      #    error object survives both a **confirmed** and a **failed**
+ 3392      #    coordination of the round.
+ 3393      _m09_timeout_phase(document, plan, tmp_path,
+ 3394                          phase='r10-timeout-confirmed',
+ 3395                          confirm_the_worker=True, hold_the_worker=False)
+ 3396      _m09_timeout_phase(document, plan, tmp_path,
+ 3397                          phase='r10-timeout-failed',
+ 3398                          confirm_the_worker=False, hold_the_worker=True)
+ 3399  
+ 3400      # -- THE REQUIRED ORDER (N1 correction 12, root preflight PF12-01):
+ 3401      #    the ordinary failure of the read is published **before** the
+ 3402      #    effective timeout of the round arrives and the endpoint consumes
+ 3403      #    the outcome of its own generation only **after** the timeout
+ 3404      #    was decided.  The gate is a transparent wrapper of the
+ 3405      #    production wait of the worker: it calls the original wait and
+ 3406      #    it holds the endpoint between that wait and the recheck of its
+ 3407      #    generation.
+ 3408      _m09_published_fault_phase(document, plan, tmp_path,
+ 3409                                 phase='r10-published-before-timeout')
+ 3410  
+ 3411  # -- N10-R11: the overflow of the channel is a named failure -------------
