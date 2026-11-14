@@ -1,0 +1,13 @@
+...........................................................................................................................................................................F...
+=================================== FAILURES ===================================
+______ test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner ______
+tools/test_v0_s3_native_custody_correction07.py:1787: in test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner
+    assert facts.get('channel_reader_error') == 'BROKER_PIPE_CANCELLED', \
+E   AssertionError: the cancellation of another owner was swallowed
+E   assert None == 'BROKER_PIPE_CANCELLED'
+E    +  where None = <built-in method get of dict object at 0x77571a532b40>('channel_reader_error')
+E    +    where <built-in method get of dict object at 0x77571a532b40> = {'channel_closed': True, 'channel_reader_error': None, 'channel_reader_error_source': None, 'channel_reader_finished': True, ...}.get
+=========================== short test summary info ============================
+FAILED tools/test_v0_s3_native_custody_correction07.py::test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner
+1 failed, 174 passed in 33.67s
+{"pytest_exit": 1, "call_count": 175, "pass_count": 174, "fail_count": 1, "skip_count": 0, "functional_pass_count": 172, "cleanup_proven_for_batch": true}
