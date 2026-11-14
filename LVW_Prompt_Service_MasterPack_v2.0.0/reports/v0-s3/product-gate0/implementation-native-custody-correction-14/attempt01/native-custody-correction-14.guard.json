@@ -1,0 +1,22 @@
+{
+  "guard_precedes_candidate_and_pytest": true,
+  "selftest_denials": [
+    "subprocess.Popen",
+    "socket.__new__",
+    "os.fork",
+    "os.exec",
+    "os.system",
+    "sqlite3.connect",
+    "ctypes.dlopen",
+    "ctypes.dlsym"
+  ],
+  "runtime_denials": [],
+  "preload_events": [
+    {
+      "event": "ctypes.dlopen",
+      "name": null
+    }
+  ],
+  "preload_window_final_state": "CLOSED",
+  "wall_seconds": 35.647125244140625
+}

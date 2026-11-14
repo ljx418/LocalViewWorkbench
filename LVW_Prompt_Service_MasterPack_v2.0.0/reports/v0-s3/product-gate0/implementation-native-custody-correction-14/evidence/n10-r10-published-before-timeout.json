@@ -1,0 +1,67 @@
+{
+ "gate_calls": [
+  {
+   "generation": 1,
+   "result": true,
+   "timeout": 0.05
+  },
+  {
+   "generation": 2,
+   "result": true,
+   "timeout": 0.05
+  },
+  {
+   "generation": 3,
+   "result": false,
+   "timeout": 0.05
+  }
+ ],
+ "generation": 3,
+ "outcome_error": "RuntimeError",
+ "outcome_object": "RuntimeError",
+ "parallel_timeout": {
+  "cancel_sequence": null,
+  "code": "BROKER_PIPE_TIMEOUT",
+  "coordination_error": null,
+  "generation": 3,
+  "sequence": 3
+ },
+ "state": "RUNNING",
+ "trace": [
+  {
+   "clock": 1000.0,
+   "generation": 3,
+   "step": "GATE_ENTERED"
+  },
+  {
+   "clock": 1000.0,
+   "error": "RuntimeError",
+   "generation": 3,
+   "sequence": 3,
+   "step": "FAULT_PUBLISHED"
+  },
+  {
+   "clock": 1001.0,
+   "effective": 1000.5,
+   "generation": 3,
+   "step": "TIMEOUT_ARRIVED"
+  },
+  {
+   "clock": 1001.0,
+   "generation": 3,
+   "step": "RELEASED"
+  },
+  {
+   "clock": 1001.0,
+   "generation": 3,
+   "parallel": {
+    "cancel_sequence": null,
+    "code": "BROKER_PIPE_TIMEOUT",
+    "coordination_error": null,
+    "generation": 3,
+    "sequence": 3
+   },
+   "step": "OUTCOME_CONSUMED"
+  }
+ ]
+}
