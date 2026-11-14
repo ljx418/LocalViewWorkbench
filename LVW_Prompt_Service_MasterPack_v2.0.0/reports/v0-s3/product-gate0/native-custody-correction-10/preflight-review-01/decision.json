@@ -1,0 +1,68 @@
+{
+  "candidate_sha": "05c58c1ead644ab475a566af80ad1e1f4b96e023",
+  "question_id": "msg_b2e7ed4482c6",
+  "decision": "CHANGES_REQUIRED_BEFORE_DYNAMIC_ACK",
+  "dynamic_authorized": false,
+  "candidate_imported": false,
+  "candidate_collected": false,
+  "tests_run": 0,
+  "public_contract_changed": false,
+  "product_denominator_changed": false,
+  "local_node_count": 189,
+  "test_sha256": "1242cea068c04cc4db32b8dc3493ea9e0abc0d7a8d1577a796fb5ccf259c42a2",
+  "fixture_findings": [
+    {
+      "function": "test_n10_r12_the_reader_publishes_its_wait_before_it_waits",
+      "line": 1193,
+      "name": "tmp_path"
+    },
+    {
+      "function": "test_n10_r13_the_fault_is_unlocked_by_the_owner_and_observed_first",
+      "line": 1271,
+      "name": "tmp_path"
+    },
+    {
+      "function": "test_n10_r14_the_closed_obligations_of_the_package_do_not_regress",
+      "line": 1327,
+      "name": "tmp_path"
+    }
+  ],
+  "findings": [
+    {
+      "id": "C10-P01",
+      "finding": "R12/R13/R14使用tmp_path但函数未声明fixture；语法parse/compile不检测此NameError。修正fixture并核对所有读入名称，收据role应为实际Claude实现身份。"
+    },
+    {
+      "id": "C10-P02",
+      "finding": "R01只正常launch后wait不确认，不触发已冻结assign失败suspended child路径；须驱动Core真实assign失败/terminate失败或wait未知，验证最后HANDLE保留及同owner退出确认后关闭。"
+    },
+    {
+      "id": "C10-P03",
+      "finding": "R04的StartedThenFailedThread仅布尔标记、不启动真实线程；且StreamChannel构造抛错后state[channel]不可赋值，后续索引不可证明partial owner。用有界真实线程start后throw并从aggregate取原partial channel，先记录返回时事实再salvage。"
+    },
+    {
+      "id": "C10-P04",
+      "finding": "R05仅BrokerProcess构造取消，不覆盖launcher recovery取消；也只比异常字符串。覆盖同launch恢复取消、安全finalizer、保留owner/原取消object identity与先channel后process顺序。"
+    },
+    {
+      "id": "C10-P05",
+      "finding": "R06缺已cancel write分支；R07替换整个launcher成Peer后独立构造endpoint/worker，不证明真实default_launcher/launch_broker及子main/Core.stop的context接线。保留production owners，只注入最底层in-process primitive；不启动真实OS进程/Windows API，验证Popen/hash/channel前context、子STOP后transport partialwrite/join同cleanup。"
+    },
+    {
+      "id": "C10-P06",
+      "finding": "R09普通错/KI/SystemExit线程很快真实退出；未安排attempt已发布而真实线程仍活这一冻结负例。用事件保持真实线程在发布结果后待退出，通过真实_run_startup finally证明不提前release_inflight、有界join及原异常对象。禁止以sleep当退出证据。"
+    },
+    {
+      "id": "C10-P07",
+      "finding": "R10先cancel再释放故障，未建立真实read error已complete→endpoint消费前close取消的触发顺序；只测endpoint，不验证两次Session.stop sticky原错/UNKNOWN。需事件屏障观测已发布原outcome和object identity，再驱动生产close链。"
+    },
+    {
+      "id": "C10-P08",
+      "finding": "R11只有channel.close，未经两次Session.stop到父facts，遗漏过量帧；one-over构造当前比exact多两字节。用真实broker/session链覆盖完整换行oversize和frame-count，exact与one-over严格相邻，总阈值不变。"
+    },
+    {
+      "id": "C10-P09",
+      "finding": "R12对reader取消只接受PIPE_CANCELLED会遗漏已允许CHANNEL_CANCELLED调度路径；应依真实origin/generation限定分类。R13只普通fault，补partial/EOF及所有期望phase收据，先观测真实outcome再public stop，测试owner无条件有界join自己的线程。"
+    }
+  ]
+}
