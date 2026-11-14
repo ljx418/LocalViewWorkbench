@@ -1,0 +1,73 @@
+ 6491	def _adopt_broker_process(process, *, channel_factory, executable,
+ 6492	                          executable_sha256, deadline=None, aggregate=None,
+ 6493	                          custody=None):
+ 6494	    """Take the original process of the broker into the custody of a channel.
+ 6495	
+ 6496	    The launcher owns the original process of the round until the
+ 6497	    channel of the round exists.  A channel that could not be built
+ 6498	    would leave the launcher with a running process and with pipes that
+ 6499	    nobody owns.
+ 6500	
+ 6501	    The **channel** is the only owner of the files of the process.  A
+ 6502	    channel that exists and that could not be handed over is closed by
+ 6503	    the launcher through the channel and never by closing the standard
+ 6504	    input and the standard output of the process by itself: a file that
+ 6505	    is closed under a live worker of the channel is a file that a
+ 6506	    worker is reading from.
+ 6507	
+ 6508	    The **aggregate** of the launch is the owner that the outer code
+ 6509	    uses: a partial channel - a channel whose reader thread did not
+ 6510	    start - is found through the aggregate and never through a local
+ 6511	    variable that is ``None`` at that moment.
+ 6512	
+ 6513	    A resource that could not be released keeps its **original**
+ 6514	    reference in the table of the launcher: the session never received
+ 6515	    the process and the round never loses the ownership of it.
+ 6516	
+ 6517	    The handover happens exactly once: the process that the channel
+ 6518	    received is the process that the parent owns.
+ 6519	    """
+ 6520	    table = custody if custody is not None else _LAUNCHER_CUSTODY
+ 6521	    launch = aggregate if aggregate is not None else _LaunchAggregate(
+ 6522	        custody=table)
+ 6523	    launch.bind_process(process)
+ 6524	    # The launch is registered with the table of the launcher: the
+ 6525	    # recovery of the table coordinates the resources of the launch in
+ 6526	    # the dependency order - the channel before the process.
+ 6527	    table.retain('aggregate', launch, 'launch')
+ 6528	    table.retain('process', process, 'popened', launch=launch)
+ 6529	    channel = None
+ 6530	    try:
+ 6531	        channel = channel_factory()
+ 6532	        if channel is not None:
+ 6533	            launch.bind_channel(channel)
+ 6534	        broker = BrokerProcess(process, executable, executable_sha256, channel,
+ 6535	                               context=launch.context)
+ 6536	    except BaseException as error:
+ 6537	        # The resources of the launch are coordinated by the aggregate:
+ 6538	        # the channel first and the process after it.  The resources
+ 6539	        # that could not be released keep their original reference and
+ 6540	        # their owner.
+ 6541	        try:
+ 6542	            launch.release(deadline=deadline)
+ 6543	        except (KeyboardInterrupt, SystemExit) as cancellation:
+ 6544	            # The cancellation of the release never replaces the
+ 6545	            # original failure of the launch: the original object
+ 6546	            # continues to propagate and the cancellation stays
+ 6547	            # **reachable** next to it.  The primary failure and the
+ 6548	            # cancellation of the recovery coexist.
+ 6549	            try:
+ 6550	                error.lvw_cancelled = cancellation
+ 6551	            except Exception:  # noqa: BLE001 - the failure stays visible
+ 6552	                pass
+ 6553	        except BaseException:  # noqa: BLE001 - the failure stays visible
+ 6554	            pass
+ 6555	        raise
+ 6556	    # The handover happened: the launcher does not own the process of
+ 6557	    # the round any more.
+ 6558	    table.forget(process)
+ 6559	    table.forget(channel)
+ 6560	    table.forget(launch)
+ 6561	    launch.forget(channel)
+ 6562	    launch.forget(process)
+ 6563	    return broker

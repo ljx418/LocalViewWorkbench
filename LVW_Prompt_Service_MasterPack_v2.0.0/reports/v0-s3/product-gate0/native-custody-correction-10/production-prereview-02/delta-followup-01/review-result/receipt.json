@@ -1,0 +1,170 @@
+{
+  "schema": "lvw.production-delta-prereview/1",
+  "scope": "SMALL_STATIC_DELTA_NONFINAL",
+  "candidate_sha": "6327beacda341d61a0f23d261047d91bd2f1ff49",
+  "original_candidate_sha": "05c58c1ead644ab475a566af80ad1e1f4b96e023",
+  "original_source_binding": {
+    "candidate_sha": "05c58c1ead644ab475a566af80ad1e1f4b96e023",
+    "sources": {
+      "v0_s3_native_broker.py": {
+        "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-10/production-prereview-02/v0_s3_native_broker.py.txt",
+        "sha256": "b8f84f0e56f75ac9f6907362fd7850c33e746ac8ff7ccfbd35d62276aa4164cf"
+      },
+      "v0_s3_native_custody.py": {
+        "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-10/production-prereview-02/v0_s3_native_custody.py.txt",
+        "sha256": "9b7e68969f2cbf8763664ba57fa3e5ee4133a0beed076a64f037e6344f336d8d"
+      }
+    }
+  },
+  "delta_source_binding": {
+    "candidate_sha": "6327beacda341d61a0f23d261047d91bd2f1ff49",
+    "sources": {
+      "v0_s3_native_broker.py": {
+        "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-10/preflight-seam-decision-01/v0_s3_native_broker.py.txt",
+        "sha256": "800a4f46fec9c1432e590dfe958e4c93ae6c4a02158e6a94c0ee190a314f87cb"
+      },
+      "v0_s3_native_custody.py": {
+        "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-10/preflight-seam-decision-01/v0_s3_native_custody.py.txt",
+        "sha256": "9b7e68969f2cbf8763664ba57fa3e5ee4133a0beed076a64f037e6344f336d8d"
+      }
+    }
+  },
+  "both_source_hashes_verified": true,
+  "custody_byte_identical": true,
+  "computed_full_diff_matches_supplied": true,
+  "diff_normalization": "Enclosing-function hunk-header annotation only",
+  "only_changed_definition": "_adopt_broker_process",
+  "recommendation": "CHANGES_REQUIRED",
+  "counts": {
+    "Fatal": 0,
+    "Major": 4,
+    "Minor": 1
+  },
+  "findings": [
+    {
+      "id": "M05",
+      "severity": "Major",
+      "status": "OPEN",
+      "location": [
+        "B1431-1432",
+        "B1475-1490",
+        "B1568-1595",
+        "B1143-1211"
+      ],
+      "summary": "CreateProcess success/direct cleanup bypass retained-entry exclusive recovery claims",
+      "original_status": "OPEN",
+      "delta_status": "OPEN",
+      "applies_to_candidate": "6327beacda341d61a0f23d261047d91bd2f1ff49"
+    },
+    {
+      "id": "M07",
+      "severity": "Major",
+      "status": "OPEN",
+      "location": [
+        "B6150-6203",
+        "B6424-6463",
+        "B6317-6361"
+      ],
+      "summary": "Launch aggregate forgets exited Popen despite failed original HANDLE release; snapshot rebuild resurrects detached entries",
+      "original_status": "OPEN",
+      "delta_status": "OPEN",
+      "applies_to_candidate": "6327beacda341d61a0f23d261047d91bd2f1ff49"
+    },
+    {
+      "id": "M08",
+      "severity": "Major",
+      "status": "OPEN",
+      "location": [
+        "B4239-4266",
+        "B4332-4346",
+        "B4434-4468",
+        "B6588-6639",
+        "B6706-6716",
+        "B5417-5472",
+        "B6150-6187"
+      ],
+      "summary": "Real admission/context/deadline enforcement gaps across endpoint, launch and startup joins",
+      "original_status": "OPEN",
+      "delta_status": "OPEN",
+      "applies_to_candidate": "6327beacda341d61a0f23d261047d91bd2f1ff49"
+    },
+    {
+      "id": "M09",
+      "severity": "Major",
+      "status": "OPEN",
+      "location": [
+        "B4333-4346",
+        "B4417-4432",
+        "B3829-3847"
+      ],
+      "summary": "Expired-await timeout selection discards already published original generation fault",
+      "original_status": "OPEN",
+      "delta_status": "OPEN",
+      "applies_to_candidate": "6327beacda341d61a0f23d261047d91bd2f1ff49"
+    },
+    {
+      "id": "m03",
+      "original_major": "M03",
+      "severity": "Minor",
+      "status": "OPEN",
+      "location": [
+        "B2547-2548",
+        "B2693-2706",
+        "B2130-2144"
+      ],
+      "summary": "Pending process close eligibility stores False instead of callable over current record; safe pending retry never admitted",
+      "original_status": "OPEN",
+      "delta_status": "OPEN",
+      "applies_to_candidate": "6327beacda341d61a0f23d261047d91bd2f1ff49"
+    }
+  ],
+  "new_delta_findings": [],
+  "original_major_dispositions": {
+    "M03": "OPEN",
+    "M05": "OPEN",
+    "M06": "CLOSED_STATIC",
+    "M07": "OPEN",
+    "M08": "OPEN",
+    "M09": "OPEN"
+  },
+  "closed_delta_subitems": [
+    {
+      "status": "CLOSED_STATIC",
+      "source": "B6527",
+      "item": "helper-created aggregate table registration"
+    },
+    {
+      "status": "CLOSED_STATIC",
+      "source": "B6536-6555",
+      "item": "primary/original cleanup cancellation association for attribute-capable exceptions"
+    }
+  ],
+  "original_72_atom_audit": "Preserved, not repeated in this small review",
+  "original_files_preserved": {
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-10/production-prereview-02/review-result/6327bea-adopt-numbered.txt": "2d7861d01d06c16d21b9eb93821922680761f0717feba6fb7665ed55c27b7b7b",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-10/production-prereview-02/review-result/broker-numbered.txt": "078c87a3ce08cfe1f49833d2708c6b7dd56d90acb7e93e31d1f07e30fdd30ec6",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-10/production-prereview-02/review-result/custody-numbered.txt": "6e557f7836dd73167ee4c6851d3b60a3b71573c16fe7d9530a9f026241db9178",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-10/production-prereview-02/review-result/final-receipt.json": "9afcdfb513b30d6afce849302b81f5c64c61a48ec6f0b2cd7e810736c29bfaa7",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-10/production-prereview-02/review-result/input-hashes.json": "6d0f14ea58efa00545ce21ae8e826044b268994a5d062a59eaae1a025c60f120",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-10/production-prereview-02/review-result/receipt.json": "5f1d579564af21eac3d78e557d8be3f5edc9e4d451ea810bb673b2c97d9ccfde",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-10/production-prereview-02/review-result/review-6327bea-delta.md": "b77a1b5335a2aa4fbab08a642b51f2d56823f9e28b4da7df031dd51612e0fa91",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-10/production-prereview-02/review-result/review.md": "20102ed64ff1b87ba96bb5395728b7478cc2396633c816ede4e65220b9a04850"
+  },
+  "delta_input_hashes": {
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-10/preflight-seam-decision-01/source-binding.json": "b8d83d323137a4471194d0a3e0e2d571eaeaa03115d25e532f41fae755fdf947",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-10/preflight-seam-decision-01/production-delta.diff.txt": "15aa71ffb2a286ae4e9a459f4158736a7e1501214158091cc31974724455118e"
+  },
+  "test_candidate_applicability": {
+    "candidate_sha": "cdac445434ed129ca6c5fa8acc830f1f13261a6f",
+    "production_equivalence": "COORDINATOR_SUPPLIED_NOT_INDEPENDENTLY_GIT_VERIFIED",
+    "conclusion": "Findings apply conditionally to the stated identical production bytes",
+    "tests_read": false
+  },
+  "dynamic": "NOT_RUN",
+  "native": "NOT_PROVEN",
+  "stage_pass_claim": false,
+  "final_acceptance": false,
+  "runtime_authorized": false,
+  "agents_started": 0,
+  "review_sha256": "1426be64b5ba6c65e3bbf71185c764139bfb8d48259e3cd36ed49907af2a5456"
+}

@@ -1,0 +1,38 @@
+# Supplemental static applicability review: 6327bea
+
+Final prereview recommendation for 6327beacda341d61a0f23d261047d91bd2f1ff49 remains CHANGES_REQUIRED: Fatal 0 / Major 4 / Minor 1. These are the same four Major records and one Minor record in the original 05c58c1 review, not five additional findings. Original review.md, receipt.json and their three evidence files are preserved byte-for-byte. final-receipt.json is the combined final prereview receipt naming both snapshots.
+
+Original snapshot: 05c58c1ead644ab475a566af80ad1e1f4b96e023; additional snapshot: 6327beacda341d61a0f23d261047d91bd2f1ff49. Exact new source-binding.json and production-delta.diff.txt were read. Both new blobs were independently SHA256-verified: broker 312923 bytes / 800a4f46fec9c1432e590dfe958e4c93ae6c4a02158e6a94c0ee190a314f87cb; custody 112727 bytes / 9b7e68969f2cbf8763664ba57fa3e5ee4133a0beed076a64f037e6344f336d8d. Custody is byte-identical to the original reviewed source. Original broker hash is b8f84f0e56f75ac9f6907362fd7850c33e746ac8ff7ccfbd35d62276aa4164cf. Both snapshots' hashes are in the combined receipt. Commit provenance remains the supplied frozen bindings; hashes alone do not independently prove Git provenance.
+
+The independently computed complete textual diff matches the supplied two hunks after normalizing only Git's enclosing-function hunk-header annotation. Stdlib AST comparison finds exactly one changed top-level definition, `_adopt_broker_process`; there are no other textual source changes. No candidate import/compile/exec occurred.
+
+## Delta and actual production path
+
+New broker B6527-6528 registers aggregate before process in the chosen launcher custody table. `_LauncherCustody.retain` at unchanged B6277-6283 deduplicates by kind and resource identity. Formal launch_broker already registers this aggregate (new B6603, old B6594), so helper registration is idempotent on that path. When the helper creates its own aggregate, registration now makes it available to table.release's aggregate branch B6321-6335, which coordinates channel before process. The previously missing helper-created aggregate registration seam is CLOSED_STATIC. This does not prove every resource subsequently closes.
+
+New B6536 binds the original construction exception; B6543-6552 catches the original KI/SystemExit from aggregate.release, attaches that exact object at `error.lvw_cancelled`, then B6555 bare-raises the original primary. For ordinary production exception objects accepting attributes, primary and cleanup cancellation are now reachable together: this association subitem is CLOSED_STATIC. A custom exception can reject attribute assignment and the fallback remains pass; this is an unresolved compatibility assumption, not a newly counted Major. Unchanged aggregate.release still attempts safe process cleanup before rethrowing its first cancellation (B6150-6210).
+
+Neither repair changes the M07 failed-handle decision or table reconstruction. `_release_launch_process` still records failed `_handle.Close()` at B6451-6453 while returning exited=True; aggregate B6193-6198 still forgets self.process and its custody entry based solely on exited. Table.release still snapshots items at B6317-6318, re-adds launch-tagged snapshot entries to keep at B6336-6340 and overwrites the table at B6361. Aggregate registration does not make that rebuilding consult current membership. The original M07 finding is still supported by unchanged source and the constructor-failure path at new B6530-6555. The new cancellation attachment does not repair ownership loss or dynamic deadline reads.
+
+## All six original dispositions
+
+| Original | 6327bea disposition | Individually supported applicability |
+|---|---|---|
+| M03 | OPEN (Minor m03) | Unchanged B2547-2548/B2693-2706/B2130-2144 still stores bool pending eligibility rather than a callable; original record/API close-before-exit guards remain CLOSED_STATIC. |
+| M05 | OPEN (Major) | Unchanged B1431-1432/B1475-1490/B1568-1595 process return/direct cleanup bypass exclusive recovery claims; corrected pipe claim/handover remains CLOSED_STATIC. |
+| M06 | CLOSED_STATIC | Unchanged B2728-2748/B3020-3059 identity notification clears reader.handle; B2799-2802 refuses a second reader close. No actual native behavior proved. |
+| M07 | OPEN (Major) | New B6527 and B6550 repair aggregate registration and primary/cancel association; unchanged B6193-6198 still drops failed HANDLE recovery, B6317-6361 still rebuilds stale entries. Partial-channel registration, incomplete-facts retention and no direct raw-file close beneath established endpoint remain CLOSED_STATIC. |
+| M08 | OPEN (Major) | Admission B4239-4266/B4332-4346/B4434-4468, startup B5417-5472 and aggregate bounds B6150-6187 unchanged. Real launch now B6597-6648 and child initial transport now B6715-6725 retain the same admission/unbound-window paths. Default context edge and STOP/STOPPED cleanup observation remain CLOSED_STATIC. |
+| M09 | OPEN (Major) | Unchanged B4333-4346 still selects timeout before published generation outcome; original error-before-close-token case B4378-4384 and sticky overflow B4933-4936/B5947-5953 remain CLOSED_STATIC. |
+
+All 72 individually audited records in original review.md/receipt.json continue to apply: 46 CLOSED_STATIC / 17 OPEN / 9 UNCERTAIN. N10-R04/R05, N07-R09, N05-R10 and N03-R06 remain OPEN for residual M07 even though the two newly repaired subitems must not be re-reported as defects. All other unchanged source-supported closed subitems are preserved, including UNKNOWN locking, combined frame budget, terminal reserve, worker generation/NOT_FOUND handling, partial writes, strict close facts, lower recovery, current close generations and actual closer joins. Test causality, node ordering, external pins and actual native interleavings remain UNCERTAIN/NOT_PROVEN as originally bounded. No tests or implementer narrative were read.
+
+Line mapping: all C positions unchanged; B1-6523 unchanged; the altered helper is fully numbered in 6327bea-adopt-numbered.txt (new B6491-6563). Original B6555 onward shifts +9: launch_broker new B6566-6657, read_sealed_plan B6660-6675, main B6678-6732. Original helper evidence is superseded by the exact new positions above. No finding array entry is added for this delta.
+
+## Boundaries and required handoff
+
+STATIC only; dynamic NOT_RUN; all native behavior NOT_PROVEN. This is not final independent acceptance, Stage closure, Stage PASS, a budget or runtime permission. No helpers, candidate imports/compile/exec/tests/collection, business subprocesses, native API, services, models/GPU/media, network/downloads, DB or original counter/ledger reads. Only new supplement files were written under the original review-result directory. No first429 or approval refusal encountered.
+
+Current coordinate V1/R1/WP-R1-U3/S3_P4_OFFLINE_INTEGRATION_PREPARATION; this batch delta/hash/applicability review complete; last accepted gate 621b1bf unified live15 scope only (not revalidated); current blocking gate correction10 plus F0/M4/m1 source findings; global route below; remaining work coordinator disposition/repairs, separate finite tests and final independent acceptance; next owner coordinator; supplied static authorization only; evidence original review-result directory; exact stop reason completed supplement/CHANGES_REQUIRED, worker_done then idle. No implementation, machine-acceptance, final-independent-review or human-signoff status changed.
+
+Full unchanged outline: V0-S0 1/2 (historical NO_GO), V0-S1 5/5 (V0-Min), R0 1/2, R1a 5/5 (single-image), V0-S2 7/8 (old human signoff pending), V0-S3 0/6, R1 0/4 (early unified slice separately signed), V1-M1 0/3, R2 0/4, R3/V2 0/4, R4/V2 0/4, R5a/V3 0/4, R5b/V3 0/4, R5c/V3 0/4.
