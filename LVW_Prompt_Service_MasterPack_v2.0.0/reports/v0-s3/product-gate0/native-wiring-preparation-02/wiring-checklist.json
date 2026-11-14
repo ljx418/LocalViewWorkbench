@@ -1,0 +1,69 @@
+{
+  "status": "DOCUMENT_PREPARATION_ONLY_NOT_FROZEN_IMPLEMENTATION_PACKET",
+  "requires": "N1 independent review and root closure before N2 activation",
+  "checks": [
+    {
+      "id": "N2-P01",
+      "topic": "安装工厂",
+      "source": "tools/v0_s3_coordinator.py:309",
+      "design_constraint": "复用继承工厂；目前未证明正式控制器装配。首个排他profile写入即包含唯一s3_budget_binding，不先LOCAL01再覆盖。",
+      "status": "NOT_VERIFIED_FOR_PRODUCTION"
+    },
+    {
+      "id": "N2-P02",
+      "topic": "预算绑定",
+      "source": "tools/v0_s3_coordinator.py:191",
+      "design_constraint": "形状/来源校验不替代原账本余额或debit。执行前余额由原authority核，当前不读账本。",
+      "status": "NOT_VERIFIED_FOR_PRODUCTION"
+    },
+    {
+      "id": "N2-P03",
+      "topic": "驱动构造",
+      "source": "tools/v0_s3_quality_worker.py:615",
+      "design_constraint": "只构造NativeRuntime，不启动sampler。不得把函数存在当已装配。",
+      "status": "NOT_VERIFIED_FOR_PRODUCTION"
+    },
+    {
+      "id": "N2-P04",
+      "topic": "资源observer",
+      "source": "tools/v0_s2_runtime.py:183",
+      "design_constraint": "NativeRuntime构造resource_observer=None；真实采样接线须先完成且保留owner，再构造QualityPhase。父原托管下的sampler句柄只由唯一N1 owner掌握，不在worker重启一份。",
+      "status": "NOT_VERIFIED_FOR_PRODUCTION"
+    },
+    {
+      "id": "N2-P05",
+      "topic": "五键投影",
+      "source": "tools/v0_s3_quality_worker.py:414",
+      "design_constraint": "既有strict五键不能接收完整native/warm profile；新增只读投影绑定profile原件hash/模型digest/候选/子授权/原PID出生身份/实测baseline，不能靠人工重写PID或基线。",
+      "status": "NOT_VERIFIED_FOR_PRODUCTION"
+    },
+    {
+      "id": "N2-P06",
+      "topic": "profile身份",
+      "source": "tools/v0_s2_runtime.py:152",
+      "design_constraint": "native profile与warm profile字段不同；只有warm含baseline。最终来源由实测baseline owner产生，不能从native缺字段补0。",
+      "status": "NOT_VERIFIED_FOR_PRODUCTION"
+    },
+    {
+      "id": "N2-P07",
+      "topic": "QualityPhase",
+      "source": "tools/v0_s3_quality_phase.py:896",
+      "design_constraint": "固定16行不缩减；薄adapter复用实际submit/chat日志/observer/preload/residue。单样本真实接线pilot走独立公开媒体入口，不伪装16行通过。",
+      "status": "NOT_VERIFIED_FOR_PRODUCTION"
+    },
+    {
+      "id": "N2-P08",
+      "topic": "原件与清理",
+      "source": "tools/v0_s3_coordinator.py:347",
+      "design_constraint": "父读取原canonical/source/raw，不接受worker摘要代替；父原HANDLE/Job空不等于GPU释放，资源采样与系统owner事实另核。",
+      "status": "NOT_VERIFIED_FOR_PRODUCTION"
+    },
+    {
+      "id": "N2-P09",
+      "topic": "native准入",
+      "source": "tools/v0_s3_production_controller.py:567",
+      "design_constraint": "旧拒绝点保留，不能accepted=False改True。启动前准入与运行后release/rollback拆开，不能以后验成功作为先验启动前提。",
+      "status": "NOT_VERIFIED_FOR_PRODUCTION"
+    }
+  ]
+}
