@@ -1,0 +1,29 @@
+SOURCE /usr/lib/python3.12/unittest/mock.py
+ 1632 def _patch_object(
+ 1633         target, attribute, new=DEFAULT, spec=None,
+ 1634         create=False, spec_set=None, autospec=None,
+ 1635         new_callable=None, *, unsafe=False, **kwargs
+ 1636     ):
+ 1637     """
+ 1638     patch the named member (`attribute`) on an object (`target`) with a mock
+ 1639     object.
+ 1640 
+ 1641     `patch.object` can be used as a decorator, class decorator or a context
+ 1642     manager. Arguments `new`, `spec`, `create`, `spec_set`,
+ 1643     `autospec` and `new_callable` have the same meaning as for `patch`. Like
+ 1644     `patch`, `patch.object` takes arbitrary keyword arguments for configuring
+ 1645     the mock object it creates.
+ 1646 
+ 1647     When used as a class decorator `patch.object` honours `patch.TEST_PREFIX`
+ 1648     for choosing which methods to wrap.
+ 1649     """
+ 1650     if type(target) is str:
+ 1651         raise TypeError(
+ 1652             f"{target!r} must be the actual object to be patched, not a str"
+ 1653         )
+ 1654     getter = lambda: target
+ 1655     return _patch(
+ 1656         getter, attribute, new, spec, create,
+ 1657         spec_set, autospec, new_callable, kwargs, unsafe=unsafe
+ 1658     )
+ 1659 

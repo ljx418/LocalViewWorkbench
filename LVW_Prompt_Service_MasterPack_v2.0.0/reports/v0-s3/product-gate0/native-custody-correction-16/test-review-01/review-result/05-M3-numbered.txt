@@ -1,0 +1,677 @@
+SOURCE test_v0_s3_native_custody_correction10.py.txt (physical one-based lines)
+
+ 2850         # N1 correction 15 (M3): every owner that the child really
+ 2851         # starts is registered **immediately** and it is released
+ 2852         # **unconditionally**.  The close of the transport of the child
+ 2853         # runs in an inner ``finally`` and it runs also when an
+ 2854         # assertion of the group failed: a failed assertion of the
+ 2855         # group may never leave the drain thread of the transport of the
+ 2856         # child or the workers of its two endpoints behind.
+ 2857         kernel32 = SyntheticKernel32()
+ 2858         kernel32 = SyntheticKernel32()
+ 2859         windows = WindowsApi(table=synthetic_table(kernel32))
+ 2860         child = BrokerCore(win32=windows, plan=sealed_plan(),
+ 2861                            run_root=tmp_path, clock=clock)
+ 2862         assert windows._context is child.context, \
+ 2863             'the facade of the primitives has no context of the round'
+ 2864         child.bind_absolute_deadline(2000.0)
+ 2865         child_read_endpoint = None
+ 2866         child_write_endpoint = None
+ 2867         transport = None
+ 2868         try:
+ 2869             # N1 correction 16 (M3): the endpoints and the transport of
+ 2870             # the child are registered **immediately**.  A construction
+ 2871             # that failed half way still owns its endpoints and its
+ 2872             # drain thread, and the product may drop its reference to
+ 2873             # them when it closes them.
+ 2874             child_read_endpoint = _WindowsPipeEndpoint(
+ 2875                 file_object=_FakeFile('read'), name='transport-read',
+ 2876                 api=api, clock=clock, handle=920, context=child.context)
+ 2877             parent_registry.register('child:read-endpoint',
+ 2878                                      child_read_endpoint,
+ 2879                                      kind='endpoint', seam='fixture')
+ 2880             child_write_endpoint = _WindowsPipeEndpoint(
+ 2881                 file_object=_FakeFile('write'), name='transport-write',
+ 2882                 api=api, clock=clock, handle=921, context=child.context)
+ 2883             parent_registry.register('child:write-endpoint',
+ 2884                                      child_write_endpoint,
+ 2885                                      kind='endpoint', seam='fixture')
+ 2886             transport = StreamChannel(
+ 2887                 None, None,
+ 2888                 read_endpoint=child_read_endpoint,
+ 2889                 write_endpoint=child_write_endpoint,
+ 2890                 clock=clock, context=child.context,
+ 2891                 custody=_RegistryCustody(parent_registry, 'child'))
+ 2892             child_transport = transport
+ 2893             transport.bind_deadline(2000.0)
+ 2894             loop = BrokerLoop(core=child, transport=transport, plan=child.plan,
+ 2895                               nonce=NONCE, clock=clock, wall=time.time)
+ 2896             loop._deadline_mono = 2000.0
+ 2897             # The STOP of the round: the core publishes the ONE cleanup
+ 2898             # deadline and the terminal reply is written under it.
+ 2899             loop._stop('STOP_COMMAND', 0)
+ 2900             cleanup = child.context.cleanup_deadline_value()
+ 2901             facts = {'cleanup': cleanup,
+ 2902                      'transport': transport._effective_deadline(),
+ 2903                      'write_endpoint': transport._writer._effective_deadline(),
+ 2904                      'write_deadline': transport._writer._write_deadline,
+ 2905                      'read_endpoint': transport._reader._effective_deadline(),
+ 2906                      'api': windows._effective_deadline()}
+ 2907             write_phase('r07-child', facts)
+ 2908             assert cleanup is not None, 'the round published no cleanup deadline'
+ 2909             assert transport._effective_deadline() == cleanup, \
+ 2910                 'the transport kept the long lease of the round'
+ 2911             assert transport._writer._effective_deadline() == cleanup, \
+ 2912                 'the endpoint of the transport kept the long lease'
+ 2913             assert transport._writer._write_deadline == cleanup, \
+ 2914                 'the partial write of the transport kept the long lease'
+ 2915             assert transport._reader._effective_deadline() == cleanup, \
+ 2916                 'the join of the reader kept the long lease'
+ 2917             assert windows._effective_deadline() == cleanup, \
+ 2918                 'the facade of the primitives kept the long lease'
+ 2919         finally:
+ 2920             # The close of the transport of the child is
+ 2921             # **unconditional**: it runs also when an assertion of the
+ 2922             # group failed.  It is the close of the **product** of the
+ 2923             # child and it is not the salvage of the test owner.
+ 2924             #
+ 2925             # N1 correction 16 (M3): a close that failed never
+ 2926             # prevents the cleanup of the **other** endpoint: every
+ 2927             # close of the fixture runs in its own ``finally`` and every
+ 2928             # failure of a close is **recorded** and never discarded.
+ 2929             if transport is not None:
+ 2930                 try:
+ 2931                     transport.close()
+ 2932                 except Exception as error:  # noqa: BLE001 - it stays visible
+ 2933                     child_close_failures.append(
+ 2934                         {'owner': 'child:transport',
+ 2935                          'type': type(error).__name__,
+ 2936                          'detail': str(error)})
+ 2937                 finally:
+ 2938                     # A **partial** construction of the transport of the
+ 2939                     # child still owns its two endpoints: they are closed
+ 2940                     # here and they are never forgotten.
+ 2941                     for endpoint in (child_read_endpoint, child_write_endpoint):
+ 2942                         if endpoint is None:
+ 2943                             continue
+ 2944                         try:
+ 2945                             endpoint.close()
+ 2946                         except Exception as error:  # noqa: BLE001
+ 2947                             child_close_failures.append(
+ 2948                                 {'owner': getattr(endpoint, '_name', 'endpoint'),
+ 2949                                  'type': type(error).__name__,
+ 2950                                  'detail': str(error)})
+ 2951             else:
+ 2952                 # A **partial** construction of the transport of the
+ 2953                 # child still owns its two endpoints: they are closed
+ 2954                 # here and they are never forgotten.
+ 2955                 for endpoint in (child_read_endpoint, child_write_endpoint):
+ 2956                     if endpoint is None:
+ 2957                         continue
+ 2958                     try:
+ 2959                         endpoint.close()
+ 2960                     except Exception as error:  # noqa: BLE001
+ 2961                         child_close_failures.append(
+ 2962                             {'owner': getattr(endpoint, '_name', 'endpoint'),
+ 2963                              'type': type(error).__name__,
+ 2964                              'detail': str(error)})
+ 2965     finally:
+ 2966         # N1 correction 16 (M3): the fixture of the test releases
+ 2967         # **every** gate of the test - the primitive of the round
+ 2968         # included - and joins **every** owner that really started.
+ 2969         # The stop of the product keeps its own deadline and its own
+ 2970         # returned state; the salvage of the test is **separate** from
+ 2971         # it: it renews no deadline of the round, it erases no retained
+ 2972         # resource of the product and it never claims that the product
+ 2973         # released it.
+ 2974         #
+ 2975         # The **returned** state of the product is captured **before**
+ 2976         # the salvage, and the proof of the cleanup is **run** while an
+ 2977         # ordinary failure is already unwinding: it never replaces the
+ 2978         # failure that is unwinding and it is never discarded.
+ 2979         api.frames_ready.set()
+ 2980         parent_stop = _capture_stop(session)
+ 2981         parent_broker = getattr(session, 'broker', None)
+ 2982         parent_channel = getattr(parent_broker, '_channel', None)
+ 2983         parent_owners, parent_hints = _registry_owners(
+ 2984             parent_registry, session=session, channel=parent_channel,
+ 2985             prefix='parent')
+ 2986         parent_salvage = _salvage_threads(parent_owners, states=parent_hints)
+ 2987         parent_proof = _prove_salvage(parent_salvage, 'the round of the parent')
+ 2988         write_phase('r07-parent-salvage',
+ 2989                     {'salvage': parent_salvage,
+ 2990                      'stop': parent_stop,
+ 2991                      'proof_failure': parent_proof,
+ 2992                      'child_close_failures': child_close_failures,
+ 2993                      'registry': parent_registry.facts()})
+ 2994         if parent_proof is not None and sys.exc_info()[0] is None:
+ 2995             raise AssertionError(parent_proof)
+ 2996 
+ 2997     # -- N1 correction 12 (M08-A): the admission of a generation is
+ 2998     #    decided at the **dispatch** of the worker and it consults the
+ 2999     #    **current** original context of the round.  The captured
+ 3000     #    request of the call is never the authority of the decision.
+ 3001     class DispatchApi:
+ 3002         """The primitives of a worker whose dispatch is observed."""
+ 3003 
+ 3004         def __init__(self):
+ 3005             self.calls = []
+ 3006 
+ 3007         def duplicate_current_thread_handle(self):
+ 3008             return 701
+ 3009 
+ 3010         def cancel_synchronous_io(self, handle):
+
+ 3160     # -- N1 correction 16 (M3): the fixture of the group releases
+ 3161     #    **every** gate of the test and joins **every** owner that
+ 3162     #    really started - also when an assertion of the group fails.
+ 3163     #    The subcases below fail **on purpose** at a meaningful
+ 3164     #    checkpoint of a round and they catch **their own** exception
+ 3165     #    again: the distinctive sentinel of the group, an **ordinary**
+ 3166     #    assertion of the group, a close of the transport of the child
+ 3167     #    that fails and a construction of the transport of the child
+ 3168     #    that fails **after** its drain thread was really started.
+ 3169     #    They are the proof of the negative path of the fixture: a
+ 3170     #    failed assertion of the group may never leave a gate of the
+ 3171     #    test blocked and it may never leave an owner of the round
+ 3172     #    behind.  A receipt of the happy path alone cannot prove the
+ 3173     #    negative path.
+ 3174     def controlled_failure(checkpoint):
+ 3175         """Fail one round of the fixture on purpose at a checkpoint.
+ 3176 
+ 3177         The round is really started through the PRODUCTION default
+ 3178         launcher and the failure of the fixture of the test is raised
+ 3179         at the requested checkpoint of the round.  The ``finally`` of
+ 3180         the subcase releases every gate of the test, closes the
+ 3181         transport of the child where it was constructed, stops the
+ 3182         round, joins every owner that really started and **runs the
+ 3183         proof of the cleanup** - also while the failure of the subcase
+ 3184         is already unwinding.
+ 3185 
+ 3186         Every failure of the subcase is caught by **its own** type: it
+ 3187         is never a broad ``Exception`` and it never swallows a real
+ 3188         failure of the production.
+ 3189 
+ 3190         N1 correction 16 (M3): the owners of the round are registered
+ 3191         **immediately** in the registry of the fixture, so the drain
+ 3192         thread of a transport whose construction failed is still an
+ 3193         owner that the fixture joins.
+ 3194         """
+ 3195         controlled_api = Api()
+ 3196         controlled_clock = ManualClock(3000.0)
+ 3197         controlled_document = plan_document(lease_expires_at=time.time()
+ 3198                                             + 120.0)
+ 3199         controlled_plan = validate_launch_plan(controlled_document,
+ 3200                                                 now=time.time())
+ 3201         controlled_api.frames = [
+ 3202             _reply_bytes('READY', 'ARMED', {}, controlled_plan, NONCE, 1),
+ 3203             _reply_bytes('STATUS', 'RUNNING', {}, controlled_plan, NONCE, 2)]
+ 3204         controlled_api.final = _reply_bytes('STOPPED', 'RELEASED', {},
+ 3205                                             controlled_plan, NONCE, 3)
+ 3206         controlled_session = NativeCustodySession(
+ 3207             plan=controlled_document,
+ 3208             run_root=tmp_path / ('controlled-' + checkpoint.lower()),
+ 3209             parent_child_remaining_seconds=21600, launcher=None,
+ 3210             clock=controlled_clock, wall=time.time, nonce=NONCE)
+ 3211         controlled_registry = _OwnerRegistry()
+ 3212         gate = threading.Event()
+ 3213         held = threading.Event()
+ 3214         transport = None
+ 3215         read_endpoint = None
+ 3216         write_endpoint = None
+ 3217         raised = []
+ 3218         close_failures = []
+ 3219         facts = {}
+ 3220         try:
+ 3221             start_round(controlled_session, controlled_api, controlled_clock,
+ 3222                         controlled_registry)
+ 3223             assert controlled_session.state == 'RUNNING', \
+ 3224                 'the round of the controlled failure did not really start'
+ 3225             controlled_original_read = controlled_session.broker.read
+ 3226 
+ 3227             def controlled_gated_read(timeout):
+ 3228                 held.set()
+ 3229                 gate.wait(30.0)
+ 3230                 return controlled_original_read(timeout)
+ 3231 
+ 3232             controlled_session.broker.read = controlled_gated_read
+ 3233             try:
+ 3234                 # The **established checkpoint** of the parent: the
+ 3235                 # attached pump of the round really reached its next
+ 3236                 # admission and the admission is really held.
+ 3237                 assert held.wait(15.0), \
+ 3238                     'the parent of the controlled failure never reached its admission'
+ 3239                 if checkpoint in ('CHILD_TRANSPORT', 'CLOSE_FAILURE',
+ 3240                                   'CONSTRUCTOR_FAILURE'):
+ 3241                     controlled_kernel32 = SyntheticKernel32()
+ 3242                     controlled_windows = WindowsApi(
+ 3243                         table=synthetic_table(controlled_kernel32))
+ 3244                     controlled_core = BrokerCore(
+ 3245                         win32=controlled_windows, plan=sealed_plan(),
+ 3246                         run_root=tmp_path, clock=controlled_clock)
+ 3247                     controlled_core.bind_absolute_deadline(4000.0)
+ 3248                     read_endpoint = _WindowsPipeEndpoint(
+ 3249                         file_object=_FakeFile('controlled-read'),
+ 3250                         name='controlled-read', api=controlled_api,
+ 3251                         clock=controlled_clock, handle=930,
+ 3252                         context=controlled_core.context)
+ 3253                     controlled_registry.register(
+ 3254                         'controlled:read-endpoint', read_endpoint,
+ 3255                         kind='endpoint', seam='fixture')
+ 3256                     write_endpoint = _WindowsPipeEndpoint(
+ 3257                         file_object=_FakeFile('controlled-write'),
+ 3258                         name='controlled-write', api=controlled_api,
+ 3259                         clock=controlled_clock, handle=931,
+ 3260                         context=controlled_core.context)
+ 3261                     controlled_registry.register(
+ 3262                         'controlled:write-endpoint', write_endpoint,
+ 3263                         kind='endpoint', seam='fixture')
+ 3264                     if checkpoint == 'CONSTRUCTOR_FAILURE':
+ 3265                         # The construction of the transport of the
+ 3266                         # child fails **after** its drain thread was
+ 3267                         # really started: the local variable of the
+ 3268                         # transport stays empty and the owner of the
+ 3269                         # drain thread is the **registry** of the
+ 3270                         # fixture, because the channel registers itself
+ 3271                         # with its custody **before** it builds
+ 3272                         # anything.
+ 3273                         controlled_real_channel = broker_module.StreamChannel
+ 3274 
+ 3275                         def controlled_failing_channel(*args, **kwargs):
+ 3276                             channel = controlled_real_channel(*args, **kwargs)
+ 3277                             raise _R07ConstructorFailure(checkpoint)
+ 3278 
+ 3279                         try:
+ 3280                             with unittest.mock.patch.object(
+ 3281                                     broker_module, 'StreamChannel',
+ 3282                                     controlled_failing_channel):
+ 3283                                 transport = broker_module.StreamChannel(
+ 3284                                     None, None, read_endpoint=read_endpoint,
+ 3285                                     write_endpoint=write_endpoint,
+ 3286                                     clock=controlled_clock,
+ 3287                                     context=controlled_core.context,
+ 3288                                     custody=_RegistryCustody(
+ 3289                                         controlled_registry, 'controlled'))
+ 3290                         except _R07ConstructorFailure as error:
+ 3291                             raised.append(type(error).__name__)
+ 3292                     else:
+ 3293                         transport = StreamChannel(
+ 3294                             None, None, read_endpoint=read_endpoint,
+ 3295                             write_endpoint=write_endpoint,
+ 3296                             clock=controlled_clock,
+ 3297                             context=controlled_core.context,
+ 3298                             custody=_RegistryCustody(
+ 3299                                 controlled_registry, 'controlled'))
+ 3300                         transport.bind_deadline(4000.0)
+ 3301                         if checkpoint == 'CLOSE_FAILURE':
+ 3302                             # The close of the transport of the child
+ 3303                             # fails: the cleanup of the **other**
+ 3304                             # endpoint may never be skipped because of
+ 3305                             # it and the failure of the close is
+ 3306                             # **recorded**.
+ 3307                             def controlled_failing_close():
+ 3308                                 raise RuntimeError('controlled_close_failure')
+ 3309 
+ 3310                             transport.close = controlled_failing_close
+ 3311                 # The deliberate failure of the fixture of the test.
+ 3312                 if checkpoint == 'ORDINARY_ASSERTION':
+ 3313                     # An **ordinary** assertion of the group: it is a
+ 3314                     # real ``AssertionError`` of the test and it is
+ 3315                     # caught by its own type - never by a broad
+ 3316                     # ``Exception``.
+ 3317                     try:
+ 3318                         assert controlled_session.state == 'NOT_A_STATE', \
+ 3319                             'the controlled failure of the group is ordinary'
+ 3320                     except AssertionError as error:
+ 3321                         raised.append(type(error).__name__)
+ 3322                 elif checkpoint != 'CONSTRUCTOR_FAILURE':
+ 3323                     try:
+ 3324                         raise _R07Sentinel(checkpoint)
+ 3325                     except _R07Sentinel as error:
+ 3326                         raised.append(type(error).__name__)
+ 3327             finally:
+ 3328                 # The gates of the test are released
+ 3329                 # **unconditionally** and the owners of the round are
+ 3330                 # released with them.  The primitive of the round is
+ 3331                 # released first: the read that is really in flight
+ 3332                 # ends and no wait of the round stays behind.
+ 3333                 gate.set()
+ 3334                 controlled_api.frames_ready.set()
+ 3335                 try:
+ 3336                     # The close of the transport of the child runs in
+ 3337                     # its own ``finally``: a close that failed never
+ 3338                     # prevents the cleanup of the **other** endpoint and
+ 3339                     # every failure of a close is **recorded**.
+ 3340                     if transport is not None:
+ 3341                         try:
+ 3342                             transport.close()
+ 3343                         except Exception as error:  # noqa: BLE001
+ 3344                             close_failures.append(
+ 3345                                 {'owner': 'controlled:transport',
+ 3346                                  'type': type(error).__name__,
+ 3347                                  'detail': str(error)})
+ 3348                     for endpoint in (read_endpoint, write_endpoint):
+ 3349                         if endpoint is None:
+ 3350                             continue
+ 3351                         try:
+ 3352                             endpoint.close()
+ 3353                         except Exception as error:  # noqa: BLE001
+ 3354                             close_failures.append(
+ 3355                                 {'owner': getattr(endpoint, '_name',
+ 3356                                                   'endpoint'),
+ 3357                                  'type': type(error).__name__,
+ 3358                                  'detail': str(error)})
+ 3359                 finally:
+ 3360                     # The **returned** state of the product is captured
+ 3361                     # **before** the salvage of the fixture and the
+ 3362                     # proof of the cleanup is **run** while the failure
+ 3363                     # of the subcase is already unwinding.
+ 3364                     controlled_stop = _capture_stop(controlled_session)
+ 3365                     controlled_api.frames_ready.set()
+ 3366                     controlled_broker = getattr(controlled_session, 'broker',
+ 3367                                                 None)
+ 3368                     controlled_channel = getattr(controlled_broker, '_channel',
+ 3369                                                  None)
+ 3370                     owners, hints = _registry_owners(
+ 3371                         controlled_registry,
+ 3372                         session=controlled_session,
+ 3373                         channel=controlled_channel, prefix='controlled')
+ 3374                     salvage = _salvage_threads(owners, states=hints)
+ 3375                     proof = _prove_salvage(salvage, 'the controlled round')
+ 3376                     facts = {'checkpoint': checkpoint,
+ 3377                              'failure': raised[0] if raised else None,
+ 3378                              'gate_released': bool(gate.is_set()),
+ 3379                              'stop': controlled_stop,
+ 3380                              'close_failures': close_failures,
+ 3381                              'salvage': salvage,
+ 3382                              'proof_failure': proof,
+ 3383                              'registry': controlled_registry.facts()}
+ 3384                     write_phase('r07-controlled-failure-%s'
+ 3385                                 % checkpoint.lower(), facts)
+ 3386                     if proof is not None and sys.exc_info()[0] is None:
+ 3387                         raise AssertionError(proof)
+ 3388         finally:
+ 3389             controlled_api.frames_ready.set()
+ 3390         return facts
+ 3391 
+ 3392     controlled_results = {}
+ 3393     for checkpoint in ('PARENT_ADMISSION', 'CHILD_TRANSPORT',
+ 3394                        'ORDINARY_ASSERTION', 'CLOSE_FAILURE',
+ 3395                        'CONSTRUCTOR_FAILURE'):
+ 3396         controlled = controlled_failure(checkpoint)
+ 3397         controlled_results[checkpoint] = controlled
+ 3398         assert controlled['failure'] is not None, \
+ 3399             'the controlled failure of %s did not raise its failure' \
+ 3400             % checkpoint
+ 3401         assert controlled['gate_released'] is True, \
+ 3402             'the gate of the controlled failure of %s stayed blocked' \
+ 3403             % checkpoint
+ 3404         assert controlled['proof_failure'] is None, \
+ 3405             'the cleanup of the controlled failure of %s was not proved: %s' \
+ 3406             % (checkpoint, controlled['proof_failure'])
+ 3407         _assert_salvage_proved(controlled['salvage'],
+ 3408                                'the controlled failure of %s' % checkpoint)
+ 3409     # The close of the transport of the child that fails is **recorded**
+ 3410     # and it never prevented the cleanup of the other endpoint.
+ 3411     assert any(item['owner'] == 'controlled:transport'
+ 3412                for item in controlled_results['CLOSE_FAILURE']['close_failures']), \
+ 3413         'the failing close of the transport of the child was not recorded'
+ 3414 
+ 3415 # -- N10-R08: the retry of a cancellation re-reads the context ------------
+
+SOURCE v0_s3_native_broker.py.txt (physical one-based lines)
+
+ 4670         """Create and start one worker of this endpoint.
+ 4671 
+ 4672         The worker is registered with the endpoint **before** it is
+ 4673         started.  An endpoint that owns a worker only after the start
+ 4674         returned has no owner at all for a worker whose start did not
+ 4675         return, and the close of the endpoint could close the file
+ 4676         under a worker that is about to read from it.
+ 4677 
+ 4678         The wait for the handle of the thread of the worker is bounded
+ 4679         by the **current** remaining budget of the round.  It never
+ 4680         opens a budget of its own and it never waits a fixed number of
+ 4681         seconds.
+ 4682         """
+ 4683         worker = _WindowsPipeWorker(self._api, self._handle, kind=kind,
+ 4684                                     action=action, clock=self._clock,
+ 4685                                     context=self._context,
+ 4686                                     name='lvw-native-custody-pipe-' + kind)
+ 4687         # The pre-registration: the endpoint is the owner of the worker
+ 4688         # before the thread of the worker exists.
+ 4689         if kind == 'read':
+ 4690             self._reader = worker
+ 4691         else:
+ 4692             self._writer = worker
+ 4693         try:
+ 4694             worker.start()
+ 4695         except BaseException:
+ 4696             # The start of the worker did not return.  The worker keeps
+ 4697             # its owner and it may still come up: it is never forgotten
+ 4698             # and it is never closed under.
+ 4699             self._retained.append(worker)
+ 4700             self.facts['retained_workers'] = len(self._retained)
+ 4701             self.facts['worker_alive'] = True
+ 4702             raise
+ 4703         # The worker acquires the handle of its own thread before it may
+ 4704         # be used.  The wait for it is bounded by the remaining budget of
+ 4705         # the round.
+ 4706         worker.wait_ready(self._remaining(deadline))
+ 4707         return worker
+ 4708 
+ 4709     def _await(self, worker, request, deadline, cancel):
+ 4710         """Wait for the completion of one worker, bounded and cancellable.
+
+ 5020 
+ 5021         The state of the workers is **recomputed** on every close: a
+ 5022         worker that really ended and whose handle of its thread was
+ 5023         released is not retained any more, and a worker whose handle of
+ 5024         its thread could not be closed is retained again and it may be
+ 5025         released by a later close.  A closed file never locks the
+ 5026         recovery of the handle of a thread.
+ 5027         """
+ 5028         deadline = self._effective_deadline()
+ 5029         alive = False
+ 5030         retained = []
+ 5031         for worker in (self._reader, self._writer):
+ 5032             if worker is None:
+ 5033                 continue
+ 5034             worker.stop_accepting()
+ 5035             worker.request_cancel(deadline)
+ 5036             if not worker.join_bounded(self._remaining(deadline)):
+ 5037                 # The worker did not stop: it keeps its owner and the
+ 5038                 # file is never closed under it.
+ 5039                 alive = True
+ 5040                 retained.append(worker)
+ 5041                 continue
+ 5042             # The thread of the worker really ended: the original handle
+ 5043             # of the thread may be released now.  A handle that could
+ 5044             # not be closed keeps its owner and a later close may try it
+ 5045             # again.
+ 5046             if not worker.release_thread_handle():
+ 5047                 retained.append(worker)
+ 5048         # The state of the workers is **recomputed** on every close: a
+ 5049         # worker that really ended and whose handle of its thread was
+ 5050         # released is not retained any more.  A closed file never locks
+ 5051         # the recovery of the handle of a thread.
+ 5052         self._retained = retained
+ 5053         self.facts['retained_workers'] = len(self._retained)
+ 5054         self.facts['worker_alive'] = alive
+ 5055         self.facts['worker_thread_handle_released'] = all(
+ 5056             worker.thread_handle_released
+ 5057             for worker in (self._reader, self._writer) if worker is not None)
+ 5058         if alive:
+ 5059             # A live worker keeps the file: the file is never closed
+ 5060             # under a worker that is still inside its operation.
+ 5061             self.facts['closed'] = False
+ 5062             return self.facts
+ 5063         if self._closed:
+ 5064             self.facts['closed'] = True
+ 5065             self.facts['already_closed'] = True
+ 5066             return self.facts
+ 5067         try:
+ 5068             self._file.close()
+ 5069         except Exception as error:  # noqa: BLE001 - the failure stays visible
+ 5070             self.facts['closed'] = False
+ 5071             self.facts['error_type'] = type(error).__name__
+ 5072             return self.facts
+ 5073         self._closed = True
+ 5074         self.facts['closed'] = True
+ 5075         return self.facts
+
+ 5240         # The private state of the close of this channel: the identity
+ 5241         # of the close that is running now and the named fact of the
+ 5242         # cancellation that this close really initiated.
+ 5243         self._close_source = None
+ 5244         self._close_sequence = 0
+ 5245         self._close_cancellation = None
+ 5246         # The cancellation that arrived at the same moment as the
+ 5247         # failure of the reader: it is a parallel fact and it never
+ 5248         # replaces the failure.
+ 5249         self._parallel_cancellation = None
+ 5250         self.reader_alive = None
+ 5251         self.reader_finished = None
+ 5252         # The ONE context of the round.  The channel and its endpoints
+ 5253         # read the absolute deadline of the round from it and they never
+ 5254         # keep a budget of their own.
+ 5255         self._context = context
+ 5256         self._thread = threading.Thread(target=self._drain, daemon=True,
+ 5257                                         name='lvw-native-custody-channel')
+ 5258         # The channel registers itself with the custody of the launcher
+ 5259         # **before** it builds anything: a channel whose construction
+ 5260         # failed half way - an endpoint that could not be built, a
+ 5261         # reader thread that did not start - may not leave an endpoint
+ 5262         # and a thread without an owner.  The outer owner of the launch
+ 5263         # finds the partial channel through this registration and it
+ 5264         # never closes the files of the process by itself.
+ 5265         self._custody = custody
+ 5266         if custody is not None:
+ 5267             custody.retain('channel', self, 'constructing')
+ 5268         try:
+ 5269             self._reader = read_endpoint or _make_endpoint(
+ 5270                 reader, name + '-read', clock=clock, api=api, context=context)
+ 5271             # The parameter of the constructor is ``write_endpoint`` and
+ 5272             # the attribute of the channel is ``_writer``.  The two names
+ 5273             # are never mixed: a name that does not exist raises a
+ 5274             # ``NameError`` and every construction of a channel of this
+ 5275             # package fails with it.
+ 5276             self._writer = write_endpoint or _make_endpoint(
+ 5277                 writer, name + '-write', clock=clock, api=api, context=context)
+ 5278             self._thread.start()
+ 5279         except BaseException:
+ 5280             # The construction of the channel did not return: the
+ 5281             # channel keeps its owner in the custody of the launcher and
+ 5282             # it is never forgotten.
+ 5283             raise
+ 5284 
+ 5285     def bind_context(self, context):
+ 5286         """Bind the ONE context of the round to the channel.
+ 5287 
+ 5288         The context is bound to the channel **and** to its two
+
+SOURCE v0_s3_native_custody.py.txt (physical one-based lines)
+
+ 1410           thread keeps its owner and it may only clean up: it is never
+ 1411           taken for a thread that ended.
+ 1412         * ``RUNNING``   the thread started and it runs.
+ 1413         * ``FAILED``    the start of the thread raised.  The record says
+ 1414           whether the thread really runs anyway: a thread that runs
+ 1415           keeps the reference of the session and the round becomes
+ 1416           unknown, and a thread that never started is not a thread of
+ 1417           the round.
+ 1418         """
+ 1419         with self._background_lock:
+ 1420             if not self._background_open:
+ 1421                 self._failures.append('CUSTODY_BACKGROUND_START_REFUSED:' + kind)
+ 1422                 return False
+ 1423             record = {'kind': kind, 'thread': thread, 'state': 'STARTING',
+ 1424                       'started': False, 'error': None}
+ 1425             self._background_threads[kind] = record
+ 1426             setattr(self, '_' + kind, thread)
+ 1427             self._background_starting += 1
+ 1428         try:
+ 1429             thread.start()
+ 1430         except BaseException as error:  # noqa: BLE001 - the failure stays visible
+ 1431             alive = bool(getattr(thread, 'is_alive', lambda: False)())
+ 1432             ident = getattr(thread, 'ident', None)
+ 1433             with self._background_lock:
+ 1434                 record['error'] = error
+ 1435                 record['state'] = 'FAILED'
+ 1436                 record['started'] = bool(alive or ident is not None)
+ 1437                 self._background_starting -= 1
+ 1438                 self._background_cv.notify_all()
+ 1439             if record['started']:
+ 1440                 # The thread really runs: it keeps the reference of the
+ 1441                 # session and the round becomes unknown.  A thread that
+ 1442                 # runs is never taken for a thread that never started.
+ 1443                 self._failures.append('CUSTODY_BACKGROUND_START_FAILED:' + kind)
+ 1444                 self._latch_unknown_state()
+ 1445             else:
+ 1446                 # The thread never started: its reference is dropped and
+ 1447                 # its failure stays visible.
+ 1448                 with self._background_lock:
+ 1449                     if getattr(self, '_' + kind) is thread:
+ 1450                         setattr(self, '_' + kind, None)
+ 1451             raise
+ 1452         with self._background_lock:
+ 1453             record['state'] = 'RUNNING'
+ 1454             record['started'] = True
+ 1455             self._background_starting -= 1
+ 1456             self._background_cv.notify_all()
+ 1457         return True
+ 1458 
+ 1459     def _latch_unknown_state(self):
+ 1460         """Latch the unknown state of the round.  One way.
+ 1461 
+ 1462         The latch and the application of a state share **one** lock: a
+ 1463         reply that arrives late and the failure of a background thread
+ 1464         may never both believe that they are the first one.  The first
+ 1465         one latches the unknown state and every later one is refused.
+
+ 1520         stays unknown.  The original broker of the round keeps its
+ 1521         owner, so that the public stop of the round may coordinate it
+ 1522         again.
+ 1523         """
+ 1524         with self._close_lock:
+ 1525             if self._closer_started:
+ 1526                 return False
+ 1527             self._closer_started = True
+ 1528             self._closer_start_state = 'STARTING'
+ 1529         try:
+ 1530             thread = threading.Thread(target=self._closer_main, daemon=True,
+ 1531                                       name='lvw-native-custody-closer')
+ 1532             self._closer = thread
+ 1533             self._closer_threads.append(thread)
+ 1534             thread.start()
+ 1535         except BaseException as error:  # noqa: BLE001 - the failure stays visible
+ 1536             self._failures.append('CUSTODY_CLOSER_START_FAILED:'
+ 1537                                    + type(error).__name__)
+ 1538             self._latch_unknown_state()
+ 1539             with self._close_lock:
+ 1540                 # The latch of the closer is not permanent: a later
+ 1541                 # attempt may try again and the public stop of the round
+ 1542                 # is the recovery entry of the resources.
+ 1543                 self._closer_started = False
+ 1544                 unpublished = (self._close_state == 'IN_PROGRESS'
+ 1545                                and self._close_owner is None)
+ 1546                 if unpublished:
+ 1547                     self._close_state = 'FINISHED'
+ 1548             if unpublished:
+ 1549                 self._close_done.set()
+ 1550             return False
+ 1551         # The start of the closer returned: the thread of the closer
+ 1552         # really exists and it may be joined.
+ 1553         self._closer_start_state = 'RUNNING'
+ 1554         return True
+ 1555 
+ 1556     def _closer_main(self):
+ 1557         """The body of the closer of the round.
+ 1558 
+ 1559         The end of the **attempt** of the close and the end of the
+ 1560         **thread** that performs it are two different facts: the
+ 1561         evidence of the round carries both of them.
+ 1562         """
+ 1563         try:
+ 1564             self._close_broker()
+ 1565         finally:
