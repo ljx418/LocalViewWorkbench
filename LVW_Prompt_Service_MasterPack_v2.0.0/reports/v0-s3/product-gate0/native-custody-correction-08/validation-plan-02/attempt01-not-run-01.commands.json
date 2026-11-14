@@ -1,0 +1,91 @@
+{
+ "kind": "lvw.n1-correction-08-frozen-commands-not-run/1",
+ "label": "native-custody-correction-08-attempt01",
+ "plan": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-08/validation-plan-01/plan.json",
+ "plan_sha256": "8ebe597a526261396c27f26b270f22d04721f4c91f005bdfc6a4dfc373c077d4",
+ "candidate_sha": "66600a1bd692c0149fc7724b624997bf2f40dcc1",
+ "root_ack": "ACK_ONE_FROZEN_175_NODE_OFFLINE_BATCH",
+ "root_ack_message_id": "msg_ded054b81a83",
+ "root_ack_withdrawn_by": "msg_a161eaec16cc (the exact temporary counter is missing: the ACK was withdrawn before any valid batch began)",
+ "batches": 0,
+ "batch_state": "NOT_RUN",
+ "batch_state_reason": "The exact temporary counter of the frozen plan (/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json) and its directory do not exist.  The first outer read of the counter therefore cannot succeed and the counter cannot be read once before and once after the batch as the boundary requires.  The counter was NOT created, NOT written, NOT refunded, NOT reset, NOT replaced and no old grant was revived.  The root withdrew the ACK before any valid batch began and forbade the execution of the guarded batch.",
+ "commands": [
+  {
+   "label": "counter-before",
+   "argv": [
+    "/usr/bin/python3.12",
+    "-I",
+    "-B",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-08/validation-plan-01/outer_counter_read.py",
+    "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-08/attempt01/counter-before.json"
+   ],
+   "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+   "exit_code": "NOT_RUN",
+   "wall_seconds": null,
+   "stdout": null,
+   "stderr": null,
+   "state": "NOT_RUN: the counter file of the frozen argv does not exist and no observation of the counter was made"
+  },
+  {
+   "label": "guarded-validation",
+   "argv": [
+    "/usr/bin/python3.12",
+    "-I",
+    "-B",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-08/validation-plan-01/guard.py",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-08/validation-plan-01/runner.py",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-08/attempt01/native-custody-correction-08.guard.json"
+   ],
+   "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+   "exit_code": "NOT_RUN",
+   "wall_seconds": null,
+   "stdout": null,
+   "stderr": null,
+   "state": "NOT_RUN: the root withdrew the ACK before any valid batch began and forbade the execution of the guarded batch.  No pytest ran, no guard ran, no candidate was imported, collected or executed, no receipt was written and the attempt01 directory was NOT created."
+  },
+  {
+   "label": "counter-after",
+   "argv": [
+    "/usr/bin/python3.12",
+    "-I",
+    "-B",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-08/validation-plan-01/outer_counter_read.py",
+    "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-08/attempt01/counter-after.json"
+   ],
+   "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+   "exit_code": "NOT_RUN",
+   "wall_seconds": null,
+   "stdout": null,
+   "stderr": null,
+   "state": "NOT_RUN: the counter file of the frozen argv does not exist and no observation of the counter was made"
+  }
+ ],
+ "counter": {
+  "path": "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+  "expected_sha256": "acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98",
+  "observed": "MISSING",
+  "observed_by": "the read only stat of the exact path of the frozen argv; the root confirmed the same missing state",
+  "read": false,
+  "written_by_this_run": false,
+  "refunded_by_this_run": false,
+  "reset_by_this_run": false,
+  "new_counter_created": false,
+  "old_grant_revived": false
+ },
+ "candidate": {
+  "sha": "66600a1bd692c0149fc7724b624997bf2f40dcc1",
+  "imported": false,
+  "collected": false,
+  "executed": false,
+  "modified_by_this_attempt": false
+ },
+ "history_preserved": true,
+ "automatic_retry": false,
+ "rerun": false,
+ "stage_pass_claim": false,
+ "product_gate0": false,
+ "native_proven": false
+}
