@@ -36,6 +36,7 @@ Nothing in this module has ever run on Windows.  Every native claim of
 this package therefore stays ``NOT_PROVEN``: the Windows path is written
 from the documented behaviour of the API and it is not a measurement.
 """
+import collections
 import hashlib
 import json
 import math
@@ -227,6 +228,33 @@ class _RoundContext:
         if value is None:
             return None
         return max(0.0, value - self.clock())
+
+    def effective_deadline(self, call=None, bound=None):
+        """The ONE deadline that a call of a layer really uses.
+
+        The deadline of the call, the deadline that is bound to the
+        layer, the absolute deadline of the round and the **published**
+        cleanup deadline of the round are one value: the earliest of
+        the four.
+
+        The published cleanup deadline is part of it.  A round that
+        entered its cleanup publishes one deadline, and every layer that
+        reads the context afterwards is bound by it: a transport that
+        still waited with the long lease of the round would outlive the
+        only cleanup budget of the round.
+
+        The value is **recomputed on every call**: a deadline that was
+        published after the call started still shortens the call that is
+        running.
+        """
+        value = _require_deadline(call)
+        for candidate in (bound, self.absolute_deadline,
+                          self.cleanup_deadline_value()):
+            if candidate is None:
+                continue
+            if value is None or candidate < value:
+                value = candidate
+        return value
 
     # -- the one way latches ----------------------------------------------
     def request_cancel(self):
@@ -682,6 +710,22 @@ class WindowsApi:
     ERROR_NOT_FOUND = 1168
     DUPLICATE_SAME_ACCESS = 0x00000002
 
+    # -- the ownership states of one retained handle ----------------------
+    #: The façade still owns the handle and nobody else may take it.
+    API_OWNED = 'API_OWNED'
+    #: The recovery of the façade has **claimed** the handle and it is
+    #: preparing to close it.  A handover may not take it and a second
+    #: recovery may not claim it again while the claim is alive.
+    RECOVERY_CLAIMED = 'RECOVERY_CLAIMED'
+    #: The handover of the handle is running: the receiver registers it
+    #: and the façade forgets it in one atomic step.
+    TRANSFER_PENDING = 'TRANSFER_PENDING'
+    #: The handle was handed over to its new owner.  It is not in the
+    #: holding table any more and it is never closed by the recovery.
+    TRANSFERRED = 'TRANSFERRED'
+    #: The handle was closed with a confirmed close.
+    CLOSED = 'CLOSED'
+
     def __init__(self, table=None):
         """The typed façade of the Windows primitives.
 
@@ -721,12 +765,17 @@ class WindowsApi:
         self._handovers = []
         # The ONE deadline of the recovery of the façade.  It is
         # published once: a second recovery of the same round reuses
-        # the very same value and it never opens a new budget.
+        # the very same value and it never opens a new budget.  It may
+        # only be **shortened** by a context that arrived later.
         self._recovery_deadline = None
         # The absolute deadline of the round, when the façade is bound to
         # one.  Every wait of the façade is bounded by it: a wait that
         # does not fit into the deadline of the round never starts.
         self._deadline = None
+        # The ONE context of the round.  The façade reads the absolute
+        # deadline and the published cleanup deadline of the round from
+        # it and it never keeps a budget of its own.
+        self._context = None
         self._clock = time.monotonic
 
     def bind_deadline(self, deadline, clock=None):
@@ -746,6 +795,41 @@ class WindowsApi:
             self._deadline = value
         return self._deadline
 
+    def bind_context(self, context):
+        """Bind the ONE context of the round to this façade.
+
+        The façade reads the absolute deadline and the published
+        cleanup deadline of the round from the context and it never
+        keeps a budget of its own: a recovery that opened a fresh
+        budget of its own would outlive the round that it recovers.
+        """
+        if context is not None:
+            self._context = context
+        return self._context
+
+    def _effective_deadline(self, call=None):
+        """The ONE deadline that a wait of this façade really uses.
+
+        The deadline of the call, the deadline that is bound to the
+        façade, the absolute deadline of the round and the **published**
+        cleanup deadline of the round are one value: the earliest of
+        the four.  The value is recomputed on every call, so a deadline
+        that was published after the wait started still shortens it.
+        """
+        value = _require_deadline(call)
+        bound = self._deadline
+        if bound is not None and (value is None or bound < value):
+            value = bound
+        context = self._context
+        if context is not None:
+            absolute = context.absolute_deadline
+            if absolute is not None and (value is None or absolute < value):
+                value = absolute
+            cleanup = context.cleanup_deadline_value()
+            if cleanup is not None and (value is None or cleanup < value):
+                value = cleanup
+        return value
+
     def _wait_timeout_ms(self):
         """The milliseconds that are left until the bound deadline.
 
@@ -753,9 +837,10 @@ class WindowsApi:
         package.  A façade with one never waits longer than the deadline
         of the round allows.
         """
-        if self._deadline is None:
+        value = self._effective_deadline()
+        if value is None:
             return WAIT_MILLISECONDS
-        remaining = self._deadline - self._clock()
+        remaining = value - self._clock()
         if remaining <= 0:
             return 0
         return max(1, min(WAIT_MILLISECONDS, int(remaining * 1000)))
@@ -804,6 +889,7 @@ class WindowsApi:
                 self._retained_order.append(key)
             self._retained[key] = {'handle': handle, 'kind': kind, 'pid': pid,
                                    'stage': stage, 'owner': 'WINDOWS_API',
+                                   'state': self.API_OWNED,
                                    'failures': []}
             return self._retained[key]
 
@@ -863,35 +949,119 @@ class WindowsApi:
         is reading from.  A handle that left the façade before its
         receiver registered it would have no owner at all.
 
+        The handover and the recovery of the façade are **the same
+        ownership decision**.  A handle that the recovery has already
+        claimed is refused here: the recovery is preparing to close it
+        and a second owner may never appear.  A refused handle stays
+        with the façade and it is never registered with the receiver.
+
+        A registration that fails leaves the handle with the façade:
+        the state of the entry is restored and the handle is never
+        half registered and closed by two owners at the same time.
+
         ``entries`` is the list of ``(handle, kind)`` pairs and
         ``register`` receives it and registers every handle with the
         receiver.  The handover is recorded, so that the evidence of the
         round can name the owner that received the handle.
         """
         items = list(entries)
+        refused = []
         with self._table_lock:
-            register(items)
+            accepted = []
             for handle, kind in items:
+                entry = self._retained.get(id(handle))
+                if entry is not None and entry.get('state') == self.RECOVERY_CLAIMED:
+                    # The recovery of the façade owns this handle and it
+                    # is preparing to close it: the handover may not
+                    # take it and the receiver may never name it.
+                    refused.append((handle, kind))
+                    continue
+                if entry is not None:
+                    entry['state'] = self.TRANSFER_PENDING
+                accepted.append((handle, kind))
+            try:
+                register(accepted)
+            except BaseException:
+                # The receiver did not register the handles: they stay
+                # with the façade and their state is restored.  A half
+                # registered handle is never closed by two owners.
+                for handle, _kind in accepted:
+                    entry = self._retained.get(id(handle))
+                    if entry is not None:
+                        entry['state'] = self.API_OWNED
+                raise
+            for handle, kind in accepted:
+                entry = self._retained.get(id(handle))
+                if entry is not None:
+                    entry['state'] = self.TRANSFERRED
                 self._forget(handle)
                 self._handovers.append({'kind': kind, 'owner': owner,
                                         'handle_repr': repr(handle)})
-            return True
+        if refused:
+            raise BrokerError('BROKER_HANDOVER_CLAIMED',
+                              ','.join(repr(handle) for handle, _kind in refused))
+        return True
+
+    def _claim_entry(self, key):
+        """Claim one retained entry for the recovery of the façade.
+
+        The claim is **one atomic step** under the lock of the table:
+        an entry that another recovery already claimed is never claimed
+        a second time, and an entry that a handover took is never
+        claimed at all.  The claim does not hold the lock of the table
+        while it waits: the blocking primitive of the recovery runs
+        outside of the lock and the table stays usable.
+        """
+        with self._table_lock:
+            entry = self._retained.get(key)
+            if entry is None:
+                return None
+            if entry.get('state') != self.API_OWNED:
+                # The entry is claimed by a recovery that is running or
+                # it is in the middle of a handover: it is not the owner
+                # of this recovery.
+                return None
+            entry['state'] = self.RECOVERY_CLAIMED
+            return dict(entry)
+
+    def _release_claim(self, key):
+        """Give a claim back: a later recovery may claim the entry again."""
+        with self._table_lock:
+            entry = self._retained.get(key)
+            if entry is not None and entry.get('state') == self.RECOVERY_CLAIMED:
+                entry['state'] = self.API_OWNED
+
+    def _owns_claim(self, key):
+        """Whether the claim of this recovery is still the owner of the entry."""
+        with self._table_lock:
+            entry = self._retained.get(key)
+            if entry is None:
+                return False
+            return entry.get('state') == self.RECOVERY_CLAIMED
 
     def _recovery_timeout_ms(self):
         """The milliseconds that are left until the ONE recovery deadline.
 
         The deadline of the recovery is published **once**: a second
         recovery of the same round reuses the very same value and it
-        never opens a new budget of its own.  A wait of a recovery that
-        arrives after the deadline never starts.
+        never opens a new budget of its own.  It may only be **shortened**
+        by a context that arrived later: a recovery that re-read the
+        context of the round may not use the long lease of the round
+        after the round published its cleanup deadline.
+
+        A wait of a recovery that arrives after the deadline never
+        starts.
         """
         with self._table_lock:
+            current = self._effective_deadline()
             if self._recovery_deadline is None:
-                value = self._deadline
+                value = current
                 if value is None:
                     value = self._clock() + (WAIT_MILLISECONDS / 1000.0)
                 self._recovery_deadline = min(
                     value, self._clock() + (WAIT_MILLISECONDS / 1000.0))
+            elif current is not None and current < self._recovery_deadline:
+                self._recovery_deadline = current
             remaining = self._recovery_deadline - self._clock()
         if remaining <= 0:
             return 0
@@ -958,47 +1128,83 @@ class WindowsApi:
         reach it again: a later recovery that confirms the exit closes
         it and forgets it.  A close that succeeds is never a proof that
         the process ended.
+
+        The recovery and the handover are **one ownership decision**.
+        Every entry is **claimed** under the lock of the table before
+        the recovery touches it, and a claim that is alive keeps every
+        other recovery and every handover away from the entry.  The
+        blocking primitive of the recovery runs **outside** of the lock
+        of the table: the table is never held while the recovery waits.
+        The claim is verified again before the close: an entry that
+        changed its owner in the meantime is never closed.
         """
         report = []
         cancellations = []
         for key in list(self._retained_order):
-            entry = self._retained.get(key)
-            if entry is None:
+            claimed = self._claim_entry(key)
+            if claimed is None:
+                # The entry is not owned by this recovery: it is claimed
+                # by a recovery that is running or it was handed over.
+                # It is never closed here.
+                entry = self._retained.get(key)
+                if entry is None:
+                    continue
+                report.append({'kind': entry['kind'], 'pid': entry['pid'],
+                               'released': False,
+                               'failures': ['entry_not_claimed:' + str(
+                                   entry.get('state'))]})
                 continue
+            entry = claimed
             handle = entry['handle']
             failures = []
-            if entry['kind'] == 'process':
-                try:
-                    if not self._api.kernel32.TerminateProcess(handle, 1):
-                        failures.append('TerminateProcess:last_error=%d'
-                                        % self._last_error())
-                except (KeyboardInterrupt, SystemExit) as error:
-                    failures.append('TerminateProcess:CANCELLED')
-                    cancellations.append(error)
-                except Exception as error:  # noqa: BLE001 - the failure stays visible
-                    failures.append('TerminateProcess:' + type(error).__name__)
-                confirmed = self._confirm_process_exit(
-                    handle, failures, cancellations,
-                    timeout_ms=self._recovery_timeout_ms())
-                if not confirmed:
-                    # The process may still be alive: the control handle
-                    # stays with the façade and it is never closed under
-                    # a process that nobody may stop any more.
-                    failures.append('process_control_handle_retained:'
-                                    'exit_not_confirmed')
-                    self._note(handle, '|'.join(failures))
+            try:
+                if entry['kind'] == 'process':
+                    try:
+                        if not self._api.kernel32.TerminateProcess(handle, 1):
+                            failures.append('TerminateProcess:last_error=%d'
+                                            % self._last_error())
+                    except (KeyboardInterrupt, SystemExit) as error:
+                        failures.append('TerminateProcess:CANCELLED')
+                        cancellations.append(error)
+                    except Exception as error:  # noqa: BLE001 - the failure stays visible
+                        failures.append('TerminateProcess:' + type(error).__name__)
+                    confirmed = self._confirm_process_exit(
+                        handle, failures, cancellations,
+                        timeout_ms=self._recovery_timeout_ms())
+                    if not confirmed:
+                        # The process may still be alive: the control
+                        # handle stays with the façade and it is never
+                        # closed under a process that nobody may stop
+                        # any more.
+                        failures.append('process_control_handle_retained:'
+                                        'exit_not_confirmed')
+                        self._note(handle, '|'.join(failures))
+                        report.append({'kind': entry['kind'], 'pid': entry['pid'],
+                                       'released': False,
+                                       'failures': list(failures)})
+                        continue
+                # The claim is verified again before the close: an entry
+                # that changed its owner while the recovery waited is
+                # never closed by this recovery.
+                if not self._owns_claim(key):
+                    failures.append('entry_claim_lost:before_close')
                     report.append({'kind': entry['kind'], 'pid': entry['pid'],
                                    'released': False,
                                    'failures': list(failures)})
                     continue
-            if self._close_quietly(handle, failures, cancellations):
-                self._forget(handle)
-            else:
-                self._note(handle, '|'.join(failures))
-            report.append({'kind': entry['kind'], 'pid': entry['pid'],
-                           'released': not any(failure.startswith('CloseHandle')
-                                               for failure in failures),
-                           'failures': list(failures)})
+                if self._close_quietly(handle, failures, cancellations):
+                    self._forget(handle)
+                else:
+                    self._note(handle, '|'.join(failures))
+                report.append({'kind': entry['kind'], 'pid': entry['pid'],
+                               'released': not any(failure.startswith('CloseHandle')
+                                                   for failure in failures),
+                               'failures': list(failures)})
+            finally:
+                # A claim that did not end with a confirmed close is
+                # given back: a later recovery of the round may claim
+                # the entry again and it may confirm the exit.
+                self._release_claim(key)
         if cancellations:
             # The cancellation is raised after every safe step of the
             # recovery was executed.  It is never swallowed and it never
@@ -1768,9 +1974,23 @@ class _PendingResources:
         self._items = []
         self._lock = threading.RLock()
 
-    def add(self, handle, kind, *, role=None, owner=None):
+    def add(self, handle, kind, *, role=None, owner=None, owner_ref=None,
+            closeable=None):
+        """Enter one handle into the table of the round.
+
+        The ``closeable`` predicate is the **close eligibility** of the
+        handle.  It is asked by every close of the table and it is the
+        authority of the question "may this handle be closed now?": a
+        control handle of a process whose exit was not confirmed is
+        never closed, and the predicate is the **owner** of that fact
+        and not a name of it.
+
+        The ``owner_ref`` is the object of the owner of the handle: the
+        pending pass asks it before it closes the handle.
+        """
         item = {'handle': handle, 'kind': kind, 'role': role,
-                'owner': owner or 'PENDING', 'owner_ref': None}
+                'owner': owner or 'PENDING', 'owner_ref': owner_ref,
+                'closeable': closeable, 'closed': False}
         with self._lock:
             self._items.append(item)
         return item
@@ -1781,6 +2001,20 @@ class _PendingResources:
             for index, item in enumerate(self._items):
                 if item['handle'] == handle:
                     del self._items[index]
+                    return item
+        return None
+
+    def find(self, handle):
+        """The entry of one handle, without removing it from the table.
+
+        The entry carries the **owner** of the handle and its close
+        eligibility.  A close that is confirmed needs the owner of the
+        handle in order to notify it: a notification that names a copy
+        of the entry would notify nobody.
+        """
+        with self._lock:
+            for item in self._items:
+                if item['handle'] == handle:
                     return item
         return None
 
@@ -1835,6 +2069,14 @@ class _PendingResources:
         handle whose owner is still using it is never closed under it,
         whatever the branch that reached the pass did before.  The
         guard is asked about the owner and not about a name of an owner.
+
+        The **close eligibility** of a handle is asked here as well: a
+        handle that may not be closed yet - the control handle of a
+        process whose exit was not confirmed - is never closed by the
+        pass.  The eligibility comes from the **same** owner that the
+        release of the records asks: the pass may not decide the
+        question on its own and it may not close behind the back of the
+        owner of the handle.
         """
         remaining = []
         cancellations = []
@@ -1848,6 +2090,14 @@ class _PendingResources:
                 failures.append({'stage': 'close_pending', 'kind': item['kind'],
                                  'role': item['role'],
                                  'code': 'BROKER_PENDING_HANDLE_IN_USE'})
+                continue
+            if not self._is_closeable(item):
+                # The handle may not be closed yet: it keeps its owner
+                # and the round keeps the fact.
+                remaining.append(item)
+                failures.append({'stage': 'close_pending', 'kind': item['kind'],
+                                 'role': item['role'],
+                                 'code': 'BROKER_PENDING_CLOSE_NOT_ELIGIBLE'})
                 continue
             try:
                 self._win32.close_handle(item['handle'])
@@ -1876,6 +2126,22 @@ class _PendingResources:
         if cancellations:
             raise cancellations[0]
         return remaining
+
+    @staticmethod
+    def _is_closeable(item):
+        """Whether one pending handle may be closed now.
+
+        The predicate of the entry is the authority of the question.  A
+        predicate that cannot answer protects the handle: an unknown
+        fact is never a permission to close.
+        """
+        predicate = item.get('closeable')
+        if predicate is None:
+            return True
+        try:
+            return bool(predicate())
+        except Exception:  # noqa: BLE001 - the failure stays visible
+            return False
 
 
 # -- the core of the broker ------------------------------------------------
@@ -1907,6 +2173,16 @@ class BrokerCore:
         # deadline would be a layer with a deadline of its own.
         self.context = context if context is not None else _RoundContext(
             clock=self._clock, wall=self._wall)
+        # The façade of the primitives reads the absolute deadline and
+        # the published cleanup deadline of the round from the **same**
+        # context: a recovery of the façade may not open a budget of
+        # its own.
+        binder = getattr(self.win32, 'bind_context', None)
+        if callable(binder):
+            try:
+                binder(self.context)
+            except BaseException:  # noqa: BLE001 - the failure stays visible
+                pass
         self.state = 'NEW'
         self.job = None
         self.job_kill_on_close = False
@@ -2268,7 +2544,8 @@ class BrokerCore:
         # arrived is only cleaned up and it is never owned by nobody:
         # the lease of the round may end, the ownership of the handles
         # may not.
-        self._pending.add(created.process, 'process', role=name)
+        self._pending.add(created.process, 'process', role=name,
+                          closeable=self._process_closeable(record))
         self._pending.add(created.thread, 'thread', role=name)
         self._pending.transfer(created.process, 'CORE')
         self._pending.transfer(created.thread, 'CORE')
@@ -2412,6 +2689,22 @@ class BrokerCore:
                                           'stream': stream, 'owner': 'READER'})
         reader.start()
 
+    @staticmethod
+    def _process_closeable(record):
+        """Whether the control handle of a process may be closed now.
+
+        The control handle of a process is closed **only** when the exit
+        of that process was really confirmed.  The fact comes from the
+        **record** of the process and it is not a name of a state: a
+        process whose exit was not confirmed may still be alive and its
+        control handle is the only handle that may stop it.
+
+        The same predicate is asked by the release of the records and by
+        the pending pass of the round: the pending pass may not close
+        behind the back of the owner of the handle.
+        """
+        return bool(record.get('exited'))
+
     def _close_handle(self, kind, handle):
         """Close one owned handle and name a failure of the close.
 
@@ -2421,11 +2714,18 @@ class BrokerCore:
         handle that could not be closed stays pending: it is a resource
         that this round still owns and it is named.
 
+        A **confirmed** close is notified through the **one** notification
+        of the round: the job of the round, the records of the round, the
+        reader that owns the handle and the retained resources of the
+        round learn the very same fact, and every owner of a handle that
+        was really closed knows that it must never close it again.
+
         A **cancellation** in the middle of a close is never turned into
         an ordinary evidence: it is named and it is raised, so that the
         finalizer that follows it still runs and the cancellation
         continues to propagate after the cleanup.
         """
+        entry = self._pending.find(handle)
         try:
             self.win32.close_handle(handle)
         except BrokerError as error:
@@ -2442,9 +2742,10 @@ class BrokerCore:
                                   'error_type': type(error).__name__})
             return False
         self._pending.take(handle)
-        # The handle is really closed: it is not a retained resource of
-        # the round any more.
-        self._release_resource(kind, handle)
+        # The handle is really closed: every owner of it is notified
+        # through the one notification of the round.
+        self._note_closed_handle(entry if entry is not None
+                                 else {'handle': handle, 'kind': kind})
         return True
 
     def _close_readers(self):
@@ -2722,7 +3023,7 @@ class BrokerCore:
                                   'code': 'BROKER_PENDING_RESOURCES_RETAINED'})
 
     def _note_closed_handle(self, item):
-        """Learn that the pending pass really closed one handle.
+        """Learn that one handle was really closed.
 
         The bookkeeping of the core has to agree with the fact of the
         close: a handle that is closed may never be named by the job of
@@ -2730,9 +3031,15 @@ class BrokerCore:
         resources of the round.  Only the handle that was really closed
         is forgotten: a handle that could not be closed keeps its owner
         and it stays named.
+
+        The **owner object** of the handle is notified as well.  A
+        reader whose read end was closed by the pending pass learns that
+        the handle is gone: a later stop never closes the same original
+        handle a second time and it never closes a handle that the
+        operating system may have reused in the meantime.
         """
         handle = item['handle']
-        kind = item['kind']
+        kind = item.get('kind')
         if self.job is handle:
             self.job = None
             self.job_closed = True
@@ -2743,6 +3050,16 @@ class BrokerCore:
             if record.get('thread_handle') is handle:
                 record['thread_handle_closed'] = True
                 record['thread_handle'] = None
+        owner = item.get('owner_ref')
+        if owner is not None and getattr(owner, 'handle', None) is handle:
+            # The owner of the handle learns that it is closed.  The
+            # handle of the owner is the **original** handle and it is
+            # never closed twice.
+            try:
+                owner.handle = None
+                owner.closed = True
+            except Exception:  # noqa: BLE001 - the failure stays visible
+                pass
         self._release_resource(kind, handle)
 
     def _terminate_the_job(self):
@@ -2843,6 +3160,20 @@ class BrokerCore:
         it is never closed a second time.  A handle that could not be
         closed keeps its original reference and its owner.
 
+        The **control handle of a process** is closed **only** when the
+        exit of that process was really confirmed.  A process whose exit
+        was not confirmed - a suspended child that was never assigned to
+        the job of the round, a process whose wait timed out or whose
+        wait failed - may still be alive, and its control handle is the
+        only handle that may stop it.  The handle therefore stays with
+        the record of the process and with the pending table of the
+        round, and the same owner may confirm the exit and close it
+        later, inside the same cleanup deadline of the round.
+
+        The thread handle and the pipe handles are independent of the
+        exit of the process: they are closed on their own and they never
+        wait for the process.
+
         Every handle of every record is closed on its own: a failure of
         one of them never skips the handles that follow it, and a
         cancellation is raised after every handle was coordinated.
@@ -2853,6 +3184,19 @@ class BrokerCore:
                               ('process_handle', 'process')):
                 handle = record.get(key)
                 if handle is None:
+                    continue
+                if kind == 'process' and not self._process_closeable(record):
+                    # The exit of the process was not confirmed: the
+                    # control handle stays with its owner and the round
+                    # keeps the fact.  The handle is never closed under
+                    # a process that nobody may stop any more.
+                    record[kind + '_handle_closed'] = False
+                    self._retain_resource(
+                        kind, handle, 'BROKER_PROCESS_EXIT_NOT_CONFIRMED')
+                    self.failures.append({'stage': 'close_handle',
+                                          'kind': kind,
+                                          'role': record.get('role'),
+                                          'code': 'BROKER_PROCESS_EXIT_NOT_CONFIRMED'})
                     continue
                 try:
                     closed = self._close_handle(kind, handle)
@@ -3323,7 +3667,8 @@ class _WindowsPipeWorker(threading.Thread):
 
     STATES = ('IDLE', 'QUEUED', 'IN_IO', 'CANCELLING', 'DONE', 'STOPPED')
 
-    def __init__(self, api, handle, *, kind, action, name, clock=None):
+    def __init__(self, api, handle, *, kind, action, name, clock=None,
+                 context=None):
         super().__init__(daemon=True, name=name)
         self.api = api
         self.handle = handle
@@ -3341,6 +3686,11 @@ class _WindowsPipeWorker(threading.Thread):
         self.ready = threading.Event()
         self.result = None
         self.error = None
+        # The **original** error object of the last request.  The code
+        # of the error is a name; the object is the failure.  It is kept
+        # so that the endpoint may raise the very object that the
+        # primitive raised instead of a copy of its name.
+        self._error_object = None
         self.thread_handle = None
         self.thread_handle_released = False
         self.joined = False
@@ -3352,6 +3702,34 @@ class _WindowsPipeWorker(threading.Thread):
         self._condition = threading.Condition()
         self._submitted = 0
         self._completed = 0
+        # The generations of the requests that were handed over, in the
+        # order in which they were handed over.  The worker takes the
+        # request and its generation together: a worker that would read
+        # the number of the submissions would name the generation of a
+        # later request.
+        self._generations = collections.deque()
+        # The **outcome of every generation**.  The outcome carries the
+        # result, the error, the **original error object**, the source
+        # of the failure and the order of the completion.  A result
+        # that was really published is never replaced by a later one and
+        # a cancellation never rewrites the outcome of a generation.
+        self._outcomes = {}
+        # The explicit notification that a **failure** of a generation
+        # was really published.  It is set under the lock of the worker
+        # and it is set **after** the outcome was recorded: an owner
+        # that waits for it knows that the failure of the round is
+        # published and that a later cancellation may not replace it.
+        self.outcome_published = threading.Event()
+        # The order of the events of this worker.  Every completion and
+        # every cancellation takes a number of it, under the lock of the
+        # worker: the number tells whether a failure was published
+        # **before** the cancellation of the round or after it.
+        self._sequence = 0
+        self._cancel_sequence = None
+        # The ONE context of the round.  The worker reads the absolute
+        # deadline and the published cleanup deadline of the round from
+        # it and it never keeps a budget of its own.
+        self._context = context
         # The flag of the cancellation.  It stops the worker from
         # accepting a new task before the cancellation is requested.
         self._cancelled = False
@@ -3390,8 +3768,12 @@ class _WindowsPipeWorker(threading.Thread):
                     request = self._requests.get(timeout=0.1)
                 except queue.Empty:
                     continue
+                with self._condition:
+                    generation = (self._generations.popleft()
+                                  if self._generations else self._submitted)
                 self.error = None
                 self.result = None
+                self._error_object = None
                 # The check of the cancellation and the publication of
                 # the intent to enter the operation are **one** atomic
                 # step under the lock of the worker.  A cancellation
@@ -3408,17 +3790,19 @@ class _WindowsPipeWorker(threading.Thread):
                     # The cancellation reached the worker before the
                     # operation started: the operation is not performed
                     # at all and the request is answered as finished.
-                    self._complete()
+                    self._complete(generation)
                     continue
                 try:
                     self.result = self.action(request)
                 except BrokerError as error:
                     self.error = error.code
+                    self._error_object = error
                 except Exception as error:  # noqa: BLE001 - the failure stays visible
                     self.error = type(error).__name__
+                    self._error_object = error
                 finally:
                     self.inside.clear()
-                    self._complete()
+                    self._complete(generation)
         finally:
             self.state = 'STOPPED'
             self.stopped.set()
@@ -3426,13 +3810,92 @@ class _WindowsPipeWorker(threading.Thread):
             # thread and it closes it here, when its thread really ended.
             self.release_thread_handle()
 
-    def _complete(self):
-        """Report the real completion of the current request."""
+    def _complete(self, generation=None):
+        """Report the real completion of the current request.
+
+        The outcome of the generation is **recorded** here, under the
+        lock of the worker: the result, the code of the error, the
+        **original error object** and the order of the completion.  The
+        record is the history of the request and it is never replaced
+        by a later one.
+
+        The order of the completion is the order of the events of the
+        worker: it tells whether a failure was published **before** the
+        cancellation of the round or after it.  A failure that was
+        published before the cancellation is a fault of the round and it
+        stays the first error; a failure that was published after the
+        cancellation is the consequence of the cancellation.
+        """
         with self._condition:
             self._completed += 1
+            self._sequence += 1
+            if generation is not None:
+                record = {
+                    'generation': generation,
+                    'result': self.result,
+                    'error': self.error,
+                    'error_object': self._error_object,
+                    'source': 'WORKER',
+                    'sequence': self._sequence,
+                    'cancel_sequence': self._cancel_sequence,
+                }
+                self._outcomes[generation] = record
+                if record['error'] is not None:
+                    # The failure of this generation is published: a
+                    # later cancellation of the round may not replace
+                    # it.
+                    self.outcome_published.set()
             self._condition.notify_all()
         self.done.set()
         self.state = 'DONE'
+
+    def outcome(self, generation):
+        """The recorded outcome of one generation of this worker.
+
+        The outcome is the **original** outcome of the request: the
+        result, the error and the error object of the request that
+        really ran.  It is ``None`` when the request did not complete.
+        """
+        with self._condition:
+            record = self._outcomes.get(generation)
+            return dict(record) if record is not None else None
+
+    def published_before_cancel(self, generation):
+        """Whether the outcome of this generation was published first.
+
+        The comparison of the two orders is the only proof that a
+        failure of the round happened **before** the cancellation of the
+        round.  A cancellation that was requested first may not rewrite
+        the failure of a request that was still running, and a failure
+        that was published first may never be replaced by a
+        cancellation.
+
+        A worker that was never cancelled proves the order by itself:
+        the failure was published before any cancellation of it.
+        """
+        with self._condition:
+            record = self._outcomes.get(generation)
+            if record is None or record.get('error') is None:
+                return False
+            if self._cancel_sequence is None:
+                return True
+            return record['sequence'] < self._cancel_sequence
+
+    def _request_cancellation(self):
+        """Take the order of the cancellation of this worker.
+
+        The order is taken under the lock of the worker, so that the
+        comparison with the order of a completion is a real order and
+        not a guess of the scheduler.
+        """
+        with self._condition:
+            self._cancelled = True
+            if self._cancel_sequence is None:
+                self._sequence += 1
+                self._cancel_sequence = self._sequence
+            self.state = 'CANCELLING'
+            self._condition.notify_all()
+        self._stop_event.set()
 
     def wait_ready(self, seconds):
         """Wait for the worker to have acquired the handle of its thread."""
@@ -3469,10 +3932,18 @@ class _WindowsPipeWorker(threading.Thread):
                 raise BrokerError('BROKER_WORKER_CANCELLED', self.kind)
             self._submitted += 1
             generation = self._submitted
+            # The generation travels with the request: the worker takes
+            # the request and the generation of **that** request.  The
+            # generation is registered **before** the request is handed
+            # over: a worker that takes the request never finds an
+            # empty list of generations.
+            self._generations.append(generation)
             try:
                 self._requests.put(request, timeout=POLL_SLICE_SECONDS)
             except queue.Full:
                 self._submitted -= 1
+                if self._generations and self._generations[-1] == generation:
+                    self._generations.pop()
                 self._condition.notify_all()
                 raise BrokerError('BROKER_WORKER_QUEUE_FULL', self.kind)
             self.done.clear()
@@ -3509,23 +3980,26 @@ class _WindowsPipeWorker(threading.Thread):
         The completion of an **older** generation never releases the
         retry: the real completion of the request of this generation is
         the number of the completed requests.
+
+        The deadline of the retry is **recomputed on every round** of
+        the loop: a deadline that was published after the retry started
+        still shortens it, and the pause of the retry is cropped to the
+        time that is really left.  A retry that used the number of the
+        deadline that it found when it started would wait longer than
+        the round allows.
         """
-        with self._condition:
-            self._cancelled = True
-            self.state = 'CANCELLING'
-            self._condition.notify_all()
-        # The worker is driven to its end: it stops waiting for a
-        # request and it leaves the operation that it is inside as soon
-        # as the cancellation of the operating system arrived.
-        self._stop_event.set()
+        self._request_cancellation()
         if self.thread_handle is None:
             return 'NO_HANDLE'
-        if deadline is None:
+        # The bound of the retry is fixed **once**: a retry that used a
+        # deadline that moved with every round would never expire.
+        bound = self._effective_deadline(deadline)
+        if bound is None:
             # The retry of a cancellation is **always** bounded: a
             # worker that never ends may not hold the caller for ever.
-            # The bound of the package is used only when the caller did
-            # not bring a deadline of the round.
-            deadline = self._clock() + CLOSE_JOIN_SECONDS
+            # The bound of the package is used only when neither the
+            # caller nor the context of the round brought a deadline.
+            bound = self._clock() + CLOSE_JOIN_SECONDS
         while True:
             try:
                 state = self.api.cancel_synchronous_io(self.thread_handle)
@@ -3545,12 +4019,43 @@ class _WindowsPipeWorker(threading.Thread):
                 completed = self._completed >= self._submitted
             if completed or self.stopped.is_set():
                 return 'NOT_FOUND'
-            if deadline is not None and self._clock() >= deadline:
+            # The deadline of this round of the retry is read **again**
+            # from the call and from the context of the round: a
+            # deadline that was published after the retry started still
+            # shortens the retry that is running.
+            effective = self._effective_deadline(deadline)
+            if effective is None or bound < effective:
+                effective = bound
+            if self._clock() >= effective:
                 return 'NOT_FOUND'
             # The pause of the retry is its own event: the stop event of
             # the worker was set by this very method and it may never be
-            # used as the sleep of the retry.
-            self._pause.wait(POLL_SLICE_SECONDS)
+            # used as the sleep of the retry.  The pause is cropped to
+            # the time that is really left.
+            pause = POLL_SLICE_SECONDS
+            if effective is not None:
+                pause = max(0.0, min(pause, effective - self._clock()))
+            if pause <= 0:
+                return 'NOT_FOUND'
+            self._pause.wait(pause)
+
+    def _effective_deadline(self, call=None):
+        """The ONE deadline that a wait of this worker really uses.
+
+        The deadline of the call, the absolute deadline of the round and
+        the **published** cleanup deadline of the round are one value:
+        the earliest of them.  The value is recomputed on every call.
+        """
+        value = _require_deadline(call)
+        context = self._context
+        if context is not None:
+            absolute = context.absolute_deadline
+            if absolute is not None and (value is None or absolute < value):
+                value = absolute
+            cleanup = context.cleanup_deadline_value()
+            if cleanup is not None and (value is None or cleanup < value):
+                value = cleanup
+        return value
 
     def stop(self):
         """Ask the worker to end its loop."""
@@ -3562,10 +4067,12 @@ class _WindowsPipeWorker(threading.Thread):
         The flag is written under the **same** lock that the worker of
         the endpoint reads it under: the cancellation and the intent to
         enter the operation are one atomic step.
+
+        The **order** of the cancellation is taken here as well: a
+        failure that was published before this call is a fault of the
+        round and a cancellation may never replace it.
         """
-        with self._condition:
-            self._cancelled = True
-        self._stop_event.set()
+        self._request_cancellation()
 
     def release_thread_handle(self):
         """Close the handle of the thread of this worker.
@@ -3666,6 +4173,10 @@ class _WindowsPipeEndpoint:
         self._deadline = None
         self._write_cancel = None
         self._write_deadline = None
+        # The lock of the **admission** of the endpoint.  The check of
+        # the cancel flag, of the deadline of the round and the entry of
+        # the request into the worker are one atomic step under it.
+        self._admission_lock = threading.RLock()
         # The ONE context of the round.  The endpoint reads the absolute
         # deadline of the round from it and it never keeps a budget of
         # its own.
@@ -3700,10 +4211,16 @@ class _WindowsPipeEndpoint:
         """The deadline that this call really uses.
 
         The deadline of the call, the deadline that is bound to the
-        endpoint and the absolute deadline of the round are **one**
-        value: the earliest of the three.  The endpoint never keeps a
-        deadline of its own and it never treats a missing context as an
-        unlimited budget.
+        endpoint, the absolute deadline of the round and the **published**
+        cleanup deadline of the round are **one** value: the earliest of
+        the four.  The endpoint never keeps a deadline of its own and it
+        never treats a missing context as an unlimited budget.
+
+        The published cleanup deadline is part of it: a round that
+        entered its cleanup publishes one deadline and the endpoint
+        that reads the context afterwards is bound by it.  An endpoint
+        that still waited with the long lease of the round would
+        outlive the only cleanup budget of the round.
         """
         value = _require_deadline(deadline)
         bound = self._deadline
@@ -3714,7 +4231,39 @@ class _WindowsPipeEndpoint:
             absolute = context.absolute_deadline
             if absolute is not None and (value is None or absolute < value):
                 value = absolute
+            cleanup = context.cleanup_deadline_value()
+            if cleanup is not None and (value is None or cleanup < value):
+                value = cleanup
         return value
+
+    def _admission(self, deadline=None, cancel=None):
+        """The admission of one generation of this endpoint.
+
+        The admission is asked **before** every side effect: before the
+        worker of the endpoint is started, before a request is
+        submitted and before the primitive is called.  A call that
+        entered when the round was already expired or already cancelled
+        is refused there: it never starts a worker, it never submits a
+        request and it never calls the primitive.
+
+        The check and the admission of the generation are **one atomic
+        step** under the lock of the endpoint: a cancellation that
+        arrives between the check and the submit may not be answered by
+        a request that was submitted anyway.
+        """
+        effective = self._effective_deadline(deadline)
+        with self._admission_lock:
+            if cancel is not None and cancel.is_set():
+                # The cancellation of the round arrived first: the
+                # request is refused and no side effect happens.
+                raise _cancel_source_error(
+                    BrokerError('BROKER_PIPE_CANCELLED', self._name), cancel)
+            context = self._context
+            if context is not None and context.cancel.is_set():
+                raise BrokerError('BROKER_PIPE_CANCELLED', self._name)
+            if effective is not None and self._clock() >= effective:
+                raise BrokerError('BROKER_PIPE_TIMEOUT', self._name)
+            return effective
 
     def _remaining(self, deadline=None):
         """The seconds that are left until the deadline of this endpoint."""
@@ -3739,6 +4288,7 @@ class _WindowsPipeEndpoint:
         """
         worker = _WindowsPipeWorker(self._api, self._handle, kind=kind,
                                     action=action, clock=self._clock,
+                                    context=self._context,
                                     name='lvw-native-custody-pipe-' + kind)
         # The pre-registration: the endpoint is the owner of the worker
         # before the thread of the worker exists.
@@ -3770,25 +4320,99 @@ class _WindowsPipeEndpoint:
         tightens the wait that is running.  A wait that carries no
         deadline yet observes the deadline as soon as it is bound, and
         the cancel flag ends it in the meantime.
+
+        The **result of the generation** wins over the cancellation.
+        A fault that the worker really published before the
+        cancellation of the round is the first error of the round: the
+        cancellation of a later close may not replace it and it may not
+        turn it into a benign cancellation.  The order of the two facts
+        is the order of the events of the worker and it is never a guess
+        of the scheduler.
         """
         generation = worker.submit(request)
         while True:
             effective = self._effective_deadline(deadline)
             if cancel is not None and cancel.is_set():
-                self._cancel(worker, effective)
-                # The error carries the owner of the flag: the origin
-                # of the cancellation is named at the place where the
-                # error is really raised and never by a caller of it.
-                raise _cancel_source_error(
-                    BrokerError('BROKER_PIPE_CANCELLED', self._name), cancel)
+                self._raise_cancellation(worker, generation, effective, cancel)
             if effective is not None and self._clock() >= effective:
                 self._cancel(worker, effective)
                 raise BrokerError('BROKER_PIPE_TIMEOUT', self._name)
             if worker.wait_done(generation, POLL_SLICE_SECONDS):
                 break
+        outcome = worker.outcome(generation)
+        if outcome is not None and outcome.get('error') is not None:
+            raise self._outcome_error(outcome)
         if worker.error:
             raise BrokerError(worker.error, self._name)
         return worker.result
+
+    @staticmethod
+    def _outcome_error(outcome):
+        """The error of one published outcome of a worker.
+
+        The **original** error object is raised when the worker kept
+        it: the object is the failure and the code is only its name.  A
+        worker that kept only a code raises the stable code of the
+        broker.
+        """
+        original = outcome.get('error_object')
+        if original is not None:
+            return original
+        return BrokerError(outcome.get('error'), 'WORKER_OUTCOME')
+
+    def _raise_cancellation(self, worker, generation, effective, cancel):
+        """Raise the cancellation of this generation of the worker.
+
+        The outcome of the generation is asked **before** the worker is
+        cancelled and it is asked again after the worker really stopped.
+        A failure of this generation is the **first error** of the
+        round: a cancellation that arrives afterwards may never replace
+        it and it may never turn it into a benign cancellation.  The
+        cancellation stays a **parallel** fact and it is named next to
+        the failure.
+
+        The error of the cancellation carries the owner of the flag: the
+        origin of the cancellation is named at the place where the error
+        is really raised and never by a caller of it.
+        """
+        outcome = worker.outcome(generation)
+        if outcome is not None and outcome.get('error') is not None:
+            raise self._parallel_fault(outcome, cancel)
+        self._cancel(worker, effective)
+        outcome = worker.outcome(generation)
+        if outcome is not None and outcome.get('error') is not None:
+            raise self._parallel_fault(outcome, cancel)
+        raise _cancel_source_error(
+            BrokerError('BROKER_PIPE_CANCELLED', self._name), cancel)
+
+    @staticmethod
+    def _parallel_fault(outcome, cancel):
+        """The failure of a generation with the cancellation beside it.
+
+        The failure is the error of the round.  The cancellation that
+        was requested at the same moment is a **parallel** fact: it is
+        named next to the failure and it never replaces it.
+        """
+        error = _WindowsPipeEndpoint._outcome_error(outcome)
+        if cancel is not None and cancel.is_set():
+            source = None
+            owner = getattr(cancel, 'owner', None)
+            if callable(owner):
+                try:
+                    source = getattr(owner(), 'owner', None)
+                except Exception:  # noqa: BLE001 - the failure stays visible
+                    source = None
+            try:
+                error.lvw_parallel_cancellation = {
+                    'code': 'BROKER_PIPE_CANCELLED',
+                    'source': source,
+                    'generation': outcome.get('generation'),
+                    'sequence': outcome.get('sequence'),
+                    'cancel_sequence': outcome.get('cancel_sequence'),
+                }
+            except Exception:  # noqa: BLE001 - the failure stays visible
+                pass
+        return error
 
     def _cancel(self, worker, deadline=None):
         """Cancel one worker and prove that it really stopped."""
@@ -3808,22 +4432,36 @@ class _WindowsPipeEndpoint:
             raise BrokerError('BROKER_PIPE_CANCEL_NOT_CONFIRMED', self._name)
 
     def read(self, deadline=None, cancel=None):
-        """Read one block of the pipe, bounded by the deadline."""
+        """Read one block of the pipe, bounded by the deadline.
+
+        The admission of the generation is asked **before** the worker is
+        started and before the request is submitted: a read that enters
+        when the round is already expired or already cancelled performs
+        **no** primitive call at all.
+        """
+        effective = self._admission(deadline, cancel)
         if self._reader is None:
-            self._start('read', self._read_block, deadline)
+            self._start('read', self._read_block, effective)
         return self._await(self._reader, None, deadline, cancel)
 
     def write(self, data, deadline=None, cancel=None):
-        """Write the whole block, bounded by the deadline."""
+        """Write the whole block, bounded by the deadline.
+
+        The admission of the generation is asked **before** the worker is
+        started and before the request is submitted: a write that enters
+        when the round is already expired or already cancelled performs
+        **no** primitive call at all.
+        """
+        effective = self._admission(deadline, cancel)
         if self._writer is None:
-            self._start('write', self._write_block, deadline)
+            self._start('write', self._write_block, effective)
         # The cancel flag and the deadline of this write are published
         # for the partial write: every segment of a partial write checks
         # the cancel flag and the deadline of the round.  They are not
         # cleared when the write ends: a segment that is still in flight
         # inside the worker has to observe the cancel of this write.
         self._write_cancel = cancel
-        self._write_deadline = self._effective_deadline(deadline)
+        self._write_deadline = effective
         return self._await(self._writer, bytes(data), deadline, cancel)
 
     def _read_block(self, request):
@@ -3837,6 +4475,10 @@ class _WindowsPipeEndpoint:
         started would let the write continue past a deadline that the
         round published in the meantime, and the shared context of the
         round is the only authority of the deadline.
+
+        The **published cleanup deadline** is part of it: a write that
+        is still running when the round entered its cleanup is bounded by
+        the cleanup budget of the round and not by the long lease.
         """
         value = self._write_deadline
         bound = self._deadline
@@ -3847,6 +4489,9 @@ class _WindowsPipeEndpoint:
             absolute = context.absolute_deadline
             if absolute is not None and (value is None or absolute < value):
                 value = absolute
+            cleanup = context.cleanup_deadline_value()
+            if cleanup is not None and (value is None or cleanup < value):
+                value = cleanup
         return value
 
     def _write_block(self, request):
@@ -4085,17 +4730,12 @@ class StreamChannel:
                  max_frame_bytes=MAX_FRAME_BYTES, name='channel',
                  read_endpoint=None, write_endpoint=None, clock=None, api=None,
                  context=None, custody=None):
-        self._reader = read_endpoint or _make_endpoint(reader, name + '-read',
-                                                       clock=clock, api=api,
-                                                       context=context)
-        self._writer = write_endpoint or _make_endpoint(writer, name + '-write',
-                                                        clock=clock, api=api,
-                                                        context=context)
         self._queue = queue.Queue(maxsize=max_frames)
         self._max_frames = max_frames
         self._max_frame_bytes = max_frame_bytes
         self._count = 0
         self._overflow = False
+        self._overflow_facts = {}
         self._eof = False
         self._error = None
         self._buffer = b''
@@ -4112,6 +4752,10 @@ class StreamChannel:
         self._close_source = None
         self._close_sequence = 0
         self._close_cancellation = None
+        # The cancellation that arrived at the same moment as the
+        # failure of the reader: it is a parallel fact and it never
+        # replaces the failure.
+        self._parallel_cancellation = None
         self.reader_alive = None
         self.reader_finished = None
         # The ONE context of the round.  The channel and its endpoints
@@ -4121,21 +4765,26 @@ class StreamChannel:
         self._thread = threading.Thread(target=self._drain, daemon=True,
                                         name='lvw-native-custody-channel')
         # The channel registers itself with the custody of the launcher
-        # **before** its reader thread starts: a channel whose
-        # construction failed half way may not leave an endpoint and a
-        # thread without an owner.
+        # **before** it builds anything: a channel whose construction
+        # failed half way - an endpoint that could not be built, a
+        # reader thread that did not start - may not leave an endpoint
+        # and a thread without an owner.  The outer owner of the launch
+        # finds the partial channel through this registration and it
+        # never closes the files of the process by itself.
         self._custody = custody
         if custody is not None:
             custody.retain('channel', self, 'constructing')
         try:
+            self._reader = read_endpoint or _make_endpoint(
+                reader, name + '-read', clock=clock, api=api, context=context)
+            self._writer = writer_endpoint or _make_endpoint(
+                writer, name + '-write', clock=clock, api=api, context=context)
             self._thread.start()
         except BaseException:
-            # The start of the reader of the channel did not return: the
+            # The construction of the channel did not return: the
             # channel keeps its owner in the custody of the launcher and
             # it is never forgotten.
             raise
-        if custody is not None:
-            custody.forget(self)
 
     def bind_context(self, context):
         """Bind the ONE context of the round to the channel.
@@ -4175,9 +4824,38 @@ class StreamChannel:
                     pass
         return value
 
+    def _effective_deadline(self, deadline=None):
+        """The ONE deadline that a call of this channel really uses.
+
+        The deadline of the call, the deadline that is bound to the
+        channel, the absolute deadline of the round and the **published**
+        cleanup deadline of the round are one value: the earliest of the
+        four.
+
+        The published cleanup deadline is part of it.  A round that
+        entered its cleanup publishes one deadline, and the transport of
+        the round - the write of the terminal reply and the close of the
+        channel - is bound by it: a transport that still waited with the
+        long lease of the round would outlive the only cleanup budget
+        of the round.
+        """
+        value = _require_deadline(deadline)
+        bound = self._deadline
+        if bound is not None and (value is None or bound < value):
+            value = bound
+        context = self._context
+        if context is not None:
+            absolute = context.absolute_deadline
+            if absolute is not None and (value is None or absolute < value):
+                value = absolute
+            cleanup = context.cleanup_deadline_value()
+            if cleanup is not None and (value is None or cleanup < value):
+                value = cleanup
+        return value
+
     def _remaining(self, deadline=None):
         """The seconds that are left until the deadline of the channel."""
-        value = self._deadline if deadline is None else deadline
+        value = self._effective_deadline(deadline)
         if value is None:
             return None
         return max(0.0, value - (self._clock or time.monotonic)())
@@ -4197,11 +4875,15 @@ class StreamChannel:
                     raw = buffer[:index + 1]
                     buffer = buffer[index + 1:]
                     if len(raw) > self._max_frame_bytes:
-                        self._overflow = True
+                        self._record_overflow('FRAME_TOO_LARGE',
+                                              {'frame_bytes': len(raw),
+                                               'limit': self._max_frame_bytes})
                         return
                     self._count += 1
                     if self._count > self._max_frames:
-                        self._overflow = True
+                        self._record_overflow('TOO_MANY_FRAMES',
+                                              {'frames': self._count,
+                                               'limit': self._max_frames})
                         return
                     while True:
                         self._check_wait()
@@ -4219,7 +4901,9 @@ class StreamChannel:
                 # detected and not silently trimmed.
                 if len(buffer) > self._max_frame_bytes:
                     self._buffer = buffer[:self._max_frame_bytes + 1]
-                    self._overflow = True
+                    self._record_overflow('BUFFER_TOO_LARGE',
+                                          {'buffer_bytes': len(self._buffer),
+                                           'limit': self._max_frame_bytes})
                     return
                 self._buffer = buffer
         except Exception as error:  # noqa: BLE001 - the failure stays visible
@@ -4231,6 +4915,25 @@ class StreamChannel:
                 # incomplete frame is a named failure of the channel and
                 # it is never dropped silently.
                 self._error = 'BROKER_CHANNEL_PARTIAL_FRAME'
+
+    def _record_overflow(self, reason, facts):
+        """Record the overflow of the channel at the place where it happened.
+
+        The overflow is a **named** failure of the channel and it is
+        recorded **here**, where it really happened.  A flag that only
+        the internals of the channel know would leave the close of the
+        channel with no error at all: the reader of a channel that
+        overflowed would look like a reader that ended normally and the
+        round would release its resources on a fact that never happened.
+
+        The error of the channel is **sticky**: the first named failure
+        of the reader stays the error of the channel and the overflow
+        never replaces it.
+        """
+        self._overflow = True
+        self._overflow_facts = dict(facts, reason=reason)
+        if self._error is None:
+            self._error = 'BROKER_CHANNEL_OVERFLOW'
 
     def _record_reader_error(self, error):
         """Record the error of the reader of this channel.
@@ -4260,6 +4963,12 @@ class StreamChannel:
                 'error_type': type(error).__name__,
             }
             return
+        parallel = getattr(error, 'lvw_parallel_cancellation', None)
+        if parallel is not None:
+            # The cancellation that arrived at the same moment as the
+            # failure of the reader is a **parallel** fact: it is named
+            # next to the failure and it never replaces it.
+            self._parallel_cancellation = dict(parallel)
         self._error = getattr(error, 'code', None) or type(error).__name__
 
     def _check_wait(self):
@@ -4295,7 +5004,7 @@ class StreamChannel:
         """
         if len(raw) > self._max_frame_bytes:
             raise BrokerError('BROKER_CHANNEL_FRAME_TOO_LARGE')
-        target = self._deadline if deadline is None else deadline
+        target = self._effective_deadline(deadline)
         written = self._writer.write(raw, target, self._cancel)
         if written is not None and written != len(raw):
             raise BrokerError('BROKER_CHANNEL_WRITE_INCOMPLETE',
@@ -4353,11 +5062,30 @@ class StreamChannel:
             facts['write_worker_thread_handle_released'] = False
         remaining = self._remaining()
         join_seconds = CLOSE_JOIN_SECONDS if remaining is None else remaining
-        self._thread.join(join_seconds)
-        self.reader_alive = self._thread.is_alive()
-        self.reader_finished = not self.reader_alive
+        try:
+            self._thread.join(join_seconds)
+        except RuntimeError:
+            # The thread of the reader never started: it is not a thread
+            # of the round that ended and it is never joined.  No thread
+            # reads the read end of the channel and the read end may be
+            # closed.
+            self.reader_alive = False
+            self.reader_finished = True
+        else:
+            self.reader_alive = self._thread.is_alive()
+            self.reader_finished = not self.reader_alive
         facts['reader_finished'] = self.reader_finished
         facts['reader_error'] = self._error
+        # The facts of the overflow are published with the close: the
+        # overflow is a named failure of the channel and it is never
+        # only an internal flag.
+        facts['overflow'] = bool(self._overflow)
+        facts['overflow_facts'] = dict(self._overflow_facts)
+        # The parallel fact of the cancellation of the close: it never
+        # replaces the error of the reader.
+        facts['reader_parallel_cancellation'] = (
+            dict(self._parallel_cancellation)
+            if self._parallel_cancellation else None)
         # The named fact of the cancellation that this close really
         # initiated.  It is **not** the error of the reader and it does
         # not prove that the reader, the thread, the worker or the
@@ -4672,18 +5400,38 @@ class BrokerLoop:
                                        'error_type': type(error).__name__})
 
     def _run_startup(self, stage, action):
-        """Run one startup step under the absolute deadline of the round."""
+        """Run one startup step under the absolute deadline of the round.
+
+        **Every** exit of this method waits for the **real** exit of the
+        thread of the step: the success, the timeout, the ordinary
+        failure, the cancellation and the ``SystemExit``.  The attempt
+        of the step and the thread that performs it are two different
+        facts and the owner of the step is released only after the real
+        exit of its thread.
+
+        A thread that did not exit keeps its owner: it stays in the
+        owners that are in flight and the round keeps the fact.  It is
+        never released because the attempt ended and it is never given a
+        new budget.
+        """
         owner = _StartupOwner(name=stage, clock=self._clock,
                               deadline=self._deadline_mono)
         self._startup_owner = owner
         self.context.register_inflight(owner)
         owner.start(self._guarded_startup(action, stage))
+        # The budget of the settle is the **absolute** deadline of the
+        # round.  It is computed before the step is awaited and it never
+        # publishes the cleanup deadline of the round: a round that did
+        # not fail keeps its whole budget.
+        settle_budget = self._startup_settle_seconds()
         try:
             value = owner.await_result()
         except BrokerError as error:
             if error.code not in ('BROKER_STARTUP_DEADLINE_EXCEEDED',
                                   'BROKER_STARTUP_CANCELLED'):
-                self.context.release_inflight(owner)
+                # An ordinary failure of the step: the thread of the
+                # step is still coordinated in the finally below and the
+                # original failure is the one that leaves this method.
                 raise
             self.core.failures.append({'stage': stage, 'code': error.code})
             # The step did not finish before the deadline.  The owner
@@ -4691,25 +5439,22 @@ class BrokerLoop:
             # wait for the end of the step is bounded by the **shared**
             # cleanup deadline of the round and it never adds a settle
             # budget of its own.
-            budget = self.context.remaining_cleanup()
-            if not owner.settle(budget):
+            settle_budget = self.context.remaining_cleanup()
+            raise
+        finally:
+            # The real exit of the thread is asked on **every** exit.
+            try:
+                settled = owner.settle(settle_budget)
+            except BaseException as error:  # noqa: BLE001 - the failure stays visible
+                self.core.failures.append({'stage': stage,
+                                           'error_type': type(error).__name__})
+                settled = False
+            if not settled:
                 self._startup_in_flight = owner
                 self.core.failures.append({'stage': stage,
                                            'code': 'BROKER_STARTUP_IN_FLIGHT_RETAINED'})
             else:
                 self.context.release_inflight(owner)
-            raise
-        # The step returned its result.  The **thread** of the step may
-        # still be inside the operating system: the result of the step
-        # is not the exit of its thread.  The owner is released only
-        # after the real exit of the thread, and a thread that did not
-        # exit keeps its owner and it is never given a new budget.
-        if not owner.settle(self._startup_settle_seconds()):
-            self._startup_in_flight = owner
-            self.core.failures.append({'stage': stage,
-                                       'code': 'BROKER_STARTUP_IN_FLIGHT_RETAINED'})
-        else:
-            self.context.release_inflight(owner)
         return value
 
     def _startup_settle_seconds(self):
@@ -4932,10 +5677,14 @@ class BrokerProcess:
     channel_deadline_aware = True
 
     def __init__(self, process, executable, executable_sha256, channel,
-                 clock=None):
+                 clock=None, context=None):
         self._process = process
         self._channel = channel
         self._clock = clock or time.monotonic
+        # The ONE context of the launch.  The close of the broker reads
+        # the absolute deadline and the published cleanup deadline of
+        # the round from it and it never opens a budget of its own.
+        self._context = context
         self.pid = process.pid
         self.executable = executable
         self.executable_sha256 = executable_sha256
@@ -5029,6 +5778,8 @@ class BrokerProcess:
                  'channel_reader_error': None,
                  'channel_reader_error_source': None,
                  'channel_reader_secondary_errors': [],
+                 'channel_overflow': False,
+                 'channel_overflow_facts': {},
                  'close_cancellation': None,
                  'channel_retained_workers': 0,
                  'write_end_closed': False,
@@ -5194,6 +5945,12 @@ class BrokerProcess:
         facts['write_end_closed'] = bool(channel_facts.get('write_end_closed'))
         facts['read_end_closed'] = bool(channel_facts.get('read_end_closed'))
         facts['channel_reader_error'] = channel_facts.get('reader_error')
+        # The overflow of the channel is a **named** failure of the
+        # round and it travels with the facts of the close: a channel
+        # that overflowed is never a channel that ended normally.
+        facts['channel_overflow'] = bool(channel_facts.get('overflow'))
+        facts['channel_overflow_facts'] = dict(
+            channel_facts.get('overflow_facts') or {})
         facts['channel_retained_workers'] = int(
             (channel_facts.get('write_retained_workers') or 0)
             + (channel_facts.get('read_retained_workers') or 0))
@@ -5207,10 +5964,22 @@ class BrokerProcess:
         The deadline is the one that the parent bound before it closed
         the handle.  It may only be shortened, never extended, and every
         wait of the cleanup recomputes the time that is left.
+
+        The **context** of the launch is read as well: a cleanup that
+        runs after the round published its cleanup deadline uses that
+        deadline and it never falls back to a fresh budget of its own.
         """
         value = _require_deadline(deadline)
         if value is None:
             value = self.write_deadline
+        context = self._context
+        if context is not None:
+            for candidate in (context.absolute_deadline,
+                              context.cleanup_deadline_value()):
+                if candidate is None:
+                    continue
+                if value is None or candidate < value:
+                    value = candidate
         if value is None:
             value = self._clock() + CLEANUP_BUDGET_SECONDS
         elif self.write_deadline is not None and value > self.write_deadline:
@@ -5252,6 +6021,196 @@ class BrokerProcess:
                 'process_handle_release_method': 'POSIX_PROCESS_EXIT'}
 
 
+class _LaunchAggregate:
+    """The thin persistent owner of **one** launch.
+
+    Every launch of this package has exactly one aggregate and it is
+    created **before** the first side effect of the launch.  It holds
+    the original references of the launch: the process, the channel,
+    the partial endpoints, the workers of the endpoints and the context
+    of the launch.
+
+    The aggregate is the entry that the outer owner of a failed launch
+    uses.  A construction that did not return, a channel whose reader
+    thread did not start and a channel that could not be handed over
+    are found **here** and never through a local variable that is
+    ``None`` at that moment.
+
+    The release of the aggregate is ordered by the **dependency**: the
+    channel owns the files of the process and the worker of an endpoint
+    owns the handle of its thread, so the channel is coordinated first
+    and the process is coordinated after it.  A process whose channel
+    took the files is never closed by the process helper: a file that
+    is closed under a live worker is a file that a worker reads from.
+    """
+
+    def __init__(self, *, launch_id=None, custody=None, clock=None,
+                 context=None):
+        self.launch_id = launch_id or 'launch'
+        self.custody = custody
+        self._clock = clock or time.monotonic
+        self._lock = threading.RLock()
+        self.process = None
+        self.channel = None
+        self.endpoints = []
+        self.workers = []
+        self.context = context
+        self.facts = {}
+
+    # -- the bindings of the launch ---------------------------------------
+    def bind_process(self, process):
+        """Bind the original process of this launch."""
+        with self._lock:
+            self.process = process
+        return process
+
+    def bind_channel(self, channel):
+        """Bind the channel of this launch."""
+        with self._lock:
+            if channel is not None:
+                self.channel = channel
+        return channel
+
+    def bind_endpoint(self, endpoint):
+        """Bind one endpoint of this launch."""
+        with self._lock:
+            self.endpoints.append(endpoint)
+        return endpoint
+
+    def bind_worker(self, worker):
+        """Bind one worker of this launch."""
+        with self._lock:
+            self.workers.append(worker)
+        return worker
+
+    def bind_context(self, context):
+        """Bind the ONE context of this launch."""
+        with self._lock:
+            if context is not None:
+                self.context = context
+        return self.context
+
+    # -- the custody protocol of the launcher -----------------------------
+    def retain(self, kind, resource, detail=None):
+        """Take one original resource of this launch.
+
+        The protocol is the protocol of the table of the launcher: the
+        channel of a launch registers itself **before** it builds
+        anything, so that a partial channel is always reachable.
+        """
+        with self._lock:
+            if kind == 'channel' and resource is not None:
+                self.channel = resource
+            elif kind == 'endpoint':
+                self.endpoints.append(resource)
+            elif kind == 'worker':
+                self.workers.append(resource)
+        return resource
+
+    def forget(self, resource):
+        """Leave the launch: the resource was handed over or released."""
+        with self._lock:
+            if self.channel is resource:
+                self.channel = None
+            self.endpoints = [item for item in self.endpoints
+                              if item is not resource]
+            self.workers = [item for item in self.workers
+                            if item is not resource]
+        return None
+
+    def items(self):
+        """The original resources that this launch still owns."""
+        with self._lock:
+            return {'process': self.process, 'channel': self.channel,
+                    'endpoints': list(self.endpoints),
+                    'workers': list(self.workers)}
+
+    # -- the coordinated release ------------------------------------------
+    def release(self, deadline=None):
+        """Coordinate the resources of this launch, in the dependency order.
+
+        The channel is coordinated **first** and the process is
+        coordinated after it.  A close that returned is not a release:
+        the channel is released only when **every** fact of it is
+        closed - the reader, the two ends, the workers and the original
+        handles of their threads.  An incomplete close keeps the
+        channel with its owner and it is named.
+
+        The original handle of the process is released only after the
+        exit of the process was really confirmed.
+
+        The release never raises before every safe step was executed:
+        the original cancellation of the launch is raised at the end and
+        the ordinary failures are named beside it.
+        """
+        released = []
+        retained = []
+        failures = {}
+        cancellations = []
+        channel = self.channel
+        if channel is not None:
+            facts = {}
+            try:
+                facts = channel.close()
+            except (KeyboardInterrupt, SystemExit) as error:
+                cancellations.append(error)
+            except BaseException as error:  # noqa: BLE001 - the failure stays visible
+                failures['channel'] = type(error).__name__
+            if not isinstance(facts, dict):
+                facts = {}
+            complete = (bool(facts.get('reader_finished'))
+                        and bool(facts.get('read_end_closed'))
+                        and bool(facts.get('write_end_closed'))
+                        and int(facts.get('channel_retained_workers') or 0) == 0
+                        and bool(facts.get('worker_thread_handle_released')))
+            if complete:
+                released.append('channel')
+                self.forget(channel)
+                if self.custody is not None:
+                    self.custody.forget(channel)
+            else:
+                # A close that returned is not a release: the channel
+                # keeps its owner and its original reference.
+                failures['channel'] = 'BROKER_CHANNEL_CLOSE_INCOMPLETE'
+                retained.append('channel')
+                if self.custody is not None:
+                    self.custody.retain('channel', channel,
+                                         'release_incomplete', launch=self)
+        process = self.process
+        if process is not None:
+            # The files of the process belong to the channel when the
+            # channel took them: the process helper never closes them.
+            close_pipes = channel is None
+            outcome = {'failures': {}, 'exited': False}
+            try:
+                outcome = _release_launch_process(
+                    process, deadline=deadline, close_pipes=close_pipes)
+            except (KeyboardInterrupt, SystemExit) as error:
+                cancellations.append(error)
+            except BaseException as error:  # noqa: BLE001 - the failure stays visible
+                outcome['failures']['process'] = type(error).__name__
+            failures.update(outcome['failures'])
+            if outcome['exited']:
+                released.append('process')
+                with self._lock:
+                    self.process = None
+                if self.custody is not None:
+                    self.custody.forget(process)
+            else:
+                retained.append('process')
+                if self.custody is not None:
+                    self.custody.retain('process', process, 'release_failed',
+                                         launch=self)
+        self.facts = {'released': list(released), 'retained': list(retained),
+                      'failures': dict(failures)}
+        if cancellations:
+            # The original cancellation is raised after every safe step
+            # of the release was executed and the ordinary failures stay
+            # named next to it.
+            raise cancellations[0]
+        return self.facts
+
+
 class _LauncherCustody:
     """The persistent owner of the original resources of a failed launch.
 
@@ -5268,25 +6227,59 @@ class _LauncherCustody:
     The table is the recovery entry point of the launcher.  It is
     explicit and it is finite: a caller that wants the resources of a
     failed launch released asks for it.
+
+    The resources of a launch are coordinated by the **aggregate** of
+    that launch and not by the order of this table: the channel of a
+    launch is closed before the process of that launch, because the
+    channel owns the files of the process.  A resource that belongs to
+    a launch is never released a second time by this table.
     """
 
     def __init__(self):
         self._items = []
         self._lock = threading.Lock()
+        # The ONE context of the round, when the table is bound to it.
+        # A recovery that runs without a deadline of its own reads the
+        # absolute deadline and the published cleanup deadline of the
+        # round from it and it never opens a fresh budget.
+        self._context = None
 
-    def retain(self, kind, resource, detail=None):
+    def bind_context(self, context):
+        """Bind the ONE context of the round to this table."""
+        if context is not None:
+            self._context = context
+        return self._context
+
+    def _effective_deadline(self, deadline=None):
+        """The ONE deadline that a release of this table really uses."""
+        value = _require_deadline(deadline)
+        context = self._context
+        if context is not None:
+            for candidate in (context.absolute_deadline,
+                              context.cleanup_deadline_value()):
+                if candidate is None:
+                    continue
+                if value is None or candidate < value:
+                    value = candidate
+        return value
+
+    def retain(self, kind, resource, detail=None, launch=None):
         """Take one original resource into the table of the launcher.
 
         The table never names the same resource twice: a resource that
         is already with its owner is not entered a second time and the
         table converges.
+
+        The ``launch`` is the aggregate that owns the resource.  A
+        resource that belongs to a launch is coordinated by that
+        launch and it is never released a second time by this table.
         """
         with self._lock:
             for item in self._items:
                 if item['kind'] == kind and item['resource'] is resource:
                     return resource
             self._items.append({'kind': kind, 'resource': resource,
-                                'detail': detail})
+                                'detail': detail, 'launch': launch})
         return resource
 
     def forget(self, resource):
@@ -5301,40 +6294,74 @@ class _LauncherCustody:
         with self._lock:
             return list(self._items)
 
-    def release(self, deadline=None):
+    def release(self, deadline=None, context=None):
         """Try to release every original resource of the table.
 
         The release of every resource is independent of the others: a
         resource that could not be released stays in the table with its
         original reference and it is named in the report.
 
+        The **launches** are coordinated first: every aggregate closes
+        the channel of its launch before the process of that launch.
+        The resources that belong to no launch are released afterwards
+        and a resource of a launch is never released twice.
+
         The wait of every resource uses the **same** absolute deadline.
         A recovery never opens a budget of its own and it never waits a
         fixed number of seconds for a process that may still be alive.
         """
         released = []
-        remaining = []
-        for item in self.items():
+        retained = []
+        cancellations = []
+        deadline = self._effective_deadline(deadline)
+        with self._lock:
+            items = list(self._items)
+        keep = []
+        for item in items:
+            if item['kind'] == 'aggregate':
+                launch = item['resource']
+                try:
+                    report = launch.release(deadline=deadline)
+                except (KeyboardInterrupt, SystemExit) as error:
+                    cancellations.append(error)
+                    report = {'released': [], 'retained': ['launch']}
+                except BaseException:  # noqa: BLE001 - the failure stays visible
+                    report = {'released': [], 'retained': ['launch']}
+                released.extend(report.get('released') or [])
+                names = list(report.get('retained') or [])
+                retained.extend(names)
+                if names:
+                    keep.append(item)
+                continue
+            if item.get('launch') is not None:
+                # The launch of this resource coordinates it: the table
+                # never releases it a second time.
+                keep.append(item)
+                retained.append(item['kind'])
+                continue
             resource = item['resource']
             try:
                 if item['kind'] == 'process':
                     failures = _terminate_and_close_process(resource,
                                                             deadline=deadline)
                     if failures:
-                        remaining.append(item)
+                        keep.append(item)
+                        retained.append(item['kind'])
                         continue
                 else:
                     close = getattr(resource, 'close', None)
                     if callable(close):
                         close()
             except BaseException:  # noqa: BLE001 - the failure stays visible
-                remaining.append(item)
+                keep.append(item)
+                retained.append(item['kind'])
                 continue
             released.append(item['kind'])
         with self._lock:
-            self._items = remaining
-        return {'released': list(released),
-                'retained': [item['kind'] for item in remaining]}
+            self._items = keep
+        if cancellations:
+            raise cancellations[0]
+        return {'released': list(released), 'retained': list(retained)}
 
 
 #: The one table of the original resources of the launches of this
@@ -5343,19 +6370,26 @@ class _LauncherCustody:
 _LAUNCHER_CUSTODY = _LauncherCustody()
 
 
-def release_retained_launches(deadline=None):
+def release_retained_launches(deadline=None, *, context=None):
     """The recovery entry point of the launcher of this package.
 
     The caller asks for the original resources of the launches that were
     not handed over to be released, and the report names the resources
     that could not be released.
 
-    The wait of every resource uses the **same** absolute deadline of
-    the round: a recovery never opens a budget of its own and it never
+    The wait of every resource uses the **same** absolute deadline of the
+    round: a recovery never opens a budget of its own and it never
     waits a fixed number of seconds for a process that may still be
     alive.
+
+    The deadline of the context is **read again** here: a recovery
+    that runs after the round published its cleanup deadline uses that
+    deadline and it never falls back to a fresh budget of its own.
     """
-    return _LAUNCHER_CUSTODY.release(deadline=deadline)
+    value = _require_deadline(deadline)
+    if context is not None:
+        _LAUNCHER_CUSTODY.bind_context(context)
+    return _LAUNCHER_CUSTODY.release(deadline=value)
 
 
 def _launcher_custody_items():
@@ -5367,13 +6401,12 @@ def _launcher_custody_items():
     return _LAUNCHER_CUSTODY.items()
 
 
-def _terminate_and_close_process(process, *, deadline=None, close_pipes=True):
-    """Terminate one process of this round and close its pipes.
+def _release_launch_process(process, *, deadline=None, close_pipes=True):
+    """Terminate one process of a launch and report the two facts.
 
     The release is explicit and it is bounded: the process is
-    terminated, its exit is confirmed and its pipes are closed.  The
-    method never raises: it is the last step of a failure and it never
-    replaces the failure that is on the way out.
+    terminated, its exit is confirmed and its pipes are closed when
+    nobody else owns them.
 
     The wait uses the **same** absolute deadline of the round: a
     recovery never opens a budget of its own and it never waits a fixed
@@ -5384,11 +6417,12 @@ def _terminate_and_close_process(process, *, deadline=None, close_pipes=True):
     handle and its owner: the handle is the only thing that may stop
     it and it is never closed under it.
 
-    The report names every step that did not succeed, so that the
-    caller can keep the original reference of a resource that is still
-    open.
+    The report names every step that did not succeed and it names the
+    **exit** of the process as a separate fact: a close that succeeded
+    is never a proof that the process ended.
     """
     failures = {}
+    exited = False
     try:
         process.terminate()
     except Exception as error:  # noqa: BLE001 - the failure stays visible
@@ -5401,7 +6435,6 @@ def _terminate_and_close_process(process, *, deadline=None, close_pipes=True):
             value = None
         if value is not None:
             budget = max(0.0, value - time.monotonic())
-    exited = False
     try:
         process.wait(timeout=budget)
         exited = True
@@ -5427,18 +6460,43 @@ def _terminate_and_close_process(process, *, deadline=None, close_pipes=True):
                 stream.close()
             except Exception as error:  # noqa: BLE001 - the failure stays visible
                 failures[name] = type(error).__name__
-    return failures
+    return {'failures': failures, 'exited': exited}
+
+
+def _terminate_and_close_process(process, *, deadline=None, close_pipes=True):
+    """Terminate one process of this round and close its pipes.
+
+    The release is explicit and it is bounded: the process is
+    terminated, its exit is confirmed and its pipes are closed.  The
+    method never raises: it is the last step of a failure and it never
+    replaces the failure that is on the way out.
+
+    The wait uses the **same** absolute deadline of the round: a
+    recovery never opens a budget of its own and it never waits a fixed
+    number of seconds for a process that may still be alive.
+
+    The original handle of the process is closed **only** when its exit
+    was really confirmed.  A process that may still be alive keeps its
+    handle and its owner: the handle is the only thing that may stop
+    it and it is never closed under it.
+
+    The report names every step that did not succeed, so that the
+    caller can keep the original reference of a resource that is still
+    open.
+    """
+    return _release_launch_process(process, deadline=deadline,
+                                   close_pipes=close_pipes)['failures']
 
 
 def _adopt_broker_process(process, *, channel_factory, executable,
-                          executable_sha256, deadline=None):
+                          executable_sha256, deadline=None, aggregate=None,
+                          custody=None):
     """Take the original process of the broker into the custody of a channel.
 
     The launcher owns the original process of the round until the
     channel of the round exists.  A channel that could not be built
     would leave the launcher with a running process and with pipes that
-    nobody owns: the process is terminated, its exit is confirmed and
-    its pipes are closed before the failure leaves.
+    nobody owns.
 
     The **channel** is the only owner of the files of the process.  A
     channel that exists and that could not be handed over is closed by
@@ -5447,6 +6505,11 @@ def _adopt_broker_process(process, *, channel_factory, executable,
     is closed under a live worker of the channel is a file that a
     worker is reading from.
 
+    The **aggregate** of the launch is the owner that the outer code
+    uses: a partial channel - a channel whose reader thread did not
+    start - is found through the aggregate and never through a local
+    variable that is ``None`` at that moment.
+
     A resource that could not be released keeps its **original**
     reference in the table of the launcher: the session never received
     the process and the round never loses the ownership of it.
@@ -5454,46 +6517,44 @@ def _adopt_broker_process(process, *, channel_factory, executable,
     The handover happens exactly once: the process that the channel
     received is the process that the parent owns.
     """
+    table = custody if custody is not None else _LAUNCHER_CUSTODY
+    launch = aggregate if aggregate is not None else _LaunchAggregate(
+        custody=table)
+    launch.bind_process(process)
+    table.retain('process', process, 'popened', launch=launch)
     channel = None
     try:
         channel = channel_factory()
-        broker = BrokerProcess(process, executable, executable_sha256, channel)
-    except BaseException:
-        failures = {}
         if channel is not None:
-            # The channel owns the files: it closes them.
-            try:
-                channel.close()
-            except BaseException as error:  # noqa: BLE001 - the failure stays visible
-                failures['channel'] = type(error).__name__
-                _LAUNCHER_CUSTODY.retain('channel', channel,
-                                         'close:' + type(error).__name__)
-            failures.update(_terminate_and_close_process(
-                process, deadline=deadline, close_pipes=False))
-        else:
-            failures.update(_terminate_and_close_process(process,
-                                                         deadline=deadline))
-        detail = '|'.join('%s:%s' % item for item in sorted(failures.items()))
-        if 'terminate' in failures or 'wait' in failures:
-            # The original process that could not be released stays with
-            # its owner: the session never received it and the round
-            # never loses the ownership of it.
-            _LAUNCHER_CUSTODY.retain('process', process, detail)
-        if channel is None:
-            for name in ('stdin', 'stdout', 'stderr'):
-                if name not in failures:
-                    continue
-                stream = getattr(process, name, None)
-                if stream is not None:
-                    _LAUNCHER_CUSTODY.retain(name, stream, detail)
+            launch.bind_channel(channel)
+        broker = BrokerProcess(process, executable, executable_sha256, channel,
+                               context=launch.context)
+    except BaseException:
+        # The resources of the launch are coordinated by the aggregate:
+        # the channel first and the process after it.  The resources
+        # that could not be released keep their original reference and
+        # their owner.
+        try:
+            launch.release(deadline=deadline)
+        except (KeyboardInterrupt, SystemExit):
+            # The cancellation of the release never replaces the
+            # original failure of the launch: the original object
+            # continues to propagate.
+            pass
+        except BaseException:  # noqa: BLE001 - the failure stays visible
+            pass
         raise
     # The handover happened: the launcher does not own the process of
     # the round any more.
-    _LAUNCHER_CUSTODY.forget(process)
+    table.forget(process)
+    table.forget(channel)
+    table.forget(launch)
+    launch.forget(channel)
+    launch.forget(process)
     return broker
 
 
-def launch_broker(plan, run_root, nonce):
+def launch_broker(plan, run_root, nonce, *, context=None):
     """Start the broker process of one round and keep its original handle.
 
     The launcher is a Windows only operation.  It refuses on every other
@@ -5504,6 +6565,17 @@ def launch_broker(plan, run_root, nonce):
     The nonce and the plan are checked **before** the first directory and
     the first file of the round exist, so that a refused launch leaves
     nothing behind.
+
+    The ONE context of the round is held **before** the first side
+    effect of the launch: the creation of the process, the reading of
+    the executable, the channel and its endpoints all read the deadline
+    of the round from that context.  A launcher that waits for the end
+    of the launcher to bind the deadline would leave a window in which
+    the process of the round runs without a budget.
+
+    The **aggregate** of the launch is created before the process and it
+    holds every original resource of the launch: a failure at any point
+    of the launch finds the partial owner of the launch through it.
     """
     if os.name != 'nt':
         raise BrokerError('BROKER_PLATFORM_UNSUPPORTED')
@@ -5511,6 +6583,18 @@ def launch_broker(plan, run_root, nonce):
         raise BrokerError('BROKER_PLAN_INVALID')
     if not re.fullmatch(r'[0-9a-f]{32}', str(nonce)):
         raise BrokerError('BROKER_NONCE_INVALID')
+    # The aggregate of this launch and the deadline of the round are
+    # taken **before** the first side effect of the launch.
+    launch = _LaunchAggregate(custody=_LAUNCHER_CUSTODY, context=context)
+    launch.bind_context(context)
+    # The table of the launcher reads the deadline of the round from
+    # the same context: a recovery of the launcher never opens a fresh
+    # budget of its own.
+    _LAUNCHER_CUSTODY.bind_context(context)
+    _LAUNCHER_CUSTODY.retain('aggregate', launch, 'launch')
+    deadline = None
+    if context is not None:
+        deadline = context.absolute_deadline
     root = Path(run_root)
     raw = plan.sealed_bytes()
     digest = plan.sealed_sha256()
@@ -5528,7 +6612,8 @@ def launch_broker(plan, run_root, nonce):
     # process and the handover of the channel is not a window without an
     # owner: a cancellation of the reading of the executable leaves the
     # process with its owner and it never disappears.
-    _LAUNCHER_CUSTODY.retain('process', process, 'popened')
+    launch.bind_process(process)
+    _LAUNCHER_CUSTODY.retain('process', process, 'popened', launch=launch)
     executable = Path(command[0])
     try:
         executable_sha256 = hashlib.sha256(executable.read_bytes()).hexdigest()
@@ -5540,11 +6625,27 @@ def launch_broker(plan, run_root, nonce):
         # in the table of the launcher and the recovery of the launcher
         # is the entry that releases it.
         raise
+
+    def channel_factory():
+        """Build the channel of this launch with the context of the round.
+
+        The channel registers itself with the **aggregate** of the
+        launch before it builds anything: a channel whose reader
+        thread did not start is found by the outer owner through the
+        aggregate and the files of the process are never closed by the
+        process helper.
+        """
+        channel = StreamChannel(process.stdout, process.stdin,
+                                custody=launch, context=context)
+        if deadline is not None:
+            channel.bind_deadline(deadline)
+        return channel
+
     return _adopt_broker_process(
         process,
-        channel_factory=lambda: StreamChannel(process.stdout, process.stdin,
-                                               custody=_LAUNCHER_CUSTODY),
-        executable=str(executable), executable_sha256=executable_sha256)
+        channel_factory=channel_factory,
+        executable=str(executable), executable_sha256=executable_sha256,
+        deadline=deadline, aggregate=launch)
 
 
 def read_sealed_plan(path, digest):

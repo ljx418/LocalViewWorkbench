@@ -41,6 +41,8 @@ batch is its only authorised entry.
 """
 import ast
 import json
+import os
+import queue
 import sys
 import threading
 import time
@@ -125,9 +127,18 @@ class _CancellingEvent:
 #: documents of the failed batch of the correction 08 and they are never
 #: overwritten.  The diagnostics of this module are written in the **new**
 #: directory of the correction 09 and the two directories are never mixed.
-F5_EVIDENCE_DIR = (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'
-                   / 'implementation-native-custody-correction-09'
-                   / 'f5-evidence')
+#: CORRECTION 10: the diagnostics of the group are written in the NEW
+#: directory of the correction 10.  The four real documents of the
+#: failed batch of the correction 09 stay in the directory of the
+#: correction 09 and they are never overwritten, never deleted and
+#: never replaced by a summary.  The directory may be named by the
+#: environment of the batch, so that the runner of the root may write
+#: the diagnostics into the attempt directory of its own plan.
+F5_EVIDENCE_DIR = (Path(os.environ['LVW_N1_F5_EVIDENCE_DIR'])
+                   if os.environ.get('LVW_N1_F5_EVIDENCE_DIR')
+                   else (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'
+                         / 'implementation-native-custody-correction-10'
+                         / 'f5-evidence'))
 
 
 def _f5_write(phase, document):
@@ -224,26 +235,47 @@ class _F5Api:
     injected.  The fault is bound to **one** original handle and no
     other handle of the round is affected by it.
 
-    The façade also drives the **reader** of the chain, because the
-    reader of a real channel is a background thread of the production
-    and the three ways in which a real reader of a real channel
-    misbehaves are the three ways in which a round stays unknown: it
-    blocks inside its read until the close cancels it, it fails with an
-    ordinary error and it returns a frame that never ends.
+    The reader of the chain is driven by an explicit **causal** state
+    machine and it never guesses and it never sleeps on a timeout to
+    reach the next state:
+
+    * ``BOOTSTRAP_FRAMES_CONSUMED`` - the two frames of the round were
+      delivered and the reader enters the primitive again;
+    * ``READ_WAITING`` - the reader is really inside its read.  The
+      event is published **before** any blocking wait, so that the
+      owner of the test never waits for an event that the reader
+      publishes only after a timeout;
+    * the **explicit** unlock - the owner of the test, or the
+      cancellation of the operating system, publishes the outcome that
+      the reader really produces;
+    * ``RESULT`` / ``EOF`` - the frame, the ordinary failure of the
+      read or the end of the stream.
+
+    The terminal frame of the round is published by the **write** of the
+    stop and by nothing else: a reader that reads a terminal frame
+    before the stop was asked for would answer a stop that never
+    happened.
     """
 
     def __init__(self, *, block_the_reader=False, read_fault=None,
                  partial_frame=None):
         self.lock = threading.Lock()
         self.frames = []
+        # The terminal frame of the round.  It is published by the
+        # write of the stop and by nothing else.
         self.final = b''
-        # The explicit notification of the reader of the channel: the
-        # read waits for it and it is never a sleep that guesses.
-        self.ready = threading.Event()
+        # The explicit outcomes of the reader.  Every entry is a pair
+        # of a kind and of its payload: ``FRAME``, ``FAULT``,
+        # ``PARTIAL`` and ``EOF``.
+        self._outcomes = queue.Queue()
         # The explicit notification that the reader of the chain is
-        # really inside its read.  The wait of it is bounded.
-        self.reader_blocked = threading.Event()
-        self.release = threading.Event()
+        # really inside its read.  It is published **before** the
+        # blocking wait of the reader.
+        self.read_waiting = threading.Event()
+        # The explicit notifications of the outcomes that really
+        # happened.
+        self.fault_observed = threading.Event()
+        self.eof_observed = threading.Event()
         self.closed = []
         # The ledger of the closes: every attempt is named with the
         # handle that it tried to close and with the fact that it was
@@ -257,10 +289,52 @@ class _F5Api:
         self.fault_handle = None
         self.fault_released = False
         self.fault_hits = 0
-        # The behaviour of the reader of the chain.
+        # The behaviour of the reader of the chain.  The reader always
+        # waits for an explicit outcome: the flag is kept for the
+        # readability of the groups and it does not change the
+        # behaviour.
         self.block_the_reader = block_the_reader
         self.read_fault = read_fault
         self.partial_pending = partial_frame
+
+    # -- the explicit outcomes of the reader ------------------------------
+    def publish_outcome(self, kind, payload=None):
+        """Publish the outcome that the reader really produces.
+
+        The publication is the **unlock** of the reader: the reader is
+        inside its read and it waits for exactly this outcome.
+        """
+        self._outcomes.put((kind, payload))
+        return payload
+
+    def publish_read_fault(self):
+        """Publish the ordinary failure of the read, explicitly.
+
+        The failure is published by the owner of the test and it is
+        never unlocked by the write of the stop: a failure that should
+        happen first is not caused by the stop that comes later.
+        """
+        with self.lock:
+            error = self.read_fault
+            self.read_fault = None
+        if error is not None:
+            self.publish_outcome('FAULT', error)
+        return error
+
+    def publish_partial_frame(self):
+        """Publish the frame that never ends and the end of the stream.
+
+        The frame is published by the owner of the test and the end of
+        the stream follows it: the drain of the channel then holds the
+        remainder of a frame that never ended.
+        """
+        with self.lock:
+            block = self.partial_pending
+            self.partial_pending = None
+        if block is not None:
+            self.publish_outcome('PARTIAL', block)
+            self.publish_outcome('EOF')
+        return block
 
     def duplicate_current_thread_handle(self):
         with self.lock:
@@ -269,13 +343,15 @@ class _F5Api:
             return self.next_handle
 
     def cancel_synchronous_io(self, handle):
-        self.ready.set()
+        # The cancellation of the operating system releases the reader
+        # that is really inside its read: the read ends with the end of
+        # the stream.  Only the **reader** of the chain is released: the
+        # cancellation of the writer of the channel never ends the read
+        # of the reader.
         with self.lock:
             first = self.thread_handles[0] if self.thread_handles else None
         if handle == first:
-            # The cancellation of the read end of the chain reaches the
-            # read that is really in flight.
-            self.release.set()
+            self.publish_outcome('EOF')
         return 'REQUESTED'
 
     def close_handle(self, handle):
@@ -289,8 +365,8 @@ class _F5Api:
             if faulted:
                 # The close of the one handle that the owner of the
                 # test named fails.  The stable code of the production
-                # façade is used and the error is never swallowed by
-                # the façade.
+                # façade is used and the error is never swallowed by the
+                # façade.
                 raise BrokerError('BROKER_HANDLE_CLOSE_FAILED')
             self.closed.append(handle)
 
@@ -298,38 +374,42 @@ class _F5Api:
         with self.lock:
             if self.frames:
                 return self.frames.pop(0)
-        # The frames of the round were published **before** the reader
-        # of the channel existed.  The reader waits for the explicit
-        # notification of the stop of the round and the wait is
-        # bounded.
-        self.ready.wait(30.0)
-        with self.lock:
-            if self.final:
-                frame = self.final
-                self.final = b''
-                return frame
-            if self.partial_pending is not None:
-                # A frame that never ends: the buffer of the channel
-                # keeps the remainder of it.
-                block = self.partial_pending
-                self.partial_pending = None
-                return block
-        if self.read_fault is not None:
+        # ``READ_WAITING``: the reader is really inside its read and the
+        # event is published **before** the blocking wait.  The owner of
+        # the test never waits for an event that the reader publishes
+        # only after a timeout.
+        self.read_waiting.set()
+        try:
+            kind, payload = self._outcomes.get(timeout=30.0)
+        except queue.Empty:
+            # The safety net of the wait.  Every real flow of the group
+            # publishes its outcome explicitly and the timeout is never
+            # the way that a state of the chain is reached.
+            self.eof_observed.set()
+            return b''
+        if kind == 'FRAME':
+            return payload
+        if kind == 'FAULT':
             # An ordinary failure of the read: it is not a cancellation
             # and it is not a close of the round.
-            error = self.read_fault
-            self.read_fault = None
-            raise error
-        if self.block_the_reader:
-            # The reader of the chain is still inside its read when the
-            # round is closed: the read only ends when the cancellation
-            # of the close reaches it.
-            self.reader_blocked.set()
-            self.release.wait(30.0)
+            self.fault_observed.set()
+            raise payload
+        if kind == 'PARTIAL':
+            # A frame that never ends: the buffer of the channel keeps
+            # the remainder of it.
+            return payload
+        self.eof_observed.set()
         return b''
 
     def write_stream(self, handle, data):
-        self.ready.set()
+        # The terminal frame of the round is published by the **write**
+        # and by nothing else: a reader that reads it before the stop
+        # was asked for would answer a stop that never happened.
+        with self.lock:
+            final = self.final
+            self.final = b''
+        if final:
+            self.publish_outcome('FRAME', final)
         return len(data)
 
 
@@ -425,7 +505,7 @@ class _F5ExternalCancelOwner:
             # chain is really inside its read.  The return of the wait
             # is checked: a timeout is a failure of the owner and it is
             # never a silent guess.
-            if not self.api.reader_blocked.wait(15.0):
+            if not self.api.read_waiting.wait(15.0):
                 raise AssertionError(
                     'the reader of the chain was never inside its read')
             channel = self.holder.get('channel')
@@ -1898,7 +1978,7 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
             'published': bool(external_owner.published.is_set()),
             'flag_set': external_owner.flag_set,
             'flag_owner': external_owner.flag_owner,
-            'reader_blocked': bool(api.reader_blocked.is_set()),
+            'read_waiting': bool(api.read_waiting.is_set()),
             'thread_name': owner_thread.name,
             'thread_is_alive': bool(owner_thread.is_alive()),
         }
@@ -1971,6 +2051,22 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
         api, document, plan, clock, wall, tmp_path)
     try:
         session.start()
+        # CORRECTION 10: the ordinary failure of the read is published
+        # by the **owner of the test** and it is never unlocked by the
+        # write of the stop.  The owner waits for the reader to be
+        # really inside its read, it publishes the failure and it waits
+        # for the failure to be **really** published by the worker of
+        # the read.  The close of the round may never turn a failure
+        # that was published first into a benign cancellation.
+        assert api.read_waiting.wait(15.0), \
+            'the reader of the chain was never inside its read'
+        api.publish_read_fault()
+        assert api.fault_observed.wait(15.0), \
+            'the ordinary failure of the read never happened'
+        reader = holder['read_endpoint']._reader
+        assert reader is not None, 'the reader of the chain never started'
+        assert reader.outcome_published.wait(15.0), \
+            'the outcome of the read was never published'
         first = session.stop()
         fault_document = _f5_snapshot('read-fault', session, api, holder,
                                        channel_facts, channel_closes, None)
@@ -2024,6 +2120,15 @@ def test_n07_r15_the_real_chain_is_coordinated_again_by_the_same_owner(tmp_path)
         api, document, plan, clock, wall, tmp_path)
     try:
         session.start()
+        # CORRECTION 10: the frame that never ends is published by the
+        # **owner of the test** and the end of the stream follows it.
+        # The stop of the round never unlocks a frame that should have
+        # been read before it.
+        assert api.read_waiting.wait(15.0), \
+            'the reader of the chain was never inside its read'
+        api.publish_partial_frame()
+        assert api.eof_observed.wait(15.0), \
+            'the end of the stream was never observed'
         first = session.stop()
         partial_document = _f5_snapshot('partial-frame', session, api,
                                         holder, channel_facts, channel_closes,

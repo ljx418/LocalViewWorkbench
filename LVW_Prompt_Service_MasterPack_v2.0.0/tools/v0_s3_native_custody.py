@@ -69,6 +69,7 @@ absolute deadline.
 """
 import copy
 import hashlib
+import inspect
 import json
 import math
 import os
@@ -287,6 +288,33 @@ class _CustodyContext:
         if value is None:
             return 0.0
         return max(0.0, value - self.clock())
+
+    def effective_deadline(self, call=None, bound=None):
+        """The ONE deadline that a call of a layer really uses.
+
+        The deadline of the call, the deadline that is bound to the
+        layer, the absolute deadline of the round and the **published**
+        cleanup deadline of the round are one value: the earliest of the
+        four.
+
+        The published cleanup deadline is part of it: a round that
+        entered its cleanup publishes one deadline and every layer that
+        reads the context afterwards is bound by it.
+
+        The value is **recomputed on every call**: a deadline that was
+        published after the call started still shortens the call that is
+        running.
+        """
+        value = call
+        if value is not None and not isinstance(value, (int, float)):
+            value = None
+        for candidate in (bound, self.absolute_deadline,
+                          self.cleanup_deadline_value()):
+            if candidate is None:
+                continue
+            if value is None or candidate < value:
+                value = candidate
+        return value
 
     # -- the one way latches ----------------------------------------------
     def request_cancel(self):
@@ -1016,6 +1044,12 @@ class NativeCustodySession:
         # start did not return may still come up: it is never taken for
         # a thread that ended.
         self._closer_start_state = 'NOT_STARTED'
+        # Whether the context of the round was handed over to the
+        # launcher.  The production launcher accepts it and it holds the
+        # deadline of the round before the first side effect of the
+        # launch.  A launcher of the old three argument shape is the
+        # compatibility boundary of the inspection facades.
+        self._launcher_context_propagated = None
 
     # -- the nonce of the round -------------------------------------------
     @staticmethod
@@ -1661,7 +1695,7 @@ class NativeCustodySession:
         launcher = self._launcher or _default_launcher
         try:
             try:
-                self.broker = launcher(self.plan, self._run_root, self._nonce)
+                self.broker = self._call_launcher(launcher)
             except (KeyboardInterrupt, SystemExit):
                 raise
             except BaseException as error:  # noqa: BLE001 - the failure stays visible
@@ -1738,6 +1772,45 @@ class NativeCustodySession:
             self._close_broker()
             return self.evidence()
         return self.evidence()
+
+    def _call_launcher(self, launcher):
+        """Call the launcher of the round with the context of the round.
+
+        The **context** of the round is handed to the launcher when the
+        launcher accepts it.  The launcher holds the absolute deadline
+        of the round **before** the first side effect of the launch: the
+        creation of the process, the reading of the executable, the
+        channel and its endpoints all read the deadline of the round
+        from that context.
+
+        A launcher of the **old three argument shape** is called with
+        three arguments and the round keeps the fact that the context
+        could not be handed over.  That shape is the compatibility
+        boundary of the inspection facades of the tests: it may not be
+        used to enter the production path of the round, because the
+        deadline of the round would not be bound before the process of
+        the round exists.
+        """
+        accepts = False
+        try:
+            signature = inspect.signature(launcher)
+        except (TypeError, ValueError):  # pragma: no cover - a C callable
+            signature = None
+        if signature is not None:
+            for parameter in signature.parameters.values():
+                if parameter.kind == parameter.VAR_KEYWORD:
+                    accepts = True
+                    break
+                if parameter.name == 'context' and parameter.kind in (
+                        parameter.KEYWORD_ONLY, parameter.POSITIONAL_OR_KEYWORD):
+                    accepts = True
+                    break
+        if accepts:
+            self._launcher_context_propagated = True
+            return launcher(self.plan, self._run_root, self._nonce,
+                            context=self._context)
+        self._launcher_context_propagated = False
+        return launcher(self.plan, self._run_root, self._nonce)
 
     @staticmethod
     def _launch_failure_code(error):
@@ -2237,6 +2310,10 @@ class NativeCustodySession:
                             if self.plan is not None else None),
             'broker': self._broker_identity,
             'broker_channel_reader_finished': self._broker_reader_finished,
+            # Whether the ONE context of the round was handed over to
+            # the launcher of the broker.  ``None`` means that no
+            # launcher was called at all.
+            'launcher_context_propagated': self._launcher_context_propagated,
             'broker_retained': self.broker is not None,
             'broker_close_failed': self._broker_close_failed,
             'broker_close_facts': self._broker_close_facts,
@@ -2330,7 +2407,7 @@ class NativeCustodySession:
         }
 
 
-def _default_launcher(plan, run_root, nonce):
+def _default_launcher(plan, run_root, nonce, *, context=None):
     """The production launcher of the broker of this package.
 
     The launcher is deliberately inert here.  The broker of this package is
@@ -2338,6 +2415,12 @@ def _default_launcher(plan, run_root, nonce):
     launcher refuses on every platform instead of pretending that a native
     execution exists.  The wiring of the launcher into the parent
     controller is a later owner and it is not enabled by this package.
+
+    The **context** of the round is handed over to the launcher of the
+    broker: the launcher holds the absolute deadline of the round and the
+    one context of the round **before** the first side effect of the
+    launch - the creation of the process, the reading of the executable,
+    the channel and its endpoints.
     """
     from tools.v0_s3_native_broker import launch_broker
-    return launch_broker(plan, run_root, nonce)
+    return launch_broker(plan, run_root, nonce, context=context)
