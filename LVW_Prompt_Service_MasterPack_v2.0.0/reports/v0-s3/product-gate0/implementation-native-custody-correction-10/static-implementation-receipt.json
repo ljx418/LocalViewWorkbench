@@ -30,20 +30,20 @@
    "sha256": "35f6c5b0d7c52ab5f7925028571a8084a387317bf21165ebef2e95393655df72"
   },
   "reports/v0-s3/product-gate0/implementation-native-custody-correction-10/report.md": {
-   "bytes": 24279,
-   "sha256": "c60de2eb098f8fcb22a5632b0285d38f1880a33a227689673f8abc0139e876ac"
+   "bytes": 29342,
+   "sha256": "12ee992241585484478f0dcb23b49a0488b4cd9505a41e992a0f6510db7d3830"
   },
   "tools/test_v0_s3_native_custody_correction07.py": {
    "bytes": 109925,
    "sha256": "6e1485bbac593b1c55ab847729e1c8ef9e1dac1c685924edc333bd10b4f6ca79"
   },
   "tools/test_v0_s3_native_custody_correction10.py": {
-   "bytes": 63137,
-   "sha256": "1242cea068c04cc4db32b8dc3493ea9e0abc0d7a8d1577a796fb5ccf259c42a2"
+   "bytes": 79463,
+   "sha256": "da8ae17a2287e12a62ef61bf05987d902a3d65c358de4c1c58ef84689fb77317"
   },
   "tools/v0_s3_native_broker.py": {
-   "bytes": 312358,
-   "sha256": "b8f84f0e56f75ac9f6907362fd7850c33e746ac8ff7ccfbd35d62276aa4164cf"
+   "bytes": 312923,
+   "sha256": "800a4f46fec9c1432e590dfe958e4c93ae6c4a02158e6a94c0ee190a314f87cb"
   },
   "tools/v0_s3_native_custody.py": {
    "bytes": 112727,
@@ -84,6 +84,7 @@
   "correction07:18"
  ],
  "kind": "lvw.n1-correction10-static-implementation-receipt/1",
+ "model": "MiniMax-M3.1-Flash-Preview",
  "nodes": {
   "final": 189,
   "frozen_old": 175,
@@ -113,8 +114,29 @@
   "M08",
   "M09"
  ],
+ "preflight_correction": {
+  "decision": "CHANGES_REQUIRED_BEFORE_DYNAMIC_ACK",
+  "disposition": "every finding was corrected as one batch in a NEW ordinary commit; the candidate 05c58c1 was not amended and the report of it is kept",
+  "findings": [
+   "C10-P01",
+   "C10-P02",
+   "C10-P03",
+   "C10-P04",
+   "C10-P05",
+   "C10-P06",
+   "C10-P07",
+   "C10-P08",
+   "C10-P09"
+  ],
+  "question_id": "msg_b2e7ed4482c6",
+  "review": "reports/v0-s3/product-gate0/native-custody-correction-10/preflight-review-01/decision.json",
+  "reviewed_candidate": "05c58c1ead644ab475a566af80ad1e1f4b96e023",
+  "reviewed_candidate_preserved": true,
+  "section_of_the_report": "section 6: the correction of the preflight review of the root"
+ },
  "production_baseline": "66600a1bd692c0149fc7724b624997bf2f40dcc1",
- "role": "codex_isolated_implementer",
+ "role": "claude_code_main_implementer",
+ "role_note": "the implementation owner of this workpack: Claude Code with the MiniMax model, the role \"\u4e3b\u5b9e\u73b0\u8d1f\u8d23\u4eba\" of .agent-governance/roles.md. It is NOT the role of the gate owner and it signs no Major.",
  "root_package": "reports/v0-s3/product-gate0/native-custody-correction-10",
  "stage": "R1",
  "static_checks": [

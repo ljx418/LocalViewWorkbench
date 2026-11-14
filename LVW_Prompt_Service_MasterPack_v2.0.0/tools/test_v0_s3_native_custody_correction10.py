@@ -15,7 +15,12 @@ The rules of this module are the rules of the whole N1 package.
   are driven through an **in-process** table of primitives that is
   injected into the production façade: the production code that is
   checked here is the code of a real run, only the native library is
-  missing.
+  missing.  The only seam that is injected is the **lowest** one: the
+  primitive table of the façade of the Windows API, the file objects
+  of the ends of the channel and the frame of the peer.  The public
+  production owners - the core, the loop, the channel, the endpoints,
+  the workers, the session, the launcher and the custody of the
+  launcher - are the real ones.
 
 * Every case drives the **actual production method**: the production
   ``WindowsApi`` with an injected primitive table, the production
@@ -30,6 +35,8 @@ The rules of this module are the rules of the whole N1 package.
   cleanup of the test owner is explicit and it is never used to
   declare that the product returned cleanly: a product that could not
   release a resource stays unknown and keeps its original reference.
+  Every thread that the test itself started is joined by the test with
+  a **bounded** wait, in every case and unconditionally.
 
 * The native claims of this package stay ``NOT_PROVEN``.  The module
   proves the behaviour of the Python owners and it never claims that a
@@ -45,6 +52,7 @@ batch is its only authorised entry.
 """
 import ast
 import json
+import os
 import queue
 import sys
 import threading
@@ -79,6 +87,21 @@ from tools.test_v0_s3_native_custody_regressions import (  # noqa: E402
 EVIDENCE_DIR = (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'
                 / 'implementation-native-custody-correction-10' / 'evidence')
 
+#: The nonce of the private channel of the probes of this module.  It
+#: is a closed form of 32 hexadecimal characters and it is the nonce of
+#: the round of the probe: the frames of the probe carry it.
+NONCE = '0' * 32
+
+#: The two codes that the production may name for the cancellation of
+#: the channel.  The code depends on the layer that observed the flag:
+#: the read endpoint of the channel raises ``BROKER_PIPE_CANCELLED`` and
+#: the wait of the channel between two reads raises
+#: ``BROKER_CHANNEL_CANCELLED``.  A negative case that is about the
+#: **origin** of the cancellation accepts the code that the real
+#: observation layer produced and it never widens the set to hide any
+#: other error.
+CANCELLATION_CODES = ('BROKER_PIPE_CANCELLED', 'BROKER_CHANNEL_CANCELLED')
+
 
 def write_phase(phase, document):
     """Write the bounded facts of one phase of this module."""
@@ -89,15 +112,22 @@ def write_phase(phase, document):
     return str(path)
 
 
-#: The nonce of the private channel of the probes of this module.  It
-#: is a closed form of 32 hexadecimal characters and it is the nonce of
-#: the round of the probe: the frames of the probe carry it.
-NONCE = '0' * 32
-
-
 def _live_plan_document():
     """A plan document whose lease is valid for the clock of the host."""
     return plan_document(lease_expires_at=time.time() + 3600.0)
+
+
+def _chain(api, document, plan, tmp_path):
+    """Build the **real** chain of one round.
+
+    The chain is the one of the production launcher: the frames of the
+    round are published first, then the endpoints, then the channel and
+    then the handle of the broker.  Nothing of the chain is replaced by
+    a stand-in and the facts of the close are the facts of the
+    production.
+    """
+    return _f5_build_chain(api, document, plan, time.monotonic, time.time,
+                           tmp_path)
 
 
 # -- N10-R01: the control handle of a process ------------------------------
@@ -105,25 +135,29 @@ def _live_plan_document():
 def test_n10_r01_the_control_handle_is_closed_only_after_the_exit(tmp_path):
     """N10-R01 (M03): the last control handle of a process is kept.
 
-    Obligation: a Core that took a process and could not assign it, or
-    whose wait did not confirm the exit, keeps the **original** control
-    handle of that process: the record of the round and the pending
-    table of the round **both** forbid the close of the handle, the
-    handle stays with its owner and the same owner may still terminate
-    the process and wait for it inside the original deadline.  The
-    thread handle and the pipe handles are independent of the exit and
-    they are released on their own.
+    Obligation: a Core that took a process and could not assign it to
+    the job of the round - the child is still suspended and it never ran
+    - keeps the **original** control handle of that process when the
+    termination of the child fails and when the wait does not confirm
+    the exit: the record of the round and the pending table of the
+    round **both** forbid the close of the handle, the handle stays with
+    its owner and the same owner may still terminate the process and
+    wait for it inside the original deadline.  The thread handle and
+    the pipe handles are independent of the exit and they are released
+    on their own.
 
-    Entry: ``BrokerCore.stop``, ``BrokerCore._release_the_records``,
-    ``BrokerCore._note_closed_handle`` and
-    ``_PendingResources.close_all``.  Trigger: the wait of the process
-    does not confirm the exit and the close of the handle would
-    succeed.  Oracle: the close of the control handle was never
-    attempted, the handle is still reachable and the round is not a
-    release.  Negative: a close that would succeed is never a proof
-    that the process ended.  Returned state: the record and the pending
-    table name the handle and its owner.  Salvage: the same owner
-    confirms the exit later and closes the handle exactly once.
+    Entry: ``BrokerCore._launch_role`` (the assignment of the process),
+    ``BrokerCore._terminate_owned``, ``BrokerCore._release_the_records``,
+    ``BrokerCore._process_closeable`` and
+    ``_PendingResources.close_all``.  Trigger: the assignment of the
+    process to the job fails, the termination of the child fails and the
+    wait does not confirm the exit.  Oracle: the close of the control
+    handle was never attempted, the handle is still reachable and the
+    round is not a release.  Negative: a close that would succeed is
+    never a proof that the process ended.  Returned state: the record
+    and the pending table name the handle and its owner.  Salvage: the
+    same owner confirms the exit later and closes the handle exactly
+    once.
     """
     class UnconfirmedWin32(RecordingWin32):
         """A façade whose processes never confirm their exit by themselves."""
@@ -145,26 +179,34 @@ def test_n10_r01_the_control_handle_is_closed_only_after_the_exit(tmp_path):
                     return entry['exited']
             return True
 
-    win32 = UnconfirmedWin32()
+    win32 = UnconfirmedWin32(fail_at=('assign', 'terminate'))
     core = BrokerCore(win32=win32, plan=sealed_plan(), run_root=tmp_path)
     try:
         core.arm()
-        core.launch()
+        # The assignment of the process to the job of the round fails:
+        # the child is still suspended and it never ran.
+        with pytest.raises(BrokerError) as info:
+            core.launch()
+        assert info.value.code == 'BROKER_ASSIGN_FAILED'
+        assert win32.fired == {'assign', 'terminate'}, \
+            'the named failures of the round never happened'
         record = core.records[0]
         target = record['process_handle']
-        thread = record['thread_handle']
-        assert target is not None and thread is not None
-
-        # The first stop: the exit of the process is not confirmed.
-        core.stop('STOP')
-        facts = {'process_handle': target is record['process_handle'],
+        assert target is not None, 'the child never got a control handle'
+        facts = {'assigned': record['assigned'], 'resumed': record['resumed'],
+                 'exited': record['exited'],
+                 'process_handle_kept': record['process_handle'] is target,
                  'process_handle_closed': record['process_handle_closed'],
                  'thread_handle_closed': record['thread_handle_closed'],
-                 'state': core.state,
                  'pending': [item['kind'] for item in core._pending.pending()],
-                 'live': sorted(win32.live)}
+                 'live': sorted(win32.live),
+                 'state': core.state}
         write_phase('r01-first', facts)
-        # The control handle of the process is **still** with its owner.
+        # The child never ran and its exit was never confirmed.
+        assert record['assigned'] is False
+        assert record['resumed'] is False
+        assert record['exited'] is False
+        # The control handle of the child is **still** with its owner.
         assert record['process_handle'] is target, \
             'the control handle was forgotten while the exit was unknown'
         assert record['process_handle_closed'] is False
@@ -317,7 +359,7 @@ def test_n10_r02_the_claim_of_the_recovery_and_the_handover_are_exclusive():
     # The recovery of the facade finds nothing: the end has an owner.
     report = api.release_retained()
     write_phase('r02-handed-over', {'report': report,
-                                     'closed': list(kernel32.live)})
+                                     'live': sorted(kernel32.live)})
     assert report == [], 'the recovery closed an end that it handed over'
     assert getattr(read, 'value', read) in kernel32.live
 
@@ -342,8 +384,8 @@ def test_n10_r03_every_confirmed_close_notifies_the_owner_of_the_handle(tmp_path
     Oracle: the reader holds no handle any more, the pending table does
     not name it and the handle was closed exactly once.  Negative: a
     second stop never closes the handle again.  Returned state: the
-    facts of the two stops agree with each other.  Salvage: the owner
-    of the test releases the handles that the product kept.
+    facts of the two stops agree with each other.  Salvage: the owner of
+    the test releases the handles that the product kept.
     """
     win32 = RecordingWin32()
     core = BrokerCore(win32=win32, plan=sealed_plan(), run_root=tmp_path)
@@ -411,15 +453,17 @@ def test_n10_r04_the_launch_aggregate_finds_the_partial_channel():
     process are closed by the channel alone.  Facts that are not
     complete keep the original owner.
 
-    Entry: ``StreamChannel.__init__``, ``_LaunchAggregate.release`` and
-    ``_adopt_broker_process``.  Trigger: the channel of the launch
-    exists and the adoption fails before the local variable of the
-    channel was assigned.  Oracle: the aggregate found the channel, the
-    channel was closed and the files of the process were not closed by
-    the process helper.  Negative: the process helper never closes the
-    files of a process whose channel took them.  Returned state: the
-    facts of the aggregate name what it released.  Salvage: the owner of
-    the test releases the handles that the product kept.
+    Entry: ``StreamChannel.__init__``, ``_LaunchAggregate.retain``,
+    ``_LaunchAggregate.release`` and ``_adopt_broker_process``.
+    Trigger: the reader thread of the channel really starts and the
+    start of the thread does not return, so that the construction of
+    the channel fails with the channel already half built.  Oracle: the
+    aggregate found the partial channel, the files of the process were
+    closed by the channel and never by the process helper.  Negative:
+    the process helper never closes the files of a process whose
+    channel took them.  Returned state: the facts of the aggregate
+    name what it released.  Salvage: the owner of the test releases the
+    handles that the product kept.
     """
     class Process:
         pid = 4242
@@ -452,6 +496,14 @@ def test_n10_r04_the_launch_aggregate_finds_the_partial_channel():
         def close_handle(self, handle):
             return None
 
+        def read_stream(self, handle, size):
+            # The reader of the chain ends at once: the drain of the
+            # channel is bounded and it never blocks for ever.
+            return b''
+
+        def write_stream(self, handle, data):
+            return len(data)
+
     class CountingFile:
         """A file of the channel that counts its own closes."""
 
@@ -467,71 +519,76 @@ def test_n10_r04_the_launch_aggregate_finds_the_partial_channel():
     custody = _LauncherCustody()
     aggregate = _LaunchAggregate(custody=custody)
     process = Process()
-    state = {}
-
-    class StartedThenFailedThread:
-        """A thread that really starts and whose start does not return."""
-
-        def __init__(self, *args, **kwargs):
-            self.args = args
-            self.kwargs = kwargs
-            self.started = False
-
-        def start(self):
-            self.started = True
-            raise RuntimeError('thread_start_failed_after_start')
-
-        def join(self, timeout=None):
-            return None
-
-        def is_alive(self):
-            return False
-
     read_file = CountingFile('read')
     write_file = CountingFile('write')
+    original_start = threading.Thread.start
 
-    def channel_factory():
-        with unittest.mock.patch.object(broker_module.threading, 'Thread',
-                                        StartedThenFailedThread):
-            channel = StreamChannel(
-                None, None,
-                read_endpoint=_WindowsPipeEndpoint(
-                    file_object=read_file, name='channel-read',
-                    api=Api(), clock=clock, handle=900),
-                write_endpoint=_WindowsPipeEndpoint(
-                    file_object=write_file, name='channel-write',
-                    api=Api(), clock=clock, handle=901),
-                custody=aggregate, clock=clock)
-        state['channel'] = channel
-        raise RuntimeError('adoption_failed_after_the_channel')
+    def failing_start(self):
+        # The thread of the reader of the channel really starts and its
+        # start does not return: the channel is half built and the
+        # aggregate is its owner.
+        original_start(self)
+        if self.name == 'lvw-native-custody-channel':
+            raise RuntimeError('thread_start_failed_after_start')
 
-    with pytest.raises(RuntimeError):
-        _adopt_broker_process(process, channel_factory=channel_factory,
-                              executable='C:/python.exe',
-                              executable_sha256='a' * 64, aggregate=aggregate,
-                              custody=custody)
-    channel = state['channel']
-    facts = {'aggregate_channel': aggregate.channel is channel,
-             'read_closes': read_file.closes,
-             'write_closes': write_file.closes,
-             'process_closed': list(process.closed),
-             'terminated': process.terminated,
-             'waited': process.waited,
-             'custody': [(item['kind'], repr(item['resource']))
-                         for item in custody.items()]}
-    write_phase('r04-adoption', facts)
-    # The aggregate found the partial channel: the local variable of the
-    # adoption was never assigned and the files of the channel were
-    # closed by the **channel** itself.
-    assert read_file.closes == 1, \
-        'the partial channel was not coordinated by the aggregate'
-    assert write_file.closes == 1
-    # The files of the process were not closed by the process helper.
-    assert process.closed == [], \
-        'the process helper closed the files of the channel'
-    # The process was coordinated by the aggregate.
-    assert process.terminated == 1
-    assert process.waited == 1
+    try:
+        with unittest.mock.patch.object(threading.Thread, 'start',
+                                        failing_start):
+            with pytest.raises(RuntimeError):
+                StreamChannel(
+                    None, None,
+                    read_endpoint=_WindowsPipeEndpoint(
+                        file_object=read_file, name='channel-read',
+                        api=Api(), clock=clock, handle=900),
+                    write_endpoint=_WindowsPipeEndpoint(
+                        file_object=write_file, name='channel-write',
+                        api=Api(), clock=clock, handle=901),
+                    custody=aggregate, clock=clock)
+        # The partial channel is found **through the aggregate** and not
+        # through a local variable of the adoption.
+        channel = aggregate.channel
+        assert channel is not None, \
+            'the partial channel lost its owner'
+        facts = {'aggregate_channel': channel is not None,
+                 'read_closes': read_file.closes,
+                 'write_closes': write_file.closes,
+                 'process_closed': list(process.closed),
+                 'terminated': process.terminated,
+                 'waited': process.waited,
+                 'custody': [(item['kind'], repr(item['resource']))
+                             for item in custody.items()]}
+        write_phase('r04-partial', facts)
+        # The outer owner of the launch finds the partial channel and
+        # coordinates it: the files of the channel are closed by the
+        # channel itself.
+        report = aggregate.release()
+        facts = {'report': report,
+                 'read_closes': read_file.closes,
+                 'write_closes': write_file.closes,
+                 'process_closed': list(process.closed),
+                 'terminated': process.terminated,
+                 'waited': process.waited}
+        write_phase('r04-release', facts)
+        assert read_file.closes == 1, \
+            'the partial channel was not coordinated by the aggregate'
+        assert write_file.closes == 1
+        # The files of the process were not closed by the process
+        # helper: the channel owns them.
+        assert process.closed == [], \
+            'the process helper closed the files of the channel'
+        # The process was coordinated by the aggregate and it was
+        # coordinated after the channel.
+        assert process.terminated == 1
+        assert process.waited == 1
+    finally:
+        # The salvage of the owner of the test: the thread that the
+        # channel really started is joined with a bounded wait.
+        partial = aggregate.channel
+        thread = getattr(partial, '_thread', None)
+        if thread is not None:
+            thread.join(10.0)
+            assert not thread.is_alive(), \
+                'the reader thread of the channel was left behind'
 
 
 # -- N10-R05: an incomplete channel keeps its owner ------------------------
@@ -546,19 +603,23 @@ def test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel():
     original reference and its owner, and the same launch coordinates
     the channel **before** the process.  The safe steps of the release
     run before the original cancellation of the launch propagates: the
-    original object is the one that leaves and the ordinary failures
-    stay named next to it.
+    original object is the one that leaves, the cancellation of the
+    recovery stays reachable next to it and the recovery of the launcher
+    cancels in the same way.
 
-    Entry: ``_LaunchAggregate.release`` and
-    ``_adopt_broker_process``.  Trigger: the close of the channel
-    returns without a confirmed end and the construction of the broker
-    fails with a cancellation.  Oracle: the process was terminated and
-    waited before the cancellation left, the channel kept its owner and
-    the original cancellation object is the one that propagated.
-    Negative: a returned close is never taken for a release.  Returned
-    state: the facts of the aggregate name what it kept.  Salvage: the
-    recovery of the launcher releases what it may.
+    Entry: ``_LaunchAggregate.release``, ``_adopt_broker_process`` and
+    ``_LauncherCustody.release``.  Trigger: the close of the channel
+    returns without a confirmed end and it is cancelled by the
+    recovery.  Oracle: the process was terminated and waited **after**
+    the channel was coordinated, the channel kept its owner, the
+    original failure object is the one that propagated and the
+    cancellation of the recovery is reachable next to it.  Negative: a
+    returned close is never taken for a release.  Returned state: the
+    facts of the aggregate name what it kept.  Salvage: the recovery of
+    the launcher releases what it may.
     """
+    order = []
+
     class Process:
         pid = 4242
         returncode = None
@@ -569,13 +630,16 @@ def test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel():
 
         def terminate(self):
             self.terminated += 1
+            order.append('terminate')
 
         def wait(self, timeout=None):
             self.waited += 1
+            order.append('wait')
             return 0
 
-    class IncompleteChannel:
-        """A channel whose close returns without a confirmed end."""
+    class CancellingChannel:
+        """A channel whose close returns without a confirmed end and
+        whose close is cancelled by the recovery."""
 
         reader_finished = True
 
@@ -584,23 +648,21 @@ def test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel():
 
         def close(self):
             self.closes += 1
-            return {'write_end_closed': True, 'read_end_closed': False,
-                    'reader_finished': True, 'reader_error': None,
-                    'write_retained_workers': 0, 'read_retained_workers': 1,
-                    'worker_thread_handle_released': False}
+            order.append('channel')
+            raise KeyboardInterrupt('channel_close_cancelled')
 
     class FailingBrokerProcess:
         def __init__(self, *args, **kwargs):
-            raise KeyboardInterrupt('broker_process_cancelled')
+            raise RuntimeError('broker_process_construction_failed')
 
     process = Process()
-    channel = IncompleteChannel()
+    channel = CancellingChannel()
     custody = _LauncherCustody()
     aggregate = _LaunchAggregate(custody=custody)
     original = broker_module.BrokerProcess
     broker_module.BrokerProcess = FailingBrokerProcess
     try:
-        with pytest.raises(KeyboardInterrupt) as info:
+        with pytest.raises(RuntimeError) as info:
             _adopt_broker_process(process, channel_factory=lambda: channel,
                                   executable='C:/python.exe',
                                   executable_sha256='a' * 64,
@@ -610,21 +672,72 @@ def test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel():
     facts = {'channel_closes': channel.closes,
              'terminated': process.terminated,
              'waited': process.waited,
+             'order': list(order),
              'aggregate_channel': aggregate.channel is channel,
              'custody': [(item['kind'], repr(item['resource']))
                          for item in custody.items()],
-             'error_type': type(info.value).__name__}
+             'error_type': type(info.value).__name__,
+             'error_detail': getattr(info.value, 'detail', None)}
     write_phase('r05-adoption', facts)
-    # The safe steps of the release ran before the cancellation left.
+    # The original failure object is the one that propagated.
+    assert str(info.value) == 'broker_process_construction_failed'
+    # The safe steps of the release ran before the failure left: the
+    # channel was coordinated **before** the process.
     assert channel.closes == 1
+    assert order == ['channel', 'terminate', 'wait'], \
+        'the channel of the launch was not coordinated before the process'
     assert process.terminated == 1
     assert process.waited == 1
+    # The cancellation of the recovery is reachable next to the original
+    # failure: the primary failure and the cancellation coexist.
+    cancellation = getattr(info.value, 'lvw_cancelled', None)
+    assert isinstance(cancellation, KeyboardInterrupt), \
+        'the cancellation of the recovery was swallowed'
+    assert str(cancellation) == 'channel_close_cancelled'
     # The incomplete facts kept the channel with its owner.
     assert aggregate.channel is channel, \
         'an incomplete channel lost its owner'
     assert any(item['kind'] == 'channel' for item in custody.items())
-    # The original cancellation object is the one that propagated.
-    assert str(info.value) == 'broker_process_cancelled'
+
+    # The recovery of the launcher cancels in the same way: the safe
+    # steps run first and the cancellation of the recovery is the error
+    # that leaves.  The recovery runs on a **fresh** launch and on a
+    # fresh table of the launcher, so that the order that is observed
+    # belongs to that launch alone.
+    order[:] = []
+    process2 = Process()
+    channel2 = CancellingChannel()
+    custody2 = _LauncherCustody()
+
+    class FailingBrokerProcess2:
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError('broker_process_construction_failed')
+
+    original = broker_module.BrokerProcess
+    broker_module.BrokerProcess = FailingBrokerProcess2
+    try:
+        with pytest.raises(RuntimeError):
+            _adopt_broker_process(process2, channel_factory=lambda: channel2,
+                                  executable='C:/python.exe',
+                                  executable_sha256='a' * 64,
+                                  custody=custody2)
+    finally:
+        broker_module.BrokerProcess = original
+    order[:] = []
+    with pytest.raises(KeyboardInterrupt) as recovery:
+        custody2.release()
+    facts = {'order': list(order),
+             'terminated': process2.terminated,
+             'waited': process2.waited,
+             'error_type': type(recovery.value).__name__,
+             'custody': [(item['kind'], repr(item['resource']))
+                         for item in custody2.items()]}
+    write_phase('r05-recovery', facts)
+    assert str(recovery.value) == 'channel_close_cancelled'
+    assert order == ['channel', 'terminate', 'wait'], \
+        'the recovery of the launcher did not coordinate the channel first'
+    # The channel that could not be released keeps its owner.
+    assert any(item['kind'] == 'channel' for item in custody2.items())
 
 
 # -- N10-R06: the admission of a generation -------------------------------
@@ -643,11 +756,12 @@ def test_n10_r06_an_expired_or_cancelled_call_performs_no_primitive_call():
     Entry: ``_WindowsPipeEndpoint.read``,
     ``_WindowsPipeEndpoint.write`` and
     ``_WindowsPipeEndpoint._admission``.  Trigger: the call enters with
-    an expired deadline and with a cancel flag that is already set.
-    Oracle: the refusal is named and no worker was started.  Negative:
-    the endpoint never starts a worker for a refused call.  Returned
-    state: the facts of the endpoint name no worker.  Salvage: the
-    owner of the test closes the endpoint at the end.
+    an expired deadline and with a cancel flag that is already set, for
+    the read and for the write.  Oracle: the refusal is named and no
+    worker was started.  Negative: the endpoint never starts a worker
+    for a refused call.  Returned state: the facts of the endpoint name
+    no worker.  Salvage: the owner of the test closes the endpoint at
+    the end.
     """
     clock = ManualClock(1000.0)
     calls = []
@@ -699,6 +813,13 @@ def test_n10_r06_an_expired_or_cancelled_call_performs_no_primitive_call():
         assert calls == [], 'a primitive was called by a refused write'
         assert endpoint._writer is None, \
             'the refused write started a worker of the endpoint'
+
+        with pytest.raises(BrokerError) as info:
+            endpoint.write(b'abc', None, cancel)
+        assert info.value.code == 'BROKER_PIPE_CANCELLED'
+        assert calls == [], 'a primitive was called by a refused write'
+        assert endpoint._writer is None, \
+            'the refused write started a worker of the endpoint'
         write_phase('r06-admission', {'calls': list(calls),
                                       'reader': endpoint._reader is not None,
                                       'writer': endpoint._writer is not None})
@@ -712,21 +833,24 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
     """N10-R07 (M08): the context of the round is one context.
 
     Obligation: the parent hands the **one** context of the round to
-    the launcher of the broker and the launcher holds it before the
+    the launcher of the broker and the launcher holds it **before** the
     first side effect of the launch - the creation of the process, the
     reading of the executable, the channel and its endpoints.  The
     channel, the endpoints, the workers of the endpoints and the API of
-    the primitives read the **same** context, and after the round
-    published its cleanup deadline every one of them uses the earlier
-    of the lease and the cleanup: there is no unbound window and no new
-    budget of its own.
+    the primitives read the **same** context.  In the child the STOP of
+    the round publishes the ONE cleanup deadline and the transport of
+    the round - the write of the terminal reply, the partial write and
+    the join of the reader - uses the earlier of the lease and the
+    cleanup: there is no unbound window and no new budget of its own.
 
-    Entry: ``NativeCustodySession.start``,
-    ``NativeCustodySession._call_launcher``, ``StreamChannel``,
-    ``_WindowsPipeEndpoint`` and ``_WindowsPipeWorker``.  Trigger: the
-    round publishes its cleanup deadline while the layers of the round
-    are bound.  Oracle: every layer reads the cleanup deadline and the
-    launcher received the context of the session.  Negative: no layer
+    Entry: ``NativeCustodySession._call_launcher``,
+    ``NativeCustodySession.start``, ``launch_broker``,
+    ``_LaunchAggregate``, ``StreamChannel``, ``_WindowsPipeEndpoint``,
+    ``_WindowsPipeWorker``, ``WindowsApi.bind_context``,
+    ``BrokerCore.__init__`` and ``BrokerLoop._stop``.  Trigger: the
+    round publishes its cleanup deadline and the terminal reply is
+    written.  Oracle: every layer of the parent and of the child reads
+    the context and the published cleanup deadline.  Negative: no layer
     keeps a deadline of its own.  Returned state: the evidence of the
     session names the propagation of the context.  Salvage: the owner of
     the test closes the channel that it built.
@@ -798,7 +922,9 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
 
     def launcher(plan_, run_root_, nonce_, *, context=None):
         # The launcher of the production path accepts the context and it
-        # holds it **before** the first side effect of the launch.
+        # holds it **before** the first side effect of the launch: the
+        # deadline of the round is already bound when the launcher is
+        # entered.
         seen['context'] = context
         seen['deadline'] = None if context is None else context.absolute_deadline
         return peer
@@ -820,29 +946,100 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
             'the launcher had no deadline before the first side effect'
         assert session.evidence()['launcher_context_propagated'] is True
 
-        # The layers of the round read the **same** context and they use
-        # the cleanup deadline once the round published it.
+        # -- the launcher: the aggregate, the channel and the handle of
+        #    the broker hold the context before any side effect -------
         context = _RoundContext(clock=clock)
         context.bind_absolute_deadline(2000.0)
-        api = RecordingWin32()
-        endpoint = _WindowsPipeEndpoint(file_object=_FakeFile('read'),
-                                        name='inprocess', api=api,
-                                        clock=clock, handle=702,
-                                        context=context)
-        assert endpoint._context is context
-        assert endpoint._effective_deadline() == 2000.0
-        context.cleanup_deadline(clock.value + 0.5)
-        assert endpoint._effective_deadline() == clock.value + 0.5, \
-            'the endpoint kept the long lease of the round'
-        worker = _WindowsPipeWorker(api, 702, kind='read',
-                                    action=lambda request: b'',
-                                    name='lvw-n10-r07', clock=clock,
-                                    context=context)
-        assert worker._context is context
-        assert worker._effective_deadline() == clock.value + 0.5, \
-            'the worker kept the long lease of the round'
-        write_phase('r07-layers', {'endpoint': endpoint._effective_deadline(),
-                                    'worker': worker._effective_deadline()})
+        custody = _LauncherCustody()
+        aggregate = _LaunchAggregate(custody=custody, context=context)
+        aggregate.bind_context(context)
+
+        class Api:
+            def duplicate_current_thread_handle(self):
+                return 701
+
+            def cancel_synchronous_io(self, handle):
+                return 'REQUESTED'
+
+            def close_handle(self, handle):
+                return None
+
+            def read_stream(self, handle, size):
+                return b''
+
+            def write_stream(self, handle, data):
+                return len(data)
+
+        class Process:
+            pid = 4242
+            returncode = None
+
+            def __init__(self):
+                self.stdin = _FakeFile('stdin')
+                self.stdout = _FakeFile('stdout')
+
+        process = Process()
+        channel = StreamChannel(process.stdout, process.stdin,
+                                custody=aggregate, context=context)
+        broker = BrokerProcess(process, 'C:/python.exe', 'a' * 64, channel,
+                               context=aggregate.context)
+        facts = {'aggregate': aggregate.context is context,
+                 'channel': channel._context is context,
+                 'reader_endpoint': channel._reader._context is context,
+                 'writer_endpoint': channel._writer._context is context,
+                 'broker': broker._context is context}
+        write_phase('r07-launcher', facts)
+        assert aggregate.context is context
+        assert channel._context is context
+        assert channel._reader._context is context
+        assert channel._writer._context is context
+        assert broker._context is context
+
+        # -- the child: the core, the loop and the transport share one
+        #    context and the cleanup deadline of the round -----------
+        kernel32 = SyntheticKernel32()
+        api = WindowsApi(table=synthetic_table(kernel32))
+        child = BrokerCore(win32=api, plan=sealed_plan(), run_root=tmp_path,
+                           clock=clock)
+        assert api._context is child.context, \
+            'the facade of the primitives has no context of the round'
+        child.bind_absolute_deadline(2000.0)
+        transport = StreamChannel(
+            None, None,
+            read_endpoint=_WindowsPipeEndpoint(
+                file_object=_FakeFile('read'), name='transport-read',
+                api=Api(), clock=clock, handle=910, context=child.context),
+            write_endpoint=_WindowsPipeEndpoint(
+                file_object=_FakeFile('write'), name='transport-write',
+                api=Api(), clock=clock, handle=911, context=child.context),
+            clock=clock, context=child.context)
+        transport.bind_deadline(2000.0)
+        loop = BrokerLoop(core=child, transport=transport, plan=child.plan,
+                          nonce=NONCE, clock=clock, wall=time.time)
+        loop._deadline_mono = 2000.0
+        # The STOP of the round: the core publishes the ONE cleanup
+        # deadline and the terminal reply is written under it.
+        loop._stop('STOP_COMMAND', 0)
+        cleanup = child.context.cleanup_deadline_value()
+        facts = {'cleanup': cleanup,
+                 'transport': transport._effective_deadline(),
+                 'write_endpoint': transport._writer._effective_deadline(),
+                 'write_deadline': transport._writer._write_deadline,
+                 'read_endpoint': transport._reader._effective_deadline(),
+                 'api': api._effective_deadline()}
+        write_phase('r07-child', facts)
+        assert cleanup is not None, 'the round published no cleanup deadline'
+        assert transport._effective_deadline() == cleanup, \
+            'the transport kept the long lease of the round'
+        assert transport._writer._effective_deadline() == cleanup, \
+            'the endpoint of the transport kept the long lease'
+        assert transport._writer._write_deadline == cleanup, \
+            'the partial write of the transport kept the long lease'
+        assert transport._reader._effective_deadline() == cleanup, \
+            'the join of the reader kept the long lease'
+        assert api._effective_deadline() == cleanup, \
+            'the facade of the primitives kept the long lease'
+        transport.close()
     finally:
         session.stop()
 
@@ -925,17 +1122,20 @@ def test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread(tmp_path):
     step in a ``finally``, bounded by the deadline of the round.  A
     thread that did not exit keeps its owner: it stays in the owners
     that are in flight and the round keeps the fact.  The original
-    exception is the one that leaves and the wait never publishes the
-    cleanup deadline of the round before the round failed.
+    exception object is the one that leaves and the wait never
+    publishes the cleanup deadline of the round before the round
+    failed.
 
     Entry: ``BrokerLoop._run_startup`` and ``_StartupOwner.settle``.
-    Trigger: the action of the step raises an ordinary error, a
-    cancellation and a ``SystemExit``, and a step that never returns.
-    Oracle: the owner was released only after the real exit of its
-    thread and the owner of a step that did not end kept its place.
-    Negative: an attempt that ended is never a proof that the thread
-    ended.  Returned state: the owners that are in flight are named.
-    Salvage: the owner of the test releases the thread at the end.
+    Trigger: the result of the step is published while the **real**
+    thread of the step is still alive, and the result is an ordinary
+    error, a cancellation and a ``SystemExit``.  Oracle: the owner was
+    not released before the real exit of its thread, the bounded join
+    ran and the original exception object is the one that propagated.
+    Negative: the publication of the result is never a proof that the
+    thread ended.  Returned state: the owners that are in flight are
+    named.  Salvage: the owner of the test releases the threads that
+    the product started.
     """
     clock = time.monotonic
     win32 = RecordingWin32()
@@ -945,63 +1145,62 @@ def test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread(tmp_path):
     transport = type('T', (), {'bind_deadline': lambda self, value: value,
                                'write': lambda self, raw: None})()
     loop = BrokerLoop(core=core, transport=transport, plan=core.plan,
-                      nonce='0' * 32, clock=clock, wall=time.time)
-    # The deadline of the step of the round is finite and it is short:
-    # a step that never returns must miss it.
+                      nonce=NONCE, clock=clock, wall=time.time)
     loop._deadline_mono = clock() + 0.3
     release = threading.Event()
+    owners = []
     try:
-        def ordinary():
-            raise BrokerError('BROKER_STARTUP_ORDINARY')
+        for error in (BrokerError('BROKER_STARTUP_ORDINARY'),
+                      KeyboardInterrupt('startup_cancelled'),
+                      SystemExit(3)):
+            published = threading.Event()
 
-        with pytest.raises(BrokerError) as info:
-            loop._run_startup('ARM', ordinary)
-        assert info.value.code == 'BROKER_STARTUP_ORDINARY'
-        assert loop._startup_in_flight is None, \
-            'the owner of a step that ended was kept'
-        assert core.context.inflight() == [], \
-            'the owner of a step that ended stayed in flight'
+            def action(error=error, published=published):
+                # The result of the step is published and the **real**
+                # thread of the step stays alive: the publication of the
+                # result is never a proof that the thread ended.
+                owner = loop._startup_owner
+                owner._results.put_nowait(('error', error))
+                published.set()
+                release.wait(15.0)
 
-        def cancelling():
-            raise KeyboardInterrupt('startup_cancelled')
-
-        with pytest.raises(KeyboardInterrupt):
-            loop._run_startup('ARM', cancelling)
-        assert loop._startup_in_flight is None
-        assert core.context.inflight() == []
-
-        def exiting():
-            raise SystemExit(3)
-
-        with pytest.raises(SystemExit):
-            loop._run_startup('ARM', exiting)
-        assert loop._startup_in_flight is None
-        assert core.context.inflight() == []
-
-        # A step that never returns keeps its owner: the attempt never
-        # ended and the thread of the step is still inside the
-        # operating system.  The cleanup deadline of the round is
-        # published explicitly here: the round failed and the wait for
-        # the thread of the step is bounded by it.
-        core.context.cleanup_deadline(clock() + 0.2)
-        with pytest.raises(BrokerError) as info:
-            loop._run_startup('ARM', lambda: release.wait(10.0))
-        assert info.value.code == 'BROKER_STARTUP_DEADLINE_EXCEEDED'
-        facts = {'in_flight': len(core.context.inflight()),
-                 'retained': loop._startup_in_flight is not None}
-        write_phase('r09-startup', facts)
-        assert loop._startup_in_flight is not None, \
-            'the owner of a step that did not end was released'
-        assert core.context.inflight(), \
-            'the owner of a step that did not end left the flight'
+            published.clear()
+            with pytest.raises(type(error)) as info:
+                loop._run_startup('ARM', action)
+            assert published.is_set(), \
+                'the result of the step was never published'
+            # The original exception object is the one that propagated.
+            assert info.value is error, \
+                'the original exception object was replaced'
+            owner = loop._startup_owner
+            owners.append(owner)
+            # The real thread of the step is still alive: the owner was
+            # not released before the real exit of its thread.
+            assert owner.in_flight, \
+                'the thread of the step ended while the owner was released'
+            assert loop._startup_in_flight is owner, \
+                'the owner of a step that did not end was released'
+            assert owner in core.context.inflight(), \
+                'the owner of a step that did not end left the flight'
+            facts = {'error_type': type(error).__name__,
+                     'in_flight': len(core.context.inflight()),
+                     'retained': loop._startup_in_flight is owner}
+            write_phase('r09-%s' % type(error).__name__.lower(), facts)
     finally:
+        # The salvage of the owner of the test: the threads that the
+        # product started are released and joined with a bounded wait.
         release.set()
-        time.sleep(0.3)
+        for owner in owners:
+            thread = owner._thread
+            if thread is not None:
+                thread.join(10.0)
+                assert not thread.is_alive(), \
+                    'the thread of a startup step was left behind'
 
 
 # -- N10-R10: the outcome of the generation wins --------------------------
 
-def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation():
+def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_path):
     """N10-R10 (M09): a real fault of the round is never a benign cancel.
 
     Obligation: the worker of an endpoint keeps the **outcome** of
@@ -1011,87 +1210,92 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation():
     error of the round: a close that sets the cancel flag afterwards
     may not replace it and it may not turn it into a benign
     cancellation.  The identity of the token of the cancel is not a
-    proof: the order of the two facts is the proof.
+    proof: the order of the two facts is the proof.  The error of the
+    reader is a **history**: two real stops of the round keep it and
+    the round stays unknown.
 
     Entry: ``_WindowsPipeWorker.outcome``,
-    ``_WindowsPipeWorker.published_before_cancel`` and
-    ``_WindowsPipeEndpoint._raise_cancellation``.  Trigger: the read of
-    the generation fails with an ordinary error and the cancel flag of
-    the close is set before the endpoint reads the result.  Oracle: the
-    original error object is the one that leaves and the code of the
-    error is the code of the real fault.  Negative: a cancellation may
-    never rewrite a published failure.  Returned state: the outcome of
-    the generation is named with its order.  Salvage: the owner of the
-    test closes the endpoint at the end.
+    ``_WindowsPipeWorker.published_before_cancel``,
+    ``_WindowsPipeEndpoint._raise_cancellation``,
+    ``BrokerProcess._keep_reader_error_history`` and
+    ``NativeCustodySession.stop``.  Trigger: the read of the
+    generation fails with an ordinary error, the outcome of the
+    generation is really published and the close of the round asks for
+    the cancellation of the same generation.  Oracle: the original
+    error object is the one that leaves, the code of the error is the
+    code of the real fault and the two stops of the round keep it.
+    Negative: a cancellation may never rewrite a published failure.
+    Returned state: the outcome of the generation is named with its
+    order and its error object.  Salvage: the owner of the test stops
+    the round in every case.
     """
-    clock = ManualClock(1000.0)
-    started = threading.Event()
-    release = threading.Event()
-
-    class Api:
-        def duplicate_current_thread_handle(self):
-            return 701
-
-        def cancel_synchronous_io(self, handle):
-            return 'REQUESTED'
-
-        def close_handle(self, handle):
-            return None
-
-        def read_stream(self, handle, size):
-            # The ordinary failure of the read of this generation.
-            started.set()
-            release.wait(5.0)
-            raise BrokerError('BROKER_STREAM_READ_FAILED')
-
-    endpoint = _WindowsPipeEndpoint(file_object=_FakeFile('read'),
-                                    name='inprocess', api=Api(), clock=clock,
-                                    handle=702)
-    cancel = _ChannelCancel()
-    outcome_holder = {}
-
-    def reader():
-        try:
-            endpoint.read(None, cancel)
-        except BaseException as error:  # noqa: BLE001 - it is reported
-            outcome_holder['error'] = error
-
-    worker = threading.Thread(target=reader, name='lvw-n10-r10-reader')
-    worker.start()
+    document = _live_plan_document()
+    plan = validate_launch_plan(document, now=time.time())
+    api = _F5Api(read_fault=RuntimeError('read_fault'))
+    session, holder, channel_closes, channel_facts = _chain(
+        api, document, plan, tmp_path)
     try:
-        assert started.wait(5.0), 'the read never started'
-        # The close of the round asks for the cancellation of the
-        # generation and the failure of the read happens at the same
-        # moment: the failure of the round is the first error in every
-        # interleaving of the two.
-        cancel.set()
-        release.set()
-        worker.join(10.0)
-        assert not worker.is_alive(), 'the reader was left behind'
-        error = outcome_holder.get('error')
-        assert error is not None, 'the read returned without an error'
-        record = endpoint._reader.outcome(1)
-        facts = {'code': getattr(error, 'code', None),
-                 'type': type(error).__name__,
-                 'outcome_error': (record or {}).get('error'),
-                 'sequence': (record or {}).get('sequence'),
-                 'cancel_sequence': (record or {}).get('cancel_sequence'),
-                 'parallel': getattr(error, 'lvw_parallel_cancellation',
-                                     None)}
-        write_phase('r10-outcome', facts)
-        # The real fault of the round is the one that leaves.
-        assert getattr(error, 'code', None) == 'BROKER_STREAM_READ_FAILED', \
+        session.start()
+        reader = holder['read_endpoint']._reader
+        assert reader is not None, 'the reader of the chain never started'
+        # The owner of the test publishes the ordinary failure of the
+        # read and waits for the reader to be really inside its read.
+        assert api.read_waiting.wait(15.0), \
+            'the reader of the chain was never inside its read'
+        api.publish_read_fault()
+        assert api.fault_observed.wait(15.0), \
+            'the ordinary failure of the read never happened'
+        # The barrier: the outcome of the generation is really published
+        # and it carries the **original** error object.
+        assert reader.outcome_published.wait(15.0), \
+            'the outcome of the read was never published'
+        outcome = reader.outcome(1)
+        assert outcome is not None, 'the outcome of the generation is gone'
+        assert outcome['error'] == 'RuntimeError'
+        assert isinstance(outcome['error_object'], RuntimeError)
+        # The close of the round asks for the cancellation of the same
+        # generation **after** the failure was published.
+        holder['channel']._cancel.set()
+        first = session.stop()
+        first_facts = first['broker_close_facts'] or {}
+        write_phase('r10-first', {'outcome_error': outcome['error'],
+                                   'outcome_object':
+                                   type(outcome['error_object']).__name__,
+                                   'sequence': outcome['sequence'],
+                                   'reader_error':
+                                   first_facts.get('channel_reader_error'),
+                                   'state': first['state']})
+        assert first_facts.get('channel_reader_error') == 'RuntimeError', \
             'the real fault of the round was replaced by a cancellation'
-        assert isinstance(error, BrokerError)
-        assert (record or {}).get('error') == 'BROKER_STREAM_READ_FAILED'
+        assert first_facts.get('close_cancellation') is None
+        assert first['broker_retained'] is True
+        assert first['state'] == 'UNKNOWN_RETAINED'
+
+        # The second public stop of the round: the error of the reader is
+        # a history and it is never lost.
+        second = session.stop()
+        second_facts = second['broker_close_facts'] or {}
+        write_phase('r10-second', {'reader_error':
+                                    second_facts.get('channel_reader_error'),
+                                    'source':
+                                    second_facts.get('channel_reader_error_source'),
+                                    'state': second['state']})
+        assert second_facts.get('channel_reader_error') == 'RuntimeError', \
+            'the second attempt lost the error of the reader'
+        assert second_facts.get('channel_reader_error_source') \
+            == 'REPEATED_CLOSE'
+        assert second['broker_retained'] is True
+        assert second['state'] == 'UNKNOWN_RETAINED'
     finally:
-        release.set()
-        endpoint.close()
+        try:
+            session.stop()
+        except Exception:  # noqa: BLE001 - the evidence keeps the failure
+            pass
 
 
-# -- N10-R11: the overflow is a named failure -----------------------------
+# -- N10-R11: the overflow of the channel is a named failure -------------
 
-def test_n10_r11_the_overflow_of_the_channel_is_a_named_failure():
+def test_n10_r11_the_overflow_of_the_channel_is_a_named_failure(tmp_path):
     """N10-R11 (M09): the overflow of the channel is named where it is.
 
     Obligation: a complete frame with a newline that is too long and a
@@ -1100,97 +1304,159 @@ def test_n10_r11_the_overflow_of_the_channel_is_a_named_failure():
     channel with the original facts of the overflow.  A close that
     happens before the read consumes the frame carries that error: the
     channel that overflowed is never a channel that ended normally and
-    the broker is never released as if there were no error.
+    the broker is never released as if there were no error.  The limits
+    of the package do not move: the exact frame fits and the frame that
+    is one byte longer does not.
 
-    Entry: ``StreamChannel._drain``, ``StreamChannel._record_overflow``
-    and ``BrokerProcess._close_channel``.  Trigger: the channel reads a
-    frame that does not fit and the close happens before the read
-    consumes it.  Oracle: the error of the reader is the named overflow
-    and the facts of the overflow travel with the close.  Negative: the
-    limits of the package are unchanged: the exact frame fits and the
-    one byte beyond the limit does not.  Returned state: the facts of
-    the close name the overflow.  Salvage: the owner of the test closes
-    the channel at the end.
+    Entry: ``StreamChannel._drain``, ``StreamChannel._record_overflow``,
+    ``StreamChannel.close``, ``BrokerProcess._close_channel`` and
+    ``NativeCustodySession.stop``.  Trigger: the channel of the round
+    reads a frame that does not fit and the round is stopped twice.
+    Oracle: the error of the reader is the named overflow, the facts of
+    the overflow travel with the close and the broker is kept.  Negative:
+    the exact frame still fits and the one byte beyond the limit does
+    not.  Returned state: the facts of the two stops name the overflow.
+    Salvage: the owner of the test stops the round in every case.
     """
-    clock = ManualClock(1000.0)
-    blocks = []
+    document = _live_plan_document()
+    plan = validate_launch_plan(document, now=time.time())
+    limit = 32 * 1024
+    # The exact frame and the frame that is one byte longer are strictly
+    # adjacent and the limit of the package does not move.
+    exact = b'y' * (limit - 1) + b'\n'
+    one_over = b'x' * limit + b'\n'
+    assert len(exact) == limit
+    assert len(one_over) == limit + 1
 
-    class Reader:
-        """The read end of the channel: it returns one block and then EOF."""
-
-        def __init__(self):
-            self.facts = {}
-
-        def read(self, deadline=None, cancel=None):
-            if not blocks:
-                return b''
-            return blocks.pop(0)
-
-        def close(self):
-            self.facts['closed'] = True
-            return {'closed': True, 'retained_workers': 0,
-                    'worker_thread_handle_released': True}
-
-    class Writer:
-        def __init__(self):
-            self.facts = {}
-
-        def write(self, raw, deadline=None, cancel=None):
-            return len(raw)
-
-        def close(self):
-            self.facts['closed'] = True
-            return {'closed': True, 'retained_workers': 0,
-                    'worker_thread_handle_released': True}
-
-    # A frame with a newline that is one byte beyond the limit.
-    blocks.append(b'x' * (32 * 1024 + 1) + b'\n')
-    channel = StreamChannel(None, None, read_endpoint=Reader(),
-                            write_endpoint=Writer(), clock=clock,
-                            max_frame_bytes=32 * 1024)
+    api = _F5Api()
+    session, holder, channel_closes, channel_facts = _chain(
+        api, document, plan, tmp_path)
     try:
-        deadline = time.monotonic() + 5.0
-        while channel._error is None and time.monotonic() < deadline:
+        session.start()
+        # The owner of the test publishes the frame that does not fit
+        # into the channel of the round: the frame is a **complete**
+        # frame with a newline that is one byte beyond the limit.
+        assert api.read_waiting.wait(15.0), \
+            'the reader of the chain was never inside its read'
+        api.publish_outcome('FRAME', one_over)
+        # The channel of the round reads the frame that does not fit.
+        deadline = time.monotonic() + 15.0
+        while holder['channel']._error is None and time.monotonic() < deadline:
             time.sleep(0.02)
+        channel = holder['channel']
         facts = {'error': channel._error, 'overflow': channel.overflow,
                  'overflow_facts': channel._overflow_facts}
-        write_phase('r11-overflow', facts)
+        write_phase('r11-oversize', facts)
         assert channel.overflow is True
         assert channel._error == 'BROKER_CHANNEL_OVERFLOW', \
             'the overflow was not recorded as a named failure'
         assert channel._overflow_facts.get('reason') == 'FRAME_TOO_LARGE'
-        # The close of the channel carries the named error of the reader.
-        close_facts = channel.close()
-        assert close_facts['reader_error'] == 'BROKER_CHANNEL_OVERFLOW', \
-            'the close of the channel lost the overflow'
-        assert close_facts['overflow'] is True
-        assert close_facts['overflow_facts'].get('reason') == 'FRAME_TOO_LARGE'
+        # The two real stops of the round carry the named error.
+        first = session.stop()
+        first_facts = first['broker_close_facts'] or {}
+        write_phase('r11-first', {'reader_error':
+                                  first_facts.get('channel_reader_error'),
+                                  'overflow': first_facts.get('channel_overflow'),
+                                  'state': first['state']})
+        assert first_facts.get('channel_reader_error') \
+            == 'BROKER_CHANNEL_OVERFLOW', \
+            'the close of the round lost the overflow'
+        assert first_facts.get('channel_overflow') is True
+        assert first['broker_retained'] is True
+        assert first['state'] == 'UNKNOWN_RETAINED'
+        second = session.stop()
+        second_facts = second['broker_close_facts'] or {}
+        write_phase('r11-second', {'reader_error':
+                                    second_facts.get('channel_reader_error'),
+                                    'source':
+                                    second_facts.get('channel_reader_error_source'),
+                                    'state': second['state']})
+        assert second_facts.get('channel_reader_error') \
+            == 'BROKER_CHANNEL_OVERFLOW', \
+            'the second attempt lost the overflow'
+        assert second['broker_retained'] is True
+        assert second['state'] == 'UNKNOWN_RETAINED'
     finally:
-        channel.close()
+        try:
+            session.stop()
+        except Exception:  # noqa: BLE001 - the evidence keeps the failure
+            pass
 
     # The exact frame still fits: the limits of the package did not move.
-    exact = b'y' * (32 * 1024 - 1) + b'\n'
-    blocks.append(exact)
-    channel = StreamChannel(None, None, read_endpoint=Reader(),
-                            write_endpoint=Writer(), clock=clock,
-                            max_frame_bytes=32 * 1024)
+    blocks = [exact]
+    channel = StreamChannel(None, None, read_endpoint=_BlockReader(blocks),
+                            write_endpoint=_BlockWriter(), clock=time.monotonic)
     try:
-        deadline = time.monotonic() + 5.0
+        deadline = time.monotonic() + 15.0
         while channel._count == 0 and time.monotonic() < deadline:
             time.sleep(0.02)
+        write_phase('r11-exact', {'count': channel._count,
+                                  'overflow': channel.overflow,
+                                  'error': channel._error})
         assert channel._count == 1, \
             'the exact frame did not fit into the channel'
         assert channel.overflow is False
         assert channel._error is None
-        write_phase('r11-exact', {'count': channel._count,
-                                  'overflow': channel.overflow})
+    finally:
+        channel.close()
+
+    # The frame count of the channel: the frame that is one beyond the
+    # number of the frames of the package is refused with the same named
+    # error.  The parent of the round may never deliver that many
+    # frames - its own budget is smaller - and the channel alone is the
+    # owner that may prove it.
+    blocks = [b'z\n'] * 1025
+    channel = StreamChannel(None, None, read_endpoint=_BlockReader(blocks),
+                            write_endpoint=_BlockWriter(), clock=time.monotonic)
+    try:
+        deadline = time.monotonic() + 15.0
+        while channel._error is None and time.monotonic() < deadline:
+            time.sleep(0.02)
+        write_phase('r11-frames', {'error': channel._error,
+                                   'overflow': channel.overflow,
+                                   'overflow_facts': channel._overflow_facts,
+                                   'frames': channel.frames})
+        assert channel.overflow is True
+        assert channel._error == 'BROKER_CHANNEL_OVERFLOW'
+        assert channel._overflow_facts.get('reason') == 'TOO_MANY_FRAMES'
     finally:
         channel.close()
 
 
+class _BlockReader:
+    """A read end of the channel that returns the blocks it was given."""
+
+    def __init__(self, blocks):
+        self.blocks = list(blocks)
+
+    def read(self, deadline=None, cancel=None):
+        if self.blocks:
+            return self.blocks.pop(0)
+        return b''
+
+    def close(self):
+        return {'closed': True, 'retained_workers': 0,
+                'worker_thread_handle_released': True}
+
+
+class _BlockWriter:
+    """A write end of the channel that counts its own closes."""
+
+    def __init__(self):
+        self.closes = 0
+
+    def write(self, raw, deadline=None, cancel=None):
+        return len(raw)
+
+    def close(self):
+        self.closes += 1
+        return {'closed': True, 'retained_workers': 0,
+                'worker_thread_handle_released': True}
+
+
 # -- N10-R12: the causal order of the reader ------------------------------
 
-def test_n10_r12_the_reader_publishes_its_wait_before_it_waits():
+def test_n10_r12_the_reader_publishes_its_wait_before_it_waits(tmp_path):
     """N10-R12 (test causality): the reader publishes its real state.
 
     Obligation: the reader of the chain publishes the event that it is
@@ -1199,9 +1465,12 @@ def test_n10_r12_the_reader_publishes_its_wait_before_it_waits():
     after a timeout.  The external owner waits for that event, it sets
     the **same** cancel flag of the **same** channel without naming an
     owner and it publishes an explicit confirmation; the public stop of
-    the round is driven only after that confirmation.  The wait of the
-    owner is bounded and its return is checked and the bound of the
-    package is never enlarged to make the timing fit.
+    the round is driven only after that confirmation.  The code of the
+    cancellation is the one that the **real** observation layer raised
+    - the read endpoint of the channel or the wait of the channel
+    between two reads - and the origin of the cancellation stays
+    unknown: the close of the channel may never be taken for the owner
+    of this cancellation.
 
     Entry: ``_F5Api.read_stream`` and
     ``_F5ExternalCancelOwner.run``.  Trigger: the round is started and
@@ -1213,7 +1482,7 @@ def test_n10_r12_the_reader_publishes_its_wait_before_it_waits():
     its read.  Returned state: the confirmation of the owner is
     published and the facts of the close name the error of the reader.
     Salvage: the exact thread of the owner is joined by the owner of
-    the test.
+    the test, in every case and with a bounded wait.
     """
     document = _live_plan_document()
     plan = validate_launch_plan(document, now=time.time())
@@ -1245,6 +1514,7 @@ def test_n10_r12_the_reader_publishes_its_wait_before_it_waits():
         assert owner.flag_set is True
         assert channel._cancel.is_set()
         assert channel._cancel.owner() is None
+        assert owner.flag_owner is None
         # The public stop of the round is driven only after the
         # confirmation of the owner.
         first = session.stop()
@@ -1253,11 +1523,19 @@ def test_n10_r12_the_reader_publishes_its_wait_before_it_waits():
                                   'reader_error':
                                   close_facts.get('channel_reader_error'),
                                   'retained': first['broker_retained']})
-        assert close_facts.get('channel_reader_error') == 'BROKER_PIPE_CANCELLED', \
-            'the cancellation of the other owner was swallowed'
+        # The code of the cancellation is the one that the real
+        # observation layer raised and it is one of the two codes that
+        # the production names for the cancellation of the channel.
+        assert close_facts.get('channel_reader_error') in CANCELLATION_CODES, \
+            'the cancellation of the other owner was not classified'
+        # It is **not** the cancellation of the close of the channel.
+        assert close_facts.get('close_cancellation') is None, \
+            'the cancellation of another owner was taken for the close'
         assert first['broker_retained'] is True
         assert first['state'] == 'UNKNOWN_RETAINED'
     finally:
+        # The exact thread of the owner of the test is joined in every
+        # case and with a bounded wait.
         thread.join(30.0)
         assert not thread.is_alive(), 'the owner of the round was left behind'
         try:
@@ -1268,29 +1546,33 @@ def test_n10_r12_the_reader_publishes_its_wait_before_it_waits():
 
 # -- N10-R13: the fault is unlocked by the owner of the test ---------------
 
-def test_n10_r13_the_fault_is_unlocked_by_the_owner_and_observed_first():
+def test_n10_r13_the_fault_is_unlocked_by_the_owner_and_observed_first(tmp_path):
     """N10-R13 (M09): the fault of the read is observed before the stop.
 
-    Obligation: the ordinary failure of the read and the frame that
-    never ends are published by the **owner of the test** and they are
-    never unlocked by the write of the stop: the owner waits for the
-    real outcome - the error or the end of the stream - and it observes
-    it **before** it drives the public stop of the round.  The phase
-    documents of the round are really written and every value of them
-    is a value that the production returned.
+    Obligation: the ordinary failure of the read, the frame that never
+    ends and the end of the stream are published by the **owner of the
+    test** and they are never unlocked by the write of the stop: the
+    owner waits for the real outcome - the error, the frame or the end
+    of the stream - and it observes it **before** it drives the public
+    stop of the round.  Every phase of the round writes its bounded
+    document and every value of it is a value that the production
+    returned.
 
     Entry: ``_F5Api.publish_read_fault``,
     ``_F5Api.publish_partial_frame`` and
     ``NativeCustodySession.stop``.  Trigger: the ordinary failure of
-    the read of the chain.  Oracle: the failure was really published
-    before the stop and the error of the reader is the error of the
-    round.  Negative: the write of the stop never unlocks a failure
-    that should have happened first.  Returned state: the phase
-    documents are on the disk.  Salvage: the owner of the test stops the
-    round in every case.
+    the read of the chain, the frame that never ends and the end of the
+    stream.  Oracle: the failure was really published before the stop,
+    the error of the reader is the error of the round and the partial
+    frame keeps its own name.  Negative: the write of the stop never
+    unlocks a failure that should have happened first.  Returned state:
+    the phase documents are on the disk.  Salvage: the owner of the test
+    stops the round in every case.
     """
     document = _live_plan_document()
     plan = validate_launch_plan(document, now=time.time())
+
+    # -- PHASE ONE: the ordinary failure of the read --------------------
     api = _F5Api(read_fault=RuntimeError('read_fault'))
     session, holder, channel_closes, channel_facts = _chain(
         api, document, plan, tmp_path)
@@ -1306,13 +1588,45 @@ def test_n10_r13_the_fault_is_unlocked_by_the_owner_and_observed_first():
         assert reader.outcome_published.wait(15.0), \
             'the outcome of the read was never published'
         first = session.stop()
-        facts = {'state': first['state'],
-                 'failures': list(first['failures']),
-                 'broker_retained': first['broker_retained']}
-        write_phase('r13-first', facts)
-        close_facts = first['broker_close_facts'] or {}
-        assert close_facts.get('channel_reader_error') == 'RuntimeError', \
+        facts = first['broker_close_facts'] or {}
+        write_phase('r13-fault', {'reader_error':
+                                   facts.get('channel_reader_error'),
+                                   'state': first['state'],
+                                   'retained': first['broker_retained']})
+        assert facts.get('channel_reader_error') == 'RuntimeError', \
             'the failure of the read was swallowed by the stop'
+        assert first['broker_retained'] is True
+        assert first['state'] == 'UNKNOWN_RETAINED'
+    finally:
+        try:
+            session.stop()
+        except Exception:  # noqa: BLE001 - the evidence keeps the failure
+            pass
+
+    # -- PHASE TWO: the frame that never ends and the end of the stream --
+    api = _F5Api(partial_frame=b'{"schema": "lvw.s3-native-custody-channel/1"')
+    session, holder, channel_closes, channel_facts = _chain(
+        api, document, plan, tmp_path)
+    try:
+        session.start()
+        assert api.read_waiting.wait(15.0), \
+            'the reader of the chain was never inside its read'
+        api.publish_partial_frame()
+        assert api.eof_observed.wait(15.0), \
+            'the end of the stream was never observed'
+        channel = holder['channel']
+        deadline = time.monotonic() + 15.0
+        while channel._error is None and time.monotonic() < deadline:
+            time.sleep(0.02)
+        first = session.stop()
+        facts = first['broker_close_facts'] or {}
+        write_phase('r13-partial', {'reader_error':
+                                    facts.get('channel_reader_error'),
+                                    'state': first['state'],
+                                    'retained': first['broker_retained']})
+        assert facts.get('channel_reader_error') \
+            == 'BROKER_CHANNEL_PARTIAL_FRAME', \
+            'the partial frame was dropped as a normal end'
         assert first['broker_retained'] is True
         assert first['state'] == 'UNKNOWN_RETAINED'
     finally:
@@ -1324,7 +1638,7 @@ def test_n10_r13_the_fault_is_unlocked_by_the_owner_and_observed_first():
 
 # -- N10-R14: the compatibility of the new candidate ----------------------
 
-def test_n10_r14_the_closed_obligations_of_the_package_do_not_regress():
+def test_n10_r14_the_closed_obligations_of_the_package_do_not_regress(tmp_path):
     """N10-R14 (compatibility): the closed obligations stay closed.
 
     Obligation: the candidate of this correction keeps every closed
@@ -1360,7 +1674,7 @@ def test_n10_r14_the_closed_obligations_of_the_package_do_not_regress():
             plan=document, run_root=tmp_path,
             parent_child_remaining_seconds=60,
             launcher=lambda *args, **kwargs: None, clock=clock,
-            wall=time.time)
+            wall=time.time, nonce=NONCE)
         assert probe._latch_unknown_state() is True
         assert probe._latch_unknown_state() is False
         assert probe._context.is_unknown() is True
@@ -1374,9 +1688,10 @@ def test_n10_r14_the_closed_obligations_of_the_package_do_not_regress():
         cancel.set(source)
         assert cancel.owner() is source
         assert cancel.owner() is not broker_module._CloseSource(1)
-        facts = {'unknown': session._context.is_unknown(),
+        facts = {'unknown': probe._context.is_unknown(),
                  'frames_sent': session._frames_sent,
-                 'frames_received': session._frames_received}
+                 'frames_received': session._frames_received,
+                 'cancel_owner': cancel.owner().owner}
         write_phase('r14-compatibility', facts)
         first = session.stop()
         assert first['state'] in ('UNKNOWN_RETAINED', 'RELEASED')
@@ -1385,18 +1700,3 @@ def test_n10_r14_the_closed_obligations_of_the_package_do_not_regress():
             session.stop()
         except Exception:  # noqa: BLE001 - the evidence keeps the failure
             pass
-
-
-# -- the chain of the round ------------------------------------------------
-
-def _chain(api, document, plan, tmp_path):
-    """Build the **real** chain of one round.
-
-    The chain is the one of the production launcher: the frames of the
-    round are published first, then the endpoints, then the channel and
-    then the handle of the broker.  Nothing of the chain is replaced by
-    a stand-in and the facts of the close are the facts of the
-    production.
-    """
-    return _f5_build_chain(api, document, plan, time.monotonic, time.time,
-                           tmp_path)

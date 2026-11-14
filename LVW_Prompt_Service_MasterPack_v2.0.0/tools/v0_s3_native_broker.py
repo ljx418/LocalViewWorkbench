@@ -6521,6 +6521,10 @@ def _adopt_broker_process(process, *, channel_factory, executable,
     launch = aggregate if aggregate is not None else _LaunchAggregate(
         custody=table)
     launch.bind_process(process)
+    # The launch is registered with the table of the launcher: the
+    # recovery of the table coordinates the resources of the launch in
+    # the dependency order - the channel before the process.
+    table.retain('aggregate', launch, 'launch')
     table.retain('process', process, 'popened', launch=launch)
     channel = None
     try:
@@ -6529,18 +6533,23 @@ def _adopt_broker_process(process, *, channel_factory, executable,
             launch.bind_channel(channel)
         broker = BrokerProcess(process, executable, executable_sha256, channel,
                                context=launch.context)
-    except BaseException:
+    except BaseException as error:
         # The resources of the launch are coordinated by the aggregate:
         # the channel first and the process after it.  The resources
         # that could not be released keep their original reference and
         # their owner.
         try:
             launch.release(deadline=deadline)
-        except (KeyboardInterrupt, SystemExit):
+        except (KeyboardInterrupt, SystemExit) as cancellation:
             # The cancellation of the release never replaces the
             # original failure of the launch: the original object
-            # continues to propagate.
-            pass
+            # continues to propagate and the cancellation stays
+            # **reachable** next to it.  The primary failure and the
+            # cancellation of the recovery coexist.
+            try:
+                error.lvw_cancelled = cancellation
+            except Exception:  # noqa: BLE001 - the failure stays visible
+                pass
         except BaseException:  # noqa: BLE001 - the failure stays visible
             pass
         raise

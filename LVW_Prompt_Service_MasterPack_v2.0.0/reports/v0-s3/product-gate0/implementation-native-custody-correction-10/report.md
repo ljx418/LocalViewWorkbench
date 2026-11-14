@@ -194,7 +194,44 @@ counted a second time.  The product denominator I24/12 does not move.
 * N2 is **not** started.  This delivery claims no Stage PASS, no
   product gate 0 and no closure of the six Majors.
 
-## 6. The ten fields
+## 6. The correction of the preflight review of the root
+
+The root reviewed the committed candidate `05c58c1` in its read only
+preflight review (`preflight-review-01/decision.json`) and it asked for
+**nine** corrections (`C10-P01` .. `C10-P09`) before any dynamic
+permission.  The review is static, no test was run and the six Majors
+stay OPEN.  Every finding was corrected as one batch, in a **new
+ordinary commit**; the candidate `05c58c1` and the report of it are
+preserved and were not amended.
+
+| Finding | What was wrong | What the new candidate does |
+|---|---|---|
+| C10-P01 | three of the new groups used `tmp_path` without declaring the fixture and the receipt named the wrong role | the three groups declare `tmp_path`; the receipt names the real implementation identity and the model that carries it |
+| C10-P02 | the first group only launched a normal round and let the wait fail; it never drove the frozen assign failure of a suspended child | the group drives the **real** assign failure of the core: the assignment of the process to the job fails, the termination of the child fails and the wait does not confirm the exit; the control HANDLE is kept by the record **and** by the pending table and the same owner closes it exactly once after the exit is confirmed |
+| C10-P03 | the thread of the channel was a boolean and the partial channel was read from a local variable that the failed construction never assigned | the thread of the channel is a **real** thread that starts and whose start does not return; the partial channel is read **from the aggregate** and the facts of the release are written before the salvage |
+| C10-P04 | the fifth group only covered the cancellation of the construction of the broker and it compared the message of the exception | the group covers the **recovery** of the launcher as well: the cancellation of the recovery, the safe finalizer, the order (the channel before the process), the retained owner and the **identity** of the original object and of the cancellation (`lvw_cancelled`) |
+| C10-P05 | the sixth group had no cancelled **write** and the seventh replaced the whole launcher by a peer and built the endpoint and the worker by hand | the sixth group drives the cancelled write; the seventh keeps the production owners - the session, the aggregate, the channel, the endpoints, the core, the loop and the transport of the child - and it proves the context before the side effects of the launch and the cleanup deadline of the child after its STOP |
+| C10-P06 | the ninth group let the thread of the startup step end at once, so the frozen negative case (the result is published and the real thread is still alive) was never established | the result of the step is published into the **real** result channel of the production owner while its thread stays alive; the group proves that the owner was not released, that the bounded join ran and that the original exception object is the one that propagated; no sleep is used as the evidence of an exit |
+| C10-P07 | the tenth group cancelled before the failure and it only drove the endpoint | the tenth group waits for the **published** outcome of the generation (an event of the production worker), checks the identity of the original error object, then drives the **production close chain**: two real public stops of the session keep the sticky error and the round stays unknown |
+| C10-P08 | the eleventh group only closed the channel and it never reached the parent facts; the frame count was missing and the one-over was two bytes | the eleventh group drives the **real** session chain with a complete newline oversize and reads the parent facts of the two stops; the frame count is driven on the production channel and the reason is named; the exact frame and the one byte beyond the limit are strictly adjacent and the threshold of the package did not move |
+| C10-P09 | the twelfth group accepted only one of the two codes of the production and the thirteenth group only had the ordinary fault | the twelfth group classifies the code by the **real** observation layer and by the origin of the cancellation and it keeps the origin unknown; the thirteenth group adds the frame that never ends and the end of the stream, writes the bounded document of **every** phase and joins the thread of the test owner unconditionally with a bounded wait |
+
+The 175 frozen node ids and their order and the 14 new node ids and their
+order are unchanged (`node-identity-check.json`): 175 + 14 = 189.
+
+The changes of the production that the correction of the preflight
+carries are two and they are small:
+
+* the cancellation of the recovery of a launch is attached to the
+  original failure of the launch (`lvw_cancelled`), so that the primary
+  failure and the cancellation of the recovery coexist and the original
+  object is the one that leaves;
+* every launch registers its **aggregate** with the table of the
+  launcher, so that the recovery of the table coordinates the resources
+  of the launch in the dependency order - the channel before the
+  process.
+
+## 7. The ten fields
 
 | Field | Value |
 |---|---|
