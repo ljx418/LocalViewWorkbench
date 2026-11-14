@@ -15,3 +15,7 @@ F5 N07-R15：真实Session→BrokerProcess→StreamChannel→Windows endpoint→
 仅可改tools/test_v0_s3_native_custody_regressions.py、tools/test_v0_s3_native_custody_correction05.py、tools/test_v0_s3_native_custody_correction07.py和NEW reports/v0-s3/product-gate0/implementation-native-custody-correction-08/。生产custody/broker、旧owner/main test、原16/24/18义务JSON、合同阈值/control/MANIFEST/历史报告全冻结。若静态发现F5具体生产缺口需集中askroot带位置/触发/预期实际及最小修改，当前不授权生产修改；不为收集故事盲跑。
 只静态实现/AST/源码复核，精确提交新候选后askroot原175有序nodeids的单批有限计划，全部source/tool/原223依赖文件/3stdlib pins，NEW root native-custody-correction-08/validation-plan-01工具、原guard字节、三条argv/cwd、<=300s、FD真实身份/全部线程/逐node/raw/退出码和F5持久化证据。ask后结束turn等待，不能同时worker_done。未ACK不import/collect/pytest或读counter，ACK后只一次，失败原候选证据保留，不自动重跑/改断言/自行修。
 可信stdlib guard后候选/pytest前一次ctypes.dlopen(None)后永久关闭，其他dlopen/dlsym/真实Win32API/Job/业务进程/GPU/模型/服务/socket/sqlite/网络/下载/媒体/原ledger拒。counter仅未来ACK外层前后各一次只读acbdb8b154864b6f079ae783d670f11ec138b6be0617d1fa4f56c28c33223b98，不写清零退款复活。FIRST429停WAIT_BUDGET不retry/换路/root接手；FIRST审批拒绝/超时停不包装绕过。只READY_FOR_REVIEW，六Major独审、真实native/I24/产品12/A06/余额/质量/人签未证，N2不启动。
+
+## Root后继裁决（本包继续执行时必读）
+
+当前追加允许的最小broker修改与反例要求见 close-cancellation-decision-01/reply-body.txt、error-evidence-preservation-01/reply-body.txt。后者确认重复close丢失真实reader error属于M09并允许最小修正；175动态批次仍未ACK。发生Orca terminal_missing后接续同一Task时必须读取这两份已落盘决定，不能执行旧候选或旧计划。
