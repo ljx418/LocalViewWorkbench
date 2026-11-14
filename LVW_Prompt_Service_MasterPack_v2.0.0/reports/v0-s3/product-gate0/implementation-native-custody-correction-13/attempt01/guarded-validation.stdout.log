@@ -1,0 +1,50 @@
+..............................................................................................................................................F...............F......................F.FF....
+=================================== FAILURES ===================================
+___ test_n05_r10_a_launch_that_could_not_be_handed_over_keeps_its_resources ____
+tools/test_v0_s3_native_custody_correction05.py:1229: in test_n05_r10_a_launch_that_could_not_be_handed_over_keeps_its_resources
+    aggregate_c, cancellation_c, first_c, facts = run_fault_scenario(
+tools/test_v0_s3_native_custody_correction05.py:1172: in run_fault_scenario
+    assert scoped.items() == [], \
+E   AssertionError: the table of the launcher kept an item of the launch
+E   assert [{'detail': '...7ca02a90e00>}] == []
+E     
+E     Left contains one more item: {'detail': 'launch', 'kind': 'aggregate', 'launch': None, 'resource': <tools.v0_s3_native_broker._LaunchAggregate object at 0x77ca02a90e00>}
+E     Use -v to get more diff
+____ test_n07_r02_the_recovery_keeps_the_handle_until_the_exit_is_confirmed ____
+tools/test_v0_s3_native_custody_correction07.py:819: in test_n07_r02_the_recovery_keeps_the_handle_until_the_exit_is_confirmed
+    core = BrokerCore(win32=win32, plan=sealed_plan(), run_root=None,
+tools/v0_s3_native_broker.py:2348: in __init__
+    self.run_root = Path(run_root)
+                    ^^^^^^^^^^^^^^
+/usr/lib/python3.12/pathlib.py:1164: in __init__
+    super().__init__(*args)
+/usr/lib/python3.12/pathlib.py:373: in __init__
+    raise TypeError(
+E   TypeError: argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'NoneType'
+__________ test_n10_r07_the_context_of_the_round_reaches_every_layer ___________
+tools/test_v0_s3_native_custody_correction10.py:1841: in test_n10_r07_the_context_of_the_round_reaches_every_layer
+    assert queue_waits, \
+E   AssertionError: the parent pump never waited for a frame of the round
+E   assert []
+________ test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread _________
+tools/test_v0_s3_native_custody_correction10.py:2424: in test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread
+    thread.join(5.0)
+/usr/lib/python3.12/threading.py:1142: in join
+    raise RuntimeError("cannot join thread before it is started")
+E   RuntimeError: cannot join thread before it is started
+____ test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation _____
+tools/test_v0_s3_native_custody_correction10.py:3143: in test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation
+    _m09_timeout_phase(document, plan, tmp_path,
+tools/test_v0_s3_native_custody_correction10.py:2627: in _m09_timeout_phase
+    assert isinstance(parallel, dict), \
+E   AssertionError: the timeout did not stay a parallel fact of the failure
+E   assert False
+E    +  where False = isinstance(None, dict)
+=========================== short test summary info ============================
+FAILED tools/test_v0_s3_native_custody_correction05.py::test_n05_r10_a_launch_that_could_not_be_handed_over_keeps_its_resources
+FAILED tools/test_v0_s3_native_custody_correction07.py::test_n07_r02_the_recovery_keeps_the_handle_until_the_exit_is_confirmed
+FAILED tools/test_v0_s3_native_custody_correction10.py::test_n10_r07_the_context_of_the_round_reaches_every_layer
+FAILED tools/test_v0_s3_native_custody_correction10.py::test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread
+FAILED tools/test_v0_s3_native_custody_correction10.py::test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation
+5 failed, 184 passed in 47.49s
+{"pytest_exit": 1, "call_count": 189, "pass_count": 184, "fail_count": 5, "skip_count": 0, "functional_pass_count": 182, "cleanup_proven_for_batch": true}
