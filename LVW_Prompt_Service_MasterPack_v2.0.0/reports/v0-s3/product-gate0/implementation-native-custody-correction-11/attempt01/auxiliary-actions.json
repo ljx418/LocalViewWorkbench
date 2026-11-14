@@ -1,0 +1,28 @@
+{
+ "kind": "lvw.n1-correction11-attempt01-auxiliary-actions/1",
+ "note": "The auxiliary actions of the owner of the batch are listed here with their exact command, their output and their exit code.  An auxiliary action is NOT accepted evidence, it is NOT part of the guarded batch and it is NOT a candidate import, a collection, a test or a native action.  The three frozen commands of the plan are in commands.json and their receipts are unchanged.",
+ "actions": [
+  {
+   "command": "python3 -c \"import ctypes\\nclass F(ctypes.Structure):\\n    _fields_=[('a', ctypes.c_uint32),('b', ctypes.c_uint32)]\\nf=F()\\nr=ctypes.byref(f)\\nprint('type', type(r))\\ntry:\\n    r.a = 5\\n    print('SET OK ->', f.a)\\nexcept Exception as e:\\n    print('SET FAILED:', type(e).__name__, e)\\nprint('GET ->', r.a)\"",
+   "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/tools",
+   "executed_after_the_batch": true,
+   "exit_code": 1,
+   "stdout": "type <class '_ctypes.CArgObject'>\nSET FAILED: AttributeError '_ctypes.CArgObject' object has no attribute 'a'",
+   "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 13, in <module>\nAttributeError: '_ctypes.CArgObject' object has no attribute 'a'",
+   "imported_modules": [
+    "ctypes"
+   ],
+   "candidate_module_imported": false,
+   "candidate_module_imported_statement": "The command imported the standard library module ctypes only.  It did not import tools.v0_s3_native_broker, tools.v0_s3_native_custody or any other module of the candidate.  This is stated from the command itself and it is not inferred: the command text names ctypes and nothing else, and it declares no class of the package.",
+   "purpose": "The static reading of the failure of the node n10_r02 left one question about the behaviour of a ctypes byref object.  The probe answered it: a CArgObject supports neither the assignment nor the reading of the attribute of the referenced structure, and the referenced structure is reachable through its _obj member.  The answer is used in the report of the attempt to classify the failure of the node.",
+   "inside_the_guarded_batch": false
+  }
+ ],
+ "after_the_batch_auxiliary_actions": 1,
+ "candidate_imports_after_the_batch": 0,
+ "candidate_collections_after_the_batch": 0,
+ "candidate_tests_after_the_batch": 0,
+ "candidate_subprocesses_after_the_batch": 0,
+ "candidate_source_modified": false,
+ "batch_receipts_modified": false
+}

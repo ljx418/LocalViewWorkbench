@@ -1,0 +1,85 @@
+{
+ "ack": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-11/validation-plan-01/ack.json",
+ "batch_wall_seconds": 31.13,
+ "batch_bound_seconds": 300,
+ "batches_max": 1,
+ "candidate_sha": "b05020a67f0e54d8584505e6ecac52be214ad7fd",
+ "commands": [
+  {
+   "argv": [
+    "/usr/bin/python3.12",
+    "-I",
+    "-B",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-11/validation-plan-01/outer_counter_observe.py",
+    "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-11/attempt01/counter-absence-before.json"
+   ],
+   "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+   "environment": {
+    "LVW_N1_F5_EVIDENCE_DIR": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-11/f5-evidence",
+    "PYTHONDONTWRITEBYTECODE": "1"
+   },
+   "executed": "exactly once, in the order of the plan, nothing else was executed",
+   "exit_code": 0,
+   "label": "counter-absence-before",
+   "raw_stdout": "attempt01/counter-absence-before.stdout.log",
+   "raw_stderr": "attempt01/counter-absence-before.stderr.log",
+   "result": "the parent AND the counter are MISSING (errno 2); accepted_absence true; the content was never read"
+  },
+  {
+   "argv": [
+    "/usr/bin/python3.12",
+    "-I",
+    "-B",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-11/validation-plan-01/guard.py",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-11/validation-plan-01/runner.py",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-11/attempt01/native-custody-correction-11.guard.json"
+   ],
+   "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+   "environment": {
+    "LVW_N1_F5_EVIDENCE_DIR": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-11/f5-evidence",
+    "PYTHONDONTWRITEBYTECODE": "1"
+   },
+   "executed": "exactly once, in the order of the plan, nothing else was executed",
+   "exit_code": 1,
+   "label": "guarded-validation",
+   "raw_stdout": "attempt01/guarded-validation.stdout.log",
+   "raw_stderr": "attempt01/guarded-validation.stderr.log",
+   "result": "pytest exit 1; 189 collected in the frozen order; 186 pass; 3 fail; 0 skip; 30.95 s; cleanup proven for the batch true"
+  },
+  {
+   "argv": [
+    "/usr/bin/python3.12",
+    "-I",
+    "-B",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-11/validation-plan-01/outer_counter_observe.py",
+    "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-11/attempt01/counter-absence-after.json"
+   ],
+   "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+   "environment": {
+    "LVW_N1_F5_EVIDENCE_DIR": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-11/f5-evidence",
+    "PYTHONDONTWRITEBYTECODE": "1"
+   },
+   "executed": "exactly once, in the order of the plan, nothing else was executed",
+   "exit_code": 0,
+   "label": "counter-absence-after",
+   "raw_stdout": "attempt01/counter-absence-after.stdout.log",
+   "raw_stderr": "attempt01/counter-absence-after.stderr.log",
+   "result": "the parent AND the counter are MISSING (errno 2); accepted_absence true; the content was never read"
+  }
+ ],
+ "counter_historical_continuity": "UNAVAILABLE_NOT_PROVEN",
+ "counter_policy": "LSTAT_ONLY_ABSENCE_MODE_OUTSIDE_THE_GUARDED_BATCH",
+ "extra_test": false,
+ "first_429": "NOT_ENCOUNTERED",
+ "approval_refusal": "NOT_ENCOUNTERED",
+ "kind": "lvw.n1-correction11-attempt01-commands/1",
+ "no_candidate_repair": true,
+ "no_rerun": true,
+ "plan": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-11/validation-plan-01/plan.json",
+ "plan_sha256": "dc65bba97f6b86a6745bd6a1848dad380987a964dbcde0b08f7f10b34bc48f86",
+ "retry": false,
+ "self_repair": false,
+ "wrapper": false
+}

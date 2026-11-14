@@ -1,0 +1,23 @@
+................................................................................................................................................................................F.F.....F....
+=================================== FAILURES ===================================
+____ test_n10_r02_the_claim_of_the_recovery_and_the_handover_are_exclusive _____
+tools/test_v0_s3_native_custody_correction10.py:450: in test_n10_r02_the_claim_of_the_recovery_and_the_handover_are_exclusive
+    assert isinstance(error, BrokerError), \
+E   AssertionError: the creation did not refuse the refused handover
+E   assert False
+E    +  where False = isinstance(AttributeError("'_ctypes.CArgObject' object has no attribute 'dwLowDateTime'"), BrokerError)
+_________ test_n10_r04_the_launch_aggregate_finds_the_partial_channel __________
+tools/test_v0_s3_native_custody_correction10.py:676: in test_n10_r04_the_launch_aggregate_finds_the_partial_channel
+    assert process.terminated == 1
+E   assert 0 == 1
+E    +  where 0 = <test_v0_s3_native_custody_correction10.test_n10_r04_the_launch_aggregate_finds_the_partial_channel.<locals>.Process object at 0x7175b1281be0>.terminated
+____ test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation _____
+tools/test_v0_s3_native_custody_correction10.py:1619: in test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation
+    assert outcome['error'] == 'RuntimeError'
+E   AssertionError: assert None == 'RuntimeError'
+=========================== short test summary info ============================
+FAILED tools/test_v0_s3_native_custody_correction10.py::test_n10_r02_the_claim_of_the_recovery_and_the_handover_are_exclusive
+FAILED tools/test_v0_s3_native_custody_correction10.py::test_n10_r04_the_launch_aggregate_finds_the_partial_channel
+FAILED tools/test_v0_s3_native_custody_correction10.py::test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation
+3 failed, 186 passed in 30.80s
+{"pytest_exit": 1, "call_count": 189, "pass_count": 186, "fail_count": 3, "skip_count": 0, "functional_pass_count": 184, "cleanup_proven_for_batch": true}
