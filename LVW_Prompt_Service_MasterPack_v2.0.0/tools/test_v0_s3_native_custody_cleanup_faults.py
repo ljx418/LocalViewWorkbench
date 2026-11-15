@@ -95,17 +95,26 @@ def _from_final_query(depth=3):
 def _case_evidence_root(name):
     """Give the case its own child evidence root below the run root.
 
-    The route of the module is restored when the case ends: the normal
-    R07 and R09 documents, the documents of the other rounds and the
-    documents of the earlier rounds are never overwritten.
+    CORRECTION 23 / OPT-B-07 (F06-M4): the case installs a **fresh**
+    map of the held references for the duration of the case and the
+    previous state of the module is restored when the case ends: no
+    reference of an earlier case can qualify a later one and a round that
+    nobody observes leaves no reference behind.
+
+    The route of the module is restored as well: the normal R07 and R09
+    documents, the documents of the other rounds and the documents of the
+    earlier rounds are never overwritten.
     """
     original = t10.EVIDENCE_DIR
+    original_references = t10._HELD_REFERENCES
     root = Path(original) / 'negative' / name
     t10.EVIDENCE_DIR = root
+    t10._HELD_REFERENCES = {}
     try:
         yield root
     finally:
         t10.EVIDENCE_DIR = original
+        t10._HELD_REFERENCES = original_references
 
 
 def _phase_writer(original, plan):
@@ -327,10 +336,6 @@ def test_n1_sup_02_final_query_preserves_first_interruption(tmp_path):
         state = {'calls': 0, 'injected': 0}
         original_is_alive = broker_module._WindowsPipeWorker.is_alive
         original_drain = t10._drain_owners
-        # OPT-B-07 (F06-M4): the held references are reset before the
-        # round runs: a reference of an earlier round can never be used
-        # as the expected object of this one.
-        t10._HELD_REFERENCES.clear()
         # OPT-B-07 (F06-M3): the count of the **injections** of the
         # exact cancellation is separate from the count of the
         # **forwardings** of the original callback.
@@ -364,6 +369,11 @@ def test_n1_sup_02_final_query_preserves_first_interruption(tmp_path):
                     drain_state['results'].append(repr(result))
                     if not drain_state['injected']:
                         drain_state['injected'] += 1
+                        # the compatibility counter of the original case
+                        # is set at the **actual** one shot injection, so
+                        # that the preserved assertion ``k1 == 1`` means
+                        # what it says.
+                        drain_state['k1'] = 1
                         raise k1_error
                     return result
 
@@ -414,8 +424,9 @@ def test_n1_sup_02_final_query_preserves_first_interruption(tmp_path):
         assert drain_state['wrapper'] is not None, (
             'the drain never installed the recording wrapper: %s'
             % (drain_state,))
+        forwarded_before_repeat = drain_state['forwarded']
         repeat_result = drain_state['wrapper']()
-        assert drain_state['forwarded'] == 2, (
+        assert drain_state['forwarded'] == forwarded_before_repeat + 1, (
             'the controlled repeat did not forward the original callback '
             'again: %s' % (drain_state,))
         assert drain_state['injected'] == 1, (
@@ -504,10 +515,6 @@ def test_n1_sup_03_inner_writer_error_rejects_success(tmp_path):
         return None
 
     with _case_evidence_root('sup-03') as root:
-        # OPT-B-07 (F06-M4): the held references are reset for every
-        # case, so that no reference of an earlier case can ever qualify
-        # a later one.
-        t10._HELD_REFERENCES.clear()
         writer = _phase_writer(t10.write_phase, plan)
         with unittest.mock.patch.object(t10, 'write_phase', writer):
             with pytest.raises(AssertionError) as info:
@@ -557,10 +564,6 @@ def test_n1_sup_04_recovered_final_write_has_failed_proof(tmp_path):
         return None
 
     with _case_evidence_root('sup-04') as root:
-        # OPT-B-07 (F06-M4): the held references are reset for every
-        # case, so that no reference of an earlier case can ever qualify
-        # a later one.
-        t10._HELD_REFERENCES.clear()
         writer = _phase_writer(t10.write_phase, plan)
         with unittest.mock.patch.object(t10, 'write_phase', writer):
             with pytest.raises(AssertionError) as info:
@@ -729,6 +732,29 @@ def test_n1_sup_05_held_startup_owner_survives_query_faults(tmp_path):
             'that it held: %s' % (held_joins,))
         assert settled_owner is not None, (
             'the settle of the held owner had no owner: %s' % (held_settles,))
+        # OPT-B-07 (F06-M4): the owner that was settled and the thread
+        # that was joined are the **actual** owner and the **actual**
+        # thread that the fixture really held at its own real seam,
+        # captured **before** the fault.  The expected references are never
+        # taken from the faulted object and never from the first entry of
+        # the settle calls.
+        expected_owner = t10._HELD_REFERENCES.get('r09:owner')
+        expected_thread = t10._HELD_REFERENCES.get('r09:thread')
+        assert expected_owner is not None, (
+            'the fixture never observed the owner of the interrupted '
+            'start: %s' % (sorted(t10._HELD_REFERENCES),))
+        assert expected_thread is not None, (
+            'the fixture never observed the thread of the interrupted '
+            'start: %s' % (sorted(t10._HELD_REFERENCES),))
+        assert settled_owner is expected_owner, (
+            'the fixture settled another owner than the one that it held: '
+            '%r' % (settled_owner,))
+        assert settled_thread is expected_thread, (
+            'the fixture settled another thread than the one that it held: '
+            '%r' % (settled_thread,))
+        assert held_joins[0][1] is expected_thread, (
+            'the fixture joined another thread than the one that it held: '
+            '%r' % (held_joins[0][1],))
         # the failure evidence of the cleanup survives and the known
         # liveness is dead
         document = _read_document(root, 'r09-interrupted-start')

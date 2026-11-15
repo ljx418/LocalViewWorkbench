@@ -766,11 +766,20 @@ def _original_facts():
 #: objects that the fixture **really** observed at its real seams, so
 #: that a supplemental case can compare a faulted object with the
 #: object that the fixture really held **before** the fault.
-_HELD_REFERENCES = {}
+_HELD_REFERENCES = None
 
 
 def _observe_reference(kind, reference):
-    """Remember one **actual** held reference of a round."""
+    """Remember one **actual** held reference of a round.
+
+    CORRECTION 23 / OPT-B-07 (F06-M4): the seam is **inactive** by
+    default: the map is ``None`` and nothing at all is retained, so a
+    round that nobody observes leaves no reference behind.  A case that
+    wants the references installs its **own fresh** map for the duration
+    of the case and restores the previous one when the case ends.
+    """
+    if _HELD_REFERENCES is None:
+        return reference
     _HELD_REFERENCES[kind] = reference
     return reference
 
@@ -4019,28 +4028,55 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                 return original_get(block=block, timeout=timeout)
 
             channel._queue.get = zero_recording_get
-            # OPT-B-07 (F06-M1): the producer is held **after** its
-            # original check and **before** the publication.  The
-            # original check runs first and its result and its exception
-            # are forwarded unchanged: the fixture never asks the
-            # production to publish a frame that the production would
-            # have refused.
-            original_check_wait = channel._check_wait
+            # OPT-B-07 (F06-M1): the ACTUAL publication of the frame is
+            # observed truthfully: the recorder of the queue reports the
+            # real result of the real put and the real error of it, and
+            # the state of the channel is read **after** the put really
+            # happened.  The producer is held inside the check of the
+            # channel, so the reader of the round cannot publish before
+            # this recorder is installed.
+            original_put = channel._queue.put
 
-            def zero_producer_check_wait():
-                result = original_check_wait()
-                zero_producer_held.set()
-                released = zero_producer_gate.wait(ZERO_PRODUCER_SECONDS)
-                zero_producer_facts.append(
-                    {'released': bool(released),
-                     'timeout': ZERO_PRODUCER_SECONDS})
-                zero_record('PRODUCER_RELEASED', released=bool(released))
+            def zero_recording_put(item, block=True, timeout=None):
+                try:
+                    result = original_put(item, block=block, timeout=timeout)
+                except BaseException as error:  # noqa: BLE001 - it stays visible
+                    zero_record('QUEUE_PUT_ERROR',
+                                type=type(error).__name__,
+                                detail=str(error))
+                    raise
+                zero_record('QUEUE_PUT_RETURNED', result=repr(result))
                 zero_record('CHANNEL_STATE_AFTER_PUBLICATION',
                             queue_size=channel._queue.qsize(),
                             channel_error=getattr(channel, '_error', None))
                 return result
 
-            channel._check_wait = zero_producer_check_wait
+            channel._queue.put = zero_recording_put
+
+        zero_original_check_wait = broker_module.StreamChannel._check_wait
+
+        def zero_producer_check_wait(self):
+            """Hold the producer of the round between its check and its
+            publication.
+
+            CORRECTION 23 / OPT-B-07 (F06-M1): the seam is a scoped
+            **class** patch that is installed **before** the channel of
+            the round is constructed, so the very first check of the
+            real reader of the round already runs through it.  The
+            original check runs first and its result and its exception
+            are forwarded unchanged, and only the channel of the **exact**
+            zero context is held.
+            """
+            if getattr(self, '_context', None) is not zero_session._context:
+                return zero_original_check_wait(self)
+            result = zero_original_check_wait(self)
+            zero_producer_held.set()
+            released = zero_producer_gate.wait(ZERO_PRODUCER_SECONDS)
+            zero_producer_facts.append(
+                {'released': bool(released),
+                 'timeout': ZERO_PRODUCER_SECONDS})
+            zero_record('PRODUCER_RELEASED', released=bool(released))
+            return result
 
         def zero_gated_broker_read(self, timeout):
             """The read of the broker of the round, held at the gate.
@@ -4066,6 +4102,11 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                             detail=str(error))
                 raise
             zero_record('PUMP_READ_RETURNED', result=repr(result))
+            zero_channel_now = getattr(
+                getattr(zero_session, 'broker', None), '_channel', None)
+            zero_record('CHANNEL_ERROR_SEEN_BY_THE_PUMP',
+                        channel_error=getattr(zero_channel_now, '_error',
+                                             None))
             # OPT-B-07 (F06-M1): the producer is released only **after**
             # the real read of the pump really completed its empty queue
             # and error check: the real producer decides the order of the
@@ -4136,6 +4177,15 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                 pump_ready = zero_held.wait(ZERO_ADMISSION_SECONDS)
                 zero_record('BOTH_HELD', producer=bool(producer_ready),
                             pump=bool(pump_ready))
+                # CORRECTION 23 / OPT-B-07 (F06-M1): the deadline of the
+                # round is tightened only when the real producer and the
+                # real pump are both really held, and the premise is
+                # **asserted**: a round that did not reach both holds
+                # fails instead of tightening the deadline anyway.
+                assert producer_ready, (
+                    'the producer of the zero round was never held')
+                assert pump_ready, (
+                    'the pump of the zero round was never held')
                 zero_record('PRE_TIGHTENING_QUEUE_STATE',
                             queue_size=(
                                 zero_channel_ref['value']._queue.qsize()
@@ -4179,6 +4229,9 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                 with unittest.mock.patch.object(
                         broker_module.BrokerProcess, 'read',
                         zero_gated_broker_read), \
+                     unittest.mock.patch.object(
+                         broker_module.StreamChannel, '_check_wait',
+                         zero_producer_check_wait), \
                      unittest.mock.patch.object(custody_module, '_ReplyWaiter',
                                                 ZeroTighteningWaiter):
                     round_queue_recorder['value'] = zero_install_queue_recorder
