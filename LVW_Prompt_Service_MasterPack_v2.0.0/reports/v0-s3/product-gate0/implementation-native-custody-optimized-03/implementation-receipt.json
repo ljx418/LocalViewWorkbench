@@ -1,0 +1,140 @@
+{
+  "kind": "implementation_receipt",
+  "scope_id": "OPT-B-R07-FIXTURE-SHUTDOWN-02",
+  "packet": "N1-OPTIMIZED-01",
+  "stage": "OPT-B (minimal R07 fixture shutdown and run-bound evidence root; no runtime admitted)",
+  "source_candidate_sha": "a9a63cf7f7b5ec52e271639bb6278e54b457805a",
+  "source_candidate_blob": "3a130e8d30fde70518512d43b475edca9fece408",
+  "source_candidate_sha256": "0aa352f2a0106e7ac700695b540b01e3a627ea5631e1d66aef80fa7122678dc1",
+  "base_source_candidate": "62e0d429dd78418220235359d068ae28d7b37e6e",
+  "base_source_sha256": "2a8e951b357068e835f6c7d276062395d83dc691ad5e51afde5c9e1da6cb64ac",
+  "delivery_commit": null,
+  "delivery_commit_note": "the commit that carries this receipt is reported in the worker_done summary; it is NOT the source candidate: the source candidate is source_candidate_sha above.  No self-referential pointer commit is created for it.",
+  "review_commit": "62dbb5d",
+  "finding": "OPT-R07-CLEANUP-02",
+  "minimal_diff": {
+    "files": [
+      "LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py"
+    ],
+    "insertions": 189,
+    "deletions": 6,
+    "changed_functions_in_T10": [
+      "test_n10_r07_the_context_of_the_round_reaches_every_layer"
+    ],
+    "new_functions": [],
+    "removed_functions": [],
+    "other_source_files_changed": [],
+    "regions": [
+      "the R07 zero finally of T10: the explicit fixture-owned shutdown of the actual owners of the zero round",
+      "the module EVIDENCE_DIR configuration expression only"
+    ]
+  },
+  "root_cause_as_read_from_the_sources": {
+    "summary": "the drain of a round enumerates and joins the owners of the round but never asks one of them to end; the product close of the channel skips the close of the read end while its reader is alive, so the worker of the read end was never asked to stop and went on waiting for a request that never came",
+    "source_evidence": [
+      "tools/v0_s3_native_broker.py:4213-4227 _request_cancellation sets the stop event of the worker, so a worker that is asked to stop really leaves its loop",
+      "tools/v0_s3_native_broker.py:4016-4041 the worker of the endpoint completes one generation and then waits for the next request; it leaves its loop only when its stop event is set",
+      "tools/v0_s3_native_broker.py:5004-5067 the close of an endpoint stops the workers from accepting a task, asks for the cancellation of the operation in flight, joins them with a bounded wait and releases the handle of the thread only after the thread really ended; a live worker keeps the file and the file is never closed under it",
+      "tools/v0_s3_native_broker.py:5546-5654 the close of the channel sets the cancel of the channel, closes the write end and joins the reader; while the reader is alive it returns early and the read end is NOT closed, and it may be repeated",
+      "tools/test_v0_s3_native_custody_correction10.py:1353-1548 _drain_owners enumerates the owners, calls the release actions and joins them; it never requests the end of an owner",
+      "tools/test_v0_s3_native_custody_correction10.py:574-631 _salvage_threads joins the owners with a bounded wait and never asks one of them to end"
+    ],
+    "conclusion": "the gap is in the fixture-owned shutdown, not in a lost production owner: the attempt02 raw results show the read worker STARTED and alive in every iteration of the drain, the product naming reader_finished=false, read_end_closed=false and worker_thread_handle_released=false, and the thread still alive after the batch"
+  },
+  "the_fix": [
+    "the returned state of the product and its stop facts are still sealed BEFORE the fixture cleanup; the shutdown never relabels them and never renews a deadline of the product",
+    "the workers of the two endpoints of the ACTUAL zero channel are asked to stop and to cancel their in-flight operation, bounded, with the production methods of the worker itself (stop_accepting and request_cancel); every failure is retained with its exact type and its exact detail and the original exception keeps the priority",
+    "the REPEATABLE production close of the channel is repeated by the drain, so the production closes the read end itself and releases the handle of the thread of its worker; the production closes the read end only after the reader of the channel really ended, so the read end is never closed under a live reader and no handle is bypassed",
+    "the **repeatable** production close of the channel is repeated AFTER the drain, bounded and with its errors retained: the close that the drain carried may still have found a worker that was alive and kept the handle of its thread, so the release of the handles is asked of the production again once the drain really joined the workers",
+    "the release of the handles is a HARD verdict and not a displayed fact: the thread of every worker that the round really registered must really have ended, its handle must really have been released and no endpoint of the round may still retain a worker; the state is read and never inferred, and a worker that is still alive, a handle that was not released, a retained worker, an unknown owner or a missing result all fail the round with it",
+    "the join of the owners is the join the fixture already had: the overall bound of 30 seconds and the bound of 10 seconds per owner are unchanged; no new budget, deadline or context was introduced",
+    "the compact actual facts of the shutdown are recorded: the result of every stop and cancel, the real liveness, the real join state and the real handle state of the workers afterwards, and the facts of the last production close; the state is read and never inferred",
+    "an owner that is still alive, an unknown owner or a missing result still fails the round: the hard cleanup verdict is kept and no error is suppressed"
+  ],
+  "evidence_route": {
+    "interface": "LVW_N1_T10_EVIDENCE_DIR",
+    "owner": "the root-frozen per-run environment",
+    "missing": "fail closed at import time, before any test runs; there is no fallback to a spent evidence root",
+    "previous_default": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt02/evidence (spent, no longer written)",
+    "public_schema_change": false,
+    "new_model_or_production_permission": false,
+    "note": "only the location of the test artifacts changes; one immutable source candidate can be verified in an isolated targeted run and later in the full checkpoint without an edit of the source that only moves the output"
+  },
+  "preserved_obligations": {
+    "assert_occurrences_T10": {
+      "before": 424,
+      "after": 424,
+      "removed": 0,
+      "added": 0
+    },
+    "retained_untouched": [
+      "the public default launcher and the public start of the round",
+      "the real event and queue waits of the round are exactly 0",
+      "the premise of a real started, attached, not EOF, error free pump at the admission",
+      "the timeout cause CUSTODY_CHANNEL_TIMEOUT and the absence of CUSTODY_CHANNEL_EOF",
+      "the real returned state UNKNOWN_RETAINED and the failures of the round",
+      "the retention of the original broker, its identity and its source",
+      "the observed pump identity: the object seen at the admission, its finished, liveness, error, frames, context and broker, its identity against the production background table and the observer of the starts, and the confirmed-join path of the session reference",
+      "the hard cleanup verdict of the region and the priority of the failures",
+      "every resource assertion of the round"
+    ]
+  },
+  "static_facts": {
+    "method": "read-only git blob inspection and standard-library ast.parse as data; no import, no collect, no pytest",
+    "exact_189_node_identities_order_signatures_decorators": "unchanged; 117+16+24+18+14, unique 189",
+    "other_four_test_modules": "byte-identical to the base source candidate",
+    "production_sources": {
+      "tools/v0_s3_native_broker.py": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
+      "tools/v0_s3_native_custody.py": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581"
+    },
+    "shared_registry_and_drain": "unchanged",
+    "changed_functions_in_T10": 1,
+    "new_or_removed_functions": 0,
+    "new_framework_or_generic_helper": 0,
+    "contracts_thresholds_counters_control_packets_manifest": "untouched",
+    "new_run_root_created": false
+  },
+  "unresolved_risks": [
+    "the candidate was NOT run: the fixture shutdown is a **design** until root freezes a finite targeted plan and the independent review reads the new attempt",
+    "the post-drain repeat of the production close is bounded by the production close itself and it uses the fixture budget that is already in use; no new deadline, context or budget was introduced and the original product deadline is untouched",
+    "the review of the attempt02 run could not prove from the raw that the worker was 'necessarily idle' at the moment of the drain; the fix does not rely on that inference: it requests the end of the worker explicitly and it reads the real state afterwards",
+    "the fix depends on the production close of the channel being repeatable; that is a documented property of the production close, not an assumption of the fixture",
+    "the attempt02 real failure and the old findings are retained; the new run may still fail and a failure is a legal delivery",
+    "the controlled five subcases of R07 were still not reached by the attempt02 run and they are not verified by this delivery either",
+    "the query-failure fallback of N1-OPT-04 and the writer fault negative still have no real execution evidence",
+    "the historical M2 and M3 of the independent review of the correction 22 are not rewritten and no Major is closed by this delivery"
+  ],
+  "not_executed": [
+    "candidate import",
+    "pytest collect",
+    "pytest run",
+    "ctypes / native API call",
+    "runtime / OS business process",
+    "model or GPU",
+    "service or network",
+    "media",
+    "database",
+    "ledger",
+    "counter",
+    "any targeted execution plan",
+    "the creation of any run root"
+  ],
+  "states": {
+    "attempt01_result": "FAIL (13 PASS / 1 FAIL / 0 SKIP), retained",
+    "attempt02_result": "FAIL (0 PASS / 1 FAIL / 0 SKIP of one R07 node), retained",
+    "dynamic_correction23": "NOT_RUN",
+    "native": "NOT_PROVEN",
+    "product_acceptance": false,
+    "stage_pass": false,
+    "human_signoff": false,
+    "budget_reset": false,
+    "runtime_authorized": false,
+    "major_closed_by_this_delivery": 0,
+    "test_pass_claimed": false
+  },
+  "unrelated_dirty_state_preserved": [
+    "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-01/report.md"
+  ],
+  "next_owner": "coordinator",
+  "next_action": "root freezes the next targeted plan for the new source candidate c99136a (with the LVW_N1_T10_EVIDENCE_DIR environment and a fresh run root) and the independent review of this candidate; this delivery runs nothing and closes no Major"
+}
