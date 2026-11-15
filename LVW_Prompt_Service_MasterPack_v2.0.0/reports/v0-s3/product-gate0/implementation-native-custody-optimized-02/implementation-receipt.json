@@ -1,0 +1,149 @@
+{
+  "kind": "implementation_receipt",
+  "scope_id": "OPT-B-R07-OBSERVED-OWNER-01",
+  "packet": "N1-OPTIMIZED-01",
+  "stage": "OPT-B (minimal R07 fixture fix; no runtime admitted)",
+  "source_candidate_sha": "62e0d429dd78418220235359d068ae28d7b37e6e",
+  "source_candidate_blob": "7ecc7aae9df6b82e8d3d92e0718d42f076170867",
+  "source_candidate_sha256": "2a8e951b357068e835f6c7d276062395d83dc691ad5e51afde5c9e1da6cb64ac",
+  "base_source_candidate": "1a34fbbe318fbe240823a2bf2f09517a98294744",
+  "base_source_sha256": "f89ef38a7fcb0f48a47f9498ed1c9100c6f0832df57257c7b27e7c5461ad3ee0",
+  "delivery_commit": null,
+  "delivery_commit_note": "the commit that carries this receipt; it is recorded by the pointer commit that follows it and is reported in the worker_done summary. It is NOT the source candidate: the source candidate is source_candidate_sha above.",
+  "historical_failure_retained": {
+    "attempt01": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt01",
+    "evidence_commit": "946f587815964ab20edd5d69cb428224dcebac54",
+    "result": "13 PASS / 1 FAIL / 0 SKIP of the 14 frozen nodes; the failing node was test_n10_r07_the_context_of_the_round_reaches_every_layer at T10:4158",
+    "mutated": false,
+    "note": "the attempt01 root keeps its own real failure and is never written again; the evidence root of the module now points at the NEW attempt02 root"
+  },
+  "minimal_diff": {
+    "files": [
+      "LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py"
+    ],
+    "insertions": 139,
+    "deletions": 8,
+    "changed_functions_in_T10": ["test_n10_r07_the_context_of_the_round_reaches_every_layer"],
+    "new_functions": [],
+    "removed_functions": [],
+    "other_source_files_changed": [],
+    "regions": [
+      "the EVIDENCE_DIR path expression of the module (attempt01 -> attempt02) and one adjacent explanation comment",
+      "the R07 zero-expiry fixture: the holder of the observed pump, the observation at the public admission, the facts of the round after the return and the oracle block of the round"
+    ]
+  },
+  "root_cause_read_from_the_sources": {
+    "summary": "the fixture read the pump of the round from the session attribute _pump AFTER the public start returned, and the production clears that attribute on purpose once it confirmed the join of the pump; the fixture therefore observed the absence of a released reference and read the state of no object at all",
+    "production_evidence": [
+      "tools/v0_s3_native_custody.py:1430 setattr(self, '_' + kind, thread) - the pump is published as the session attribute _pump when it is registered in the table of the background threads",
+      "tools/v0_s3_native_custody.py:1585-1592 _stop_background: 'its reference is kept so that the owner of the round can try it again. A thread that really stopped is not kept any more.'",
+      "tools/v0_s3_native_custody.py:1660-1664 the branch that clears self._pump = None is reached ONLY after pump.join_bounded(...) returned true",
+      "tools/v0_s3_native_custody.py:935-939 join_bounded joins the thread and reports not self.is_alive(), so a true result means the pump really ended",
+      "tools/v0_s3_native_custody.py:1804-1815 the ordinary failure of the public start calls _close_broker() and then returns self.evidence()",
+      "tools/v0_s3_native_custody.py:2124 _perform_close calls _stop_background(deadline)"
+    ],
+    "fixture_evidence": [
+      "T10:4002 the public admission of the reply already holds the real pump in a local variable and only the premise facts survive it",
+      "T10:4067 the fixture re-read zero_session._pump after the return",
+      "T10:4094-4095 and 4115-4117 the same None branch produced finished=false and context=false",
+      "T10:4103-4104 the same None branch produced frames=null and the error-is-none default could not prove anything about a real pump"
+    ],
+    "conclusion": "this is the loss of the transient observation reference of the fixture, not the loss of a production owner and not a pump that did not exit; the attribution was taken from the exact sources and not from the brief"
+  },
+  "the_fix": [
+    "the public admission holds the EXACT attached pump object independently, before it tightens the deadline of the round and before the public start can retire the reference of the session; the fixture never builds, substitutes or fakes a pump",
+    "after the public start returned, the facts of the round describe that observed object: its real finished flag, its real liveness, its real error, its real frames, its ORIGINAL context and the broker it really served",
+    "the identity of that object is confirmed by `is` against the actual object that the production kept in its own table of the background threads (read with the existing _session_owners helper) and against the actual objects that the observer of the starts saw, with the proven provenance of that start",
+    "the mutable reference of the session is either that very object or it is absent, and its absence is only accepted on the specific path on which the production confirmed the join: the pump really started, it really ended and the production named no failure for it",
+    "an absent reference is never a proof and never a PASS; an unknown object, a still alive pump, a foreign context, a missing reference or a real error all fail the round"
+  ],
+  "oracle_mapping": {
+    "removed": [
+      {
+        "old": "assert zero_pump is zero_session._pump",
+        "old_meaning": "the attached pump of the zero round is the pump of the session",
+        "why_it_was_wrong": "it demanded that a FINISHED pump was still retained in the mutable reference of the session; the production retires that reference on purpose once it confirmed the join, so the old oracle could only fail a round that behaved correctly",
+        "safety_obligation": "the identity of the pump of the round",
+        "replacement": "eleven stronger oracles on the observed object; the identity obligation is kept and strengthened, nothing is deleted"
+      }
+    ],
+    "added": [
+      "facts['zero_pump_observed'] is True",
+      "facts['zero_pump_is_the_observed_pump'] is True",
+      "facts['zero_pump_alive'] is False",
+      "facts['zero_pump_error_is_none'] is True",
+      "facts['zero_pump_broker_is_the_round_broker'] is True",
+      "facts['zero_pump_is_the_production_background_pump'] is True",
+      "facts['zero_pump_is_an_observed_start'] is True",
+      "facts['zero_pump_start_provenance'] == 'STARTED'",
+      "facts['zero_session_pump_state'] in ('THE_OBSERVED_PUMP', 'ABSENT_AFTER_CONFIRMED_JOIN')",
+      "'CUSTODY_PUMP_NOT_STOPPED' not in facts['zero_failures'] (only on the absent path)",
+      "'CUSTODY_PUMP_NOT_STARTED' not in facts['zero_failures'] (only on the absent path)"
+    ],
+    "assert_occurrences_T10": {"before": 414, "after": 424, "removed": 1, "added": 11},
+    "retained_untouched": [
+      "the public default launcher and the public start of the round",
+      "the real event and queue waits of the round are exactly 0",
+      "the premise of a real started, attached, not EOF, error free pump at the admission",
+      "the released gate of the admission and its bound",
+      "the timeout cause CUSTODY_CHANNEL_TIMEOUT and the absence of CUSTODY_CHANNEL_EOF",
+      "the real returned state UNKNOWN_RETAINED and the failures of the round",
+      "the retention of the original broker, its identity and its source",
+      "the cleanup of the fixture and every resource assertion of the round"
+    ]
+  },
+  "static_facts": {
+    "method": "read-only git blob inspection and standard-library ast.parse as data; no import, no collect, no pytest",
+    "exact_189_node_identities_order_signatures_decorators": "unchanged; 117+16+24+18+14, unique 189",
+    "other_four_test_modules": "byte-identical to the base source candidate",
+    "production_sources": {
+      "tools/v0_s3_native_broker.py": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
+      "tools/v0_s3_native_custody.py": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581"
+    },
+    "changed_functions_in_T10": 1,
+    "new_or_removed_functions": 0,
+    "new_framework_or_generic_helper": 0,
+    "contracts_thresholds_counters_control_packets_manifest": "untouched"
+  },
+  "unresolved_risks": [
+    "the candidate was NOT run: the real error and the real frames of the observed pump are read for the first time now and their values are unknown until root freezes a finite targeted plan",
+    "the new oracle asserts that the observed pump carries no error: if the pump really recorded an error at the end of the round, the round will FAIL again - and that would be a real finding, not a fixture defect",
+    "the review of the correction 22 noted that the frames and the error of the pump were not saved at the return; they are not reconstructed here and they are not promised to pass",
+    "the controlled writer branch of R07 was never reached by the attempt01 batch and it is still not verified by a run",
+    "the query-failure fallback of N1-OPT-04 and the fault negatives of the writer branch still have no real execution evidence",
+    "the historical M2 and M3 of the independent review of the correction 22 are not rewritten and no Major is closed by this delivery",
+    "the independent root cause review of the correction 22 (commit cfee57a) remains pending for this new candidate: it reviewed 1a34fbbe, not 62e0d429"
+  ],
+  "not_executed": [
+    "candidate import",
+    "pytest collect",
+    "pytest run",
+    "ctypes / native API call",
+    "runtime / OS business process",
+    "model or GPU",
+    "service or network",
+    "media",
+    "database",
+    "ledger",
+    "counter",
+    "any targeted execution plan",
+    "the creation of the attempt02 run root"
+  ],
+  "states": {
+    "attempt01_result": "FAIL (13 PASS / 1 FAIL / 0 SKIP), retained",
+    "dynamic_correction23": "NOT_RUN",
+    "native": "NOT_PROVEN",
+    "product_acceptance": false,
+    "stage_pass": false,
+    "human_signoff": false,
+    "budget_reset": false,
+    "runtime_authorized": false,
+    "major_closed_by_this_delivery": 0,
+    "test_pass_claimed": false
+  },
+  "unrelated_dirty_state_preserved": [
+    "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-01/report.md"
+  ],
+  "next_owner": "coordinator",
+  "next_action": "root freezes the next targeted plan for the new source candidate 62e0d429 and the independent review of this candidate; this delivery runs nothing and closes no Major"
+}
