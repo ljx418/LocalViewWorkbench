@@ -1,0 +1,174 @@
+{
+ "zero_broker_identity": {
+  "executable": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/targeted01/pytest-temp/test_n1_sup_04_recovered_final0/synthetic-python.exe",
+  "executable_sha256": "33d0ec1ffb83bc03736d63bf6a52c553b2a5c838202be6ad527e3da666ac2e10",
+  "identity_source": "PARENT_ORIGINAL_HANDLE",
+  "pid": 4242,
+  "reported_by_the_broker": false
+ },
+ "zero_broker_retained": true,
+ "zero_channel_context_is_the_session_context": true,
+ "zero_failures": [
+  "CUSTODY_CHANNEL_TIMEOUT",
+  "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_finished",
+  "CUSTODY_BROKER_CLOSE_INCOMPLETE:read_end_closed",
+  "CUSTODY_BROKER_CLOSE_INCOMPLETE:worker_thread_handle_released",
+  "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_finished",
+  "CUSTODY_BROKER_CLOSE_INCOMPLETE:reader_finished",
+  "CUSTODY_BROKER_CLOSE_INCOMPLETE:reader_finished"
+ ],
+ "zero_gate_facts": [
+  {
+   "released": true,
+   "timeout": 30.0
+  }
+ ],
+ "zero_premise": {
+  "effective_at_admission": 2000.0,
+  "pump_at_admission": true,
+  "pump_attached": true,
+  "pump_eof_at_admission": false,
+  "pump_error_is_none": true,
+  "pump_error_repr": null,
+  "pump_error_type": null,
+  "tightened_at": 51181.756145129
+ },
+ "zero_pump_alive": false,
+ "zero_pump_broker_is_the_round_broker": true,
+ "zero_pump_context_is_the_session_context": true,
+ "zero_pump_error_is_none": true,
+ "zero_pump_error_repr": null,
+ "zero_pump_error_type": null,
+ "zero_pump_finished": true,
+ "zero_pump_frames": 0,
+ "zero_pump_is_an_observed_start": true,
+ "zero_pump_is_the_observed_pump": true,
+ "zero_pump_is_the_production_background_pump": true,
+ "zero_pump_observed": true,
+ "zero_pump_start_provenance": "STARTED",
+ "zero_queue_waits": [
+  0.0
+ ],
+ "zero_registry": [
+  {
+   "kind": "session",
+   "name": "session",
+   "order": 1,
+   "seam": "fixture",
+   "start_state": null
+  },
+  {
+   "kind": "channel",
+   "name": "launch:channel",
+   "order": 2,
+   "seam": "custody.retain",
+   "start_state": null
+  },
+  {
+   "kind": "endpoint",
+   "name": "endpoint:channel-read",
+   "order": 3,
+   "seam": "make_endpoint",
+   "start_state": null
+  },
+  {
+   "kind": "endpoint",
+   "name": "endpoint:channel-write",
+   "order": 4,
+   "seam": "make_endpoint",
+   "start_state": null
+  },
+  {
+   "kind": "thread",
+   "name": "thread:lvw-native-custody-channel#123848010149440",
+   "order": 5,
+   "seam": "thread.start",
+   "start_state": "STARTED"
+  },
+  {
+   "kind": "thread",
+   "name": "thread:lvw-native-custody-pipe-read#123848010148720",
+   "order": 6,
+   "seam": "thread.start",
+   "start_state": "STARTED"
+  },
+  {
+   "kind": "thread",
+   "name": "thread:lvw-native-custody-channel-pump#123848010138064",
+   "order": 7,
+   "seam": "thread.start",
+   "start_state": "STARTED"
+  },
+  {
+   "kind": "thread",
+   "name": "thread:lvw-native-custody-heartbeat#123848014594416",
+   "order": 8,
+   "seam": "thread.start",
+   "start_state": "STARTED"
+  }
+ ],
+ "zero_reply_waits": [
+  0.0
+ ],
+ "zero_session_pump_state": "ABSENT_AFTER_CONFIRMED_JOIN",
+ "zero_state": "UNKNOWN_RETAINED",
+ "zero_trace": [
+  {
+   "at": 51181.754014052,
+   "event": "START_CALLED"
+  },
+  {
+   "at": 51181.755874446,
+   "event": "PUMP_READ_ENTERED",
+   "timeout": 0.25
+  },
+  {
+   "at": 51181.756141309,
+   "event": "BOTH_HELD",
+   "producer": true,
+   "pump": true
+  },
+  {
+   "at": 51181.756144045,
+   "channel_error": null,
+   "event": "PRE_TIGHTENING_QUEUE_STATE",
+   "queue_size": 0
+  },
+  {
+   "at": 51181.756150156,
+   "event": "REPLY_WAIT_ENTERED",
+   "timeout": 0.0
+  },
+  {
+   "at": 51181.756153065,
+   "event": "REPLY_WAIT_RETURNED",
+   "result": false,
+   "timeout": 0.0
+  },
+  {
+   "at": 51181.756342711,
+   "event": "GATE_RELEASED",
+   "released": true,
+   "timeout": 30.0
+  },
+  {
+   "at": 51181.756347833,
+   "event": "QUEUE_GET_ENTERED",
+   "timeout": 0.0
+  },
+  {
+   "at": 51181.756352753,
+   "event": "PUMP_READ_RETURNED",
+   "result": "None"
+  },
+  {
+   "at": 51181.756353396,
+   "channel_error": null,
+   "event": "CHANNEL_ERROR_SEEN_BY_THE_PUMP"
+  },
+  {
+   "at": 51181.756571002,
+   "event": "PUMP_ENDED"
+  }
+ ]
+}
