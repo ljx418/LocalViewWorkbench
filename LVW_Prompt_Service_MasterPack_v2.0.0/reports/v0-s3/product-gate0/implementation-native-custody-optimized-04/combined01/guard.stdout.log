@@ -1,0 +1,17 @@
+.............................................................................................................................................................................................FF...
+=================================== FAILURES ===================================
+________________ test_n1_sup_01_final_query_preserves_original _________________
+tools/test_v0_s3_native_custody_cleanup_faults.py:198: in test_n1_sup_01_final_query_preserves_original
+    assert state['injected'] == 1, (
+E   AssertionError: the fault of the final query was not injected exactly once: {'calls': 16, 'injected': 0}
+E   assert 0 == 1
+___________ test_n1_sup_02_final_query_preserves_first_interruption ____________
+tools/test_v0_s3_native_custody_cleanup_faults.py:306: in test_n1_sup_02_final_query_preserves_first_interruption
+    assert state['injected'] == 1, (
+E   AssertionError: the fault of the final query was not injected exactly once: {'calls': 12, 'injected': 0}
+E   assert 0 == 1
+=========================== short test summary info ============================
+FAILED tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_01_final_query_preserves_original
+FAILED tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_02_final_query_preserves_first_interruption
+2 failed, 192 passed in 51.92s
+{"pytest_exit": 1, "call_count": 194, "pass_count": 192, "fail_count": 2, "skip_count": 0, "functional_pass_count": 190, "cleanup_proven_for_batch": true}

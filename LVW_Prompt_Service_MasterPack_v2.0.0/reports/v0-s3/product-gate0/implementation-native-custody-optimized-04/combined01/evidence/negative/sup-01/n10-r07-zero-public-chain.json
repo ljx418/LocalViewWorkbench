@@ -1,0 +1,151 @@
+{
+ "zero_broker_identity": {
+  "executable": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/pytest-temp/test_n1_sup_01_final_query_pre0/synthetic-python.exe",
+  "executable_sha256": "33d0ec1ffb83bc03736d63bf6a52c553b2a5c838202be6ad527e3da666ac2e10",
+  "identity_source": "PARENT_ORIGINAL_HANDLE",
+  "pid": 4242,
+  "reported_by_the_broker": false
+ },
+ "zero_broker_retained": true,
+ "zero_channel_context_is_the_session_context": true,
+ "zero_failures": [
+  "CUSTODY_CHANNEL_TIMEOUT",
+  "CUSTODY_BROKER_CLOSE_INCOMPLETE:read_end_closed",
+  "CUSTODY_BROKER_CLOSE_INCOMPLETE:worker_thread_handle_released",
+  "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers",
+  "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_error",
+  "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers"
+ ],
+ "zero_gate_facts": [
+  {
+   "released": true,
+   "timeout": 30.0
+  }
+ ],
+ "zero_premise": {
+  "effective_at_admission": 2000.0,
+  "pump_at_admission": true,
+  "pump_attached": true,
+  "pump_eof_at_admission": false,
+  "pump_error_is_none": true,
+  "pump_error_repr": null,
+  "pump_error_type": null,
+  "tightened_at": 24960.065632207
+ },
+ "zero_pump_alive": false,
+ "zero_pump_broker_is_the_round_broker": true,
+ "zero_pump_context_is_the_session_context": true,
+ "zero_pump_error_is_none": true,
+ "zero_pump_error_repr": null,
+ "zero_pump_error_type": null,
+ "zero_pump_finished": true,
+ "zero_pump_frames": 1,
+ "zero_pump_is_an_observed_start": true,
+ "zero_pump_is_the_observed_pump": true,
+ "zero_pump_is_the_production_background_pump": true,
+ "zero_pump_observed": true,
+ "zero_pump_start_provenance": "STARTED",
+ "zero_queue_waits": [
+  0.0
+ ],
+ "zero_registry": [
+  {
+   "kind": "session",
+   "name": "session",
+   "order": 1,
+   "seam": "fixture",
+   "start_state": null
+  },
+  {
+   "kind": "channel",
+   "name": "launch:channel",
+   "order": 2,
+   "seam": "custody.retain",
+   "start_state": null
+  },
+  {
+   "kind": "endpoint",
+   "name": "endpoint:channel-read",
+   "order": 3,
+   "seam": "make_endpoint",
+   "start_state": null
+  },
+  {
+   "kind": "endpoint",
+   "name": "endpoint:channel-write",
+   "order": 4,
+   "seam": "make_endpoint",
+   "start_state": null
+  },
+  {
+   "kind": "thread",
+   "name": "thread:lvw-native-custody-channel#124767248796560",
+   "order": 5,
+   "seam": "thread.start",
+   "start_state": "STARTED"
+  },
+  {
+   "kind": "thread",
+   "name": "thread:lvw-native-custody-pipe-read#124767248804000",
+   "order": 6,
+   "seam": "thread.start",
+   "start_state": "STARTED"
+  },
+  {
+   "kind": "thread",
+   "name": "thread:lvw-native-custody-channel-pump#124767248805968",
+   "order": 7,
+   "seam": "thread.start",
+   "start_state": "STARTED"
+  },
+  {
+   "kind": "thread",
+   "name": "thread:lvw-native-custody-heartbeat#124767231276624",
+   "order": 8,
+   "seam": "thread.start",
+   "start_state": "STARTED"
+  }
+ ],
+ "zero_reply_waits": [
+  0.0
+ ],
+ "zero_session_pump_state": "ABSENT_AFTER_CONFIRMED_JOIN",
+ "zero_state": "UNKNOWN_RETAINED",
+ "zero_trace": [
+  {
+   "at": 24960.064180767,
+   "event": "START_CALLED"
+  },
+  {
+   "at": 24960.06535982,
+   "event": "PUMP_READ_ENTERED",
+   "timeout": 0.25
+  },
+  {
+   "at": 24960.06563725,
+   "event": "REPLY_WAIT_ENTERED",
+   "timeout": 0.0
+  },
+  {
+   "at": 24960.065639988,
+   "event": "REPLY_WAIT_RETURNED",
+   "result": false,
+   "timeout": 0.0
+  },
+  {
+   "at": 24960.065801594,
+   "event": "GATE_RELEASED",
+   "released": true,
+   "timeout": 30.0
+  },
+  {
+   "at": 24960.065806204,
+   "event": "QUEUE_GET_ENTERED",
+   "timeout": 0.0
+  },
+  {
+   "at": 24960.066036872,
+   "event": "PUMP_ENDED"
+  }
+ ]
+}
