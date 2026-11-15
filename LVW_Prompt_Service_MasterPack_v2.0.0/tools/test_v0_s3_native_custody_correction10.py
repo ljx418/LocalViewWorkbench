@@ -143,11 +143,20 @@ from tools.test_v0_s3_native_custody_regressions import (  # noqa: E402
 #: directory of the correction 23.  The real documents of the batch of the
 #: correction 22 stay in the directory of the correction 22: they are
 #: never overwritten, never deleted and never replaced by a summary.
-#: OPT-B: this fresh attempt02 routing supersedes the attempt01 root and
-#: the correction 23 root; the attempt01 root keeps its own real failure.
-EVIDENCE_DIR = (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'
-                / 'implementation-native-custody-optimized-01' / 'attempt02'
-                / 'evidence')
+#: OPT-B: the evidence root of this module is **bound to the run** by the
+#: environment of the root-frozen plan.  The module never writes into a
+#: spent evidence root any more and it **fails closed** when the
+#: environment does not name a fresh one: one immutable source candidate
+#: can be verified in an isolated targeted run and later in the full
+#: checkpoint without an edit of the source that only moves the output.
+_EVIDENCE_DIR_ENV = 'LVW_N1_T10_EVIDENCE_DIR'
+_EVIDENCE_DIR_VALUE = os.environ.get(_EVIDENCE_DIR_ENV, '').strip()
+if not _EVIDENCE_DIR_VALUE:
+    raise RuntimeError(
+        'the evidence root of this module is bound to the run: the '
+        'environment %s does not name a fresh evidence root'
+        % (_EVIDENCE_DIR_ENV,))
+EVIDENCE_DIR = Path(_EVIDENCE_DIR_VALUE).expanduser()
 
 #: The nonce of the private channel of the probes of this module.  It
 #: is a closed form of 32 hexadecimal characters and it is the nonce of
@@ -4392,6 +4401,97 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                 # evidence are guarded: one exception never skips the
                 # owners that follow it and it never certifies the
                 # cleanup.
+                #
+                # OPT-B (R07 fixture shutdown): the drain of the round
+                # only **enumerates** the owners of the round and joins
+                # them; it never asks one of them to end.  The worker of
+                # the read end that the product really kept therefore went
+                # on waiting for a request that never came.  The fixture
+                # drives the shutdown of the **actual** owners of the
+                # round itself:
+                #
+                #  * the workers of the two endpoints of the zero channel
+                #    are asked to stop and to cancel their in-flight
+                #    operation, **bounded**, with the production methods of
+                #    the worker itself;
+                #  * the **repeatable** production close of the channel is
+                #    repeated by the drain, so the production closes the
+                #    read end itself and releases the handle of the thread
+                #    of its worker - and it closes the read end only after
+                #    the reader of the channel really ended: the read end
+                #    is never closed under a live reader.
+                #
+                # The returned state of the product and its stop facts are
+                # already sealed above: this shutdown never relabels them
+                # and it never renews a deadline of the product.  The
+                # budget of the fixture - the overall bound of the drain
+                # and the bound of every owner - is the one that is
+                # already in use.
+                zero_shutdown = []
+                zero_shutdown_workers = []
+                for endpoint in (getattr(zero_channel, '_reader', None),
+                                 getattr(zero_channel, '_writer', None)):
+                    if endpoint is None:
+                        continue
+                    for role, label in (('_reader', 'read'),
+                                        ('_writer', 'write')):
+                        worker = getattr(endpoint, role, None)
+                        if worker is None:
+                            continue
+                        entry = {'endpoint': label, 'role': role,
+                                 'thread': getattr(worker, 'name', None)}
+                        for action, call in (
+                                ('stop_accepting', worker.stop_accepting),
+                                ('request_cancel', worker.request_cancel)):
+                            try:
+                                entry[action] = repr(call())
+                            except BaseException as error:  # noqa: BLE001
+                                zero_cleanup_errors.append(
+                                    {'kind': 'FIXTURE_SHUTDOWN',
+                                     'type': type(error).__name__,
+                                     'detail': str(error)})
+                                _note_interruption(zero_interrupts, error)
+                                entry[action] = 'FAILED'
+                        zero_shutdown.append(entry)
+                        zero_shutdown_workers.append(worker)
+                zero_cleanup_facts['actions'].append(
+                    'stop:zero-endpoint-workers')
+                zero_channel_close = {}
+
+                def zero_close_facts(channel):
+                    """The compact actual facts of one production close.
+
+                    The close of the channel is **repeatable** by the
+                    production itself: a close that did not confirm its
+                    ends may try them again.  Only the facts that say
+                    whether the reader really ended, whether the read end
+                    was really closed and whether the handle of the
+                    thread of its worker was really released are kept.
+                    """
+                    facts = channel.close()
+                    return {name: facts.get(name) for name in (
+                        'reader_finished', 'reader_alive',
+                        'read_end_closed', 'read_retained_workers',
+                        'read_worker_thread_handle_released',
+                        'write_end_closed', 'write_retained_workers',
+                        'write_worker_thread_handle_released',
+                        'worker_thread_handle_released',
+                        'channel_retained_workers')}
+
+                def zero_close_channel():
+                    """Repeat the production close of the zero channel.
+
+                    The close of the channel is **repeatable** by the
+                    production itself: a close that did not confirm its
+                    ends may try them again.  It is repeated here after the
+                    drain released the gates of the round, so that the
+                    production closes the read end itself once the reader
+                    of the channel really ended.
+                    """
+                    if zero_channel is None:
+                        return
+                    zero_channel_close.update(zero_close_facts(zero_channel))
+
                 zero_drain = {'salvage': [], 'attempts': [], 'proof': None,
                               'quiescent': False, 'errors': [],
                               'all_salvage': [], 'owner_errors': []}
@@ -4401,13 +4501,84 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                         channel=zero_channel,
                         prefix='zero',
                         release=(lambda: zero_gate.set(),
-                                 lambda: zero_api.frames_ready.set()),
+                                 lambda: zero_api.frames_ready.set(),
+                                 zero_close_channel),
                         interrupts=zero_interrupts)
                 except BaseException as error:  # noqa: BLE001
                     zero_cleanup_errors.append(
                         {'kind': 'DRAIN', 'type': type(error).__name__,
                          'detail': str(error)})
                     _note_interruption(zero_interrupts, error)
+                # OPT-B (R07 fixture shutdown): the production close of
+                # the channel is repeated **after** the drain and it is
+                # **bounded**.  The close that the drain carried may
+                # still have found a worker that was alive, and it kept
+                # the handle of the thread of that worker; a worker that
+                # the drain really joined afterwards would still carry
+                # that handle.  The repeat is the **same repeatable**
+                # production close: the production releases the handle of
+                # the thread of a worker that really ended, and it closes
+                # the read end only after the reader of the channel
+                # really ended.  The errors of the repeat are retained
+                # with their exact type and their exact detail and the
+                # original exception keeps the priority.
+                zero_close_after = {}
+                if zero_channel is not None:
+                    try:
+                        zero_close_after = zero_close_facts(zero_channel)
+                    except BaseException as error:  # noqa: BLE001
+                        zero_cleanup_errors.append(
+                            {'kind': 'FIXTURE_SHUTDOWN_CLOSE',
+                             'type': type(error).__name__,
+                             'detail': str(error)})
+                        _note_interruption(zero_interrupts, error)
+                zero_channel_close.update(zero_close_after)
+                # The **hard** verdict of the release of the handles: the
+                # thread of every worker that the round really registered
+                # really ended, its handle was really released and no
+                # endpoint of the round kept a worker that it retained.
+                # The state is **read**, never inferred, and the verdict
+                # is part of the proof of the cleanup: it is not a
+                # displayed fact and an unknown or a missing result fails
+                # the round.
+                zero_handle_proof = None
+                zero_retained = 0
+                for entry, worker in zip(zero_shutdown,
+                                         zero_shutdown_workers):
+                    released = bool(getattr(worker, 'thread_handle_released',
+                                            False))
+                    alive = bool(worker.is_alive())
+                    entry['alive_after'] = alive
+                    entry['joined_after'] = bool(
+                        getattr(worker, 'joined', None))
+                    entry['thread_handle_released'] = released
+                    if alive:
+                        zero_handle_proof = (
+                            'the %s worker of the zero round is still alive'
+                            % (entry.get('role'),))
+                    elif not released:
+                        zero_handle_proof = (
+                            'the handle of the thread of the %s worker of '
+                            'the zero round was not released'
+                            % (entry.get('role'),))
+                    if zero_handle_proof is not None:
+                        break
+                for endpoint in (getattr(zero_channel, '_reader', None),
+                                 getattr(zero_channel, '_writer', None)):
+                    if endpoint is None:
+                        continue
+                    zero_retained += len(getattr(endpoint, '_retained', None)
+                                         or [])
+                if zero_handle_proof is None and zero_retained:
+                    zero_handle_proof = (
+                        'the round of zero retained %d worker(s) after the '
+                        'close of its endpoints' % (zero_retained,))
+                if zero_handle_proof is None and zero_close_after.get(
+                        'channel_retained_workers'):
+                    zero_handle_proof = (
+                        'the close of the channel of the zero round kept %s '
+                        'worker(s)' % (zero_close_after.get(
+                            'channel_retained_workers'),))
                 zero_salvage = zero_drain['salvage']
                 zero_proof = zero_drain['proof']
                 # CORRECTION 18 (M3): a stop that raised and a snapshot
@@ -4423,6 +4594,14 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                 # with it.
                 if zero_proof is None and zero_drain['quiescent'] is not True:
                     zero_proof = 'the round of zero was not quiescent'
+                # OPT-B (R07 fixture shutdown): the release of the handles
+                # of the threads of the workers is part of the proof of
+                # the cleanup: a handle that was not released and a
+                # worker that was retained fail the round with it.
+                if zero_handle_proof is not None:
+                    zero_proof = _cleanup_verdict(
+                        [zero_handle_proof], zero_proof,
+                        'the release of the handles of the round of zero')
                 # CORRECTION 21 (M3): the query of the facts of the
                 # registry that builds the **cleanup** evidence is
                 # guarded as well: an unknown snapshot is an explicit
@@ -4455,6 +4634,10 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                 facts.update({'salvage': zero_salvage,
                               'all_salvage': zero_drain.get('all_salvage', []),
                               'stop': zero_stop,
+                              'fixture_shutdown': list(zero_shutdown),
+                              'fixture_channel_close': dict(zero_channel_close),
+                              'fixture_handle_proof': zero_handle_proof,
+                              'fixture_retained_workers': zero_retained,
                               'drain': zero_drain['attempts'],
                               'quiescent': zero_drain['quiescent'],
                               'proof_failure': zero_current_verdict(),
