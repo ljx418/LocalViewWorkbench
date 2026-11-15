@@ -1,0 +1,3 @@
+# Batching
+
+One implementation owner completes the storage/repository/manual-route/test-source batch continuously. This is one production path, not one Stage per file. Preserve existing code/tests outside allowlist and unrelated dirty report. Commit production source and the16 test sources as one candidate; commit a new implementation receipt separately. No local import/compile/test execution yet: root seals new candidate plus DB-aware execution boundary afterward, then targeted tests, concentrated review and relevant backend regressions. N1 fixed189 is not rerun absent a relevant source/contract change. Stage/product29/human acceptance remains separate.

@@ -1,0 +1,5 @@
+# Risk and authority
+
+COMPLETE03 covers offline implementation; no extra human permission requested. Coding/test-source generation only, zero runtime/model/GPU/network/mediafile/DB actions in this admission. AST parsing/Git reads allowed; no compile/import/collection even to selfcheck. Installed dependencies unchanged/no downloads. Actual DB/HTTP in-process tests require separately frozen candidate/source/guard/deps/argv/owned DB root and qualified supervisor rootACK. The existing N1guard denies SQLite; do not remove or bypass it. Root prepares the exact DB-aware boundary before tests.
+
+Hard stops: firstClaude429 immediatelyWAIT_BUDGET with no retry/modelswitch/root implementation takeover; unsupported contract/schema/scope, other owner conflict, automatic approval refusal, unexpected real data/config/process access, missing cleanup. No userdatabase or old .lvw-runtime opened by this coding task. Runtime budgets/parent counters and product29 are unchanged. Independent review and real human signatures retained. Source/key/schema failure stays failure, no skippedtest countedPASS.

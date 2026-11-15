@@ -1,0 +1,107 @@
+{
+  "kind": "R1_INTERNAL_COMPONENT_CASES_NOT_PRODUCT_DENOMINATOR",
+  "fixed_count": 16,
+  "cases": [
+    {
+      "id": "PP01",
+      "nodeid": "lvw/tests/test_r1_persistence_slice.py::test_pp01_unknown_schema_fails_closed",
+      "obligation": "Unknown/nonempty-unversioned or malformed schema is refused without data/schema mutation; no recreation.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PP02",
+      "nodeid": "lvw/tests/test_r1_persistence_slice.py::test_pp02_core_bootstrap_reopen",
+      "obligation": "Fresh atomic version1 core+private bootstrap, reopen, no scene/FTS/V2 tables; bootstrap fault rollback.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PP03",
+      "nodeid": "lvw/tests/test_r1_persistence_slice.py::test_pp03_public_manual_restart",
+      "obligation": "Public create manual empty/media-less shot, get then newapp same root reads identical draft/ETag with provider calls0.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PP04",
+      "nodeid": "lvw/tests/test_r1_persistence_slice.py::test_pp04_upload_restart_copy_identity",
+      "obligation": "Synthetic image through publicupload/get survives restart, rawsource hash and storedcopy hash distinct and correct; uploadfields canonical/nullsource.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PP05",
+      "nodeid": "lvw/tests/test_r1_persistence_slice.py::test_pp05_durable_idempotency",
+      "obligation": "Samekey/samepayload acrossrestart returns original shot/media; changedpayload409 and no duplicate/deletion.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PP06",
+      "nodeid": "lvw/tests/test_r1_persistence_slice.py::test_pp06_cas_preconditions",
+      "obligation": "MissingIfMatch428, old412, validPUT updatesdraft/tag nothead/history; restart retainscommit.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PP07",
+      "nodeid": "lvw/tests/test_r1_persistence_slice.py::test_pp07_concurrent_cas_one_winner",
+      "obligation": "Two actual repo connections/public requests race sameETag; exactlyone commits and loser412, no lostupdate.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PP08",
+      "nodeid": "lvw/tests/test_r1_persistence_slice.py::test_pp08_revision_atomic_head",
+      "obligation": "Publicmanualrevision saves parent/head/draft/idempotency atomically; replay no newhead; model_adopted422 no write.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PP09",
+      "nodeid": "lvw/tests/test_r1_persistence_slice.py::test_pp09_revision_immutable",
+      "obligation": "Public-created revision cannot UPDATE/DELETE through actualSQL; later humanedits preserve old bytes/hash.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PP10",
+      "nodeid": "lvw/tests/test_r1_persistence_slice.py::test_pp10_revision_pagination_boundaries",
+      "obligation": "Publicpagination exact1/100 and one-over0/101, cursorcrossshot/malformed negative; restartstable no omissions/duplicates.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PP11",
+      "nodeid": "lvw/tests/test_r1_persistence_slice.py::test_pp11_head_transaction_rollback",
+      "obligation": "RealSQL fault between insertrevision andhead update rolls back revision/head/key; olddraft/history preserved; no fake200.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PP12",
+      "nodeid": "lvw/tests/test_r1_persistence_slice.py::test_pp12_unicode_locks_and_injection",
+      "obligation": "CanonicalChinese/English/locks/controlquotes/SQLlookingtext preserved, parameterizedSQL, invalid/extra/nonfinitepayload422 no sideeffects.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PP13",
+      "nodeid": "lvw/tests/test_r1_persistence_slice.py::test_pp13_upload_commit_failure_cleanup",
+      "obligation": "ActualDBfail publicupload removes onlynewuncommittedcopy, retains alloldfiles/rows/key; retrynot automatic.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PP14",
+      "nodeid": "lvw/tests/test_r1_persistence_slice.py::test_pp14_media_path_and_copy_failure",
+      "obligation": "Missing/substitutedcopy ormaliciousstoredname/symlink failsclosed without escape/delete/sourcehashrewrite.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PP15",
+      "nodeid": "lvw/tests/test_r1_persistence_slice.py::test_pp15_database_busy_unavailable",
+      "obligation": "ActualheldDBlock/readonly failure produces boundedstable503, rollback/no corruption, allownedconnections closed.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "PP16",
+      "nodeid": "lvw/tests/test_r1_persistence_slice.py::test_pp16_existing_api_compatibility",
+      "obligation": "Existingmedia/health/envelopes and analysis/runtime DTOs unchanged, manualpath never invokes provider/runtime; no overlay routes activated.",
+      "status": "NOT_RUN"
+    }
+  ],
+  "production_path_required": true,
+  "synthetic_fixtures_only": true,
+  "runtime_authorized_now": false,
+  "existing_backend_regression": "Freeze relevant existing nodes after candidate; preserve original tests; one component checkpoint after local feedback.",
+  "fullV1fixed29_unchanged": true
+}

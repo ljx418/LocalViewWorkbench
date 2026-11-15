@@ -1,0 +1,7 @@
+# One path and explicit boundaries
+
+Deliver SQLite-backed controlled upload metadata/copy identity, canonical manual shot CRUD, immutable manual revisions and durable idempotency through the public FastAPI routes. A fresh app with the same owned scratch data root reads the same media, draft, revisions and ETags without provider calls. No human draft or historical revision is overwritten by analysis.
+
+Routes: existing POST/GET media; canonical POST /api/v1/shots, GET/PUT /shots/{id}, POST/GET /prompts/revisions and GET /prompts/revisions/{id}. Bodies/envelopes strictly match canonical OpenAPI. No new endpoint or field. Manual authors human/imported only in this slice; model_adopted is parsed but semantically refused422 MODEL_ADOPTION_REQUIRES_BOUND_RUN until the separately bound adoption owner exists. No forged provenance or coercion to human.
+
+Deferred: frontend wiring/export/compilers, model-run/job persistence and recovery, scene/detection/hash migration version2, shot-batches/model adoption overlay, assets/FTS/MCP, native assembly and production verification. Existing analyze/runtime paths remain compatible and default service controls are not invoked by this workpack. Do not touch original source files, old uploaded orphan files or existing user DBs in any run. Offline tests use only synthetic inputs and fresh owned scratch DBs. Legacy media without stored metadata is never reverse-invented or silently scanned/deleted.

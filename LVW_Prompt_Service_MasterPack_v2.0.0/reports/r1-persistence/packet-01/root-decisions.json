@@ -1,0 +1,49 @@
+{
+  "kind": "ROOT_NEXT_ADMISSION_DECISIONS",
+  "input_audit_sha": "2c8dd5c3b4c8f4134f4029ee0b604afb67e9fcc1",
+  "approved_authority": "CHANGE-V1-DELIVERY-FLOW-01 / ADR16 / COMPLETE03",
+  "D1": {
+    "decision": "ADMIT_CORE_R1_A_B_OFFLINE_CODE_WITHIN_EXISTING_R1_STAGE_ONLY",
+    "scope": "one persistent-media/manual-shot/revision path; native/S3 formal release and fullR1 exit dependencies retained",
+    "proof": "main canonical plans/v1-workpack-development-map.json exists and ADR16 expressly separates design/coding/live/formalexit; relative absence in implementation branch is not missing authority",
+    "authority_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/plans/v1-workpack-development-map.json",
+    "authority_sha256": "4fd77040c8d254ca9aace8e4e45b57370ba06d893004dd1c95dca3348c7d0d75"
+  },
+  "D2": {
+    "decision": "DO_NOT_ACTIVATE_MULTISHOT_OVERLAY_OR_SCENE_MIGRATION",
+    "scope": "Implement only already canonical media/shot/revision routes; schema1 minimal core per docs31, no scenes/shot-batches/adopt overlay, no v2FTS/assets. Scene version2 migration deferred toM1."
+  },
+  "D3": {
+    "decision": "REUSE_EXISTING_ELEVEN_FIELD_MAPPING_NO_NEW_SCHEMA_OR_SECOND_HASH",
+    "authority": "plans/v1-multishot-contract.json /scene_hash/column_mapping plus docs31 design1.1.1 N6",
+    "current_slice": "does not create scenes or apply design migration; only one PromptSpec content hash in revisions.py for manual revision content"
+  },
+  "D4": {
+    "decision": "S3_NATIVE_FUTURE_USES_N1_BROKER_OWNED_ROUND_SERVICES; LEGACY_S2_UNCHANGED",
+    "fact_corrections": [
+      "broker module header explicitly states sole creator/holder of native services; it is not merely owner of broker process",
+      "quality_worker.BINDING_KEYS exactfive candidate/auth/PID/birth/baseline is distinct from bridge native/warm profile schemas; audit bridge identity listing is not replacement for worker fivekeys"
+    ],
+    "coding_admission_now": "NONE for N2 native activation; never forge wrapperPID, seconddriver or bypass defaultrefusal/admission. Native9 remain NOT_PROVEN."
+  },
+  "D5": {
+    "decision": "ADMIT_NAMED_CODE_AND_TEST_SOURCE_ONLY",
+    "packet": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/r1-persistence/packet-01",
+    "allowed_existing": [
+      "lvw/backend/app/main.py",
+      "lvw/backend/app/media.py",
+      "lvw/backend/app/models.py"
+    ],
+    "allowed_new": [
+      "lvw/backend/app/storage.py",
+      "lvw/backend/app/repositories.py",
+      "lvw/backend/app/revisions.py",
+      "lvw/backend/app/shots.py",
+      "lvw/tests/test_r1_persistence_slice.py"
+    ],
+    "runtime": "NO candidate imports/compile/tests until newly sealed candidate+DB-awareguard+supervisor rootACK; existingN1guard intentionally deniesSQLite, never removeit to test."
+  },
+  "full_stage_pass": false,
+  "new_human_signoff": false,
+  "budgets_reset": false
+}
