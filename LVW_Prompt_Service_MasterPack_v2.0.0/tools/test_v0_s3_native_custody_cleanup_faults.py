@@ -214,6 +214,26 @@ def test_n1_sup_01_final_query_preserves_original(tmp_path):
         assert state['injected'] == 1, (
             'the fault of the final query was not injected exactly once: %s'
             % (state,))
+        # OPT-B-07 (F06-M4): the faulted worker is the **actual** worker
+        # that the public admission of the round really held: the
+        # reference is captured by the fixture at its own real seam and
+        # it is never taken from the faulted object itself.
+        # OPT-B-07 (F06-M4): the faulted worker is the **actual** pipe
+        # worker of the read end of the round, observed at the
+        # construction of the real channel.  It is **not** the reply pump
+        # of the custody: the two are different resources and they are
+        # never asserted identical.
+        expected_worker = t10._HELD_REFERENCES.get('zero:read-worker')
+        assert expected_worker is not None, (
+            'the fixture never observed the pipe worker of the read end of '
+            'the zero round: %s' % (sorted(t10._HELD_REFERENCES),))
+        assert state.get('faulted') is expected_worker, (
+            'the fault of the final query did not hit the pipe worker that '
+            'the round really held: %r' % (state.get('faulted'),))
+        assert expected_worker is not t10._HELD_REFERENCES.get(
+            'zero:parent-pump'), (
+            'the pipe worker of the read end and the reply pump of the '
+            'custody must be different resources')
         assert writer.injected and writer.injected[0][0] == (
             'r07-zero-public-chain'), (
             'the original failure was not injected into the zero body: %s'
@@ -307,15 +327,24 @@ def test_n1_sup_02_final_query_preserves_first_interruption(tmp_path):
         state = {'calls': 0, 'injected': 0}
         original_is_alive = broker_module._WindowsPipeWorker.is_alive
         original_drain = t10._drain_owners
-        drain_state = {'k1': 0, 'calls': 0}
+        # OPT-B-07 (F06-M4): the held references are reset before the
+        # round runs: a reference of an earlier round can never be used
+        # as the expected object of this one.
+        t10._HELD_REFERENCES.clear()
+        # OPT-B-07 (F06-M3): the count of the **injections** of the
+        # exact cancellation is separate from the count of the
+        # **forwardings** of the original callback.
+        drain_state = {'k1': 0, 'installed': 0, 'injected': 0,
+                       'forwarded': 0, 'calls': 0, 'results': [],
+                       'wrapper': None}
 
         def drain_owners(registry, session=None, channel=None,
                          prefix='round', *, seconds=10.0, budget=30.0,
                          release=None, interrupts=None):
             drain_state['calls'] += 1
             if release is not None and len(release) >= 3 \
-                    and not drain_state['k1']:
-                drain_state['k1'] = 1
+                    and not drain_state['installed']:
+                drain_state['installed'] = 1
                 # the **original** third callback of the drain is kept and
                 # it is really called: the real close of the channel of
                 # the round is never omitted and the first gate is never
@@ -323,12 +352,22 @@ def test_n1_sup_02_final_query_preserves_first_interruption(tmp_path):
                 original_third = release[2]
 
                 def k1_release():
-                    # the original callback is really called and its
-                    # result is forwarded; the exact cancellation of the
-                    # fixture follows it and it is injected **once**.
-                    original_third()
-                    raise k1_error
+                    # OPT-B-07 (F06-M3): the **original** third callback
+                    # of the drain is really called on **every**
+                    # invocation and its real result is forwarded and
+                    # recorded.  The exact cancellation of the fixture is
+                    # injected **once** and only at the injection: the
+                    # counter of the injections is never the counter of
+                    # the forwardings.
+                    result = original_third()
+                    drain_state['forwarded'] += 1
+                    drain_state['results'].append(repr(result))
+                    if not drain_state['injected']:
+                        drain_state['injected'] += 1
+                        raise k1_error
+                    return result
 
+                drain_state['wrapper'] = k1_release
                 release = tuple(release[:2]) + (k1_release,) \
                     + tuple(release[3:])
             return original_drain(registry, session=session,
@@ -360,6 +399,49 @@ def test_n1_sup_02_final_query_preserves_first_interruption(tmp_path):
             'the same token: %r' % (info.value,))
         assert k2_error is not k1_error, (
             'the two interruptions of the case are the same object')
+        assert drain_state['injected'] == 1, (
+            'the exact cancellation was not injected exactly once: %s'
+            % (drain_state,))
+        assert drain_state['forwarded'] >= 1, (
+            'the original third callback of the drain was never forwarded: %s'
+            % (drain_state,))
+        # OPT-B-07 (F06-M3): the **controlled repeat** of the callback on
+        # the **actual** fixture resource after the original drain
+        # returned: the real idempotent close of the channel is really
+        # called again, the real result is forwarded again and **no** second
+        # cancellation is injected.  It is a labelled repeat of the real
+        # callback and never a second synthetic lifecycle.
+        assert drain_state['wrapper'] is not None, (
+            'the drain never installed the recording wrapper: %s'
+            % (drain_state,))
+        repeat_result = drain_state['wrapper']()
+        assert drain_state['forwarded'] == 2, (
+            'the controlled repeat did not forward the original callback '
+            'again: %s' % (drain_state,))
+        assert drain_state['injected'] == 1, (
+            'the controlled repeat injected a second cancellation: %s'
+            % (drain_state,))
+        assert drain_state['results'][-1] == repr(repeat_result), (
+            'the controlled repeat did not forward the real result of the '
+            'original callback: %s' % (drain_state,))
+        # OPT-B-07 (F06-M4): the faulted worker is the **actual** worker
+        # that the public admission of the round really held.
+        # OPT-B-07 (F06-M4): the faulted worker is the **actual** pipe
+        # worker of the read end of the round, observed at the
+        # construction of the real channel.  It is **not** the reply pump
+        # of the custody: the two are different resources and they are
+        # never asserted identical.
+        expected_worker = t10._HELD_REFERENCES.get('zero:read-worker')
+        assert expected_worker is not None, (
+            'the fixture never observed the pipe worker of the read end of '
+            'the zero round: %s' % (sorted(t10._HELD_REFERENCES),))
+        assert state.get('faulted') is expected_worker, (
+            'the fault of the final query did not hit the pipe worker that '
+            'the round really held: %r' % (state.get('faulted'),))
+        assert expected_worker is not t10._HELD_REFERENCES.get(
+            'zero:parent-pump'), (
+            'the pipe worker of the read end and the reply pump of the '
+            'custody must be different resources')
         assert drain_state['k1'] == 1, (
             'the first interruption was never recorded by the mechanism of '
             'the cleanup')
@@ -422,6 +504,10 @@ def test_n1_sup_03_inner_writer_error_rejects_success(tmp_path):
         return None
 
     with _case_evidence_root('sup-03') as root:
+        # OPT-B-07 (F06-M4): the held references are reset for every
+        # case, so that no reference of an earlier case can ever qualify
+        # a later one.
+        t10._HELD_REFERENCES.clear()
         writer = _phase_writer(t10.write_phase, plan)
         with unittest.mock.patch.object(t10, 'write_phase', writer):
             with pytest.raises(AssertionError) as info:
@@ -471,6 +557,10 @@ def test_n1_sup_04_recovered_final_write_has_failed_proof(tmp_path):
         return None
 
     with _case_evidence_root('sup-04') as root:
+        # OPT-B-07 (F06-M4): the held references are reset for every
+        # case, so that no reference of an earlier case can ever qualify
+        # a later one.
+        t10._HELD_REFERENCES.clear()
         writer = _phase_writer(t10.write_phase, plan)
         with unittest.mock.patch.object(t10, 'write_phase', writer):
             with pytest.raises(AssertionError) as info:

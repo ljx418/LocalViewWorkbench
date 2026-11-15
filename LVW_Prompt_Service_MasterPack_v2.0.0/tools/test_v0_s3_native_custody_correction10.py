@@ -179,6 +179,11 @@ CANCELLATION_CODES = ('BROKER_PIPE_CANCELLED', 'BROKER_CHANNEL_CANCELLED')
 #: unconditionally: a gate that timed out is a **fact** that the group
 #: records and it is never a silent success.
 ZERO_GATE_SECONDS = 30.0
+#: OPT-B-07 (F06-M1): the bound of the hold of the **producer** of the
+#: round of the zero expiry.  It is a bound of the **fixture** and never
+#: a deadline of the product: the deadline of the round is never
+#: extended and no threshold of the production is changed.
+ZERO_PRODUCER_SECONDS = 30.0
 ZERO_ADMISSION_SECONDS = 15.0
 
 
@@ -752,6 +757,22 @@ def _original_facts():
     if kind is None:
         return None
     return {'type': kind.__name__, 'detail': str(value)}
+
+
+#: CORRECTION 23 / OPT-B-07 (F06-M4): the narrow fixture observation of
+#: the **actual** held references of a round.  It is **default inert**:
+#: a round that nobody observes records nothing and it pays nothing.  It
+#: is a fixture seam and never a production API: it only remembers the
+#: objects that the fixture **really** observed at its real seams, so
+#: that a supplemental case can compare a faulted object with the
+#: object that the fixture really held **before** the fault.
+_HELD_REFERENCES = {}
+
+
+def _observe_reference(kind, reference):
+    """Remember one **actual** held reference of a round."""
+    _HELD_REFERENCES[kind] = reference
+    return reference
 
 
 def _cleanup_verdict(errors, base_proof, detail):
@@ -3933,6 +3954,18 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         zero_reply_waits = []
         zero_gate = threading.Event()
         zero_held = threading.Event()
+        # OPT-B-07 (F06-M1): the **producer** of the round - the reader
+        # thread of the channel that publishes the frames - is held
+        # between its **original** check of the wait and the publication
+        # of the frame.  The producer is released only after the real
+        # read of the pump really completed its empty queue and error
+        # check, so the order of the queue and the error publication of
+        # the round is decided by the **real** producer and never by the
+        # fixture.
+        zero_producer_gate = threading.Event()
+        zero_producer_held = threading.Event()
+        zero_producer_facts = []
+        zero_channel_ref = {'value': None}
         zero_gate_facts = []
         zero_premise = {}
         # OPT-B (R07 observed owner): the **actual** attached pump of the
@@ -3967,6 +4000,17 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
             method of the queue: it records the **actual** argument
             that the production really passed to it.
             """
+            zero_channel_ref['value'] = channel
+            # OPT-B-07 (F06-M4): the **actual** pipe worker of the read
+            # end of the round is observed at the construction of the
+            # **real** channel of the production: it is the worker that
+            # the final query of the cleanup really asks about and it is
+            # a different resource from the reply pump of the custody.
+            zero_read_endpoint = getattr(channel, '_reader', None)
+            zero_read_worker = (
+                getattr(zero_read_endpoint, '_reader', None)
+                if zero_read_endpoint is not None else None)
+            _observe_reference('zero:read-worker', zero_read_worker)
             original_get = channel._queue.get
 
             def zero_recording_get(block=True, timeout=None):
@@ -3975,6 +4019,28 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                 return original_get(block=block, timeout=timeout)
 
             channel._queue.get = zero_recording_get
+            # OPT-B-07 (F06-M1): the producer is held **after** its
+            # original check and **before** the publication.  The
+            # original check runs first and its result and its exception
+            # are forwarded unchanged: the fixture never asks the
+            # production to publish a frame that the production would
+            # have refused.
+            original_check_wait = channel._check_wait
+
+            def zero_producer_check_wait():
+                result = original_check_wait()
+                zero_producer_held.set()
+                released = zero_producer_gate.wait(ZERO_PRODUCER_SECONDS)
+                zero_producer_facts.append(
+                    {'released': bool(released),
+                     'timeout': ZERO_PRODUCER_SECONDS})
+                zero_record('PRODUCER_RELEASED', released=bool(released))
+                zero_record('CHANNEL_STATE_AFTER_PUBLICATION',
+                            queue_size=channel._queue.qsize(),
+                            channel_error=getattr(channel, '_error', None))
+                return result
+
+            channel._check_wait = zero_producer_check_wait
 
         def zero_gated_broker_read(self, timeout):
             """The read of the broker of the round, held at the gate.
@@ -3993,7 +4059,19 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                                     'timeout': ZERO_GATE_SECONDS})
             zero_record('GATE_RELEASED', released=bool(released),
                         timeout=ZERO_GATE_SECONDS)
-            return zero_original_broker_read(self, timeout)
+            try:
+                result = zero_original_broker_read(self, timeout)
+            except BaseException as error:  # noqa: BLE001 - it stays visible
+                zero_record('PUMP_READ_ERROR', type=type(error).__name__,
+                            detail=str(error))
+                raise
+            zero_record('PUMP_READ_RETURNED', result=repr(result))
+            # OPT-B-07 (F06-M1): the producer is released only **after**
+            # the real read of the pump really completed its empty queue
+            # and error check: the real producer decides the order of the
+            # publication and the fixture never hides it.
+            zero_producer_gate.set()
+            return result
 
         class ZeroTighteningWaiter(zero_original_waiter):
             """The waiter of the reply that tightens the ORIGINAL context.
@@ -4017,6 +4095,13 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                     zero_held.wait(ZERO_ADMISSION_SECONDS))
                 pump = zero_session._pump
                 zero_premise['pump_attached'] = pump is not None
+                # OPT-B-07 (F06-M4): the **actual** reply pump of the
+                # custody that the public admission really saw is
+                # remembered under its **own** name: it is the pump of
+                # the custody and it is **not** the pipe worker of the
+                # channel, which is a different resource and is observed
+                # separately at the construction of the real channel.
+                _observe_reference('zero:parent-pump', pump)
                 # OPT-B (R07 observed owner): the **exact** object of the
                 # attached pump is held **here**, at the public admission
                 # and **before** the deadline of the round is tightened.
@@ -4036,6 +4121,31 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                     type(error).__name__ if error is not None else None)
                 zero_premise['pump_error_repr'] = (
                     repr(error) if error is not None else None)
+                # OPT-B-07 (F06-M1): the deadline of the round is
+                # tightened only after the **real** producer of the round
+                # and the **real** pump of the round are both held: the
+                # original check of the producer already ran against the
+                # valid deadline of the round and its result was
+                # forwarded unchanged, and the real empty queue and error
+                # check of the pump runs after the tightening and before
+                # the producer is released.  The original check and the
+                # original error semantics are unchanged and a timeout
+                # that the production really publishes stays a failure.
+                producer_ready = zero_producer_held.wait(
+                    ZERO_ADMISSION_SECONDS)
+                pump_ready = zero_held.wait(ZERO_ADMISSION_SECONDS)
+                zero_record('BOTH_HELD', producer=bool(producer_ready),
+                            pump=bool(pump_ready))
+                zero_record('PRE_TIGHTENING_QUEUE_STATE',
+                            queue_size=(
+                                zero_channel_ref['value']._queue.qsize()
+                                if zero_channel_ref['value'] is not None
+                                else None),
+                            channel_error=(
+                                getattr(zero_channel_ref['value'], '_error',
+                                        None)
+                                if zero_channel_ref['value'] is not None
+                                else None))
                 # The ORIGINAL context of the round is tightened
                 # **before** the admission calculates the current bound
                 # of the round.
@@ -4383,8 +4493,15 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                               zero_interrupts)
                 _release_gate(zero_api.frames_ready.set, zero_cleanup_errors,
                               zero_interrupts)
+                # OPT-B-07 (F06-M1): **every** failure and cleanup path
+                # releases the producer as well: a producer that stayed
+                # held would keep the round waiting for a frame that the
+                # fixture itself holds back.
+                _release_gate(zero_producer_gate.set, zero_cleanup_errors,
+                              zero_interrupts)
                 zero_cleanup_facts['actions'].extend(
-                    ['release:gate', 'release:frames_ready'])
+                    ['release:gate', 'release:frames_ready',
+                     'release:producer'])
                 # The **returned** state of the product is captured
                 # **before** the salvage: the salvage of the test is
                 # separate from it and it never discards it.
@@ -6658,8 +6775,18 @@ def test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread(tmp_path):
         # **before** any fallible container query of the cleanup runs.
         interrupted_observed_owner = owner
         interrupted_owner_observed = True
+        # OPT-B-07 (F06-M4): the **actual** owner and the **actual**
+        # thread that the fixture really held are remembered for the
+        # supplemental cases: they are the objects that a fault of the
+        # cleanup must be compared with, and they are captured **before**
+        # the fault.
+        _observe_reference('r09:owner', owner)
         try:
             interrupted_observed_thread = getattr(owner, '_thread', None)
+            # OPT-B-07 (F06-M4): the **actual** thread of the owner that
+            # the fixture really held is observed **here**, in the body and
+            # **before** any fault of the cleanup.
+            _observe_reference('r09:thread', interrupted_observed_thread)
         except BaseException as error:  # noqa: BLE001 - it stays visible
             interrupted_cleanup_errors.append(
                 {'kind': 'OWNER_THREAD', 'type': type(error).__name__,
