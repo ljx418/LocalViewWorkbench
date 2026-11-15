@@ -1,0 +1,68 @@
+{
+  "id": "OPT-B-CONSOLIDATED-PRIORITY-AND-NEGATIVES-01",
+  "status": "IMPLEMENTATION_FROZEN_NO_RUNTIME_ACK",
+  "base_candidate": "a9a63cf7f7b5ec52e271639bb6278e54b457805a",
+  "base_source_sha256": "0aa352f2a0106e7ac700695b540b01e3a627ea5631e1d66aef80fa7122678dc1",
+  "normal_feedback_commit": "e06275b47c99a1c2b77983dfe4c26b6303a4b46e",
+  "known_open_review": "86ab300",
+  "allowed_source_files": [
+    "tools/test_v0_s3_native_custody_correction10.py",
+    "tools/test_v0_s3_native_custody_cleanup_faults.py (NEW)"
+  ],
+  "allowed_existing_edit": "Only newly added R07 final fixture verification block: guard actual queries, record unknown/errors and exact interruptions, preserve original O > first K > ordinary verdict and reach required publication. No shared helper rewrite or functional deadline/oracle change.",
+  "supplemental_cases": [
+    {
+      "id": "N1-SUP-01",
+      "node": "test_n1_sup_01_final_query_preserves_original",
+      "trigger": "Actual public R07 zero-body raises exact O after raw zero facts, then final actual-worker query raises E once.",
+      "oracle": "Real R07 call must raise exact O; required zero/parent failure publication retains O and E, no unexpected success; actual owners end and handle facts remain truthful."
+    },
+    {
+      "id": "N1-SUP-02",
+      "node": "test_n1_sup_02_final_query_preserves_first_interruption",
+      "trigger": "No original O; exact earlier K1 already recorded by fixture interruption mechanism, final actual-worker query raises distinct K2 once.",
+      "oracle": "Real R07 call raises exact K1, not K2; both interruption facts preserved; real cleanup proven. Explicitly label any controlled pending-state injection, never call it a real user interrupt."
+    },
+    {
+      "id": "N1-SUP-03",
+      "node": "test_n1_sup_03_inner_writer_error_rejects_success",
+      "trigger": "Inside actual R07 controlled-failure CHILD_TRANSPORT unwind, inject only one inner phase-writer E; later writes succeed.",
+      "oracle": "Actual R07 caller must fail with observed E in verdict, never return normally; original controlled sentinel remains recorded; real required raw and cleanup facts retained. Injection count exactly1."
+    },
+    {
+      "id": "N1-SUP-04",
+      "node": "test_n1_sup_04_recovered_final_write_has_failed_proof",
+      "trigger": "Only final writer of actual R07 controlled-failure CHILD_TRANSPORT raises E once; production fixture bounded retry succeeds.",
+      "oracle": "Real caller fails; recovered exact phase document has E and non-null failed proof before durable write, not an in-memory-only late update; real cleanup verified; no unbounded retry."
+    },
+    {
+      "id": "N1-SUP-05",
+      "node": "test_n1_sup_05_held_startup_owner_survives_query_faults",
+      "trigger": "Actual R09 interrupted-start owner/thread observed; body O precedes normal settle, cleanup inflight query raises E and thread lookup K; held owner/thread still exist.",
+      "oracle": "Exact original O wins; transparent recorders prove real held owner.settle and held thread.join execute despite query errors; known liveness is dead, required failure evidence persists, no lost actual owner or synthetic cleanup."
+    }
+  ],
+  "test_design_constraints": [
+    "Drive actual existing R07/R09 functions/public production paths with existing lowest synthetic OS seams; no simplified substitute lifecycle",
+    "Faults only at fixture observation/phase-writer seam; transparent recorders must call original real owner methods and forward results",
+    "Each fault case has unique child evidence root below frozen T10 run root; restore module evidence route after case; never overwrite normal R07/R09 phase files or old runs",
+    "Assert exact injected/raised identity where contract specifies it; require injection actually happened and required durable facts/real cleanup, not mere names/files/constants",
+    "Expected callee FAIL is a negative-test success only when exact oracle holds; record distinction explicitly. A callee returning success or missing/unknown cleanup makes supplemental case FAIL",
+    "No OS process/native API/network/DB/model/GPU/service actions; root guard precedes all imports",
+    "No extra top-level tests in original189, no renaming/skipping; original fixed189 full set/order remains required. New five supplement nodes are separate supplemental denominator, never substitute for189 or product29",
+    "Use one small test-only support block if necessary, not a new fixture framework or diagnostic platform; do not duplicate entire R07/R09 source",
+    "No test execution/import/collection in this implementation task; candidate and exact future combined plan must be sealed first"
+  ],
+  "forbidden": [
+    "production broker/custody changes",
+    "canonical contracts or fixed thresholds changed",
+    "old attempts/findings/receipts rewritten",
+    "assertion weakening or broad R07/R09 rewrites",
+    "root guard/runner/approval configuration changes",
+    "unrelated dirty report staging"
+  ],
+  "receipt_root": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/",
+  "next_validation_design": "One source-sealed combined CPU checkpoint of original189 + supplemental5 with separate counts, exact nodes/guard/pins/budget/root ACK; independent concentrated review. No execution granted here.",
+  "budget_reset": false,
+  "runtime_authorized": false
+}
