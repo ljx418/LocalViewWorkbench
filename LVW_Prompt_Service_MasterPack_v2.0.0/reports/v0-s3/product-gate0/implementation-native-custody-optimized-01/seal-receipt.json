@@ -1,0 +1,167 @@
+{
+  "kind": "source_candidate_seal_receipt",
+  "packet": "N1-OPTIMIZED-01",
+  "change_id": "CHANGE-V1-DELIVERY-FLOW-01",
+  "stage": "OPT-A (source seal only; no targeted execution plan frozen)",
+  "coordinate": "R1/WP-R1-U3",
+  "source_candidate_sha": "21f816f03ed51878555910904ae094f99710073c",
+  "source_candidate_blob": "b9796dd10caca38b69d0a7d5e0a12be4247acdb3",
+  "source_candidate_sha256": "6a659b0820fff937bfdce7d3dd1edc7c4cab5d6f51508072eeef8c64dade4809",
+  "delivery_commit": null,
+  "delivery_commit_note": "the commit that carries this receipt; it is recorded by the pointer commit that follows it and is reported in the worker_done summary. It is NOT the source candidate: the source candidate is source_candidate_sha above.",
+  "base_delivery": "03f8127dfd2511df3d388224025fa0a5ec9d696a",
+  "interrupted_source_sha256_expected": "6a659b0820fff937bfdce7d3dd1edc7c4cab5d6f51508072eeef8c64dade4809",
+  "interrupted_source_sha256_matches_expected": true,
+  "head_before_seal": "03f8127dfd2511df3d388224025fa0a5ec9d696a",
+  "branch": "ljx418/lvw-v1-d0-implement",
+  "seal_scope": {
+    "fixes_applied_in_this_seal": 0,
+    "note": "the interrupted working source is sealed byte for byte as it was; no source change, no import, no collect, no run, no rebuild of an evidence framework"
+  },
+  "changed_files": [
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py",
+      "status": "M",
+      "insertions": 841,
+      "deletions": 256,
+      "sha256": "6a659b0820fff937bfdce7d3dd1edc7c4cab5d6f51508072eeef8c64dade4809",
+      "blob": "b9796dd10caca38b69d0a7d5e0a12be4247acdb3",
+      "bytes": 512061,
+      "lines": 9805
+    }
+  ],
+  "unchanged_source_pins": {
+    "tools/v0_s3_native_broker.py": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
+    "tools/v0_s3_native_custody.py": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581",
+    "tools/test_v0_s3_native_custody.py": "fe96d2ffd353d3f3f6df4da2b023dd6cfaf58fe730ab6655afbca723ed507d32",
+    "tools/test_v0_s3_native_custody_regressions.py": "03250ea0ac64519c57edfbe1be965eb2827b46fc7f2d80b47146e4a5e6e7cb93",
+    "tools/test_v0_s3_native_custody_correction05.py": "8563989f078fcd45d44c496a0bea16c1ecf5005513543f6f4e00792e4ed7e130",
+    "tools/test_v0_s3_native_custody_correction07.py": "dc74cf7f92e8be6cc2b69c602b9fc0b3fdd765ec8b9b48c4f061dde7bdcd6cdf",
+    "tools/test_v0_s3_native_custody_correction10.py": "6a659b0820fff937bfdce7d3dd1edc7c4cab5d6f51508072eeef8c64dade4809"
+  },
+  "static_facts": {
+    "method": "read-only git blob inspection and standard-library ast.parse as data; no import, no collect, no pytest",
+    "frozen_node_count": 189,
+    "module_counts": {
+      "tools/test_v0_s3_native_custody.py": 117,
+      "tools/test_v0_s3_native_custody_regressions.py": 16,
+      "tools/test_v0_s3_native_custody_correction05.py": 24,
+      "tools/test_v0_s3_native_custody_correction07.py": 18,
+      "tools/test_v0_s3_native_custody_correction10.py": 14
+    },
+    "unique_node_ids": 189,
+    "identities_order_signatures_decorators_equal_correction22_candidate": true,
+    "identities_order_signatures_decorators_equal_correction22_delivery": true,
+    "assert_occurrences_base": 414,
+    "assert_occurrences_candidate": 414,
+    "assert_occurrences_removed": 0,
+    "assert_occurrences_added": 0,
+    "skip_skipif_xfail_calls": 0,
+    "publication_before_priority_in_every_cleanup_finally": true,
+    "cleanup_finally_blocks_with_a_publication": 23,
+    "publications_without_a_verdict_callback": 1,
+    "publications_without_a_verdict_callback_note": "the loop that republishes the phase documents of the startup body; it is a body report and the cleanup document of the same region carries the verdict",
+    "late_start_error_slice_present": false
+  },
+  "sealed_invariant": {
+    "name": "one finalization invariant for every cleanup region of T10",
+    "rules": [
+      "the COMPLETE history of the errors of a cleanup - never a slice of it - and the ACTUAL physical proof are recomputed into the verdict BEFORE every bounded write and BEFORE the retry that follows a failed write",
+      "a write that failed is an ACTUAL error of the cleanup: it is added to the history before the retry, so the artifact of the retry carries the FAILED proof and never None",
+      "the facts of a cleanup are initialized BEFORE the body of the region and the publication is UNCONDITIONAL inside the cleanup finally, AFTER every action and BEFORE the priority",
+      "the priority is unchanged: the unwinding original, then the FIRST exact pending interruption, then the ordinary verdict",
+      "the interrupted start holds the OBSERVED owner and its EXACT thread independently of the guarded query of the owners that are in flight; a failed query never cancels the settle and the join of a known owner and an unknown liveness is recorded as UNKNOWN and fails the round"
+    ]
+  },
+  "unresolved_obligations": [
+    {
+      "id": "N1-OPT-01",
+      "historical": "M2.a controlled inner writer error may pass",
+      "disposition": "BLOCKING_FALSE_GREEN",
+      "status": "OPEN",
+      "note": "the sealed source recomputes the verdict with the complete history of the cleanup, but no run has proved that the caller rejects the success; the obligation stays blocking until the targeted run and the independent review"
+    },
+    {
+      "id": "N1-OPT-02",
+      "historical": "M2.a2 recovered proof stale while run fails",
+      "disposition": "INDEPENDENT_RECLASSIFICATION_PENDING",
+      "status": "OPEN",
+      "note": "the sealed source recomputes the verdict before the retry so the recovered artifact carries the failed proof; the canonical FAIL, the raw identity and the actual cleanup are not yet verified"
+    },
+    {
+      "id": "N1-OPT-03",
+      "historical": "M3.c secondary auxiliary failure publication",
+      "disposition": "INDEPENDENT_RECLASSIFICATION_PENDING",
+      "status": "OPEN",
+      "note": "the sealed source publishes unconditionally inside every cleanup finally; no automatic downgrade is claimed and no document closes the obligation"
+    },
+    {
+      "id": "N1-OPT-04",
+      "historical": "M3.c interrupted-start known owner fallback absent",
+      "disposition": "BLOCKING_RESOURCE_SAFETY",
+      "status": "OPEN",
+      "note": "the sealed source merges the observed owner with the returned refs and falls back to the known thread; the actual settle and join under a failed query are not yet verified by a run"
+    },
+    {
+      "id": "OPT-A-EVIDENCE-ROOT",
+      "historical": "none",
+      "disposition": "OPEN_FOR_TARGETED_PLAN",
+      "status": "OPEN",
+      "note": "EVIDENCE_DIR of the sealed module points at reports/v0-s3/product-gate0/implementation-native-custody-correction-23/evidence while this packet is implementation-native-custody-optimized-01; root must freeze the per-run evidence root of the targeted plan and the naming with it"
+    },
+    {
+      "id": "HISTORICAL-M2-M3",
+      "historical": "independent STATIC review of the correction 22: F0/M2/m0, M1 CLOSED_STATIC, M2 OPEN, M3 OPEN",
+      "disposition": "UNCHANGED",
+      "status": "OPEN",
+      "note": "the old review is not rewritten and no Major is closed by this seal"
+    }
+  ],
+  "not_executed": [
+    "candidate import",
+    "pytest collect",
+    "pytest run",
+    "ctypes / native API call",
+    "runtime / OS business process",
+    "model or GPU",
+    "service or network",
+    "media",
+    "database",
+    "ledger",
+    "counter",
+    "any targeted execution plan",
+    "any dynamic15_22 or dynamic23 verification"
+  ],
+  "states": {
+    "dynamic_correction23": "NOT_RUN",
+    "dynamic15_22": "NOT_RUN",
+    "historical14": "HISTORICAL_ACTUAL189_GREEN_ONLY_NOT_REEXECUTED",
+    "native": "NOT_PROVEN",
+    "product_acceptance": false,
+    "stage_pass": false,
+    "human_signoff": false,
+    "budget_reset": false,
+    "runtime_authorized": false,
+    "targeted_selection_frozen": false,
+    "targeted_execution_ack": null,
+    "major_closed_by_this_seal": 0
+  },
+  "unrelated_dirty_state": {
+    "note": "left untouched on purpose; it is not in the scope of this seal and it was already dirty before the seal",
+    "modified_tracked": [
+      "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-01/report.md"
+    ],
+    "untracked": "the pre-existing untracked pytest-temp, counter-absence and __pycache__ trees of the repository are left as they are; no bulk add and no bulk cleanup was performed"
+  },
+  "authority_and_pins": {
+    "AGENTS.md": "86f88fb22be608117d2ddf14790d12c8d701ef3b730622101407dfc26a4dbeee",
+    "docs/36_DELIVERY_WORKFLOW_REBASELINE.md": "d362d0b99da488d022370b08be39dac42bd9235a202be5b45c8641bd2eb78977",
+    "docs/adr/ADR-16-DELIVERY-FLOW.md": "a515f7aa6c1d8d5e5e92150df022226712bc89d38acc2690edfacf2144dab962",
+    "reports/workflow-rebaseline-2026-11-15/optimized-n1-01/contract.json": "3861d185b933bb7f919d709b7bb63680c8f3b4c685c6e219821a8b23fc025763",
+    "reports/workflow-rebaseline-2026-11-15/optimized-n1-01/obligation-review.json": "7e928674ee17a553e51dfcc3c1ad03553f57ba2f96701c4d9fccfdfc5fc48579",
+    "historical_review": "reports/v0-s3/product-gate0/native-custody-correction-22/test-review-01/review-result/review.md"
+  },
+  "next_owner": "coordinator",
+  "next_action": "root freezes the first controlled targeted execution plan (candidate pins, exact argv/cwd/env/nodeids, bounded budget, guard before candidate import, per-run evidence root, counter observation policy, root ACK); this seal grants no runtime ACK",
+  "agent_cleanup": "worker_done settles the assignment only; the physical terminal lifecycle belongs to the coordinator"
+}
