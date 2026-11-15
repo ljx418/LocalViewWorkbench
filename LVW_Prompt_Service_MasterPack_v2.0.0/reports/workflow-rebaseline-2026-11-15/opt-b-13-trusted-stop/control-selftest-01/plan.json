@@ -1,0 +1,111 @@
+{
+  "kind": "ROOT_FROZEN_TRUSTED_STOP_SELFTEST_NOT_PRODUCT",
+  "parent_authority": "AUTH-PROGRAM-V1-COMPLETE-03",
+  "sourcepins": {
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/bounded_exec.py": "4323d266bbd0c1afab99138af8c1962ea27a9e01ff7380d9c56c52e199cba7c0",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control_canary.py": "e11ae8c3547314b57898f3288dc2fe902659f51b7f80cd841ffc76da2e919d3c"
+  },
+  "interpreter_pin": {
+    "path": "/usr/bin/python3.12",
+    "sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f"
+  },
+  "cases": [
+    {
+      "mode": "normal",
+      "request": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control-selftest-01/normal.request.json",
+      "request_sha256": "78520146d90394f27b3e70e55e3923e73d652fca78f920ea3a2131ed6e8b235f",
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/bounded_exec.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control-selftest-01/normal.request.json"
+      ],
+      "expected": {
+        "status": "EXITED_ZERO",
+        "returncode": 0,
+        "controller_exit": 0,
+        "timed_out": false,
+        "signals": []
+      }
+    },
+    {
+      "mode": "nonzero",
+      "request": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control-selftest-01/nonzero.request.json",
+      "request_sha256": "aab04f8b26bde7f5ca9af41fa21f876d5add5bdc507f440ab50b5d5f2f8c6164",
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/bounded_exec.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control-selftest-01/nonzero.request.json"
+      ],
+      "expected": {
+        "status": "EXITED_NONZERO",
+        "returncode": 13,
+        "controller_exit": 1,
+        "timed_out": false,
+        "signals": []
+      }
+    },
+    {
+      "mode": "term",
+      "request": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control-selftest-01/term.request.json",
+      "request_sha256": "29e2fe447f0912552fee61c380a64e40751f36e127343575f0fc5759f5b43468",
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/bounded_exec.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control-selftest-01/term.request.json"
+      ],
+      "expected": {
+        "status": "DEADLINE_EXPIRED",
+        "returncode": -15,
+        "controller_exit": 1,
+        "timed_out": true,
+        "signals": [
+          "SIGTERM"
+        ]
+      }
+    },
+    {
+      "mode": "ignore-term",
+      "request": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control-selftest-01/ignore-term.request.json",
+      "request_sha256": "e90721c6778f6202c308170c55548dd94bdc1f3c85c05cb3568a54a4a2b426b4",
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/bounded_exec.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control-selftest-01/ignore-term.request.json"
+      ],
+      "expected": {
+        "status": "DEADLINE_EXPIRED",
+        "returncode": -9,
+        "controller_exit": 1,
+        "timed_out": true,
+        "signals": [
+          "SIGTERM",
+          "SIGKILL"
+        ]
+      }
+    }
+  ],
+  "cases_max": 4,
+  "retries": 0,
+  "overall_budget_seconds": 20,
+  "new_run_root": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control-selftest-01/run",
+  "root_only_new_directory_creation": [
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control-selftest-01/run"
+  ],
+  "required_source_review": "independent Fatal0 Major0 readiness before any selftest process launch",
+  "oracle": "Actual child ready+identity matches child journal; exact expected signal escalation, negative returncode, waitpid reap; exact /proc/pid/birth absent after reap; timeout/nonzero never accepted as successful workload. No foreign PID signals.",
+  "cleanup": "Controller owns only one unreaped child; no group-wide/foreign termination. Root may signal only exact owned PID/birth from new journal if cleanup failed; otherwise unknown blocks. No broadprocessscan.",
+  "excluded": [
+    "candidate import/tests/full194 rerun",
+    "model/GPU/media/network/services/DB",
+    "Windows/native/descendanttree/parentSIGKILL guarantee"
+  ],
+  "actual_execution_performed": false
+}

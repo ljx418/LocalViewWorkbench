@@ -1,6 +1,6 @@
 {
   "schema_version": "lvw.execution-control/1",
-  "updated_at": "2026-11-15T17:09:35.110230+00:00",
+  "updated_at": "2026-11-15T17:22:20.454730+00:00",
   "project_id": "lvw-prompt-service",
   "design_version": "2.0.0",
   "target_version": "V1",
@@ -21,7 +21,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "S3_P4_CP09_M1_CONTROL_SEMANTICS_INDEPENDENT_REVIEW",
+  "current_blocking_gate": "S3_P4_CP10_M1_TRUSTED_STOP_SOURCE_REVIEW",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -34,9 +34,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "Isolated independent reviewer of exact tool inputs, stop semantics and extra probe",
-  "next_action": "Review combined02 actual194 PASS and append correction, verify actual timeout parameters without assuming backgrounding means termination; assess unfrozen sleep probe and any cleanup implication before component gate adjudication.",
-  "required_authorization": "Covered by parent AUTH-PROGRAM-V1-COMPLETE-03 and root NEW combined10 ACK310s/1batch0retry; no human reapproval or hard-control waiver. First429/approvalrefusal/unsupported exactcap stops.",
+  "next_owner": "Root trusted-control owner; isolated source reviewer; Claude append-only receipt correction",
+  "next_action": "Correct combined02 provenance without runtime. Independently review minimal single-child supervisor and frozen4case conditional selftest; activate only after source readiness. Do not automatically rerun194 or claim old conformance.",
+  "required_authorization": "ParentCOMPLETE03 covers trusted CPU harness repair and append-only correction. Fourcase runtime activation awaits independent source readiness/root activation ACK, not additional human approval. FirstClaude429 stops implementation worker.",
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -2390,7 +2390,7 @@
     "plan": "reports/workflow-rebaseline-2026-11-15/opt-b-12-envelope-correction/combined-plan-10/plan.json",
     "plan_sha256": "fe0f03d14b5a57b7463f342507294e409a9ac7dc38f3ec0f233533f2510cf34f",
     "candidate_sha": "b9a81aed8e8f8fe6763a4dfd3d051cacf10e0820",
-    "state": "ACTUAL194_PASS_CONTROL_SEMANTICS_REVIEW_PENDING",
+    "state": "FUNCTIONAL194_SUPPORTED_HARD_STOP_NOT_ESTABLISHED",
     "fixed_original": 189,
     "supplemental": 5,
     "total": 194,
@@ -2404,7 +2404,9 @@
     "actual_original_PASS": 189,
     "actual_supplemental_PASS": 5,
     "hard_stop_semantics_proven": false,
-    "extra_probe_frozen": false
+    "extra_probe_frozen": false,
+    "independent_review_sha": "680b06f5d62dd3297f3b4d8701b93cdb5556b71c",
+    "blocking_finding": "CP10-M1"
   },
   "component_checkpoint_history": [
     {
@@ -2441,5 +2443,14 @@
         5000
       ]
     }
-  ]
+  ],
+  "trusted_stop_preparation": {
+    "source": "reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/bounded_exec.py",
+    "selftest_plan": "reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control-selftest-01/plan.json",
+    "state": "SOURCE_READY_FOR_INDEPENDENT_REVIEW_NOT_EXECUTED",
+    "cases": 4,
+    "budget_seconds": 20,
+    "retries": 0,
+    "full194_rerun_authorized": false
+  }
 }

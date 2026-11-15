@@ -1,0 +1,44 @@
+{
+  "result": "FUNCTIONAL194_CONFIRMED_HARD_CONTROL_NOT_ESTABLISHED",
+  "counts": {
+    "Fatal": 0,
+    "Major": 1,
+    "Minor": 0
+  },
+  "findings": [
+    {
+      "id": "CP10-M1",
+      "candidate": "b9a81aed8e8f8fe6763a4dfd3d051cacf10e0820",
+      "spec": "OPT-B-12 combined-plan-10/rootACK/literal tool inputs; ADR16 finite control and provenance",
+      "layer": "trusted executor hard-stop semantics / scope / receipt truth",
+      "location": "Orca archived dispatchctx_f18d235adb9a, probe call_01a1e025d24c76ec95929612; combined02 navigation /the_control_envelope_of_this_batch/the_capability_probe_that_was_run_before_the_batch and /the_execution_binding/the_five_renderings; five literal command inputs",
+      "trigger": "Executor treats an accepted Bash timeout/background yield as proven termination enforcement, adds an unfrozen probe and proceeds.",
+      "expected": "A bounded run has a demonstrated enclosing stop/termination owner, exact frozen command inputs and honest provenance; capability uncertainty stops for root adjudication.",
+      "actual": "Five timeout values really equal5000/290000/5000/5000/5000, but extra date;sleep6;date probe at5000 is backgrounded at5s and exits naturally at~6s. Receipt calls this enforced stop-cap proof. All5 actual command strings omit frozen cd pack && prefix while claiming verbatim; argv/env/redirections otherwise match. No independent enclosing290s termination enforcement is established.",
+      "oracle": "Distinguish timeout parameter equality, return/yield/background action, command-tree termination, and resource reaping. Require actual owned exit/join/reap or enforceable trusted supervisor evidence, not elapsed<290/exit0 or released worker alone.",
+      "negative": "A deliberately noncooperative owned command must not outlive the frozen stop envelope merely because caller returned/backgrounded; no unplanned capability probe or silent command rewriting.",
+      "terminal": "CHANGES_REQUIRED; combined02 functional194/CPUcleanup supported, hard-controlled checkpoint qualification NOT_ESTABLISHED; originalcombined01 remainsNOT_QUALIFIED.",
+      "cleanup": "Probe outputfile proves natural completion with two timestamps6.003442606s apart and exited0, so no unknown probe cleanup or leak is alleged for this simple command. Candidate batch knownFD/threadcleanup is separate from hard-stop control.",
+      "evidence": [
+        "recomputation.json /probe and /probe_terminal_output",
+        "recomputation.json /actual_commands",
+        "Orca immutable transcript sourceIdentityuDd-pDDTLHahNJxdmsAP8En4ArLqnJZg",
+        "literal inputs SHAe3dc059b1cc394553ebe10add80a74c7f161721ffc71ac795ad314e277525db8",
+        "immutable3160d938 combined02-execution-receipt.json"
+      ],
+      "classification": "Major",
+      "owner": "root trusted harness/control owner and executor receipt producer",
+      "minimal_closure": "Append producer-attributed correction separating actual parameter conformance from unproved kill semantics, noting unfrozen probe, natural completion, tool-owned output and omittedcdprefix; preserve all oldbytes. Root must establish a real owned termination/reap primitive from existing evidence or minimally freeze a trusted enclosing supervisor with explicit deadline, owned child/process-group identity, bounded stop escalation/reap and failure receipt. Any control verification is separately frozen; no automatic new194 or probe here.",
+      "uncertainty": "This probe demonstrates background continuation at5000, not universal semantics for everytimeout mode. Actual290s hard-stop guarantee remains unproved. No current194 overrun, candidate semantic failure, private/product-data mutation or resource leak is inferred. Inherited cwd may be correct, but command string equality is objectively false.",
+      "Minor_policy": "Not eligible: necessary control/scope/provenance is not auxiliary and actual194PASS does not meet ADR16 realFAIL prerequisite."
+    }
+  ],
+  "prior_CP09_M1": {
+    "old_provenance_correction": "VERIFIED_APPEND_ONLY",
+    "oldcombined01_checkpoint": "NOT_QUALIFIED_PRESERVED",
+    "new_parameter_equality": "VERIFIED",
+    "hard_stop_semantics": "NOT_ESTABLISHED"
+  },
+  "product29_native9_N2_Stage": "NOT_PROVEN_NO_CLEARANCE",
+  "runtimeACK": "NOT_ISSUED"
+}
