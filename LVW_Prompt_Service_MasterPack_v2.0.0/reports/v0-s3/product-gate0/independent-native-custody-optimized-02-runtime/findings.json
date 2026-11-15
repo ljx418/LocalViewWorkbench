@@ -1,0 +1,51 @@
+{
+  "candidate_sha": "62e0d429dd78418220235359d068ae28d7b37e6e",
+  "decision": "CHANGES_REQUIRED_ACTUAL_CLEANUP_FAILURE",
+  "counts": {
+    "Fatal": 0,
+    "Major": 1,
+    "Minor": 0
+  },
+  "findings": [
+    {
+      "id": "OPT-R07-CLEANUP-02",
+      "severity": "Major",
+      "classification": "BLOCKING_ACTUAL_CPU_THREAD_CLEANUP_FAILURE",
+      "candidate": "62e0d429dd78418220235359d068ae28d7b37e6e",
+      "candidate_sha": "62e0d429dd78418220235359d068ae28d7b37e6e",
+      "spec": "ADR16 + OPT-B-R07-OBSERVED-OWNER-01 + root targeted-plan-02",
+      "layer": "R07 fixture-owned cleanup, against truthful production UNKNOWN_RETAINED result",
+      "location": "T10:3317-3384 Api lifecycle; 4353-4404 zero finally and _capture_stop/drain; 4500 verdict; 574-636 _salvage_threads; 1354-1500 _drain_owners; broker:4016-4141 worker loop, 4295-4358 request_cancel, 4396-4414 stop/stop_accepting, 4920-4943 read, 5546-5668 StreamChannel.close",
+      "trigger": "Zero deadline is tightened after real pump entered its held read; public close and later stop see channel drain still alive with zero join budget and skip read-endpoint.close. Drain later ends, but fixture only releases Api Event and joins known threads. A worker whose generation completed without stop/cancel can remain awaiting another request.",
+      "expected": "Product returned unknown/retained facts remain intact; independent fixture cleanup must issue necessary actual stop/cancel to registered live worker/endpoint, then boundedly settle/join every actual owner and record true end. Batch cannot be clean with live read-worker.",
+      "actual": "Single call FAIL at4500; zero salvage has original=null, quiescent=false, same read worker alive=true/joined=false in all three iterations. Parent preserves original zero AssertionError and same observer thread id124376958014512 remains alive after three more iterations. Runner confirms MainThread plus lvw-native-custody-pipe-read at final snapshot; no FD drift. Held pump itself finished/dead/no-error, full identity/context and exact zero waits are true.",
+      "oracle": "Record actual pre-salvage product UNKNOWN_RETAINED/original broker and no cleanup-at-return claim. Independently release synthetic operation; explicitly request actual registered worker stop/cancel without renewing product deadlines or bypassing actual handles, bound joins by existing fixture total budget; prove drain and original read worker dead, actual handle release when required, generation-stable final owner snapshot, threads_after only MainThread and unchanged FD identities. Preserve exact0, noEOF, timeout cause, real public entry and all retained-owner assertions.",
+      "negative": "Still alive/unknown owner or missing required failure/raw/binding/cleanup remains Major even if subprocess exits. Never delete owner from registry, set fake stopped flags, rely on daemon/process exit or extend timeout/budget. Controlled branches remain NOT_RUN.",
+      "terminal": "CHANGES_REQUIRED F0/M1/m0; canonical 0PASS1FAIL0SKIP; no N2 dependent implementation or Stage PASS admitted.",
+      "cleanup": "Actual failed cleanup; synthetic read Event is released but that is not worker-loop termination. Production retains broker/channel/endpoint/original observer objects and exposes incomplete reader/handle facts, so this evidence does not prove production owner loss.",
+      "evidence": [
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt02/guard.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt02/native-custody-correction-03.receipt.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt02/guard.stdout.log",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt02/evidence/n10-r07-zero-public-chain.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt02/evidence/n10-r07-zero-salvage.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt02/evidence/n10-r07-parent-salvage.json"
+      ],
+      "original_error": "AssertionError: zero: the owner launch:channel:read:read-worker was left behind",
+      "root_cause_evidence": "Statically proven teardown gap: StreamChannel.close skips read endpoint close while its drain thread is alive (broker5636+); endpoint.close would request stop/cancel (5034+). Worker is persistent (4035+, completion returns to request loop), while Api.frames_ready only releases operation (T10 Api.read_stream/cancel), and existing fixture _salvage_threads only joins. No explicit fixture worker stop/cancel/re-close occurs between product snapshot and zero drain.",
+      "root_cause_certainty": "Observed failure and fixture teardown omission PROVEN; exact live thread wait point / stop-event value / generation / endpoint close/cancel invocation not recorded. Persistent idle worker is a concrete reachable explanation; current raw cannot conclusively attribute its exact final stack or exclude a separate production synchronization fault. No unsupported production rewrite conclusion.",
+      "minimum_fix_scope": "New frozen T10 R07 fixture cleanup region only: explicitly coordinate actual registered zero read endpoint/worker after immutable returned-state/stop capture and synthetic gate release, with guarded bounded stop/cancel and join in safe ownership order; retain existing hard proof and bound. If production behavior itself is to change, require separate scope and evidence first. No generic cleanup framework or timeout relaxation.",
+      "minimum_next_evidence_if_attribution_required": "In next root-authorized finite affected verification, observe this exact held worker stop flag/inside/completed state and endpoint close/cancel invocation (and one waiting frame if still alive), together with actual join result; do not run an extra diagnostic here.",
+      "uncertainty": "No runtime stack or worker state snapshot in current evidence; no claim the worker remained inside Api.read_stream for63s, that Event release requested worker termination, or that CPU process exit proved cleanup. Prior writer/query failure negatives and native obligations still unverified.",
+      "owner_and_exit_condition": {
+        "owner": "Visible ClaudeCode R07 fixture implementer, root freeze/run owner, isolated reviewer",
+        "exit_condition": "Freeze minimal necessary cleanup repair or obtain the minimal exact-worker evidence if it contradicts the reachable teardown path; independently review candidate, root ACK finite retest, then actual original owner termination and clean raw batch receipt without weakening required public oracle."
+      }
+    }
+  ],
+  "prior_pump_owner_fix": "Original OPT-R07-OWNER-01 held-pump static repair is now supported by actual passing hard predicates before finally; this is not whole-R07 dynamic closure.",
+  "unreached": "All five controlled subcases after zero salvage; no files present, not treated as passed.",
+  "scope_reuse": "7233efd static report and cfee57a remain unchanged; M2/M3 negative runtime and nine native uncertainties unchanged",
+  "new_runtime_executed_by_reviewer": false,
+  "stage_pass": false
+}
