@@ -1,0 +1,436 @@
+{
+  "kind": "append_only_execution_receipt_correction",
+  "correction_id": "combined02-execution-receipt.correction-01",
+  "scope_id": "OPT-B-13-TRUSTED-STOP",
+  "packet": "N1-OPTIMIZED-01",
+  "appends_to": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined02-execution-receipt.json",
+  "appended_sha256_of_the_original_receipt": "084bb63e4928258315b170cfe051130f5d2d6bdda013cf64fa7b740a044d7f9a",
+  "the_evidence_commit_of_the_original_batch": "3160d9380b3810e6d9d3f8f57ed8773839954521",
+  "the_review_that_found_it": {
+    "the_review_sha": "680b06f5d62dd3297f3b4d8701b93cdb5556b71c",
+    "the_review_result": "FUNCTIONAL194_CONFIRMED_HARD_CONTROL_NOT_ESTABLISHED",
+    "the_review_counts": {
+      "Fatal": 0,
+      "Major": 1,
+      "Minor": 0
+    },
+    "the_review_terminal": "CHANGES_REQUIRED; combined02 functional194/CPUcleanup supported, hard-controlled checkpoint qualification NOT_ESTABLISHED; originalcombined01 remainsNOT_QUALIFIED.",
+    "the_review_classification": "Major",
+    "the_review_recomputation_sha256": "dbccd46df00c184b42e86c82af88cbf85dd2dc73474b3d92f40736c572d6878f",
+    "the_review_findings_sha256": "6614372cfaeb7cbfdc9a60f73a12c027f17e0040b9c2f908d51c68d725607c65",
+    "the_review_report_sha256": "6b939ef3395b79380aff454f9d0205263527775e00c5e38a88fa91ff955e2cf0",
+    "the_root_remediation_sha256": "6c4fe09190322feda6edd5f7f8f6d8b8727e1008925be0e60fbd8d1f494ff8ec",
+    "the_Orca_archive_binding": {
+      "dispatch": "ctx_f18d235adb9a",
+      "sourceIdentity": "uDd-pDDTLHahNJxdmsAP8En4ArLqnJZg",
+      "source": "transcript",
+      "archived": true,
+      "sourceExact": true,
+      "archive_limits": "Oversized tool inputs clipped; full matching call IDs and inputs read from linked original resumed provider transcript425850b4.",
+      "probe_call_id": "call_01a1e025d24c76ec95929612",
+      "probe_background_id": "bqf273a7s",
+      "worker_resource_released": true,
+      "claim_limit": "Released worker agent is not itself proof of owned command-tree cleanup."
+    }
+  },
+  "original_bytes_preserved": true,
+  "original_receipt_rewritten": false,
+  "existing_corrections_rewritten": false,
+  "snapshots_rewritten": false,
+  "finding": "CP10-M1 - the navigation receipt of the combined02 checkpoint called a background yield a proven stop, and it called the five calls verbatim while every actual shell string omitted the frozen cd prefix",
+  "the_wrong_statements": [
+    {
+      "json_pointer": "/the_control_envelope_of_this_batch/the_capability_probe_that_was_run_before_the_batch",
+      "the_label": "the capability probe that was run before the batch",
+      "the_recorded_text": {
+        "what_it_was": "one plain 'sleep 6' command issued with the tool timeout 5000 ms BEFORE any command of the batch",
+        "why": "the plan requires that the tool accepts and enforces the frozen cap of 5000 ms, and that the executor stops before the execution instead of falling back when the tool cannot take it",
+        "what_happened": "the tool accepted the value 5000 and cut the command off at its 5 second cap and moved it to the background, which proves that the cap is accepted and enforced and that it is not silently raised to the 30000 ms value of the previous batch",
+        "what_it_touched": "nothing: the probe ran no candidate code, it imported nothing, it compiled nothing, it collected nothing, it ran no test, it wrote no file, it opened no network and it touched neither the counter nor the report root",
+        "the_residue": "the backgrounded sleep finished on its own a moment later; it left nothing behind"
+      },
+      "why_it_is_wrong": "the recorded text says that the tool 'cut the command off at its 5 second cap' and that this 'proves that the cap is accepted and enforced'.  The tool did NOT terminate the probe: it moved it to the background at 5 s and the probe kept running and exited on its own.  The recorded text also says the probe 'wrote no file', but the tool wrote its own owned output file for the backgrounded command.  The probe therefore demonstrates a BACKGROUND YIELD, not a kill, and it proves no terminating enforcement of the cap and no enclosing kill guarantee of any kind.",
+      "the_actual_facts": {
+        "the_probe_call_id": "call_01a1e025d24c76ec95929612",
+        "the_probe_timestamp_utc": "2026-11-15T16:58:57.832Z",
+        "the_actual_command": "date -u +%H:%M:%S.%N; sleep 6; date -u +%H:%M:%S.%N",
+        "the_command_was_frozen": false,
+        "the_command_was": "an ad hoc probe that is NOT one of the frozen literal tool inputs of the plan",
+        "the_actual_timeout_parameter_ms": 5000,
+        "the_result_timestamp_utc": "2026-11-15T16:59:02.896Z",
+        "the_result_is_error": false,
+        "the_result_content": "Command did not complete within its 5s timeout and was moved to the background (ID: bqf273a7s). Output is being written to: /tmp/claude-1000/-home-administrator-orca-workspaces-LocalViewWorkbench-lvw-v1-d0-implement/425850b4-055a-47b8-9dba-d311b90b2440/tasks/bqf273a7s.output. You will be notified when it completes. To check interim output, use Read on that file path.",
+        "the_tool_action": "the command did not complete within its 5 s timeout and the tool MOVED IT TO THE BACKGROUND; the tool did not kill it and the tool did not wait for it",
+        "the_tool_owned_output_path": "/tmp/claude-1000/-home-administrator-orca-workspaces-LocalViewWorkbench-lvw-v1-d0-implement/425850b4-055a-47b8-9dba-d311b90b2440/tasks/bqf273a7s.output",
+        "the_tool_owned_output_exists": true,
+        "the_tool_owned_output_sha256": "8fa695ce101389934cdb61d257fcbc00fe51ffdce01550826eaf9133e037e3e8",
+        "the_tool_owned_output_text": "16:58:57.873092377\n16:59:03.876534983\n\n[exited with code 0]\n",
+        "the_natural_completion": "the two date outputs of the probe are 6.003442606 s apart and the tool recorded '[exited with code 0]': the probe completed NATURALLY after the background yield and it was not terminated",
+        "no_leak_is_alleged": "no leaked process, no unknown cleanup and no resource leak is alleged for this simple probe: its own terminal output proves the natural exit and the exit code 0",
+        "what_it_touched": "the probe ran no candidate code, it imported nothing, it compiled nothing, it collected nothing and it ran no test, and it read and wrote nothing of the report root, of the counter or of any product data; the only file it produced is the TOOL OWNED output file of the backgrounded command, which the tool wrote and not the probe",
+        "what_the_probe_does_NOT_prove": "it does NOT prove that a cap of 5000 ms terminates a command, it does NOT prove an enclosing kill or reap guarantee of any kind, and in particular it establishes NO terminating owner for the 290 s envelope of the guard"
+      }
+    },
+    {
+      "json_pointer": "/the_execution_binding/the_five_renderings",
+      "the_label": "the claim that the five renderings were executed verbatim",
+      "the_recorded_text": "the exact five literal Bash inputs of the frozen tool input file were executed verbatim, each in its own Bash tool call, with the frozen cwd, the exact seven variable REPLACE environment, the frozen argv and the frozen redirections",
+      "why_it_is_wrong": "the recorded text says that the five literal Bash inputs 'were executed verbatim'.  The shell string of every one of the five calls was NOT equal to the frozen literal input: each actual call omitted the frozen prefix 'cd /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0 && ' and carried the remaining part of the frozen string.  The command string equality is objectively false, although the numerical timeout, the argv, the seven key environment and the redirections of every call did match, and the equality of the shell string holds exactly after the omission of the cd prefix.",
+      "the_actual_facts": {
+        "the_calls": [
+          {
+            "label": "before",
+            "call_id": "call_01a1e0261aea7750a53f6a45",
+            "timestamp_utc": "2026-11-15T16:59:17.473Z",
+            "the_timeout_equal": true,
+            "the_command_literal_equal": false,
+            "the_command_equal_after_omitting_the_cd_prefix": true,
+            "the_env_exact": true,
+            "the_argv_exact": true,
+            "the_actual_timeout_ms": 5000,
+            "the_result_is_error": false
+          },
+          {
+            "label": "guard",
+            "call_id": "call_01a1e026e14274de9268613f",
+            "timestamp_utc": "2026-11-15T17:00:08.731Z",
+            "the_timeout_equal": true,
+            "the_command_literal_equal": false,
+            "the_command_equal_after_omitting_the_cd_prefix": true,
+            "the_env_exact": true,
+            "the_argv_exact": true,
+            "the_actual_timeout_ms": 290000,
+            "the_result_is_error": false
+          },
+          {
+            "label": "after",
+            "call_id": "call_01a1e029708b7502be038378",
+            "timestamp_utc": "2026-11-15T17:02:56.495Z",
+            "the_timeout_equal": true,
+            "the_command_literal_equal": false,
+            "the_command_equal_after_omitting_the_cd_prefix": true,
+            "the_env_exact": true,
+            "the_argv_exact": true,
+            "the_actual_timeout_ms": 5000,
+            "the_result_is_error": false
+          },
+          {
+            "label": "outer",
+            "call_id": "call_01a1e02a2c27730bbdca47ee",
+            "timestamp_utc": "2026-11-15T17:03:44.185Z",
+            "the_timeout_equal": true,
+            "the_command_literal_equal": false,
+            "the_command_equal_after_omitting_the_cd_prefix": true,
+            "the_env_exact": true,
+            "the_argv_exact": true,
+            "the_actual_timeout_ms": 5000,
+            "the_result_is_error": false
+          },
+          {
+            "label": "receipt",
+            "call_id": "call_01a1e02a601474a2b6fa8235",
+            "timestamp_utc": "2026-11-15T17:03:56.635Z",
+            "the_timeout_equal": true,
+            "the_command_literal_equal": false,
+            "the_command_equal_after_omitting_the_cd_prefix": true,
+            "the_env_exact": true,
+            "the_argv_exact": true,
+            "the_actual_timeout_ms": 5000,
+            "the_result_is_error": false
+          }
+        ],
+        "the_omitted_prefix": "cd /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0 && ",
+        "what_did_match": "the numerical timeout parameter of all five calls (5000, 290000, 5000, 5000, 5000), the argv of all five, the exact seven key REPLACE environment of all five and the redirections of all five",
+        "what_did_not_match": "the shell string of all five calls: each of them omitted the frozen cd prefix, so the inherited working directory of the shell had to be the pack directory for the relative behaviour to be the frozen one, and the inherited working directory is NOT proved by an equal shell string",
+        "the_no_rewrite_of_the_rest": "nothing else of the frozen inputs was changed: the argv, the environment and the redirections are the frozen ones"
+      }
+    },
+    {
+      "json_pointer": "/the_commands/0/the_command_was_executed",
+      "the_label": "the per command claim of before",
+      "the_recorded_text": "verbatim, as the literal command of the frozen tool input file, with the frozen cwd, the exact seven variable REPLACE environment, the frozen argv and the frozen redirections",
+      "why_it_is_wrong": "the recorded text says the command was executed 'verbatim, as the literal command of the frozen tool input file'.  The actual shell string of that call omitted the frozen prefix 'cd /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0 && ' and carried the rest of the frozen string exactly, so the shell string equality is false while the timeout, the argv, the environment and the redirections did match.",
+      "the_actual_facts": {
+        "the_label": "before",
+        "the_call_id": "call_01a1e0261aea7750a53f6a45",
+        "the_timestamp_utc": "2026-11-15T16:59:17.473Z",
+        "the_timeout_equal": true,
+        "the_command_literal_equal": false,
+        "the_command_equal_after_omitting_the_cd_prefix": true,
+        "the_env_exact": true,
+        "the_argv_exact": true,
+        "the_actual_timeout_ms": 5000,
+        "the_result_is_error": false
+      }
+    },
+    {
+      "json_pointer": "/the_commands/1/the_command_was_executed",
+      "the_label": "the per command claim of guard",
+      "the_recorded_text": "verbatim, as the literal command of the frozen tool input file, with the frozen cwd, the exact seven variable REPLACE environment, the frozen argv and the frozen redirections",
+      "why_it_is_wrong": "the recorded text says the command was executed 'verbatim, as the literal command of the frozen tool input file'.  The actual shell string of that call omitted the frozen prefix 'cd /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0 && ' and carried the rest of the frozen string exactly, so the shell string equality is false while the timeout, the argv, the environment and the redirections did match.",
+      "the_actual_facts": {
+        "the_label": "guard",
+        "the_call_id": "call_01a1e026e14274de9268613f",
+        "the_timestamp_utc": "2026-11-15T17:00:08.731Z",
+        "the_timeout_equal": true,
+        "the_command_literal_equal": false,
+        "the_command_equal_after_omitting_the_cd_prefix": true,
+        "the_env_exact": true,
+        "the_argv_exact": true,
+        "the_actual_timeout_ms": 290000,
+        "the_result_is_error": false
+      }
+    },
+    {
+      "json_pointer": "/the_commands/2/the_command_was_executed",
+      "the_label": "the per command claim of after",
+      "the_recorded_text": "verbatim, as the literal command of the frozen tool input file, with the frozen cwd, the exact seven variable REPLACE environment, the frozen argv and the frozen redirections",
+      "why_it_is_wrong": "the recorded text says the command was executed 'verbatim, as the literal command of the frozen tool input file'.  The actual shell string of that call omitted the frozen prefix 'cd /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0 && ' and carried the rest of the frozen string exactly, so the shell string equality is false while the timeout, the argv, the environment and the redirections did match.",
+      "the_actual_facts": {
+        "the_label": "after",
+        "the_call_id": "call_01a1e029708b7502be038378",
+        "the_timestamp_utc": "2026-11-15T17:02:56.495Z",
+        "the_timeout_equal": true,
+        "the_command_literal_equal": false,
+        "the_command_equal_after_omitting_the_cd_prefix": true,
+        "the_env_exact": true,
+        "the_argv_exact": true,
+        "the_actual_timeout_ms": 5000,
+        "the_result_is_error": false
+      }
+    },
+    {
+      "json_pointer": "/the_commands/3/the_command_was_executed",
+      "the_label": "the per command claim of outer",
+      "the_recorded_text": "verbatim, as the literal command of the frozen tool input file, with the frozen cwd, the exact seven variable REPLACE environment, the frozen argv and the frozen redirections",
+      "why_it_is_wrong": "the recorded text says the command was executed 'verbatim, as the literal command of the frozen tool input file'.  The actual shell string of that call omitted the frozen prefix 'cd /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0 && ' and carried the rest of the frozen string exactly, so the shell string equality is false while the timeout, the argv, the environment and the redirections did match.",
+      "the_actual_facts": {
+        "the_label": "outer",
+        "the_call_id": "call_01a1e02a2c27730bbdca47ee",
+        "the_timestamp_utc": "2026-11-15T17:03:44.185Z",
+        "the_timeout_equal": true,
+        "the_command_literal_equal": false,
+        "the_command_equal_after_omitting_the_cd_prefix": true,
+        "the_env_exact": true,
+        "the_argv_exact": true,
+        "the_actual_timeout_ms": 5000,
+        "the_result_is_error": false
+      }
+    },
+    {
+      "json_pointer": "/the_commands/4/the_command_was_executed",
+      "the_label": "the per command claim of receipt",
+      "the_recorded_text": "verbatim, as the literal command of the frozen tool input file, with the frozen cwd, the exact seven variable REPLACE environment, the frozen argv and the frozen redirections",
+      "why_it_is_wrong": "the recorded text says the command was executed 'verbatim, as the literal command of the frozen tool input file'.  The actual shell string of that call omitted the frozen prefix 'cd /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0 && ' and carried the rest of the frozen string exactly, so the shell string equality is false while the timeout, the argv, the environment and the redirections did match.",
+      "the_actual_facts": {
+        "the_label": "receipt",
+        "the_call_id": "call_01a1e02a601474a2b6fa8235",
+        "the_timestamp_utc": "2026-11-15T17:03:56.635Z",
+        "the_timeout_equal": true,
+        "the_command_literal_equal": false,
+        "the_command_equal_after_omitting_the_cd_prefix": true,
+        "the_env_exact": true,
+        "the_argv_exact": true,
+        "the_actual_timeout_ms": 5000,
+        "the_result_is_error": false
+      }
+    },
+    {
+      "json_pointer": "/the_execution_binding/the_configured_caps",
+      "the_label": "the configured caps of the five calls",
+      "the_recorded_text": "5000, 290000, 5000, 5000 and 5000 milliseconds were the timeout parameters that the five calls really carried",
+      "why_it_is_wrong": "the statement is TRUE about the parameter and it must not be read as a statement about a stop guarantee.  The timeout PARAMETER of the five calls was exactly 5000, 290000, 5000, 5000 and 5000 milliseconds and that is a fact of the tool call metadata; a timeout parameter is not a termination owner, and this batch establishes no enclosing kill, no owned child identity, no bounded stop escalation and no reap.",
+      "the_correction": "the parameter equality stands and it is separated from the four different things that the review distinguishes: the equality of the timeout PARAMETER, the RETURN OR YIELD OR BACKGROUND action of the caller, the TERMINATION of the command tree, and the REAPING of the resources.  Only the first of the four is established for this batch."
+    },
+    {
+      "json_pointer": "/the_control_envelope_of_this_batch/the_elapsed_time_is_not_the_proof",
+      "the_label": "the relation between the elapsed time and the envelope",
+      "the_recorded_text": "the guard of this batch measured 55.397374868 s of wall time and the runner 55.284785271 s, and both are under the frozen 290 s cap.  An elapsed time that happens to be under a bound is NOT a proof that the bound was configured; the proof of this batch is the CONFIGURED parameter of the tool call, which is recorded above and which the independent review reads from the original call metadata of this batch.",
+      "why_it_is_wrong": "the recorded text is TRUE and it is incomplete.  The elapsed time is not a proof of the envelope, and neither is the configured timeout parameter: the recorded text of the probe in the same document claimed that the cap was 'enforced', and that claim was wrong because the probe was backgrounded and completed naturally.  The hard control of this batch is NOT ESTABLISHED.",
+      "the_correction": "the elapsed time under the cap proves neither the configuration nor the enforcement of a stop; the configured parameter proves the parameter and not the stop; and the probe of this batch proves that the tool yields to the background instead of killing.  The hard control of the combined02 checkpoint is NOT ESTABLISHED and the review of the root owns the remediation."
+    }
+  ],
+  "what_stays_valid_and_is_preserved": {
+    "the_functional_194_facts": "the 194 selected node ids really executed in that one fresh run directory, all 194 passed, and that fact is NOT touched by this correction",
+    "the_CPU_cleanup_facts": "the cleanup of that batch was proven: MainThread only, no new or reused file descriptor, equal file descriptor inventories and no unknown descriptor; those facts stay valid and are not rewritten",
+    "the_guard_facts": "the ordinary denial ledger of that batch was empty and the singleton preload window was closed before the candidate; those facts stay valid",
+    "the_outer_result": "the outer validator accepted the selected feedback of that plan; that result stays valid",
+    "the_counter_facts": "the counter and its parent were observed as MISSING in both observations and nothing was created, written, reset or refunded; that stays valid",
+    "no_overrun_and_no_leak_is_alleged": "this correction alleges NO overrun of the 290 s envelope and NO leaked process: the guard of that batch measured about 55 s and the probe of that batch completed naturally with an exit code 0",
+    "the_parameter_equality": "the timeout parameter of the five calls really was 5000, 290000, 5000, 5000 and 5000 milliseconds and the argv, the environment and the redirections really matched"
+  },
+  "the_effect_on_the_qualification": {
+    "the_combined01_checkpoint": "NOT_QUALIFIED and it stays so",
+    "the_combined02_hard_control": "NOT_ESTABLISHED",
+    "the_CP10_M1_finding": "OPEN",
+    "the_CP09_M1_finding": "its append only provenance correction of the combined01 receipt stays verified and its finding stays open",
+    "the_root_owns_the_remediation": "the root control remediation names the scope: a trusted single child Linux deadline, signal and reap tool with an explicit deadline, an owned child or process group identity, a bounded stop escalation, a bounded reap and a failure receipt, plus a separately frozen four case canary after the independent source review.  The producer scope of this correction is the receipt truth only.",
+    "no_fake_certification": "this correction does NOT certify the combined02 checkpoint as a hard controlled checkpoint, it does NOT claim a terminating owner for the 290 s envelope and it does NOT close any finding"
+  },
+  "what_is_NOT_claimed": [
+    "this correction does not close CP10-M1 and it does not close CP09-M1 or any other Major",
+    "this correction does not change the functional 194 facts, the counts, the cleanup facts, the guard facts or the outer result of the combined02 batch",
+    "no command of that batch is alleged to have overrun its envelope and no probe process is alleged to have leaked",
+    "no defect of the product, of the candidate, of the guard or of the runner is alleged",
+    "this correction does not claim that the working directory of the five calls was wrong: the inherited working directory was the pack directory and it is the inherited working directory that the omitted cd prefix relied on",
+    "the product 29, the native 9, the human signs and the formal Stage and N2 obligations stay NOT_PROVEN and no clearance is claimed",
+    "this correction ran nothing: no probe, no process scan, no kill, no supervisor, no canary, no test, no import and no compile"
+  ],
+  "not_executed": [
+    "any probe, any process scan, any signal and any kill",
+    "the supervisor, the canary or the selftest of the root",
+    "any import, compile, collection or test of the candidate",
+    "any counter content, any process inspection and any product or model action",
+    "any change of the source, of the guard, of the runner, of the validator, of the plans or of the configuration",
+    "any read of the body of the unrelated dirty report"
+  ],
+  "attribution": {
+    "kind": "commit attribution of the producing agent",
+    "produced_by": "Visible ClaudeCode, the fixture implementer of the packet N1-OPTIMIZED-01 and the executor of the combined02 checkpoint",
+    "git_identity_used_for_the_commit": "ljx418 <1173696783@qq.com>",
+    "not_a_cryptographic_signature": "this attribution names the author of the correction and the git identity under which the commit is recorded.  It is NOT a digital signature, it proves no key, no signature and no identity beyond the git metadata of the commit itself.",
+    "scope": "the correction is bound to the original navigation receipt by its SHA256 and by its exact JSON pointers and to the review by its sha and by the sha256 of the immutable recomputation that carries the original tool call metadata"
+  },
+  "ten_fields": {
+    "coordinate": "V1/R1/WP-R1-U3/S3_P4",
+    "last_passed_scope": "the unified media UM10 early slice, not the full R1",
+    "current_batch": "the append only CP10-M1 provenance correction of the combined02 navigation receipt is delivered; the functional 194 and the CPU cleanup of that batch stay valid and its hard control stays NOT ESTABLISHED",
+    "blockers": "CP10-M1 stays open and the hard control of the combined02 checkpoint is not established; the trusted deadline harness and its separately frozen canary belong to the root, the product 29, the native 9, the human signs and the formal Stage and N2 obligations stay pending",
+    "route": "the root writes the trusted deadline harness and the independent reviewer reads its source, then the separately frozen control verification",
+    "remaining": "the trusted single child deadline, signal and reap tool of the root, its four case canary after the independent source review, the independent raw review of the combined02 batch and the formal product obligations",
+    "next_owner": "root for the trusted harness and the control activation, the independent reviewer for the source readiness of that harness",
+    "authority": "an append only receipt correction only; no runtime ACK, no Stage, no N2 clearance, no product acceptance and no Major closure",
+    "evidence": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined02-execution-receipt.correction-01.json bound to the original navigation receipt and to the review of the finding",
+    "stop": "the receipt truth is corrected and nothing else is done: the hard control stays NOT ESTABLISHED, CP10-M1 stays OPEN and no further run is started"
+  },
+  "development_outline": [
+    {
+      "stage_id": "V0-S0",
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "implementation": "ARCHIVED",
+      "machine_acceptance": "NO_GO_HISTORICAL",
+      "independent_review": "COMPLETED_WITH_BLOCKERS",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "V0-S1",
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "R0",
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "implementation": "PARTIAL_REUSED",
+      "machine_acceptance": "SINGLE_IMAGE_SUBSET_ONLY",
+      "independent_review": "NO_SEPARATE_R0_VERDICT",
+      "human_signoff": "NO_SEPARATE_R0_SIGNOFF"
+    },
+    {
+      "stage_id": "R1a",
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "V0-S2",
+      "completed_substeps": 7,
+      "total_substeps": 8,
+      "implementation": "IMPLEMENTED",
+      "machine_acceptance": "COMPLETE_FIXED9_PASSED",
+      "independent_review": "COMPLETE_FATAL0_MAJOR0_MINOR0",
+      "human_signoff": "PENDING"
+    },
+    {
+      "stage_id": "V0-S3",
+      "completed_substeps": 0,
+      "total_substeps": 6,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R1",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "EARLY_SLICE_IMPLEMENTED_FULL_R1_PENDING",
+      "machine_acceptance": "EARLY_SLICE_UM10_ONLY",
+      "independent_review": "EARLY_SLICE_FATAL0_MAJOR0",
+      "human_signoff": "EARLY_SLICE_APPROVED_FULL_R1_PENDING"
+    },
+    {
+      "stage_id": "V1-M1",
+      "completed_substeps": 0,
+      "total_substeps": 3,
+      "implementation": "DESIGN_ONLY",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R2",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R3",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R4",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5a",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5b",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5c",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    }
+  ],
+  "next_owner": "coordinator",
+  "next_action": "the root writes the trusted single child deadline harness and the independent reviewer reads its source; the independent raw review of the combined02 batch follows; this delivery closes no Major, claims no Stage, N2 or product acceptance and starts no further run"
+}
