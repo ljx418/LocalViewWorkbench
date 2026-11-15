@@ -1,0 +1,158 @@
+{
+  "kind": "N2_DEVELOPMENT_DEPENDENCY_REFINEMENT_NOT_ADMISSION",
+  "extends": "reports/v0-s3/product-gate0/native-wiring-preparation-02/wiring-checklist.json",
+  "architecture_authority": "reports/v0-s3/product-gate0/native-custody-implementation-01/architecture-decision.md",
+  "policy": "ADR16 + plans/v1-delivery-workflow.json",
+  "implementation_authorized": false,
+  "current_coordinate_unchanged": true,
+  "stack_unchanged": true,
+  "one_implementation_owner": "visible ClaudeCode, sequential same frozen component",
+  "source_refresh": [
+    {
+      "path": "tools/v0_s3_coordinator.py",
+      "sha256": "14e8dd284971aeab00999f010679d5c95deb88ee3bff8f4ca0708d958b56f12c",
+      "unchanged_from_preparation02": true
+    },
+    {
+      "path": "tools/v0_s3_quality_worker.py",
+      "sha256": "e3648446f39d6e7a1c31f180248ccb59c36272ddc10c80edbe544f7d3c595592",
+      "unchanged_from_preparation02": true
+    },
+    {
+      "path": "tools/v0_s3_quality_phase.py",
+      "sha256": "90552ea113ccf53a2a1cedff3e3f399642ad932bf0f71bb1f9a57e1adb6e8789",
+      "unchanged_from_preparation02": true
+    },
+    {
+      "path": "tools/v0_s3_stage_runtime.py",
+      "sha256": "c4815fdc2140961171af938ba5396763260314de2e938a1087ab6b21038b1aad",
+      "unchanged_from_preparation02": true
+    },
+    {
+      "path": "tools/v0_s3_production_controller.py",
+      "sha256": "a452275a866b8b496175ecf3cba37d86fd0109be91020c09948f9bf9583a2b38",
+      "unchanged_from_preparation02": true
+    },
+    {
+      "path": "tools/v0_s2_runtime.py",
+      "sha256": "a97ea20d02ed80ab4f99f133dd8162331ddba34662bfdcca637fcade40b4dbd2",
+      "unchanged_from_preparation02": true
+    },
+    {
+      "path": "tools/v0_s2_driver.py",
+      "sha256": "72883e2fa0c252aef7655708f40ada88a755978d71f632043c8203b53b42afed",
+      "unchanged_from_preparation02": true
+    },
+    {
+      "path": "tools/v0_s3_budget_authority.py",
+      "sha256": "80908669be48bbb8db5b9fd5271719a9c927918a52eb6565d152b471423ad1b7",
+      "unchanged_from_preparation02": true
+    }
+  ],
+  "workpacks": [
+    {
+      "id": "N2-A",
+      "purpose": "installed factory and original budget binding assembly",
+      "existing_checks": [
+        "N2-P01",
+        "N2-P02",
+        "N2-P09"
+      ],
+      "proposed_write_paths": [
+        "tools/v0_s3_coordinator.py",
+        "tools/v0_s3_stage_runtime.py",
+        "tools/v0_s3_production_controller.py"
+      ],
+      "design_requires": [
+        "final N1 creation/custody API identity and ownership frozen",
+        "budget capability provenance and first profile write contract frozen"
+      ],
+      "offline_coding_requires": [
+        "N1 required CPU safety/regressions and independent hard-blocker closure",
+        "root freezes exact allowed paths/test entrypoints/candidate",
+        "no runtime claim or refusal-flag bypass"
+      ],
+      "local_runtime_requires": [
+        "N3 actual original ledger balance and finite child receipt",
+        "sealed candidate/tools/model/sample/process/port and cleanup capability"
+      ],
+      "formal_exit_requires": [
+        "N2-A/B/C consolidated public-entry negative tests",
+        "N3/N4 retained real obligations and fixed denominators"
+      ]
+    },
+    {
+      "id": "N2-B",
+      "purpose": "parent-owned sampler observer and strict profile projection",
+      "existing_checks": [
+        "N2-P03",
+        "N2-P04",
+        "N2-P05",
+        "N2-P06"
+      ],
+      "proposed_write_paths": [
+        "tools/v0_s3_quality_worker.py",
+        "tools/v0_s3_native_runtime_adapter.py (only if existing injection cannot support thin adapter; new owner must be frozen first)"
+      ],
+      "read_only_legacy": [
+        "tools/v0_s2_runtime.py",
+        "tools/v0_s2_driver.py"
+      ],
+      "design_requires": [
+        "reuse installed NativeRuntime/SamplerWorker interfaces; parent holds actual service/sampler ownership",
+        "strict five-key DTO remains unchanged; projection binds full measured profile provenance"
+      ],
+      "offline_coding_requires": [
+        "N2-A frozen factory/authority interfaces",
+        "sampler readiness precedes QualityPhase construction; unavailable facts reject instead of default0"
+      ],
+      "local_runtime_requires": [
+        "N3 source/authority/resource preflight",
+        "actual measured baseline and PID/birth/model digest; no handwritten replacement"
+      ],
+      "formal_exit_requires": [
+        "N2-C combined production entry test",
+        "real resources separate from Job-count-zero proof"
+      ]
+    },
+    {
+      "id": "N2-C",
+      "purpose": "controller to factory/adapter/worker/QualityPhase combination and original evidence ownership",
+      "existing_checks": [
+        "N2-P07",
+        "N2-P08"
+      ],
+      "proposed_write_paths": [
+        "tools/v0_s3_production_controller.py",
+        "tools/v0_s3_stage_runtime.py",
+        "tools/v0_s3_coordinator.py"
+      ],
+      "read_only_contracts": [
+        "tools/v0_s3_quality_phase.py fixed16 semantics",
+        "tools/v0_s3_budget_authority.py original authority"
+      ],
+      "design_requires": [
+        "frozen N2-A/B interfaces and actual public controller call path",
+        "parent validates original canonical/source/raw evidence, no worker summary substitution"
+      ],
+      "offline_coding_requires": [
+        "N2-A/B local receipts; controlled public-entry combination and failure/cleanup tests frozen",
+        "single same-stage write lane, no concurrent conflicting owners"
+      ],
+      "local_runtime_requires": [
+        "N3 finite representative public-entry pilot; QualityPhase never shrunk to1row"
+      ],
+      "formal_exit_requires": [
+        "single consolidated independent review and affected-subtree checkpoint",
+        "N4 I24/product12/QS/WebP/A06/install rollback/cumulative product29 and human gates retained"
+      ]
+    }
+  ],
+  "no_circular_precondition": "The nine native uncertainties remain unproven. They do not themselves require a completed future N3/N4 live run before N2 offline code; they block claims/dependent real actions until corresponding finite admission and real evidence. Any actual N1 hard safety defect or unknown required CPU cleanup still blocks dependent code admission.",
+  "test_plan_status": "Exact tests/argv/new candidate/guard/limits must be frozen after final N1 review; not invented here. Existing N2-P01..09 are preparation obligations, never replacement product denominator.",
+  "source_change_scope": "Proposed paths only, not write permission. Preserve production refusal logic; no accepted/proven boolean flip. Do not modify frozen S2 owner or public schema as routine wiring.",
+  "budget_reset": false,
+  "native_services_started": false,
+  "model_actions": 0,
+  "new_checkpoint_consumed": false
+}
