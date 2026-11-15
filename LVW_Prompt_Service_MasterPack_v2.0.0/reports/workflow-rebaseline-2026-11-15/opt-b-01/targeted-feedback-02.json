@@ -1,0 +1,46 @@
+{
+  "decision": "FAIL_ACTUAL_REQUIRED_THREAD_CLEANUP",
+  "candidate_sha": "62e0d429dd78418220235359d068ae28d7b37e6e",
+  "plan_sha256": "1fd5a31c2ff3917a331f6f7e83f054d2ec3c40653d5532dabf1e9e4c0339dc12",
+  "test_counts": {
+    "denominator": 1,
+    "pass": 0,
+    "fail": 1,
+    "skip": 0
+  },
+  "duration_seconds": 63.032026290893555,
+  "guard_runtime_denials": [],
+  "batch_cleanup_proven": false,
+  "threads_after": [
+    "MainThread",
+    "lvw-native-custody-pipe-read"
+  ],
+  "new_or_reused_fds": [],
+  "failed_results": [
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r07_the_context_of_the_round_reaches_every_layer",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 60.40580381700056,
+      "longrepr": "tools/test_v0_s3_native_custody_correction10.py:4500: in test_n10_r07_the_context_of_the_round_reaches_every_layer\n    raise AssertionError(zero_verdict)\nE   AssertionError: zero: the owner launch:channel:read:read-worker was left behind"
+    }
+  ],
+  "raw_refs_sha256": {
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt02/native-custody-correction-03.receipt.json": "bf104b98c9758f5f252e75f48692b6bf0a6fd0cf23ed344f487c82a2e45d7e97",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt02/guard.json": "f4e5700901ba5f52c3e9bc2895d8229bd66cadfc726c6324ea2a4bcf80560471",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt02/counter-absence-before.json": "bfe4e7b1a3f9d9d912e432a13d16313f40e3857e0895a556bd73e2f08bcffc23",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt02/counter-absence-after.json": "bfe4e7b1a3f9d9d912e432a13d16313f40e3857e0895a556bd73e2f08bcffc23",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt02/guard.stdout.log": "c8fa4de96287cedcc3a47277d0f23d7c3e904649596283cadc100c5a314283fb",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt02/guard.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt02/evidence/n10-r07-zero-public-chain.json": "39896ed358f22cf9aee43f67f6784a61f1e687227101de87f8f3bbf0ee70e4fc",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt02/evidence/n10-r07-zero-salvage.json": "4db13ed75648a7986de6f441f39cc2af7e83c1abf7cf0caf7ed0ce2897c54396"
+  },
+  "original_reference_fix_actual_facts": "held real pump finished/nonalive/errorNone/context and identity verified, not full test PASS",
+  "controlled_subcases_reached": false,
+  "native_or_product_cleanup_proven": false,
+  "final_interpreter_exit_not_substitute_for_fixture_cleanup": true,
+  "minor_eligible": false,
+  "original_failed_attempt01_preserved": true,
+  "automatic_rerun": false,
+  "next_action": "isolated runtime root-cause and scope/oracle review before another correction; no N2 dependent implementation"
+}
