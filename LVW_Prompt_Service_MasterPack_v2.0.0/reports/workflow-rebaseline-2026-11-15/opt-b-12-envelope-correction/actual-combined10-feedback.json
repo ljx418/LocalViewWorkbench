@@ -1,0 +1,37 @@
+{
+  "kind": "ROOT_ACTUAL194_RECHECK_NOT_EXECUTION_CAP_CERTIFICATION",
+  "candidate_sha": "b9a81aed8e8f8fe6763a4dfd3d051cacf10e0820",
+  "evidence_sha": "3160d9380b3810e6d9d3f8f57ed8773839954521",
+  "correction_sha": "768659217aa17f7baf30224c5c9b502bac8ce1ba",
+  "correction_file_sha256": "9246305899c159e853b7182938291dca7bf6741b13fcae6ecc37a355da1823a3",
+  "new_git_evidence_entries": 338,
+  "literal_symlinks": 104,
+  "original_PASS": 189,
+  "supplemental_PASS": 5,
+  "integrity_only_PASS": 2,
+  "functional_PASS": 192,
+  "failed_or_skipped": 0,
+  "current_all_pins_match": true,
+  "guard_denials": 0,
+  "CPU_batch_cleanup_proven": true,
+  "reported_frozen_vs_actual_Bash_caps_equal": true,
+  "original_tool_parameters_independently_verified_by_root": false,
+  "hard_stop_semantics_proven": false,
+  "extra_sleep_probe_frozen_in_plan": false,
+  "probe_navigation": {
+    "what_it_was": "one plain 'sleep 6' command issued with the tool timeout 5000 ms BEFORE any command of the batch",
+    "why": "the plan requires that the tool accepts and enforces the frozen cap of 5000 ms, and that the executor stops before the execution instead of falling back when the tool cannot take it",
+    "what_happened": "the tool accepted the value 5000 and cut the command off at its 5 second cap and moved it to the background, which proves that the cap is accepted and enforced and that it is not silently raised to the 30000 ms value of the previous batch",
+    "what_it_touched": "nothing: the probe ran no candidate code, it imported nothing, it compiled nothing, it collected nothing, it ran no test, it wrote no file, it opened no network and it touched neither the counter nor the report root",
+    "the_residue": "the backgrounded sleep finished on its own a moment later; it left nothing behind"
+  },
+  "input_hashes": {
+    "machine-feedback-receipt.json": "2f0e40687fc04fdaeed84cae6115afcae40cb71c78f4a7ac8b5f583548a54af0",
+    "outer-decision.json": "5492273fcfc1420cf0254e6ce358c3ea85cebb815d7a93d2999ce3b1324d91b1",
+    "guard.json": "e7f244852f51327ef0c7e678859ca1bd808b4ebb5bbe5c9258b0ee42ca568cd5",
+    "native-custody-correction-03.receipt.json": "3865f7260880de67088ab2a8e1b6b9dbee42ce7bd25ff269aed206b4d57f700d"
+  },
+  "independent_review_pending": true,
+  "originalcombined01_exact_qualification": false,
+  "Stage_N2_product_native_claim": false
+}
