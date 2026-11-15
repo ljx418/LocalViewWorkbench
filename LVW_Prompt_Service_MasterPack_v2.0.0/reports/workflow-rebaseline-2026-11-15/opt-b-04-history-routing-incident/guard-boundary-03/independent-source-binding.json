@@ -1,0 +1,137 @@
+{
+  "review_kind": "SOURCE_ONLY_NOT_RUNTIME_ACK",
+  "scope": "F06-M2 minimum root harness compatibility; boundary03 versus02 only",
+  "history_preserved": "c2c0880041defd406490911d42ea2a2a64c8cf70 and all prior raw/reviews unchanged",
+  "plan": {
+    "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-03/canary-plan.json",
+    "expected_sha256": "a41b5f6082ddfb005991e0686bd5dfae8801b72031f10e4a7f4a8a8ea80fb005",
+    "actual_sha256": "a41b5f6082ddfb005991e0686bd5dfae8801b72031f10e4a7f4a8a8ea80fb005"
+  },
+  "scope_file": {
+    "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-03/scope.json",
+    "sha256": "2f0afc6fde281ec8349628caabf23542bb12f28ac05af370f3af72edebe652b3"
+  },
+  "pins": [
+    {
+      "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-03/guard.py",
+      "expected_sha256": "b25b640fd0b66cc5d6aba066e0e83eb5f4f310dc423dd421d094d0f34d5b694c",
+      "actual_sha256": "b25b640fd0b66cc5d6aba066e0e83eb5f4f310dc423dd421d094d0f34d5b694c",
+      "match": true
+    },
+    {
+      "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-03/canary_payload.py",
+      "expected_sha256": "00790a0d42dab9fb304e2243b77a328254de62daab30f86e72773930a2f5a692",
+      "actual_sha256": "00790a0d42dab9fb304e2243b77a328254de62daab30f86e72773930a2f5a692",
+      "match": true
+    },
+    {
+      "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-03/run_canary.py",
+      "expected_sha256": "77cc3b5168abd87167031a795631d4b184d96f4afe4df797313487451f0e47cf",
+      "actual_sha256": "77cc3b5168abd87167031a795631d4b184d96f4afe4df797313487451f0e47cf",
+      "match": true
+    }
+  ],
+  "base_files": {
+    "guard.py": "f2f97d2d1191112f60b170b9a0bf69ed5c4ab569f1bffef5903c1ec28a6d6d6c",
+    "canary_payload.py": "408558a23bac55967e0d602e9a3c3e208ec700b498e21153d7198d87dd5143fd",
+    "run_canary.py": "25b9c5af4d1e415fff8f04edfa26fdbad6207c6468b1610a40d55aaf988febb8"
+  },
+  "reviewed_files": {
+    "scope.json": "2f0afc6fde281ec8349628caabf23542bb12f28ac05af370f3af72edebe652b3",
+    "guard.py": "b25b640fd0b66cc5d6aba066e0e83eb5f4f310dc423dd421d094d0f34d5b694c",
+    "canary_payload.py": "00790a0d42dab9fb304e2243b77a328254de62daab30f86e72773930a2f5a692",
+    "run_canary.py": "77cc3b5168abd87167031a795631d4b184d96f4afe4df797313487451f0e47cf",
+    "canary-plan.json": "a41b5f6082ddfb005991e0686bd5dfae8801b72031f10e4a7f4a8a8ea80fb005"
+  },
+  "diff_line_counts": {
+    "guard.py": {
+      "added": 60,
+      "removed": 3
+    },
+    "canary_payload.py": {
+      "added": 38,
+      "removed": 1
+    },
+    "run_canary.py": {
+      "added": 2,
+      "removed": 2
+    }
+  },
+  "fresh_parent": {
+    "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-03/selftest-01",
+    "lexists_at_review": false,
+    "claim_limit": "Point-in-time lstat/lexists check only; root must recheck freshness/pins at admission."
+  },
+  "static_counts": {
+    "negative_operations": 18,
+    "explicit_positive_cleanup_checks": 5,
+    "total_payload_checks": 23,
+    "guard_startup_selftest_denials_separate": 8,
+    "labels_negative": [
+      "outside_absolute_overwrite",
+      "outside_relative_overwrite",
+      "outside_delete",
+      "outside_rename",
+      "symlink_escape_write",
+      "relative_dir_fd_write",
+      "relative_dir_fd_remove",
+      "hardlink_alias_write",
+      "new_symlink_unsupported",
+      "alias_outside_target",
+      "alias_outside_destination",
+      "alias_wrong_source_parent",
+      "alias_wrong_prefix",
+      "alias_missing_numbered_directory",
+      "alias_regular_file_target",
+      "alias_symlink_parent",
+      "alias_unsupported_dir_fd",
+      "alias_traversal_even_if_same_root"
+    ],
+    "labels_positive_cleanup": [
+      "exact_virtual_null_sink_write",
+      "owned_create_write_read_rename_remove",
+      "owned_absolute_pytest_alias_write_remove",
+      "owned_relative_pytest_alias",
+      "owned_pytest_tree_cleanup"
+    ]
+  },
+  "outer_veto_reference": {
+    "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-01/validate_feedback.py",
+    "sha256": "0ce99e6d475f9a3cc1a253f23f5ebef6d911cd7c3af65f65c923d3afcf7d77c0",
+    "location": "23-27: missing/non-list or any nonempty runtime_denials rejects before runner success"
+  },
+  "budget": {
+    "max_seconds": 20,
+    "batches_max": 1,
+    "automatic_retries": 0,
+    "candidate_imports": 0,
+    "model_actions": 0,
+    "product_full_checkpoint": false
+  },
+  "entry_argv": [
+    "/usr/bin/python3.12",
+    "-I",
+    "-B",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-03/run_canary.py",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-03/canary-plan.json"
+  ],
+  "guard_argv": [
+    "/usr/bin/python3.12",
+    "-I",
+    "-B",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-03/guard.py",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-03/canary_payload.py",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-03/selftest-01/run/guard.json",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-03/selftest-01/run"
+  ],
+  "method": "Byte hashing, textual diff and manual control-flow read only. No guard/canary/candidate execution, import, compilation or collection.",
+  "runtime_status": "NOT_RUN_BY_REVIEWER; actual cleanup and operation outcomes pending",
+  "limitations": [
+    "Python cooperative path-audit policy, not OS/adversarial/native containment.",
+    "Inherited descriptor mutation and path-check/use races remain outside demonstrated claims.",
+    "Setup before launcher try/finally and cleanup failure can leave canaries or receipt missing; such actual outcomes cannot PASS.",
+    "Owncanary has no candidate singleton-preload lifecycle or FD/thread inventory; no such proof is inferred.",
+    "Allowed alias entries record admission before OS symlink success, not completed creation.",
+    "Only ordinary three-argument symlink policy denials retain full structured args; writable-helper root identity errors may carry just the failing path."
+  ]
+}

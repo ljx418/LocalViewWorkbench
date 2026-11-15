@@ -1,0 +1,92 @@
+{
+  "result": "READY_FOR_ROOT_ACK_OWNCANARY_FEEDBACK_ONLY",
+  "counts": {
+    "Fatal": 0,
+    "Major": 0,
+    "Minor": 0
+  },
+  "findings": [],
+  "assessments": [
+    {
+      "id": "G03-A1",
+      "candidate": "root-owned guard-boundary-03; planSHA a41b5f6082ddfb005991e0686bd5dfae8801b72031f10e4a7f4a8a8ea80fb005",
+      "spec": "F06-M2 minimum compatibility; ADR16 O1 finite feedback",
+      "layer": "trusted cooperative Python owncanary",
+      "location": "guard.py:82-132",
+      "trigger": "os.symlink audit event",
+      "expected": "Allow existing canonical numbered directory to a direct matchingprefix current sibling under NEW R/pytest-temp, defaultdirfd only.",
+      "actual": "All stated predicates are enforced; relative basename is joined to link parent, not cwd; both paths pass original writable/rootidentity checks.",
+      "oracle": "Two actual symlink positive operations plus retained normal owned mutation; static proof is not runtime success.",
+      "negative": "Outside parent/target/destination, traversal, wrong prefix, missing/non-directory/source-symlink, existingdestination, unsupporteddirfd and replaced parent reject.",
+      "terminal": "READY for precise once20s owncanary feedback only after rootACK; no runtimeACK issued",
+      "cleanup": "No writes/restoration performed by reviewer; owned payload cleanup is pending.",
+      "evidence": [
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-03/guard.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-03/canary_payload.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-03/run_canary.py",
+        "source-binding.json"
+      ],
+      "classification": "NON_FINDING_STATIC_ASSESSMENT",
+      "uncertainty": "Leaf-source, existingdest and changed-parent branches have static checks but no dedicated operation among the23; path races/native/adversarial scopes remain unproved."
+    },
+    {
+      "id": "G03-A2",
+      "candidate": "root-owned guard-boundary-03; planSHA a41b5f6082ddfb005991e0686bd5dfae8801b72031f10e4a7f4a8a8ea80fb005",
+      "spec": "F06-M2 minimum compatibility; ADR16 O1 finite feedback",
+      "layer": "trusted cooperative Python owncanary",
+      "location": "canary_payload.py:14-98; run_canary.py:12-60",
+      "trigger": "Pinned owncanary entry after rootACK",
+      "expected": "23 checks18 expected denials, real operations, bounded child and honest cleanup facts.",
+      "actual": "18 rejected operation callsites plus5 explicit positive/cleanup checks;2 real symlinks; old11/9 unchanged. Launcher compares23/18,8 separate startup probes, exit0, all passed and unchanged outside bytes, and rehashes pins.",
+      "oracle": "Recompute labels/outcomes and correlate full guard event args, exactly2 admitted aliases, outside unchanged, tree absent, three setupcanaries removed, terminated child, final pins. Missing/unknown/failure rejects.",
+      "negative": "Expected18 denials apply only to owncanary; ordinary candidate retains zero-denial requirement.",
+      "terminal": "READY for precise once20s owncanary feedback only after rootACK; no runtimeACK issued",
+      "cleanup": "Payload rmtree removes ownedpytesttree without following links; launcher finally removes owned escape/hardlink/outside and empty owned dir, writes setup_canaries_removed.",
+      "evidence": [
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-03/guard.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-03/canary_payload.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-03/run_canary.py",
+        "source-binding.json"
+      ],
+      "classification": "NON_FINDING_STATIC_ASSESSMENT",
+      "uncertainty": "Setup occurs before try/finally; finally cleanup can fail. Passed flag is set before cleanup, so root must consume actual cleanup facts rather than passed alone. Child timeout20s is not an end-to-end hard deadline for setup/postchecks."
+    },
+    {
+      "id": "G03-A3",
+      "candidate": "root-owned guard-boundary-03; planSHA a41b5f6082ddfb005991e0686bd5dfae8801b72031f10e4a7f4a8a8ea80fb005",
+      "spec": "F06-M2 minimum compatibility; ADR16 O1 finite feedback",
+      "layer": "trusted cooperative Python owncanary",
+      "location": "guard.py:41-47,124-126,138-173,218-233; unchanged outer validator:23-27",
+      "trigger": "Allowed alias/denial receipt and subsequent normal candidate gate",
+      "expected": "Improve exact symlink diagnostics without weakening nullsink, generic mutations or outer veto.",
+      "actual": "Main audit policy symlink denials retain source/destination/dirfd; admitted aliases retain resolvedtarget/parentidentity. Other audit/mutation/nullsink/preload code is unchanged; outer validator still rejects missing/nonempty ledger first.",
+      "oracle": "Read actual records, not clipped repr or count alone; admit precise owncanary feedback only.",
+      "negative": "No generic alias/delete/rename/device exception, no retroactive waiver of106 olddenials.",
+      "terminal": "READY for precise once20s owncanary feedback only after rootACK; no runtimeACK issued",
+      "cleanup": "No candidate cleanup conclusion derives from owncanary.",
+      "evidence": [
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-03/guard.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-03/canary_payload.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-03/run_canary.py",
+        "source-binding.json"
+      ],
+      "classification": "NON_FINDING_STATIC_ASSESSMENT",
+      "uncertainty": "Admission records precede OS call; actualoperation completion needs payload facts. Generic writable-helper rootidentity failure uses shorter args. No claim of complete caller stacks or OS isolation."
+    }
+  ],
+  "runtime_status": "PENDING; not executed by this reviewer",
+  "formal_closure": {
+    "F06-M2": "OPEN: static minimum mechanism reviewed; actual owncanary and later separately frozen candidate feedback remain necessary",
+    "other_c2c0880_findings": "OPEN and outside this revision review",
+    "incident": "OPEN; no historical rewrite",
+    "Stage": "NO_CLEARANCE",
+    "N2": "NO_CLEARANCE",
+    "runtimeACK": "NOT_ISSUED"
+  },
+  "exit_conditions": [
+    "RootACK for exact pinned single owncanary entry only,20s childtimeout,0retry.",
+    "Actual receipt, payload and guard present, checks23/23 labels exact, expected18 runtime denials plus8 startup probes separate, exactly2 alias admissions with full identities and matching operation facts.",
+    "Outside unchanged, ownedpytesttree absent and all3 setupcanaries removed; no unknown cleanup accepted.",
+    "Posthashes unchanged and child terminated; otherwise stop and preserve raw."
+  ]
+}
