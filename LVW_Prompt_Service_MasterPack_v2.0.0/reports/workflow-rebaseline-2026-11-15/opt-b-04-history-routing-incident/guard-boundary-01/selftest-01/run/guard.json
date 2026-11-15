@@ -1,0 +1,63 @@
+{
+  "guard_precedes_candidate_and_pytest": true,
+  "selftest_denials": [
+    "subprocess.Popen",
+    "socket.__new__",
+    "os.fork",
+    "os.exec",
+    "os.system",
+    "sqlite3.connect",
+    "ctypes.dlopen",
+    "ctypes.dlsym"
+  ],
+  "runtime_denials": [
+    {
+      "event": "open.outside_root",
+      "args": "('/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-01/selftest-01/outside-"
+    },
+    {
+      "event": "open.outside_root",
+      "args": "('selftest-01/outside-canary.txt', None)"
+    },
+    {
+      "event": "os.remove.outside_root",
+      "args": "('/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-01/selftest-01/outside-"
+    },
+    {
+      "event": "os.rename.outside_root",
+      "args": "('/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-01/selftest-01/outside-"
+    },
+    {
+      "event": "open.outside_root",
+      "args": "('/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-01/selftest-01/run/esca"
+    },
+    {
+      "event": "open.relative_dir_fd_unsupported",
+      "args": "('outside-canary.txt', 3)"
+    },
+    {
+      "event": "os.remove.outside_root",
+      "args": "('/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-01/selftest-01/outside-"
+    },
+    {
+      "event": "open.hardlink_alias",
+      "args": "('/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-01/selftest-01/run/hard"
+    },
+    {
+      "event": "os.symlink",
+      "args": "('/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-01/selftest-01/outside-"
+    }
+  ],
+  "preload_events": [],
+  "preload_window_final_state": "NEW",
+  "write_root": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-01/selftest-01/run",
+  "write_root_identity": [
+    73,
+    562949958315389
+  ],
+  "relative_dir_fd_open_write": "DENIED_UNSUPPORTED",
+  "new_symlinks": "DENIED_UNSUPPORTED",
+  "wall_seconds": 0.04275679588317871,
+  "clean_runtime_denial_ledger": false,
+  "is_adversarial_os_sandbox": false
+}
