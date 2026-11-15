@@ -1,0 +1,260 @@
+{
+ "artifacts": {
+  "implementation-boundary-checklist.md": {
+   "bytes": 4885,
+   "lines": 80,
+   "sha256": "7be729d2a8f7d8f6566ac8ee2d811a0a206c1887cc7ff8d1b386ad301544d5e6"
+  },
+  "node-identity.json": {
+   "bytes": 49738,
+   "lines": 1584,
+   "sha256": "13e06bfa77a0ed4cc4d73853acc768bbf122ec3ebaf3eff2346eb7ea74e79873"
+  },
+  "node_identity.py": {
+   "bytes": 3541,
+   "lines": 94,
+   "sha256": "92f7c41a34f8dfda649baa53eb66553d5962aa98394ade5dafb43993c96c3325"
+  },
+  "report.md": {
+   "bytes": 17047,
+   "lines": 147,
+   "sha256": "08140f0affb5ca786fa98865d12858cae09cd66d99e4320a000d5e490c988c32"
+  },
+  "source-pins.json": {
+   "bytes": 3033,
+   "lines": 108,
+   "sha256": "fce84e9d63afcb1cf7e13a0c0c2d54a66b72114af1147b5ee6c96aecb6fcb35d"
+  },
+  "source_pins.py": {
+   "bytes": 2915,
+   "lines": 85,
+   "sha256": "8049c8d487fb648c2684452a89934f2e882740f9c0d406a3028c4d3ab4516327"
+  },
+  "static-checks.json": {
+   "bytes": 19088,
+   "lines": 823,
+   "sha256": "6f1fa8d24bbd1922d332c1acc2840e45bd8a19ee2cfce786ac84ccc115e41e9c"
+  },
+  "static_checks.py": {
+   "bytes": 39708,
+   "lines": 933,
+   "sha256": "6b36ba1602deab7b1e11e7d5361452e36fe1b16330bea1faee434e65fe50dd62"
+  },
+  "validation-plan-request.json": {
+   "bytes": 29938,
+   "lines": 337,
+   "sha256": "034f4af8b366892b7cc0e3b3cc73279c44b924d5bdeae3ec071f7132daed45bc"
+  },
+  "validation_plan_request.py": {
+   "bytes": 9460,
+   "lines": 199,
+   "sha256": "153dd95126d825a89c0d523f1539674c6654361c43048d72ea030332fe02ae48"
+  }
+ },
+ "assertion_equivalence": {
+  "added": [
+   "child is not controlled_parent_channel",
+   "controlled['injected_starts'][0]['target_owner_is_parent'] is False",
+   "first_failure['type'] is None",
+   "ledger.state(r10_name) in ('PASSED', 'FAIL', 'NOT_RUN')",
+   "len(children) == 1",
+   "not first_failure.get('write_errors')",
+   "r10_name in r10_inventory"
+  ],
+  "baseline_total": 407,
+  "candidate_total": 414,
+  "note": "No predicate of the baseline of the correction 18 is removed.  The seven added predicates are the checks of the residual defects of the independent review of the correction 18; none of them replaces an oracle of the baseline.",
+  "removed": []
+ },
+ "candidate_base_sha": "208f0c604345fd417f98f3a86e5a65835179d175",
+ "candidate_git_commit": "c3286cce2cc4e4e8f4bb25fde60fa8f998e2fdce",
+ "candidate_git_commit_note": "the actual Git identity of the committed static candidate of this correction",
+ "candidate_module": {
+  "after": {
+   "bytes": 400523,
+   "lines": 7858,
+   "sha256": "5cb618f4acca24967932fdfd75615ffcc9e71a5f1de1bd32d9a278170ddfbd1a"
+  },
+  "before": {
+   "bytes": 366293,
+   "lines": 7264,
+   "sha256": "53a7d3ea10bac64b7828a1c2cf656a9644a462d993743af94f555ffccd4c09f0"
+  },
+  "path": "tools/test_v0_s3_native_custody_correction10.py"
+ },
+ "candidate_sha": "NOT_USED_A_CONTENT_HASH_IS_NOT_A_CANDIDATE_IDENTITY",
+ "changed_files": [
+  "tools/test_v0_s3_native_custody_correction10.py"
+ ],
+ "coordinate": "V1/R1/WP-R1-U3/S3_P4",
+ "counterexample_mapping": [
+  {
+   "boundary": "controlled_custody_channel() selects the entry named controlled:channel and proves that it differs from controlled_parent_channel",
+   "id": "R1",
+   "review": "root check",
+   "static_check": "m3-1:the-child-is-named",
+   "trigger": "the first channel of the registry is the channel of the parent and it is never the child"
+  },
+  {
+   "boundary": "every ledger.pass_/ledger.fail/ledger.finish follows a successful terminal write; a failed write leaves the name ATTEMPTED for the bounded recovery",
+   "id": "R2",
+   "review": "root check",
+   "static_check": "m2-1:every-terminal-transition-is-write-guarded",
+   "trigger": "a failed terminal write advances the ledger"
+  },
+  {
+   "boundary": "the cleanup owning Try contains the construction of the endpoint and reader.start() in its body and owns the close and the drain in its finally",
+   "id": "R3",
+   "review": "root check",
+   "static_check": "m3-4:the-endpoint-is-inside-the-cleanup-try",
+   "trigger": "the coordination try begins after the start"
+  },
+  {
+   "boundary": "record_guarded returns None and the caller advances the ledger only when the result is not None; the outer inventory recovers the ATTEMPTED names once",
+   "id": "M2.1",
+   "review": "18-M2.1",
+   "static_check": "m2-1:every-terminal-transition-is-write-guarded",
+   "trigger": "a failed terminal persistence advances the ledger and suppresses the recovery"
+  },
+  {
+   "boundary": "the final document of the phase and the rewrite of the barrier document carry barrier_persisted, barrier_write_error and the identity of the original object",
+   "id": "M2.2",
+   "review": "18-M2.2",
+   "static_check": "m2-2:the-final-document-carries-barrier_persisted",
+   "trigger": "the early barrier persistence diagnostics disappear"
+  },
+  {
+   "boundary": "the terminal document of r10-coordination and the terminal document of r10-early-salvage are written in the finally that owns the drain",
+   "id": "M2.3",
+   "review": "18-M2.3",
+   "static_check": "m2-3:the-early-verdict-is-after-the-cleanup",
+   "trigger": "the earlier coordination records PASSED before its cleanup and never records the cleanup diagnostics"
+  },
+  {
+   "boundary": "the drain returns a proof failure when it is not quiescent and every caller requires the quiescence",
+   "id": "M2.4",
+   "review": "18-M2.4",
+   "static_check": "m2-4:the-drain-fails-on-a-nonquiescent-round",
+   "trigger": "a nonquiescent drain yields a durable FAIL while the test continues successfully"
+  },
+  {
+   "boundary": "the exact newly retained child is selected, the identity of the target owner is compared with it and the original Thread.start is called before the exact failure is raised inside the constructor",
+   "id": "M3.1",
+   "review": "18-M3.1",
+   "static_check": "m3-1:the-child-differs-from-the-parent",
+   "trigger": "the constructor failure driver is unreachable because the custody lookup returns the parent channel"
+  },
+  {
+   "boundary": "every query of the registry, of the container, of the session, of the channel and of the provenance is guarded on its own and the observed thread objects are retained as an independent fallback",
+   "id": "M3.2",
+   "review": "18-M3.2",
+   "static_check": "m3-2:the-traversal-is-guarded-per-query",
+   "trigger": "one container query aborts the traversal and replaces the owners with an empty list"
+  },
+  {
+   "boundary": "every caller keeps the exact object and rethrows it before the ordinary proof assertion",
+   "id": "M3.3",
+   "review": "18-M3.3",
+   "static_check": "m3-3:the-cancellation-wins",
+   "trigger": "the cancellation identity is replaced, lost or never rethrown"
+  },
+  {
+   "boundary": "the cleanup owning Try starts before the construction and before reader.start() and owns the close, the join and the drain",
+   "id": "M3.4",
+   "review": "18-M3.4",
+   "static_check": "m3-4:the-cleanup-try-owns-the-drain",
+   "trigger": "the independent coordination start and constructor failure bypass its cleanup"
+  },
+  {
+   "boundary": "every close of the child endpoint catches BaseException and records the exact cancellation",
+   "id": "M3.5",
+   "review": "18-M3.5",
+   "static_check": "m3-5:no-close-is-exception-only",
+   "trigger": "the main child cleanup catches only Exception and a cancellation skips the second close"
+  },
+  {
+   "boundary": "the quiescence is part of the proof of the caller and a nonquiescent round is a proof failure of the drain",
+   "id": "M3.6",
+   "review": "18-M3.6",
+   "static_check": "m2-4:the-quiescence-is-enforced-everywhere",
+   "trigger": "some finalizers record the quiescence without enforcing it"
+  }
+ ],
+ "denominator": {
+  "changed": false,
+  "count": 189,
+  "frozen_order": true,
+  "order_reference": "reports/v0-s3/product-gate0/implementation-native-custody-correction-18/node-identity.json",
+  "order_unchanged": true,
+  "unique": 189
+ },
+ "design": {
+  "approved_by_root": true,
+  "authoritative_section": "section 10 (the correction addendum of the root review D1-D5) and the binding clarifications 1-6 of the root design ACK",
+  "delta_of_correction_19": "the implementation of the exact residual defects M2 1-4 and M3 1-6 of the independent review of the correction 18 and of the three root checks; no new generic framework and no new product obligation",
+  "file": "reports/v0-s3/product-gate0/implementation-native-custody-correction-17/design.md",
+  "independent_review": "reports/v0-s3/product-gate0/native-custody-correction-18/test-review-01/review-result"
+ },
+ "execution_audit": {
+  "429_or_approval_refusal": false,
+  "candidate_collect": false,
+  "candidate_executed": false,
+  "candidate_import": false,
+  "ctypes": false,
+  "ledger_counter": false,
+  "media_db": false,
+  "methods_used": [
+   "text reads of the seven sources of the denominator",
+   "ast.parse of the five test modules and of the two production sources",
+   "symtable of the edited module (the global names that it reads)",
+   "in-memory compile of the edited module",
+   "sha256 of the sources and of the artifacts",
+   "read-only git show of the baseline blobs"
+  ],
+  "model_gpu": false,
+  "native_call": false,
+  "os_business_process": false,
+  "pytest": false,
+  "runtime_probe": false,
+  "service_network": false
+ },
+ "kind": "lvw.s3-native-custody-correction19-static-implementation-receipt/1",
+ "non_claims": {
+  "candidate_executed": false,
+  "dynamic15": "NOT_RUN",
+  "dynamic16": "NOT_RUN",
+  "dynamic17": "NOT_RUN",
+  "dynamic18": "NOT_RUN",
+  "dynamic19": "NOT_RUN",
+  "human_signoff": false,
+  "major_closure_claimed": false,
+  "native": "NOT_PROVEN",
+  "product_acceptance": false,
+  "runtime_plan_acked": false,
+  "stage_pass": false
+ },
+ "source_sha256": "5cb618f4acca24967932fdfd75615ffcc9e71a5f1de1bd32d9a278170ddfbd1a",
+ "source_sha256_note": "the sha256 of the CONTENT of the changed module tools/test_v0_s3_native_custody_correction10.py in the committed candidate; it is a content hash and it is never called candidate_sha",
+ "static_checks": {
+  "failed": 0,
+  "file": "reports/v0-s3/product-gate0/implementation-native-custody-correction-19/static-checks.json",
+  "ok": true,
+  "total": 160
+ },
+ "unchanged_files": [
+  "tools/v0_s3_native_broker.py",
+  "tools/v0_s3_native_custody.py",
+  "tools/test_v0_s3_native_custody.py",
+  "tools/test_v0_s3_native_custody_regressions.py",
+  "tools/test_v0_s3_native_custody_correction05.py",
+  "tools/test_v0_s3_native_custody_correction07.py"
+ ],
+ "validation_plan_request": {
+  "batches_max": 1,
+  "commands": 3,
+  "file": "reports/v0-s3/product-gate0/implementation-native-custody-correction-19/validation-plan-request.json",
+  "max_seconds": 300,
+  "node_count": 189,
+  "requested_not_executed": true
+ }
+}
