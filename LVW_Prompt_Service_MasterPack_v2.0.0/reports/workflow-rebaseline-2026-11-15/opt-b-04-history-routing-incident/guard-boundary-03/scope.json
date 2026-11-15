@@ -1,0 +1,12 @@
+{
+  "id": "GUARD03-PYTEST-DIRECT-SIBLINGS",
+  "status": "SOURCE_ONLY_NO_RUNTIME_ACK",
+  "review_basis": "c2c0880 F06-M2",
+  "base_guard_sha256": "f2f97d2d1191112f60b170b9a0bf69ed5c4ab569f1bffef5903c1ec28a6d6d6c",
+  "canary_plan_sha256": "a41b5f6082ddfb005991e0686bd5dfae8801b72031f10e4a7f4a8a8ea80fb005",
+  "allowed": "Only NEW R/pytest-temp existing numbered directory to direct sibling matching prefix+current; absolute or basename relative source resolved against linkparent, defaultdirfd only, no symlink ancestors/leafsource, stableparentidentity",
+  "forbidden": "No generic symlink/tmp/HOME/dev mutation exception; existing literalnullsink only; all other write/delete/rename rules and hardnonemptyledger veto unchanged",
+  "selftest": "Original11checks/9denials plus2actualalias positives,9newrejections andownedtree cleanup =>23checks18denials. Oldsetupfailure cleanup/preload/fd/race limitations remain; actualmissingcleanup cannotPASS",
+  "evidence_logging": "Allowed alias records include full source/dest/dirfd/parent identity; symlink denial structuredargs avoid200charclipping",
+  "test_execution": false
+}

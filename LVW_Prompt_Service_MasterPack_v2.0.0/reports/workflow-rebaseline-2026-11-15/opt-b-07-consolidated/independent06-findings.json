@@ -1,0 +1,138 @@
+{
+  "candidate": "9b6d9d4b827587d132eaf20e2b838d449ed89bd3",
+  "result": "CHANGES_REQUIRED",
+  "counts": {
+    "Fatal": 0,
+    "Major": 5,
+    "Minor": 0
+  },
+  "historical_results_immutable": true,
+  "findings": [
+    {
+      "id": "F06-M1",
+      "candidate": "9b6d9d4b827587d132eaf20e2b838d449ed89bd3",
+      "spec": "ADR16; OPT-B concentrated M1-M5; combined-plan-06",
+      "layer": "test qualification",
+      "location": "tools/test_v0_s3_native_custody_cleanup_faults.py:419-451; tools/test_v0_s3_native_custody_correction10.py:3899-4280; production broker:5470-5529 / custody:835-867",
+      "trigger": "SUP03 runs the real R07 zero round before controlled CHILD_TRANSPORT writer injection.",
+      "expected": "Reach the designated inner writer exactly once, preserve its error and sentinel, reject the callee, publish real cleanup.",
+      "actual": "Actual SUP03 failed at line431: injection count0; no child_transport raw. Earlier real pump ended with BROKER_CHANNEL_TIMEOUT, frames0; zero round failed and stopped the later subcase.",
+      "oracle": "Require injection count1 at exact phase/index, callee failure with injected error, durable failure and real cleanup; zero real owner/context identity and exact0 wait facts remain required.",
+      "negative": "A zero pump error must remain a failure; no suppressing timeout, extending product deadlines, or treating thread death as successful service.",
+      "terminal": "CHANGES_REQUIRED; no runtime ACK, checkpoint, N2 or Stage clearance",
+      "cleanup": "Actual batch FD identities unchanged, unknown FD list empty, MainThread only; physical cleanup does not cure missing semantics.",
+      "evidence": [
+        "negative/sup-03/n10-r07-zero-public-chain.json",
+        "negative/sup-03/n10-r07-zero-salvage.json",
+        "runner failed call line431"
+      ],
+      "classification": "Major",
+      "status": "OPEN",
+      "minimal_closure": "Resolve frozen zero prerequisite/scheduling with the existing real public path, and capture actual queue/error publication relative to tightening; then demonstrate the missing writer negative under a new finite frozen plan.",
+      "owner": "root for bounded plan/guard/receipt; ClaudeCode for test-only corrections",
+      "uncertainty": "The trace establishes pump failure and missing injection, not the precise channel-error publication interleaving or a production ownership flaw. Holding pump read alone does not synchronize channel producer/error publication."
+    },
+    {
+      "id": "F06-M2",
+      "candidate": "9b6d9d4b827587d132eaf20e2b838d449ed89bd3",
+      "spec": "ADR16; OPT-B concentrated M1-M5; combined-plan-06",
+      "layer": "trusted harness compatibility",
+      "location": "guard-boundary-02/guard.py:40,85; pinned _pytest/pathlib.py:205-239; _pytest/tmpdir.py:109-153",
+      "trigger": "Pytest make_numbered_dir attempts a best-effort current alias inside explicit combined02/pytest-temp.",
+      "expected": "Owned fixture temp operations must coexist with protection against historical/outside writes; all remaining denials veto acceptance.",
+      "actual": "All106 ledger rows are os.symlink and truncated at200 chars; pinned pytest _force_symlink swallows Exception. There are106 direct temp directories and no aliases. Outer correctly REJECTED.",
+      "oracle": "Review complete source/destination/dir_fd and pinned callpath; only actual approved same-root alias operations can be admitted in a future guard.",
+      "negative": "Outside target/destination, traversal, symlink ancestor/alias escape, unsupported dirfd, generic link/delete/rename remain rejected; any nonempty/missing ledger remains a hard veto.",
+      "terminal": "CHANGES_REQUIRED; no runtime ACK, checkpoint, N2 or Stage clearance",
+      "cleanup": "Actual batch FD identities unchanged, unknown FD list empty, MainThread only; physical cleanup does not cure missing semantics.",
+      "evidence": [
+        "guard.json all106 entries",
+        "outer-decision.json",
+        "pinned _pytest/pathlib.py and tmpdir.py"
+      ],
+      "classification": "Major",
+      "status": "OPEN",
+      "minimal_closure": "Root may freeze a minimal rule limited to canonical NEW R/pytest-temp: existing numbered directory source and direct sibling current destination with matching prefix, verified parents/root identity and no symlink ancestry; default dirfd only or explicitly resolved identity-bound anchor. Recheck destinations on subsequent mutations. Preserve hard veto, test both owned aliases and outside/escape negatives before candidate feedback.",
+      "owner": "root for bounded plan/guard/receipt; ClaudeCode for test-only corrections",
+      "uncertainty": "Source plus count strongly supports pytest current aliases; clipped logs do not establish full arguments/caller for each106 event. Do not retroactively whitelist this run. Cooperative path checks do not solve adversarial rename races, inherited descriptors or native writes."
+    },
+    {
+      "id": "F06-M3",
+      "candidate": "9b6d9d4b827587d132eaf20e2b838d449ed89bd3",
+      "spec": "ADR16; OPT-B concentrated M1-M5; combined-plan-06",
+      "layer": "test qualification",
+      "location": "tools/test_v0_s3_native_custody_cleanup_faults.py:310-337,363-365; tools/test_v0_s3_native_custody_correction10.py:1447-1485",
+      "trigger": "The real drain repeats its release tuple in another iteration.",
+      "expected": "Forward the actual third callback on every invocation, but inject K1 exactly once across repeated callbacks; distinct precreated K2 must not replace first exact K1.",
+      "actual": "Original third callback is now called correctly and exact K1/K2 objects are precreated. However k1_release raises on every invocation; drain_state[k1] counts wrapper installation, not raises. Actual raw shows one RELEASE K1 for this schedule only.",
+      "oracle": "Count actual K1 injections and original third callback forwarding/results across repeated invocations, assert first propagated object is K1, K2 distinct, durable failure and physical cleanup.",
+      "negative": "A repeat must forward the real callback without a second injected cancellation; do not replace it with a gate or simplified lifecycle.",
+      "terminal": "CHANGES_REQUIRED; no runtime ACK, checkpoint, N2 or Stage clearance",
+      "cleanup": "Actual batch FD identities unchanged, unknown FD list empty, MainThread only; physical cleanup does not cure missing semantics.",
+      "evidence": [
+        "negative/sup-02/n10-r07-zero-salvage.json",
+        "tools/test_v0_s3_native_custody_cleanup_faults.py:325-330"
+      ],
+      "classification": "Major",
+      "status": "OPEN",
+      "minimal_closure": "Make injected K1 one-shot independently of callback forwarding; retain and verify original callback results and injection count on a bounded repeated-callback path.",
+      "owner": "root for bounded plan/guard/receipt; ClaudeCode for test-only corrections",
+      "uncertainty": "No repeated K1 happened in current raw; the reproducible source branch exists when the bounded drain repeats. This is a required negative qualification gap, not an observed production cleanup leak."
+    },
+    {
+      "id": "F06-M4",
+      "candidate": "9b6d9d4b827587d132eaf20e2b838d449ed89bd3",
+      "spec": "ADR16; OPT-B concentrated M1-M5; combined-plan-06",
+      "layer": "test qualification",
+      "location": "tools/test_v0_s3_native_custody_cleanup_faults.py:149-155,268-278,306-404,569-641",
+      "trigger": "Final query faults or interrupted-start lookup faults require exact independently held resource identity.",
+      "expected": "Compare faulted worker/settled owner/joined thread against the independently observed actual fixture-held objects.",
+      "actual": "SUP01 stores self but compares only faulted_name with shutdown names. SUP02 checks hit count without binding target object. SUP05 links joined thread to settled thread, but checks settled_owner only nonnull; it does not compare to independently captured expected owner. Exact O and first K exception identity assertions are fixed.",
+      "oracle": "Retain expected real references before the fault; assert faulted is expected worker and settled is expected held owner, and joined is expected held thread. Use transparent original method/result recorders.",
+      "negative": "A wrong same-name worker or different owner/thread pair must fail qualification even if each is nonnull and internally consistent.",
+      "terminal": "CHANGES_REQUIRED; no runtime ACK, checkpoint, N2 or Stage clearance",
+      "cleanup": "Actual batch FD identities unchanged, unknown FD list empty, MainThread only; physical cleanup does not cure missing semantics.",
+      "evidence": [
+        "negative/sup-01/n10-r07-zero-salvage.json",
+        "negative/sup-02/n10-r07-zero-salvage.json",
+        "negative/sup-05/n10-r09-interrupted-start.json"
+      ],
+      "classification": "Major",
+      "status": "OPEN",
+      "minimal_closure": "Add the missing exact reference comparisons at existing observation seams, with no lifecycle replacement. Requalify affected negatives; keep actual branch PASS separate.",
+      "owner": "root for bounded plan/guard/receipt; ClaudeCode for test-only corrections",
+      "uncertainty": "No evidence that wrong objects were used in this run. Current assertions/raw cannot independently exclude that regression as required by frozen M2/M5."
+    },
+    {
+      "id": "F06-M5",
+      "candidate": "9b6d9d4b827587d132eaf20e2b838d449ed89bd3",
+      "spec": "ADR16; OPT-B concentrated M1-M5; combined-plan-06",
+      "layer": "evidence truth",
+      "location": "combined02-execution-receipt.json /unresolved_limits/3",
+      "trigger": "Producer emits final receipt for the194-call run.",
+      "expected": "Accurately distinguish executed original189, supplemental5 and unexecuted product29.",
+      "actual": "Receipt says remaining175 of189 were NOT selected/NOT run, contradicted by exact selected/collected/call order. Root snapshot preserves it and records contradiction.",
+      "oracle": "Append-only producer correction binds original receipt SHA256 and exact actual call evidence; no silent replacement.",
+      "negative": "Do not infer product29/native acceptance from original189 or total194.",
+      "terminal": "CHANGES_REQUIRED; no runtime ACK, checkpoint, N2 or Stage clearance",
+      "cleanup": "Actual batch FD identities unchanged, unknown FD list empty, MainThread only; physical cleanup does not cure missing semantics.",
+      "evidence": [
+        "combined02-execution-receipt.json",
+        "actual-feedback-06.json",
+        "native-custody-correction-03.receipt.json"
+      ],
+      "classification": "Major",
+      "status": "OPEN",
+      "minimal_closure": "Producer append a signed/attributed correction identifying wrong JSON pointer, original hash,189/189 actual calls and rejected overall result; preserve original bytes.",
+      "owner": "root for bounded plan/guard/receipt; ClaudeCode for test-only corrections",
+      "uncertainty": "Root annotation already prevents blind acceptance but does not correct producer record; this is necessary coverage truth, not a purely duplicate display detail."
+    }
+  ],
+  "formal_exit": "OPEN; no Stage/N2/runtime ACK",
+  "obligations": {
+    "N1-OPT-01": "OPEN: SUP03 required inner-writer negative not reached",
+    "N1-OPT-02": "SUP04 branch dynamically supported; no global formal closure",
+    "N1-OPT-03": "O/firstK priority branch supported; repeated K1 and exact resource identity qualification remain OPEN",
+    "N1-OPT-04": "Real settle/join fallback branch supported; expected held-owner identity qualification remains OPEN"
+  }
+}

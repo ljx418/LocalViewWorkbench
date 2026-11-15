@@ -1,0 +1,53 @@
+{
+  "id": "OPT-B-07-CONSOLIDATED-QUALIFICATION",
+  "state": "FROZEN_OFFLINE_IMPLEMENTATION_ONLY",
+  "base_candidate": "9b6d9d4b827587d132eaf20e2b838d449ed89bd3",
+  "review_commit": "c2c0880041defd406490911d42ea2a2a64c8cf70",
+  "source_owner": "Visible ClaudeCode only",
+  "allowed_source_files": [
+    "tools/test_v0_s3_native_custody_correction10.py",
+    "tools/test_v0_s3_native_custody_cleanup_faults.py"
+  ],
+  "allowed_evidence_files": [
+    "NEW reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/",
+    "NEW reports/v0-s3/product-gate0/implementation-native-custody-optimized-05/combined02-execution-receipt.correction-01.json"
+  ],
+  "separate_root_owner": "Trusted guard pytest-alias compatibility; Claude must not edit root guard/runner/validator/plan/config",
+  "requirements": {
+    "F06-M1": [
+      "Preserve real public/default zero-round path, original context tightening and exact0 reply/queue waits, real pump/worker identities and cleanup; no product changes, fake successful pump, swallowed timeout or increased deadlines",
+      "Add bounded transparent zero-context-only producer schedule and real error/queue publication trace. Existing pump gate alone does not serialize underlying producer. Recommended bounded schedule: hold real producer immediately before its original _check_wait/queue publication; establish producer-held and pump-held before tightening; allow real broker.read/queue.get(0) to finish before producer release; then forward original producer check/error handling unchanged. Release both gates on every failure/cleanup path. Never release producer in queue.get finally before channel.read has completed its actual error check",
+      "Trace actual pre-tightening queue/error state, tightening, real broker read return/error, producer release and actual original error publication. Later channel timeout must remain visible; a prior pump timeout remains failure. No inference of precise old interleaving from new schedule",
+      "Verify existing inner-writer SUP03 actually reaches designated first CHILD_TRANSPORT phase, one injected E, sentinel and failed durable proof/real cleanup. Offline task does not run it; mark dynamic pending"
+    ],
+    "F06-M3": [
+      "One precreated exact K1, actual raise counter incremented only at injection and exactly once, distinct K2",
+      "Forward original third release callback on every invocation and forward its real result after the single injection; retain all actual original results/identities",
+      "Prove repeated-callback branch in a bounded transparent path using actual original callback, not copied lifecycle or replacement gate. An explicitly recorded second callback invocation on actual fixture resource after original drain returns is allowed if it forwards real idempotent cleanup and original drain result; label controlled repeat honestly and preserve pending first K1. Do not create a second synthetic lifecycle"
+    ],
+    "F06-M4": [
+      "Independently capture actual expected held worker/owner/thread before injected fault via existing real constructor/admission/observer seams; one narrow fixture-only observation callback is allowed if necessary, default inert, no production API or new framework",
+      "Assert faulted worker is independently expected worker for SUP01 AND02; settled owner is independently expected held owner and joined thread is independently expected held thread for SUP05. Name matching, nonnull and internal consistency are insufficient",
+      "Expected reference must not be assigned from faulted self or settle_calls[0]; keep transparent original calls/results and exact O/K assertions"
+    ],
+    "F06-M5": [
+      "Append attributed correction JSON referencing original receipt SHA256295bbac758eed84c7006b719179260240fea3b42f20731d2de2ad4a6ecae80f8 and JSON pointer /unresolved_limits/3",
+      "State original189 selected/collected/called189PASS, supp5 selected/collected/called4PASS1FAIL, overall outerREJECTED, product29NOTRUN; preserve original bytes and snapshots; commit attribution is not invented cryptographic signature"
+    ]
+  },
+  "invariants": [
+    "Original189 identities/order/signatures/decorators unchanged, preserve all existing assertion predicates; may add necessary qualification/premise assertions. Sup5 same identities and separate denominator",
+    "Production broker/custody/API/contracts/thresholds, root guard and all historical raw/findings/receipts unchanged",
+    "No imports/compile/collect/tests/run in this implementation task; source/diff and static obligations only, runtime requires new candidate/guard/plan/pins/ACK",
+    "No root product implementation takeover; firstClaude429 immediateSTOP, no retry/provider/approval config changes",
+    "No model/GPU/native/services/media/network/DB/countercontents, no unrelateddirtyreport access or staging",
+    "If proposed producer seam cannot preserve original error semantics/bounds, report exact design question rather than suppressing failures"
+  ],
+  "receipt_requirements": [
+    "Precise source candidate/hash/diff and static mapping of each obligation",
+    "List actual held-reference capture source and gate-release/error forwarding paths",
+    "Append correction raw hash/pointer, no rewrite",
+    "Explicit dynamic NOT_RUN/remaining risks and fulloutline/tenfields"
+  ],
+  "runtime_authorized": false
+}
