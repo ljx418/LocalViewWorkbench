@@ -1,0 +1,42 @@
+{
+  "id": "OPT-B-R07-OBSERVED-OWNER-01",
+  "status": "IMPLEMENTATION_SCOPE_FROZEN_RUNTIME_NOT_ADMITTED",
+  "source_candidate": "1a34fbbe318fbe240823a2bf2f09517a98294744",
+  "evidence_commit": "946f5878",
+  "failure_evidence": "reports/workflow-rebaseline-2026-11-15/opt-a-01/targeted-feedback-01.json",
+  "allowed_source_files": [
+    "tools/test_v0_s3_native_custody_correction10.py"
+  ],
+  "allowed_source_regions": [
+    "R07 zero-expiry fixture: capture actual attached pump before fallible public start can retire session reference; validate actual identity/liveness/context after return",
+    "EVIDENCE_DIR attempt01 -> attempt02 only"
+  ],
+  "forbidden": [
+    "production broker/custody changes",
+    "other tests or unrelated fixture region changes",
+    "new generic diagnostic framework/helper extraction",
+    "timeout/limit relaxation",
+    "removing/skipping zero-expiry tests",
+    "replacing public default launcher/session start",
+    "history or attempt01 mutation",
+    "unrelated dirty report staging"
+  ],
+  "contract_basis": "N10-R07 actual context/current-minimum deadline and no unbound window; public production _stop_background may clear a successfully joined pump. No requirement to retain a finished pump in mutable session field.",
+  "oracle_mapping": {
+    "before": "fetch session._pump only after public start; absent reference makes finished false and identity/context false even if production proved join and retired it",
+    "after": "hold actual non-null attached started pump at admission; after public start verify same observed object, real finished and nonalive, exact context; current session reference may equal observed object or be absent only with proof actual observed thread finished. Do not infer completion from None.",
+    "retained": [
+      "actual zero event/queue wait ==0",
+      "actual public return and UNKNOWN_RETAINED/failures examined",
+      "no EOF substitution",
+      "real default launcher/context identity",
+      "fixture salvage not counted as cleanup-at-return",
+      "all189 identities/order and product29"
+    ]
+  },
+  "new_evidence_root": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt02/evidence",
+  "tests_authorized": false,
+  "candidate_import_allowed": false,
+  "historical_failure_retained": true,
+  "independent_root_cause_review": "pending same reviewer; this scope does not close findings"
+}
