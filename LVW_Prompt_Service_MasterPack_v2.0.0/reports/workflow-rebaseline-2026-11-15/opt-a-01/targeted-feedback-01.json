@@ -1,0 +1,43 @@
+{
+  "kind": "TARGETED_FEEDBACK_NOT_STAGE_ACCEPTANCE",
+  "candidate_sha": "1a34fbbe318fbe240823a2bf2f09517a98294744",
+  "plan_sha256": "16549d45fcd87e274b7abc05f1dcc69a95ea06850ea77bb793443e45832d8ff1",
+  "actual_selected_collected_order_matches": true,
+  "test_counts": {
+    "denominator": 14,
+    "pass": 13,
+    "fail": 1,
+    "skip": 0
+  },
+  "pytest_exit": 1,
+  "duration_seconds": 30.01340961456299,
+  "guard_runtime_denials": [],
+  "batch_fd_thread_cleanup": true,
+  "native_cleanup_proven": false,
+  "failed_nodes": [
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r07_the_context_of_the_round_reaches_every_layer",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 15.414854312999523,
+      "longrepr": "tools/test_v0_s3_native_custody_correction10.py:4158: in test_n10_r07_the_context_of_the_round_reaches_every_layer\n    assert facts['zero_pump_finished'] is True, \\\nE   AssertionError: the attached pump of the zero round did not end\nE   assert False is True"
+    }
+  ],
+  "source_failure_or_fixture_oracle_root_cause": "PENDING_INDEPENDENT_REVIEW",
+  "resource_salvage_not_production_cleanup": true,
+  "receipt_refs_sha256": {
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt01/native-custody-correction-03.receipt.json": "400055e2f0305eb63372f4bd176b34711abaf976f5f51178bff68ea8db4b4216",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt01/guard.json": "cde695f6d9f1ee8d2675b8c3b9f584bee1d841f5b6b6f361fc73732ea1b0bc1f",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt01/guard.stdout.log": "15bc246584e293d036eebc67d49a5158c21e70dfad17fc8da97ec82cda6925e4",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt01/guard.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt01/counter-absence-before.json": "bfe4e7b1a3f9d9d912e432a13d16313f40e3857e0895a556bd73e2f08bcffc23",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt01/evidence/n10-r07-zero-public-chain.json": "cc36a43f95c230f6c9422529a41590c9d5e7f3f7f630f7ae20432f23e214f73e",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt01/evidence/n10-r07-zero-salvage.json": "1069a4810034a3cbb63cd873dd3821b75be4cc59a24443102bfbfa7ab2c0112f"
+  },
+  "after_observation_received": true,
+  "next_action": "Archive original failure; independent review R07 actual owner retention and pump identity; freeze minimal correction only after cause verified. No rerun authorised by this receipt.",
+  "historical_major_auto_closed": false,
+  "product29_status": "NOT_RUN",
+  "fixed189_current_candidate_status": "NOT_RUN",
+  "stage_pass": false
+}
