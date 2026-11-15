@@ -1,0 +1,174 @@
+{
+  "kind": "append_only_execution_receipt_correction",
+  "correction_id": "targeted01-execution-receipt.correction-01",
+  "scope_id": "OPT-B-09-MAIN-OWNER",
+  "packet": "N1-OPTIMIZED-01",
+  "appends_to": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01-execution-receipt.json",
+  "appended_sha256_of_the_original_receipt": "4b4c04c79d1fcd7025df1917598f80010db2ce329881ab57f58fcd9568b0fd04",
+  "original_bytes_preserved": true,
+  "original_receipt_rewritten": false,
+  "existing_corrections_rewritten": false,
+  "snapshots_rewritten": false,
+  "finding": "OPT-B-09 / T07-M2 - the receipt of the targeted 6 run named the group expectation of the original 189 as the cause of the rejection of the outer validator, and the actual cause was the one selected original R07 node that FAILED",
+  "wrong_statements": [
+    {
+      "json_pointer": "/outcome_summary",
+      "original_text": "the batch really ran: the five supplemental cases ALL PASSED and the one selected original R07 node FAILED, and the outer validator REJECTED the feedback because the group of the original 189 required 189 and passed 0 in a selection of six.  The guard ledger was EMPTY, the cleanup of the batch is proven and the zero schedule of the fixture really ran as designed.  A finite honest failure is the deliverable and it is not a Stage, an N2 or a Major closure.",
+      "why_it_is_wrong": "the sentence names the group expectation of the original 189 (required 189, passed 0) as the reason why the outer validator rejected the feedback.  The group block of the decision is REPORTING ONLY: the validator computes it from the full denominators of the plan (full189_nodeids and supplemental_nodeids) and it never reads it in its acceptance predicate.  The only error of the very same decision is ACTUAL_CHECKS_NOT_ALL_PASSED, and that error is raised by the one selected original R07 node that really FAILED.",
+      "the_correct_part_of_the_sentence": "the first half stays true: the five supplemental cases ALL PASSED, the one selected original R07 node FAILED, the guard ledger was EMPTY, the cleanup of the batch is proven and the zero schedule of the fixture really ran as designed.  Only the stated cause of the rejection was wrong and it is corrected here."
+    },
+    {
+      "json_pointer": "/unresolved_limits/0",
+      "original_text": "the feedback of this batch was REJECTED by the outer validator: the group of the original 189 required 189 and passed 0 in a selection of six.  The five supplemental cases that passed are evidence of their executed assertions and not a closure of any obligation.",
+      "why_it_is_wrong": "the same false cause is repeated in the first unresolved limit of the receipt.  The local rejection of that batch was caused by the selected R07 FAIL and by nothing else; the other 188 original nodes were NOT selected and NOT called, so their absence is not a failure of them and it is not the cause of the rejection either.",
+      "the_correct_part_of_the_sentence": "the second half stays true: the five supplemental cases that passed are evidence of their executed assertions and not a closure of any obligation."
+    }
+  ],
+  "the_actual_cause_of_the_outer_rejection": {
+    "the_single_error_of_the_outer_decision": [
+      "ACTUAL_CHECKS_NOT_ALL_PASSED"
+    ],
+    "the_outer_decision_sha256": "fc0547ccc637efa1aa050d94c5fac8d9a5076a3472e2a04b72b372e34e4d93f2",
+    "the_outer_decision_path": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/outer-decision.json",
+    "the_predicate_that_raised_it": "the validator of the outer boundary takes the call reports of the SELECTED node ids of the plan, collects every report whose outcome is not passed and raises ACTUAL_CHECKS_NOT_ALL_PASSED when that list is not empty or when the exit of pytest was not zero.  The selected R07 node of that batch FAILED, so the list was not empty and the error was raised.",
+    "the_validator_source": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-01/validate_feedback.py",
+    "the_validator_source_sha256": "0ce99e6d475f9a3cc1a253f23f5ebef6d911cd7c3af65f65c923d3afcf7d77c0",
+    "the_validator_is_a_tool_pin_of_the_plan": true,
+    "the_group_block_is_reporting_only": "the groups of the decision are computed from the full denominators of the plan (full189_nodeids: 189 and supplemental_nodeids: 5) and the count of the calls of the batch that belong to them.  The acceptance of the feedback is decided by the list of the errors alone, so the group block of required 189 and passed 0 is REPORTING and it is NOT the predicate that rejected this local selection of six.",
+    "the_plan_says_the_same": "the frozen plan 07 carries scope_of_outer_acceptance = LOCAL_SELECTED6_FEEDBACK_ONLY; required189/pass1 does not declare full189 PASS; 188 original NOT_RUN in this batch, and it carries targeted_original_selected = 1 and targeted_original_not_selected = 188.",
+    "the_188_unselected_nodes": "the other 188 original nodes of the 189 were NOT selected, NOT collected and NOT called by that batch.  They are NOT failures, they are NOT the cause of the rejection and no count of theirs may be read as a result of theirs."
+  },
+  "the_exact_selected_six_in_their_exact_order": [
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r07_the_context_of_the_round_reaches_every_layer",
+      "group": "original189",
+      "when": "call",
+      "outcome": "failed",
+      "duration_seconds": 15.414857411000412,
+      "the_failure": "tools/test_v0_s3_native_custody_correction10.py:4991: in test_n10_r07_the_context_of_the_round_reaches_every_layer"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_01_final_query_preserves_original",
+      "group": "supplemental",
+      "when": "call",
+      "outcome": "passed",
+      "duration_seconds": 0.5137022259950754
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_02_final_query_preserves_first_interruption",
+      "group": "supplemental",
+      "when": "call",
+      "outcome": "passed",
+      "duration_seconds": 0.5144583039946156
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_03_inner_writer_error_rejects_success",
+      "group": "supplemental",
+      "when": "call",
+      "outcome": "passed",
+      "duration_seconds": 2.2886169319972396
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_04_recovered_final_write_has_failed_proof",
+      "group": "supplemental",
+      "when": "call",
+      "outcome": "passed",
+      "duration_seconds": 2.185756604994822
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_05_held_startup_owner_survives_query_faults",
+      "group": "supplemental",
+      "when": "call",
+      "outcome": "passed",
+      "duration_seconds": 4.2083327879954595
+    }
+  ],
+  "the_actual_counts_of_that_batch": {
+    "source": "the runner receipt of the very same batch: reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/native-custody-correction-03.receipt.json (sha256 16425c1d2525031a11e1a496ef2be8b963d7dab6d9fbc489c203056268498211) and the guard receipt of the same batch: reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/guard.json (sha256 28c0021787a8009e61d4c90b452fe1024ccaa6c783ffc5a93ef83bb38f0851ba)",
+    "selected": 6,
+    "collected": 6,
+    "called": 6,
+    "skipped": 0,
+    "missing": 0,
+    "original_189": {
+      "selected": 1,
+      "collected": 1,
+      "called": 1,
+      "PASSED": 0,
+      "FAILED": 1,
+      "SKIPPED": 0,
+      "NOT_RUN": 188
+    },
+    "supplemental_5": {
+      "selected": 5,
+      "collected": 5,
+      "called": 5,
+      "PASSED": 5,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "NOT_RUN": 0
+    },
+    "the_other_188_original_nodes": "NOT selected, NOT collected and NOT called by that batch; they are not failures and they are not the cause of the rejection",
+    "the_group_block_of_the_outer_decision": {
+      "original189": {
+        "required": 189,
+        "passed": 0
+      },
+      "supplemental": {
+        "required": 5,
+        "passed": 5
+      }
+    },
+    "the_group_block_is_reporting": true,
+    "overall_outer_result": "REJECTED",
+    "outer_accepted_cpu_feedback": false,
+    "outer_errors": [
+      "ACTUAL_CHECKS_NOT_ALL_PASSED"
+    ],
+    "pytest_exit": 1,
+    "duration_seconds": 27.981954336166382,
+    "cleanup_proven_for_batch": true,
+    "product_29": "NOT_RUN",
+    "native": "NOT_PROVEN",
+    "the_fresh_194_set": "NOT_RUN in that batch"
+  },
+  "the_binding_of_this_correction": {
+    "the_candidate_of_that_batch": "ab12b0a01f733403a4986744c77853dbeeee6f68",
+    "the_plan_sha256": "2786c5a52237ab89d80dde36dbd9651d26bfd551017c4541259ce1d84e731607",
+    "the_plan_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-08-targeted/targeted-plan-07/plan.json",
+    "the_implementation_receipt_commit": "b0e482d418449c4fa71ddf83222d39316d7cae8b",
+    "the_evidence_commit": "51f6fc2fc833e93778b0b35a5591df22b162e04f",
+    "the_canonical_targeted01_paths": [
+      "reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/guard.json",
+      "reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/guard.stdout.log",
+      "reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/native-custody-correction-03.receipt.json",
+      "reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/outer-decision.json",
+      "reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/before.stdout.log",
+      "reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/after.stdout.log",
+      "reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/counter-absence-before.json",
+      "reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/counter-absence-after.json",
+      "reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/evidence/n10-r07-pump-current-minimum.json",
+      "reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/evidence/n10-r07-pump-zero-expiry.json",
+      "reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/evidence/n10-r07-parent-salvage.json",
+      "reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/evidence/n10-r07-zero-public-chain.json",
+      "reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/evidence/n10-r07-zero-salvage.json"
+    ],
+    "the_raw_of_that_batch_is_immutable": "every file of the targeted01 root is preserved byte for byte and nothing of that run was rewritten, rerun or replaced by this correction"
+  },
+  "what_is_NOT_claimed": [
+    "this correction does not close the T07-M1 owner observation finding of the same review, it does not decide the cause of the failure of the R07 node and it does not authorize a rerun",
+    "the correction of the causality of the producer does not turn the 188 NOT_RUN nodes into failures and it does not turn them into passes either",
+    "a local selection of six that had passed would still not be the fixed 189 checkpoint, not the fresh 194 set, not the product 29 cases and not an acceptance of any kind",
+    "the five supplemental cases that passed are evidence of their own executed assertions and they close no obligation",
+    "the known Majors of the reviews 94cdd82d and 86ab300 stay OPEN and no Stage, no N2 clearance, no product acceptance and no human signoff is claimed or implied",
+    "the product 29 cases and the nine native uncertainties stay unproved"
+  ],
+  "attribution": {
+    "kind": "commit attribution of the producing agent",
+    "produced_by": "Visible ClaudeCode, the fixture implementer of the packet N1-OPTIMIZED-01",
+    "git_identity_used_for_the_commit": "ljx418 <1173696783@qq.com>",
+    "not_a_cryptographic_signature": "this attribution names the author of the correction and the git identity under which the commit is recorded.  It is NOT a digital signature, it proves no key, no signature and no identity beyond the git metadata of the commit itself.",
+    "scope": "the correction is bound to the original receipt by its SHA256 and by its two JSON pointers and to the raw run by the hashes of the runner, the guard and the outer decision"
+  },
+  "next_owner": "coordinator"
+}

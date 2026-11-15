@@ -1,0 +1,340 @@
+{
+  "kind": "implementation_receipt",
+  "scope_id": "OPT-B-09-MAIN-OWNER",
+  "packet": "N1-OPTIMIZED-01",
+  "state": "READY_FOR_REVIEW",
+  "runtime_authorized": false,
+  "finding": "T07-M1 (the owner observation of the MAIN session of R07) and T07-M2 (the causality of the producer in the targeted 6 receipt)",
+  "the_binding_of_this_delivery": {
+    "the_scope_file": "reports/workflow-rebaseline-2026-11-15/opt-b-09-main-owner/scope.json",
+    "the_scope_sha256": "d6cfe0079d4ba44812b7e058c9d07492c6284c23c76e8783e7e3478e55e179e5",
+    "the_scope_sha256_verified_on_disk": true,
+    "the_independent_review": "reports/workflow-rebaseline-2026-11-15/opt-b-09-main-owner/independent07-review.md",
+    "the_independent_review_commit": "d7364a0",
+    "the_base_candidate": "ab12b0a01f733403a4986744c77853dbeeee6f68",
+    "the_source_candidate_sha": "b9a81aed8e8f8fe6763a4dfd3d051cacf10e0820",
+    "the_source_candidate_commit": "b9a81ae",
+    "the_source_commit_of_this_receipt": "the commit that carries this receipt is the second commit of this delivery; the source correction is the first one"
+  },
+  "the_source_pins": {
+    "tools/test_v0_s3_native_custody_correction10.py": "6301193d3cd51dd1a24175a4872495312d87f0b64ca4f6b838ff1e21de1fef9a",
+    "tools/test_v0_s3_native_custody_cleanup_faults.py": "3ced6b15bf4b9c21c747ba732b05d8720b4e08d04bc6eeeceff4606c4ead60e5",
+    "tools/v0_s3_native_broker.py": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
+    "tools/v0_s3_native_custody.py": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581"
+  },
+  "the_exact_diff_of_the_source_correction": {
+    "base": "ab12b0a",
+    "head": "b9a81ae",
+    "files": [
+      {
+        "path": "LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py",
+        "insertions": 326,
+        "deletions": 11
+      }
+    ],
+    "the_supplement_changed": false,
+    "the_supplement_is_byte_identical_to_the_base_candidate": true,
+    "other_source_files_changed": [],
+    "production_files_changed": [],
+    "guard_runner_validator_plan_or_config_changed": [],
+    "note": "the guard, the runner, the validator, the plans and the approvals belong to root and were not touched; the two production sources keep their pins"
+  },
+  "static_facts": {
+    "method": "read-only git blob inspection and standard-library ast.parse as data; NO compile, NO import, NO collection and NO run of any kind",
+    "the_ast_parse_of_the_changed_source": "ok",
+    "T10_assert_occurrences": {
+      "base": 426,
+      "now": 436,
+      "removed": 0,
+      "added": 10
+    },
+    "no_assertion_of_the_base_candidate_was_removed": true,
+    "the_added_assertions": "they are the owner bound assertions of the review and they are listed below; every original acceptance assertion of the region is kept unchanged and it is evaluated BEFORE the added ones",
+    "T10_test_node_identities": {
+      "base": 14,
+      "now": 14,
+      "identical": true
+    },
+    "the_189_node_identities_of_the_frozen_set": "unchanged; T10 keeps its 14 nodes and no other test module was touched",
+    "the_supplement_module": "byte identical to the base candidate (sha256 3ced6b15bf4b9c21c747ba732b05d8720b4e08d04bc6eeeceff4606c4ead60e5); it was not read for anything else and it was not written",
+    "production_sources": {
+      "tools/v0_s3_native_broker.py": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
+      "tools/v0_s3_native_custody.py": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581"
+    },
+    "new_generic_diagnostic_framework": 0,
+    "new_fixture_observation_seams": 1,
+    "the_new_seam_is_instance_local": "the forwarder of the start is installed on the one MAIN session and the forwarder of the join is installed on the one held pump; neither of them touches the class, the module or any other round"
+  },
+  "T07_M1_the_owner_observation_of_the_MAIN_session": {
+    "the_finding_that_is_corrected": "the review d7364a0 found that the R07 fixture read the pump of the MAIN session through the mutable reference session._pump and that the expression collapsed an absent reference and an unfinished pump into one single False, so the fixture could not tell a retired reference from a pump that never ended",
+    "the_seam_that_is_used": "the production NativeCustodySession._start_background_thread(self, kind, thread) of the MAIN session with kind == 'pump'.  The forwarder is installed on that one session instance, so every call it forwards is by construction the call of this MAIN session, and only the call whose kind is 'pump' is held; every other background thread of the round is forwarded untouched.",
+    "the_capture_is_before_the_pointer_can_be_retired": "the pump is captured from the argument of the production itself, before the original start runs and therefore before any join of the round and before the production may clear session._pump",
+    "the_forwarder_is_transparent": "the original bound method is called with the original arguments, its result is returned unchanged, its error is recorded and re-raised unchanged, and the observer never decides anything",
+    "the_join_is_observed_on_the_pump_itself": "an instance local forwarder of the original join_bounded of the held pump records the real argument, the real result and the real error of every join and forwards them unchanged",
+    "the_phase_of_every_join": "before-body-boundary or fixture-salvage; the phase of the fixture is switched at the exact moment at which the salvage of the region begins, and every join also carries the exact moment and the name of the thread that made it, so a join of the production that races the boundary is still named correctly",
+    "the_held_owner_is_bound_to": [
+      "the real background record of the production: session._background_threads['pump'] with its state, its started flag and its error",
+      "the production table of the background threads of the round: the object of the record is compared with the held owner",
+      "the start observer of the fixture: the held owner is compared with the exact objects that the observer of the starts really saw and its provenance is read from the registry",
+      "the ORIGINAL context of the round: the context of the held owner is compared with the context of the session",
+      "the broker of the round: the broker of the held owner is compared with the broker of the session"
+    ],
+    "the_oracle_mapping_of_every_mutable_read_of_the_review": [
+      {
+        "read": "the current minimum diagnostic of the MAIN session (the phase document r07-pump-current-minimum)",
+        "before": "bool(session._pump is not None and not session._pump.finished) and repr(session._pump.error) if session._pump is not None else None",
+        "after": "bool(main_pump is not None and not main_pump.finished) and repr(main_pump.error) if main_pump is not None else None",
+        "the_equivalence": "when the mutable reference is the held owner the two expressions are the very same expression on the very same object and their result is identical.  When the reference is absent the old expression returned a value that described the reference and not the pump, and the new expression returns the truth of the pump that the production really started.",
+        "why_it_is_not_a_weakening": "the two values of the old expression were diagnostic facts of the phase document and NO assertion of the region ever read them.  The new expression cannot report a success that the old one denied as a success of the pump: it reports the state of the pump itself, and the added assertions fail a pump that is alive, that carries an error or whose identity is not confirmed.  The acceptance of the region therefore became STRICTER, not weaker."
+      },
+      {
+        "read": "the direct zero expiry loop of the MAIN session",
+        "before": "if session._pump is not None and session._pump.finished: break",
+        "after": "if main_pump is not None and main_pump.finished: break",
+        "the_equivalence": "identical when the reference is the held owner; when the reference is absent the old condition could never become true and the loop always ran its whole bound of fifteen seconds while it could not observe anything at all.",
+        "why_it_is_not_a_weakening": "the bound of the region is unchanged: the same fifteen seconds and the same sleep of five milliseconds.  The loop now observes the owner that the production really started, so it can end the wait when the pump really ended instead of always waiting for the whole bound."
+      },
+      {
+        "read": "the fact of the direct zero expiry (the phase document r07-pump-zero-expiry)",
+        "before": "pump_finished = bool(session._pump is not None and session._pump.finished)",
+        "after": "pump_finished = bool(main_pump is not None and main_pump.finished)",
+        "the_equivalence": "identical when the reference is the held owner; the assertion that reads this fact is UNCHANGED and it still reads the same key.",
+        "why_it_is_not_a_weakening": "the original assertion 'the pump of the round did not end after the bound arrived' is about the PUMP of the round and it is now asked of the pump of the round.  The added assertions make the acceptance stricter: the pump has to be observed, it has to be the object of the production background table and of the start observer, it has to carry the ORIGINAL context and the broker of the round, it has to be not alive, it has to carry NO error, and the mutable reference may only be absent when the production really started it, really ended it and really joined it before the salvage."
+      },
+      {
+        "read": "the pointer of the session",
+        "before": "the reference was read and its absence was reported as a pump that is not alive and that carries no error",
+        "after": "the state of the reference is a separate fact: SAME, ABSENT, OTHER or NOT_STARTED",
+        "the_equivalence": "no expression was replaced by this fact; it is an addition and it is recorded beside the facts of the held owner.",
+        "why_it_is_not_a_weakening": "an absent reference is never a proof: the ABSENT state is only accepted on the specific path on which the production confirmed the join of the pump BEFORE the salvage of the region, and every other state fails."
+      },
+      {
+        "read": "the channel error diagnostic of the zero round (the trace event CHANNEL_ERROR_SEEN_BY_THE_PUMP)",
+        "before": "the error was read from a second private read of the broker of the session and an absent broker reported no error at all",
+        "after": "the error is read from the already held reference of the real channel",
+        "the_equivalence": "the same value whenever the broker was present; the held reference is the exact channel that the production built.",
+        "why_it_is_not_a_weakening": "the field stays a diagnostic of the trace and it is never promoted into a proof of the absence of an error."
+      }
+    ],
+    "the_reads_of_the_review_that_were_inspected_and_left_unchanged": [
+      "the public zero admission (the original 4137) already captures the actual owner of the zero round before the deadline is tightened and it is a DIFFERENT resource from the pump of the MAIN session; it was not touched and the two resources are never asserted identical",
+      "the zero chain (the original 4259 and after) already reads that independently held object and it is already checked against the background table and the start observer; it was not touched",
+      "the pointer classification of the zero round (the original 4338) is consumed beside the hard checks of that region and it is not an independent None-is-success oracle; it was not touched"
+    ],
+    "what_was_preserved": [
+      "every original acceptance assertion of the region and the order in which they are evaluated: the original assertions are evaluated FIRST and the added ones come after them",
+      "the real public path, the real broker read and the real deadlines of the product",
+      "the bound of the region of fifteen seconds and its sleep of five milliseconds",
+      "no fake pump, no cleared error, no new threshold and no second lifecycle",
+      "the supplement module and both production sources are byte identical"
+    ],
+    "what_was_NOT_done": [
+      "no new wait, no retry, no sleep that was not there and no extension of a deadline of the product",
+      "no change of the production broker or custody",
+      "no new global framework, no module level registry of the fixture and no class level patch",
+      "no assertion was removed and no acceptance predicate was relaxed"
+    ]
+  },
+  "what_the_frozen_raw_of_the_failed_batch_already_shows_about_this_root": {
+    "the_source_of_these_facts": "the frozen raw of the targeted 6 of the commit 51f6fc2: reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/evidence/n10-r07-parent-salvage.json and .../evidence/n10-r07-pump-zero-expiry.json",
+    "the_observed_failures_of_the_round_of_the_parent": [
+      "BROKER_PIPE_CANCEL_NOT_CONFIRMED",
+      "CUSTODY_PUMP_FAILED:BrokerError",
+      "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_error",
+      "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_error"
+    ],
+    "the_observed_closer_of_the_round": "the evidence of the round names one closer thread with a RUNNING start state, so the production really started a bounded close of the round",
+    "the_observed_background_record_of_the_pump": "the pump of the production is recorded as kind pump, state RUNNING, started true and it is not alive at the end of the round",
+    "the_observed_waits_of_the_expiry": "the phase document r07-pump-zero-expiry of that batch carries pump_finished false and exactly the two waits 0.0 and 0.0",
+    "the_inference_that_is_NOT_a_proved_cause": "the facts above are consistent with a pump of the MAIN session that really ended with an error and whose reference the production really retired during the bounded close, and the fixture could not see either fact because it read the retired reference.  That is an INFERENCE from the frozen raw; the exact moment of the end of that pump is NOT established by that raw, because the fixture did not observe it.  This delivery therefore does NOT claim that the retirement was the cause of the failure of the batch and it does NOT claim any flaw of the production.",
+    "why_the_correction_is_the_right_one": "the corrected fixture records the owner, its error, its end, the join and the pointer state, so the next finite run decides the cause on facts instead of on a conflated boolean"
+  },
+  "T07_M2_the_producer_causality": {
+    "the_correction_file": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01-execution-receipt.correction-01.json",
+    "the_correction_sha256": "4fb94afa5c2979252883c2830ebaf7cdab1f29823770a93ccdeeec9588bdfd2a",
+    "the_bound_original_receipt": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01-execution-receipt.json",
+    "the_bound_original_sha256": "4b4c04c79d1fcd7025df1917598f80010db2ce329881ab57f58fcd9568b0fd04",
+    "the_bound_original_is_unchanged": true,
+    "the_bound_json_pointers": [
+      "/outcome_summary",
+      "/unresolved_limits/0"
+    ],
+    "the_actual_cause_that_is_recorded": "the outer validator raised ACTUAL_CHECKS_NOT_ALL_PASSED because the one selected original R07 node really FAILED; the group block of required 189 and passed 0 is REPORTING ONLY and it is not the predicate that rejected the local selection of six",
+    "the_outer_decision_sha256": "fc0547ccc637efa1aa050d94c5fac8d9a5076a3472e2a04b72b372e34e4d93f2",
+    "the_validator_that_raised_it": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-01/validate_feedback.py (sha256 0ce99e6d475f9a3cc1a253f23f5ebef6d911cd7c3af65f65c923d3afcf7d77c0), a tool pin of the frozen plan 07",
+    "the_six_selected_in_their_exact_order": "the correction derives them from the runner receipt of the very same batch",
+    "the_attribution_is_not_a_cryptographic_signature": true
+  },
+  "not_executed": [
+    "candidate import",
+    "pytest collect",
+    "pytest run",
+    "any compile of the candidate or of the supplement",
+    "any execution of the candidate, of the supplement or of any test",
+    "model, GPU, native, service, network, media, database or counter actions",
+    "any change of the guard, the runner, the validator, the plans, the approvals or the configuration",
+    "any change of the production broker or custody",
+    "any read of the body of the unrelated dirty report"
+  ],
+  "pending_dynamic_limits": [
+    "DYNAMIC NOT RUN: the corrected candidate was never executed.  The held owner, the join facts, the pointer states and the new owner bound assertions are DESIGNED against the production sources and against the frozen raw, and they are UNVERIFIED until root freezes the next finite plan and the independent review reads the new raw.",
+    "the correction does NOT make the selected R07 node pass.  If the pump of the MAIN session really ended with an error in the next run as the frozen raw suggests, the corrected fixture fails the node with that error named instead of with the conflated 'the pump of the round did not end after the bound arrived'.  A truthfull failure is the deliverable of this correction and a green node is NOT claimed.",
+    "the hypothesis that the retirement of the reference was the cause of the failure of the batch is PLAUSIBLE and it is NOT PROVED; the raw of the failed batch cannot decide the state of the owner at the moment of the failure and this delivery does not decide it either.",
+    "the cause of the failure of the reader of the channel of the round (BROKER_PIPE_CANCEL_NOT_CONFIRMED) is a fact of the product or of the fixture that the next raw has to show, and this delivery neither explains it nor clears it.",
+    "the fresh 194 set, the fixed 189 checkpoint, the product 29 cases and the nine native uncertainties stay unproved",
+    "the known Majors of the reviews 94cdd82d and 86ab300 stay OPEN: this delivery addresses the sources and the causality of the producer and it closes nothing",
+    "the historical M2 and M3 of the correction 22 review are not rewritten"
+  ],
+  "scope_of_this_result": {
+    "is_a_checkpoint": false,
+    "is_a_product_acceptance": false,
+    "is_a_stage_acceptance": false,
+    "is_a_targeted_batch": false,
+    "major_closed_by_this_delivery": 0,
+    "test_pass_claimed": false,
+    "native_proven": false,
+    "result": "READY_FOR_REVIEW - the source is sealed and the runtime evidence of the change is still missing"
+  },
+  "ten_fields": {
+    "coordinate": "V1/R1/WP-R1-U3/S3_P4",
+    "last_passed_scope": "the unified media UM10 early slice, not the full R1",
+    "current_batch": "the OPT-B-09 main owner correction of the R07 owner observation and the append only correction of the causality of the producer are delivered as a sealed source candidate",
+    "blockers": "the dynamic evidence of the new owner facts is missing; the R07 node will still fail on the real failure of the pump of the MAIN session; the historical Majors stay open",
+    "route": "the concentrated independent review of this diff and of the correction, then the frozen finite verification of root",
+    "remaining": "the new raw, the requalification of the affected negatives, the fixed 189 checkpoint, the admission of the real main chain and the product 29",
+    "next_owner": "root for the scope, the harness and the next plan; the independent reviewer for the review; ClaudeCode for the frozen test corrections",
+    "authority": "offline implementation only; no runtime ACK, no Stage, no product 29 and no N2 clearance",
+    "evidence": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/implementation-receipt.json bound to the source candidate b9a81ae, and the append only correction reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01-execution-receipt.correction-01.json",
+    "stop": "READY_FOR_REVIEW - the source is sealed, nothing was executed, no Major is closed and no acceptance is granted"
+  },
+  "development_outline": [
+    {
+      "stage_id": "V0-S0",
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "implementation": "ARCHIVED",
+      "machine_acceptance": "NO_GO_HISTORICAL",
+      "independent_review": "COMPLETED_WITH_BLOCKERS",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "V0-S1",
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "R0",
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "implementation": "PARTIAL_REUSED",
+      "machine_acceptance": "SINGLE_IMAGE_SUBSET_ONLY",
+      "independent_review": "NO_SEPARATE_R0_VERDICT",
+      "human_signoff": "NO_SEPARATE_R0_SIGNOFF"
+    },
+    {
+      "stage_id": "R1a",
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "V0-S2",
+      "completed_substeps": 7,
+      "total_substeps": 8,
+      "implementation": "IMPLEMENTED",
+      "machine_acceptance": "COMPLETE_FIXED9_PASSED",
+      "independent_review": "COMPLETE_FATAL0_MAJOR0_MINOR0",
+      "human_signoff": "PENDING"
+    },
+    {
+      "stage_id": "V0-S3",
+      "completed_substeps": 0,
+      "total_substeps": 6,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R1",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "EARLY_SLICE_IMPLEMENTED_FULL_R1_PENDING",
+      "machine_acceptance": "EARLY_SLICE_UM10_ONLY",
+      "independent_review": "EARLY_SLICE_FATAL0_MAJOR0",
+      "human_signoff": "EARLY_SLICE_APPROVED_FULL_R1_PENDING"
+    },
+    {
+      "stage_id": "V1-M1",
+      "completed_substeps": 0,
+      "total_substeps": 3,
+      "implementation": "DESIGN_ONLY",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R2",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R3",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R4",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5a",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5b",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5c",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    }
+  ],
+  "next_owner": "coordinator",
+  "next_action": "the independent review reads this diff and the append only correction and root freezes the necessary finite verification of the new source candidate b9a81ae; this delivery runs nothing, closes no Major and grants no acceptance"
+}
