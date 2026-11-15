@@ -1,0 +1,41 @@
+{
+  "result": "FUNCTIONAL_194_EVIDENCE_CONFIRMED_CONTROL_ENVELOPE_CHANGES_REQUIRED",
+  "counts": {
+    "Fatal": 0,
+    "Major": 1,
+    "Minor": 0
+  },
+  "findings": [
+    {
+      "id": "CP09-M1",
+      "candidate": "b9a81aed8e8f8fe6763a4dfd3d051cacf10e0820",
+      "spec": "combined-plan-09 planSHA691fa1989474d5843a3b7bd7eb09a46c3984d9613c5739ad53b40d98da1a1bd3; execution prompt/direct renderings/rootACK",
+      "layer": "executor frozen control envelope and navigation truth",
+      "location": "combined-plan-09/direct-command-renderings.json timeout_ms; plan.commands[].tool_timeout_ms; original Bash tool inputs at16:33:22/16:33:53/16:36:42/16:36:57/16:38:10UTC; combined01-execution-receipt.json the_commands[].timeout_ms",
+      "trigger": "Frozen five-step checkpoint is launched with larger tool timeout parameters.",
+      "expected": "Exactly5/290/5/5/5s command caps, single batch0retry, prescribed310s sum.",
+      "actual": "Original tool inputs specify30/300/30/30/30s (sum420), while navigation repeats frozen5/290/5/5/5 as executed. Guard actual54.23432517051697s/runner54.1041738986969s; all194 actualPASS/cleanuptrue do not prove the missing configured290s stop bound.",
+      "oracle": "Compare original tool input timeout values against hash-frozen direct renderings and plan; do not derive timeout conformance from elapsed time or exit0.",
+      "negative": "A future stuck cooperative run must not receive a longer kill lease than frozen; do not silently rewrite old inputs/navigation or retroactively call them exact.",
+      "terminal": "CHANGES_REQUIRED_FOR_FROZEN_COMPONENT_ENVELOPE; observed194 functional/count/cleanup facts remain valid; no Stage/N2 clearance.",
+      "cleanup": "This actual batch has known equal FD inventories/no newreused/unknown FDs and MainThread only; no actual leak or overrun observed.",
+      "evidence": [
+        "recomputation.json /execution_commands and /timeout_comparison",
+        "immutable c87e6456 combined01 navigation receipt",
+        "root frozen plan/direct renderings/execution prompt",
+        "original execution tool call metadata"
+      ],
+      "classification": "Major",
+      "uncertainty": "No evidence of an actual290s overrun or product behavior defect. Any separate conforming external kill deadline has not been established. This is a control-envelope deviation, not missing194 execution.",
+      "minimal_closure": "Root/executor preserve raw and append an attributed timeout provenance correction; establish any actually applied conforming bound from existing evidence, or record the deviation and have the authorized root adjudicate its effect before qualifying the frozen checkpoint. Future execution must use exact frozen tool caps; any necessary new verification requires a separately frozen plan, never an automatic replay.",
+      "owner": "root coordinator and executor; no candidate source fix requested",
+      "Minor_policy": "Not eligible: required finite-execution cap is not duplicate auxiliary display, and actual runPASS does not meet ADR16 alreadyFAIL prerequisite."
+    }
+  ],
+  "source_reuse": "14e65d9 exact source/tool/dependency pins confirmed, production unchanged",
+  "T07_M1": "Current combined01 held main/body/salvage proof supported; prior cause undecided and bodyABSENT static only",
+  "T07_M2": "Append correction unchanged and qualified; current timeout navigation discrepancy grouped in CP09-M1",
+  "component_checkpoint": "Observed fresh194 behavior/counts/CPUcleanup supported; qualification as exact frozen controlled checkpoint HELD for CP09-M1 root adjudication",
+  "product29_native9_Stage_N2": "NOT_PROVEN_NO_CLEARANCE",
+  "runtimeACK": "NOT_ISSUED"
+}
