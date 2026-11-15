@@ -1,0 +1,11 @@
+{
+  "id": "TRUSTED-GUARD-NULL-SINK-02",
+  "base_guard_sha256": "35f130c51ee2f1b8764ff1a258b4fce0749038f6e320d0e5127b4c8a05a5b814",
+  "changes": "Exact literal /dev/null write-open only, require pre-existing character-device dev/ino/rdev stable. All filesystem mutation checks remain; no generic /dev allow or link alias allowance. Add actual positive null write to existing9 denials and ownedpositive.",
+  "status": "SOURCE_ONLY_NO_RUNTIME_ACK",
+  "observed_trigger": "combined05 guard /dev/null denied; pytest exit3 calls0; actual raw retained",
+  "candidate_source_unchanged": "9b6d9d4b827587d132eaf20e2b838d449ed89bd3",
+  "canary_plan_sha256": "a8c5d114169d094f369b7dc8838092b1a7b908511efbea01f635ee646bdbd585",
+  "ordinary_candidate_nonempty_denials": "AlwaysFAIL",
+  "no_product_gate_claim": true
+}

@@ -1,0 +1,36 @@
+INTERNALERROR> Traceback (most recent call last):
+INTERNALERROR>   File "/home/administrator/.local/lib/python3.12/site-packages/_pytest/main.py", line 285, in wrap_session
+INTERNALERROR>     config._do_configure()
+INTERNALERROR>   File "/home/administrator/.local/lib/python3.12/site-packages/_pytest/config/__init__.py", line 1119, in _do_configure
+INTERNALERROR>     self.hook.pytest_configure.call_historic(kwargs=dict(config=self))
+INTERNALERROR>   File "/home/administrator/.local/lib/python3.12/site-packages/pluggy/_hooks.py", line 534, in call_historic
+INTERNALERROR>     res = self._hookexec(self.name, self._hookimpls.copy(), kwargs, False)
+INTERNALERROR>           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/home/administrator/.local/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+INTERNALERROR>     return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/home/administrator/.local/lib/python3.12/site-packages/pluggy/_callers.py", line 167, in _multicall
+INTERNALERROR>     raise exception
+INTERNALERROR>   File "/home/administrator/.local/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+INTERNALERROR>     res = hook_impl.function(*args)
+INTERNALERROR>           ^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/home/administrator/.local/lib/python3.12/site-packages/_pytest/logging.py", line 638, in pytest_configure
+INTERNALERROR>     config.pluginmanager.register(LoggingPlugin(config), "logging-plugin")
+INTERNALERROR>                                   ^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/home/administrator/.local/lib/python3.12/site-packages/_pytest/logging.py", line 675, in __init__
+INTERNALERROR>     self.log_file_handler = _FileHandler(
+INTERNALERROR>                             ^^^^^^^^^^^^^
+INTERNALERROR>   File "/usr/lib/python3.12/logging/__init__.py", line 1231, in __init__
+INTERNALERROR>     StreamHandler.__init__(self, self._open())
+INTERNALERROR>                                  ^^^^^^^^^^^^
+INTERNALERROR>   File "/usr/lib/python3.12/logging/__init__.py", line 1263, in _open
+INTERNALERROR>     return open_func(self.baseFilename, self.mode,
+INTERNALERROR>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR>   File "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-01/guard.py", line 91, in audit
+INTERNALERROR>     writable(event, args[0])
+INTERNALERROR>   File "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-01/guard.py", line 60, in writable
+INTERNALERROR>     deny(event + '.outside_root', (path, directory_fd))
+INTERNALERROR>   File "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-01/guard.py", line 36, in deny
+INTERNALERROR>     raise RuntimeError('ROOT_GUARD_DENIED:' + event)
+INTERNALERROR> RuntimeError: ROOT_GUARD_DENIED:open.outside_root
+{"pytest_exit": 3, "call_count": 0, "pass_count": 0, "fail_count": 0, "skip_count": 0, "functional_pass_count": 0, "cleanup_proven_for_batch": true}

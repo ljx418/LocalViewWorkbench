@@ -1,0 +1,36 @@
+{
+  "guard_precedes_candidate_and_pytest": true,
+  "selftest_denials": [
+    "subprocess.Popen",
+    "socket.__new__",
+    "os.fork",
+    "os.exec",
+    "os.system",
+    "sqlite3.connect",
+    "ctypes.dlopen",
+    "ctypes.dlsym"
+  ],
+  "runtime_denials": [
+    {
+      "event": "open.outside_root",
+      "args": "('/dev/null', None)"
+    }
+  ],
+  "preload_events": [
+    {
+      "event": "ctypes.dlopen",
+      "name": null
+    }
+  ],
+  "preload_window_final_state": "CLOSED",
+  "write_root": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-05/combined01",
+  "write_root_identity": [
+    2096,
+    3086631
+  ],
+  "relative_dir_fd_open_write": "DENIED_UNSUPPORTED",
+  "new_symlinks": "DENIED_UNSUPPORTED",
+  "wall_seconds": 0.18187880516052246,
+  "clean_runtime_denial_ledger": false,
+  "is_adversarial_os_sandbox": false
+}
