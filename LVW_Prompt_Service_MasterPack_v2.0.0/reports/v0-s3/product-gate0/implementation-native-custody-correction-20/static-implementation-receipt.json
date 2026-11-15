@@ -1,0 +1,241 @@
+{
+ "artifacts": {
+  "counterexample-mapping.md": {
+   "bytes": 10462,
+   "lines": 185,
+   "sha256": "656fbf1be0fb775e526d656afe35a8e46e30f6ee91daafe8a435c2f4c5238ae2"
+  },
+  "execution-request.md": {
+   "bytes": 4346,
+   "lines": 96,
+   "sha256": "175e9211d45578d150755801be1ac176c20a8536873651b7d3d908a492dc9e5e"
+  },
+  "pins.json": {
+   "bytes": 3417,
+   "lines": 96,
+   "sha256": "047735dc7dc33ecd5ffde3c3a17526abe58fec5a35a5b9a2362e6165f828e5db"
+  },
+  "preparation-checklist.md": {
+   "bytes": 6207,
+   "lines": 40,
+   "sha256": "6c0333a37d78bf2f2c0784c7b0e0d005c595e41c81bab3f6a7b6b2b7b389449f"
+  },
+  "report.md": {
+   "bytes": 8947,
+   "lines": 114,
+   "sha256": "636df01634f1f065e8e7473baa23edb24db40038c9fee8f3cbfee738cb7605bf"
+  },
+  "static-checks/check_correction20.py": {
+   "bytes": 19503,
+   "lines": 470,
+   "sha256": "72acdb93155ef12be4437d0c33976aaf9cf41f955cca1d6a813a49f394296009"
+  },
+  "static-checks/static-checks-report.json": {
+   "bytes": 43945,
+   "lines": 654,
+   "sha256": "039032a9df04ab74024190e9b2e38b60d8a5bf7912423d848e13d4eaa37f0003"
+  },
+  "static-checks/static-checks-summary.md": {
+   "bytes": 4200,
+   "lines": 47,
+   "sha256": "6b09f3658aa7ab53460357e658e45c3493e5fc37ae4dbbe9bc1ad7d3cbb1f644"
+  }
+ },
+ "assertion_equivalence": {
+  "added": [],
+  "baseline_total": 414,
+  "candidate_total": 414,
+  "note": "No predicate of the baseline of the correction 19 is removed and none is added: the seven repairs change the CONTROL FLOW of the cleanup and of the evidence and they keep every oracle of the baseline.  The static multiset diff is in the report of the static checks.",
+  "removed": []
+ },
+ "baseline": {
+  "Fatal": 0,
+  "M1": "CLOSED_STATIC",
+  "M2": "OPEN",
+  "M3": "OPEN",
+  "Major": 2,
+  "Minor": 0,
+  "independent_review": "reports/v0-s3/product-gate0/native-custody-correction-19/test-review-01/review-result",
+  "report_delivery": "7bf0c53822b396be3ea2091bdd6d3e18df0bf7b4",
+  "review_decision": "CHANGES_REQUIRED",
+  "source_candidate": "c3286cce2cc4e4e8f4bb25fde60fa8f998e2fdce"
+ },
+ "budget_note": "the user restored the quota of the correction 19 for this scoped route; the first new 429 stops with WAIT_BUDGET and ends the turn without a retry, without a switch of route and without a takeover of the root; an approval refusal or a timeout stops the route without a bypass and without an edit of a configuration file",
+ "candidate_base_sha": "7bf0c53822b396be3ea2091bdd6d3e18df0bf7b4",
+ "candidate_git_commit": "206a7fe7f21343d89ca83e03a0e4dc7e670cd381",
+ "candidate_git_commit_note": "the actual Git identity of the committed static candidate of this correction",
+ "candidate_module": {
+  "after": {
+   "bytes": 431788,
+   "lines": 8378,
+   "sha256": "662f6a2a0b1af5dd5b2baad737c2b6fc82edcab755beac49c67848f6fff6102a"
+  },
+  "before": {
+   "bytes": 400523,
+   "lines": 7858,
+   "sha256": "5cb618f4acca24967932fdfd75615ffcc9e71a5f1de1bd32d9a278170ddfbd1a"
+  },
+  "path": "tools/test_v0_s3_native_custody_correction10.py"
+ },
+ "candidate_sha": "NOT_USED_A_CONTENT_HASH_IS_NOT_A_CANDIDATE_IDENTITY",
+ "changed_files": [
+  "tools/test_v0_s3_native_custody_correction10.py"
+ ],
+ "coordinate": "V1/R1/WP-R1-U3/S3_P4",
+ "counterexample_mapping": [
+  {
+   "boundary": "the coordination evidence has its own binding (coord_document) and its own entry of the shared fact store; the launch document keeps its own binding and reaches the chain and the five schedules unchanged",
+   "id": "M2-19-A",
+   "review": "19-M2.1",
+   "static_check": "M2.1_original_plan_binding",
+   "trigger": "the coordination evidence DTO replaced the launch plan before the required schedules"
+  },
+  {
+   "boundary": "one shared per-document LAST ACTUAL fact store; the full intended facts are stored before the terminal persistence; the recovery rewrites the ATTEMPTED name from those facts and joins the original error",
+   "id": "M2-19-B",
+   "review": "19-M2.2",
+   "static_check": "M2.2_shared_recovery_facts",
+   "trigger": "the bounded terminal recovery wrote from an unrelated fact store"
+  },
+  {
+   "boundary": "the verdict is a FAIL when the original failure is not None; a failed evidence write updates the store and the error list and the evidence is closed after the cleanup with the priority of the cleanup",
+   "id": "M2-19-C",
+   "review": "19-M2.3",
+   "static_check": "M2.3_early_final_verdict",
+   "trigger": "the earlier final verdict ignored the original failure and its write error could disappear"
+  },
+  {
+   "boundary": "a durable final summary is written once after every inventory action: the states, the names not persisted, the full facts, the original failure and every additional write error; it never replaces the original exception",
+   "id": "M2-19-D",
+   "review": "19-M2.4",
+   "static_check": "M2.4_durable_final_inventory",
+   "trigger": "the failure inventory was local and not durable"
+  },
+  {
+   "boundary": "the seam retains the exact object of the cancellation and the phase raises that object; the exact objects stay in memory and the documents show the type and the detail separately",
+   "id": "M3-19-A",
+   "review": "19-M3.1",
+   "static_check": "M3.1_interruption_priority",
+   "trigger": "the seam write cancellation was converted into an ordinary assertion"
+  },
+  {
+   "boundary": "the zero, parent and controlled evidence writers consult the pending list first and re-raise the first exact interruption; the priority is unwinding original > first exact pending interruption > ordinary proof/evidence assertion",
+   "id": "M3-19-B",
+   "review": "19-M3.1",
+   "static_check": "M3.1_interruption_priority",
+   "trigger": "the current cancellation of the write won over the first pending one"
+  },
+  {
+   "boundary": "every cleanup release of the module is guarded on its own by one helper; a cancellation of one gate never skips the second gate, the closes, the stop, the joins, the proof and the evidence",
+   "id": "M3-19-C",
+   "review": "19-M3.2",
+   "static_check": "M3.2_every_initial_gate_guarded",
+   "trigger": "the initial gate releases were unguarded before the guarded drain"
+  },
+  {
+   "boundary": "an independent view of the exact started objects that never calls entries(); the registry owners and the drain seed their owners from it",
+   "id": "M3-19-D",
+   "review": "19-M3.3",
+   "static_check": "M3.3_independent_observed_fallback",
+   "trigger": "the observed fallback depended on the failing entries query"
+  }
+ ],
+ "denominator": {
+  "ids_and_order_equal_to_the_baseline": true,
+  "per_module": {
+   "tools/test_v0_s3_native_custody.py": 117,
+   "tools/test_v0_s3_native_custody_correction05.py": 24,
+   "tools/test_v0_s3_native_custody_correction07.py": 18,
+   "tools/test_v0_s3_native_custody_correction10.py": 14,
+   "tools/test_v0_s3_native_custody_regressions.py": 16
+  },
+  "skip_xfail_calls": [],
+  "total": 189,
+  "unique": true
+ },
+ "design": {
+  "ack_file": "reports/v0-s3/product-gate0/native-custody-correction-17/design-review-02/ack.json",
+  "approved_by_root": true,
+  "authoritative_section": "section 10 (the correction addendum of the root review D1-D5) and the binding clarifications 1-6 of the root design ACK",
+  "delta_of_correction_20": "the implementation of the exact seven residual counterexamples of the independent review of the correction 19; no new generic framework and no new product obligation",
+  "file": "reports/v0-s3/product-gate0/implementation-native-custody-correction-17/design.md",
+  "preserved": "the repairs of the correction 19, the M1 closure and the repaired paths of the correction 18 are kept"
+ },
+ "execution_audit": {
+  "429_or_approval_refusal": false,
+  "candidate_collect": false,
+  "candidate_executed": false,
+  "candidate_import": false,
+  "ctypes": false,
+  "ledger_counter": false,
+  "media_db": false,
+  "methods_used": [
+   "text reads of the seven sources of the denominator",
+   "ast.parse of the five test modules and of the two production sources",
+   "in-memory compile of the edited module",
+   "sha256 of the sources and of the delivered artifacts",
+   "read-only git show of the baseline blobs",
+   "read-only git diff of the candidate"
+  ],
+  "model_gpu": false,
+  "native_call": false,
+  "os_business_process": false,
+  "pytest": false,
+  "runtime_probe": false,
+  "service_network": false
+ },
+ "kind": "lvw.s3-native-custody-correction20-static-implementation-receipt/1",
+ "non_claims": {
+  "dynamic15": "NOT_RUN",
+  "dynamic16": "NOT_RUN",
+  "dynamic17": "NOT_RUN",
+  "dynamic18": "NOT_RUN",
+  "dynamic19": "NOT_RUN",
+  "dynamic20": "NOT_RUN",
+  "historical14": "the 189 PASS of the correction 14 stays historical",
+  "human_signoff": false,
+  "major_closure_claimed": false,
+  "native": "NOT_PROVEN",
+  "product_acceptance": false,
+  "runtime_plan_acked": false,
+  "stage_pass": false
+ },
+ "source_sha256": "662f6a2a0b1af5dd5b2baad737c2b6fc82edcab755beac49c67848f6fff6102a",
+ "source_sha256_note": "the sha256 of the CONTENT of the changed module tools/test_v0_s3_native_custody_correction10.py in the committed candidate; it is a content hash and it is never called candidate_sha",
+ "static_checks": {
+  "checks": [
+   "M2.1_original_plan_binding",
+   "M2.2_shared_recovery_facts",
+   "M2.3_early_final_verdict",
+   "M2.4_durable_final_inventory",
+   "M3.1_interruption_priority",
+   "M3.2_every_initial_gate_guarded",
+   "M3.3_independent_observed_fallback",
+   "assertions",
+   "denominator",
+   "unchanged_sources"
+  ],
+  "failed": 0,
+  "file": "reports/v0-s3/product-gate0/implementation-native-custody-correction-20/static-checks/static-checks-report.json",
+  "instrument": "reports/v0-s3/product-gate0/implementation-native-custody-correction-20/static-checks/check_correction20.py",
+  "note": "the static checks are NOT an execution: they are AST, hash and read-only git operations on the source",
+  "ok": true,
+  "total": 10
+ },
+ "unchanged_files": [
+  "tools/v0_s3_native_broker.py",
+  "tools/v0_s3_native_custody.py",
+  "tools/test_v0_s3_native_custody.py",
+  "tools/test_v0_s3_native_custody_regressions.py",
+  "tools/test_v0_s3_native_custody_correction05.py",
+  "tools/test_v0_s3_native_custody_correction07.py"
+ ],
+ "validation_plan_request": {
+  "batches_max": 1,
+  "commands": 3,
+  "file": "reports/v0-s3/product-gate0/implementation-native-custody-correction-20/execution-request.md",
+  "max_seconds": 300,
+  "node_count": 189,
+  "requested_not_executed": true
+ }
+}
