@@ -1,0 +1,46 @@
+{
+  "kind": "append_only_execution_receipt_correction",
+  "correction_id": "combined02-execution-receipt.correction-01",
+  "appends_to": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-05/combined02-execution-receipt.json",
+  "appended_sha256_of_the_original_receipt": "295bbac758eed84c7006b719179260240fea3b42f20731d2de2ad4a6ecae80f8",
+  "original_bytes_preserved": true,
+  "original_receipt_rewritten": false,
+  "finding": "OPT-B-07 / F06-M5 - the receipt of the 194-call run carried a false sentence about the fixed 189",
+  "wrong_statement": {
+    "json_pointer": "/unresolved_limits/3",
+    "original_text": "the remaining 175 of the fixed 189 were NOT selected and NOT run by this batch; the 194 selection is not the fixed 189 checkpoint and never the product 29 cases.",
+    "why_it_is_wrong": "the sentence names 175 fixed nodes of the 189 as NOT selected and NOT run, but the raw runner receipt of the very same run records all 189 of them as selected, collected and called, and all 189 as PASSED.  The sentence is contradicted by the exact call evidence of the run it describes.",
+    "the_correct_part_of_the_sentence": "the second half stays true: the 194 selection is not the fixed 189 checkpoint and never the product 29 cases.  Only the first half was wrong and it is corrected here."
+  },
+  "the_actual_counts_of_that_run": {
+    "source": "the per-node reports of the runner receipt attempt02/native-custody-correction-03.receipt.json (sha256 09bb14012c19490fb4ed60614afedcdf9e4ac0e824e14bbcfad69a452cf2df25) and the guard receipt attempt02/guard.json (sha256 1bfad3f917fb3f61c1ad6c4c61b758cfccec31d255629ddc343cf43769c95f00)",
+    "selected": 194,
+    "collected": 194,
+    "called": 194,
+    "skipped": 0,
+    "missing": 0,
+    "original_189": {"selected": 189, "collected": 189, "called": 189, "PASSED": 189, "FAILED": 0, "SKIPPED": 0, "NOT_RUN": 0},
+    "supplemental_5": {"selected": 5, "collected": 5, "called": 5, "PASSED": 4, "FAILED": 1, "SKIPPED": 0, "NOT_RUN": 0},
+    "the_one_failure": "tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_03_inner_writer_error_rejects_success - the injected inner writer error was never reached because the zero region of that invocation raised first with a timing dependent pump BROKER_CHANNEL_TIMEOUT",
+    "overall_outer_result": "REJECTED",
+    "outer_accepted_cpu_feedback": false,
+    "outer_errors": ["GUARD_RUNTIME_DENIALS_NONEMPTY"],
+    "outer_decision_sha256": "d3b395ef74039df6982c6951ff06561263dd7a5de8a9ed931ae1c9252639b242",
+    "product_29": "NOT_RUN",
+    "native": "NOT_PROVEN",
+    "the_189_of_that_run_are_not_the_fixed_189_checkpoint": "the 189 nodes of that run are the frozen 189 of the candidate and they all PASSED inside a bounded CPU batch; that is not the fixed 189 checkpoint of the release, it is not the product 29 cases and it grants no Stage, product or N2 clearance"
+  },
+  "what_is_NOT_claimed": [
+    "the correction does not close any Major, it does not reopen the historical M2/M3 findings and it does not rewrite the original receipt",
+    "a passing 189 inside a rejected batch is not an accepted feedback and it is not a checkpoint endorsement",
+    "the product 29 cases and the nine native uncertainties of the production review stay unproved"
+  ],
+  "attribution": {
+    "kind": "commit attribution of the producing agent",
+    "produced_by": "Visible ClaudeCode, the fixture implementer of the packet N1-OPTIMIZED-01",
+    "git_identity_used_for_the_commit": "ljx418 <1173696783@qq.com>",
+    "not_a_cryptographic_signature": "this attribution names the author of the correction and the git identity under which the commit is recorded.  It is NOT a digital signature, it proves no key, no signature and no identity beyond the git metadata of the commit itself.",
+    "scope": "the correction is bound to the original receipt by its SHA256 and its JSON pointer and to the raw run by the hashes of the runner, the guard and the outer decision"
+  },
+  "next_owner": "coordinator"
+}
