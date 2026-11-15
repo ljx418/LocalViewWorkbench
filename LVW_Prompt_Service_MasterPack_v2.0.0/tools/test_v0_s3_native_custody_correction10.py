@@ -139,8 +139,12 @@ from tools.test_v0_s3_native_custody_regressions import (  # noqa: E402
 #: directory of the correction 22.  The real documents of the batch of the
 #: correction 21 stay in the directory of the correction 21: they are
 #: never overwritten, never deleted and never replaced by a summary.
+#: CORRECTION 23: the diagnostics of this module are written in the NEW
+#: directory of the correction 23.  The real documents of the batch of the
+#: correction 22 stay in the directory of the correction 22: they are
+#: never overwritten, never deleted and never replaced by a summary.
 EVIDENCE_DIR = (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'
-                / 'implementation-native-custody-correction-22' / 'evidence')
+                / 'implementation-native-custody-correction-23' / 'evidence')
 
 #: The nonce of the private channel of the probes of this module.  It
 #: is a closed form of 32 hexadecimal characters and it is the nonce of
@@ -696,6 +700,48 @@ def _raise_first_interruption(interrupts):
         raise interrupts[0]
 
 
+def _cleanup_facts(region, **extra):
+    """The **minimal** actual facts of a cleanup region.
+
+    CORRECTION 23 (M3): the facts of a cleanup exist **before** the body
+    of the region runs.  A body that fails before its own happy facts
+    exist never leaves the cleanup of the region without a document and
+    the document never claims a result that was not observed:
+    ``executed`` says that the body really ran, ``actions`` names every
+    action that was really attempted, ``alive`` carries the **actual**
+    liveness that the guarded join returned, ``original`` carries the
+    failure that was really unwinding, ``unknown`` names the states that
+    were not reached and ``proof_failure`` is the verdict that the
+    **complete** history of the cleanup really has.
+    """
+    facts = {'region': region,
+             'executed': False,
+             'actions': [],
+             'alive': None,
+             'original': None,
+             'unknown': [],
+             'cleanup_errors': [],
+             'interrupts': [],
+             'proof_failure': None}
+    facts.update(extra)
+    return facts
+
+
+def _original_facts():
+    """The **exact** original failure that is unwinding, if any.
+
+    CORRECTION 23 (M3): the original failure of a cleanup region is read
+    **before** the first action of the cleanup runs - inside the handler
+    of a write the state of the frame is the write error itself and the
+    original failure would never be seen.  The document of the cleanup
+    names it and it is never replaced by a secondary failure.
+    """
+    kind, value, _ = sys.exc_info()
+    if kind is None:
+        return None
+    return {'type': kind.__name__, 'detail': str(value)}
+
+
 def _cleanup_verdict(errors, base_proof, detail):
     """The **final** verdict of a cleanup region.
 
@@ -705,6 +751,13 @@ def _cleanup_verdict(errors, base_proof, detail):
     is **preserved** and the errors of the cleanup are **added** to it:
     an error of the cleanup never erases the error that was already
     found and it never disappears because the proof already failed.
+
+    CORRECTION 23 (M2/M3): ``errors`` is the **complete** history of the
+    cleanup - never a slice of it - and ``base_proof`` is the **actual**
+    physical proof of the region.  An error that was recorded **before**
+    the proof was computed is part of the verdict: a cleanup that met an
+    unexpected error after its proof was found never keeps the proof it
+    found earlier.
 
     The verdict is a **fact** and never an exception: the priority of
     the failures - the failure that is unwinding, then the **first**
@@ -736,7 +789,7 @@ def _owner_alive(join_fact):
     return bool(alive)
 
 
-def _publish_cleanup(facts, writer, errors, interrupts):
+def _publish_cleanup(facts, writer, errors, interrupts, verdict=None):
     """Write the **complete** facts of a cleanup region.
 
     CORRECTION 22 (M2/M3): the document of a cleanup carries **every**
@@ -746,26 +799,52 @@ def _publish_cleanup(facts, writer, errors, interrupts):
     retained with its exact type and its exact detail, the facts are
     updated **in memory** and the durability of the failure is a **best
     effort**.
+
+    CORRECTION 23 (M2/M3): the verdict of the cleanup is recomputed
+    **before every attempt to write** and **before the retry** that
+    follows a failed write.  ``verdict`` is the callable that recomputes
+    it from the **complete** history of the errors of the cleanup and
+    from the **actual** physical proof of the region, so the durable
+    artifact always carries the verdict that the cleanup **really** has
+    and never the proof of a state that is already outdated.  The error
+    of a failed write is added to that history **before** the retry: the
+    artifact of the retry carries the **failed** proof and never
+    ``None``.  When the retry fails as well the facts of the cleanup
+    keep the failed verdict **in memory**, the durability of the
+    evidence is marked as **not** confirmed and the cleanup never claims
+    that the disk persisted it.
     """
-    facts['cleanup_errors'] = list(errors)
-    facts['interrupts'] = _interruption_facts(interrupts)
+    def _refresh():
+        facts['cleanup_errors'] = list(errors)
+        facts['interrupts'] = _interruption_facts(interrupts)
+        if verdict is None:
+            return None
+        current = verdict() if callable(verdict) else verdict
+        facts['proof_failure'] = current
+        return current
+
+    _refresh()
     try:
         writer()
+        facts['evidence_durable'] = True
     except BaseException as error:  # noqa: BLE001 - it stays visible
         errors.append({'kind': 'EVIDENCE', 'type': type(error).__name__,
                        'detail': str(error)})
         _note_interruption(interrupts, error)
-        facts['cleanup_errors'] = list(errors)
-        facts['interrupts'] = _interruption_facts(interrupts)
+        # the verdict is recomputed **with** the error of the write
+        # **before** the retry: the artifact of the retry carries the
+        # failed proof of the cleanup and never a proof of ``None``.
+        _refresh()
         try:
             writer()
+            facts['evidence_durable'] = True
         except BaseException as retry_error:  # noqa: BLE001
             errors.append({'kind': 'EVIDENCE_RETRY',
                            'type': type(retry_error).__name__,
                            'detail': str(retry_error)})
             _note_interruption(interrupts, retry_error)
-            facts['cleanup_errors'] = list(errors)
-            facts['interrupts'] = _interruption_facts(interrupts)
+            _refresh()
+            facts['evidence_durable'] = False
     return facts
 
 
@@ -1660,7 +1739,13 @@ def test_n10_r02_the_claim_of_the_recovery_and_the_handover_are_exclusive():
     # and it never replaces the failure that is already unwinding.
     recovery_cleanup_errors = []
     recovery_interrupts = []
+    # CORRECTION 23 (M3): the facts of the cleanup of this region exist
+    # **before** its body runs: a body that fails before its own happy
+    # facts exist never leaves the cleanup of the region without a
+    # durable document.
+    recovery_cleanup_facts = _cleanup_facts('recovery')
     try:
+        recovery_cleanup_facts['executed'] = True
         assert entered.wait(10.0), \
             'the recovery never reached the close of the claimed end'
         # The table is usable while the recovery waits: the lock of the
@@ -1685,9 +1770,14 @@ def test_n10_r02_the_claim_of_the_recovery_and_the_handover_are_exclusive():
                                    'registered': [repr(item)
                                                   for item in registered]})
     finally:
+        # CORRECTION 23 (M3): the **exact** original failure that is
+        # unwinding is read **before** the first action of the cleanup
+        # runs: it is the priority that follows the publication.
+        recovery_cleanup_facts['original'] = _original_facts()
         # CORRECTION 20 (M3): the release of the gate is guarded and the
         # exact object of a cancellation of it is retained.
         _release_gate(release.set, recovery_cleanup_errors, recovery_interrupts)
+        recovery_cleanup_facts['actions'].append('release:gate')
         # CORRECTION 21 (M3): the join of the recovery is **guarded**: a
         # failure of it is retained with its exact type and its exact
         # detail and it never replaces the failure that is already
@@ -1695,11 +1785,32 @@ def test_n10_r02_the_claim_of_the_recovery_and_the_handover_are_exclusive():
         recovery_join = _join_owner('recovery', worker,
                                     recovery_cleanup_errors,
                                     recovery_interrupts, seconds=15.0)
+        recovery_cleanup_facts['actions'].append('join:recovery')
         # CORRECTION 22 (M3): the **actual** liveness of the owner is the
         # fact that the guarded join returned: the query is never
         # repeated outside its guard and an **unknown** liveness is
         # never read as the end of the owner.
         recovery_alive = _owner_alive(recovery_join)
+        recovery_cleanup_facts['alive'] = recovery_alive
+        recovery_cleanup_facts['report'] = [
+            {'kind': item['kind'], 'released': item['released']}
+            for item in (report_holder.get('report') or [])]
+        recovery_cleanup_facts['closed'] = list(closed)
+        # CORRECTION 23 (M3): the publication of the cleanup is
+        # **unconditional** and it happens **after** every action of the
+        # cleanup and **before** the priority of the failures: the
+        # diagnostics of the cleanup are durable even when the original
+        # failure of the region is unwinding.  The verdict of the
+        # cleanup is recomputed from the **complete** history of its
+        # errors **before** every attempt to write.
+        _publish_cleanup(
+            recovery_cleanup_facts,
+            lambda: write_phase('r02-report-cleanup',
+                                recovery_cleanup_facts),
+            recovery_cleanup_errors, recovery_interrupts,
+            verdict=lambda: _cleanup_verdict(
+                recovery_cleanup_errors, None,
+                'the cleanup of the recovery met'))
         # the **exact** cancellation wins over the ordinary assertion of
         # the join that follows it.
         _raise_first_interruption(recovery_interrupts)
@@ -1802,7 +1913,13 @@ def test_n10_r02_the_claim_of_the_recovery_and_the_handover_are_exclusive():
     # and it never replaces the failure that is already unwinding.
     creation_cleanup_errors = []
     creation_interrupts = []
+    # CORRECTION 23 (M3): the facts of the cleanup of this region exist
+    # **before** its body runs: a body that fails before its own happy
+    # facts exist never leaves the cleanup of the region without a
+    # durable document.
+    creation_cleanup_facts = _cleanup_facts('creation')
     try:
+        creation_cleanup_facts['executed'] = True
         assert blocked.wait(10.0), \
             'the birth query of the creation never ran'
         # The recovery of the façade claims the original entries of the
@@ -1813,9 +1930,14 @@ def test_n10_r02_the_claim_of_the_recovery_and_the_handover_are_exclusive():
         creator.join(15.0)
         assert not creator.is_alive(), 'the creation was left behind'
     finally:
+        # CORRECTION 23 (M3): the **exact** original failure that is
+        # unwinding is read **before** the first action of the cleanup
+        # runs: it is the priority that follows the publication.
+        creation_cleanup_facts['original'] = _original_facts()
         # CORRECTION 20 (M3): the release of the gate is guarded and the
         # exact object of a cancellation of it is retained.
         _release_gate(resume.set, creation_cleanup_errors, creation_interrupts)
+        creation_cleanup_facts['actions'].append('release:gate')
         # CORRECTION 21 (M3): the join of the creator is **guarded**: a
         # failure of it is retained with its exact type and its exact
         # detail and it never replaces the failure that is already
@@ -1823,9 +1945,22 @@ def test_n10_r02_the_claim_of_the_recovery_and_the_handover_are_exclusive():
         creation_join = _join_owner('creator', creator,
                                     creation_cleanup_errors,
                                     creation_interrupts, seconds=15.0)
-    # the **exact** cancellation of the cleanup wins over an ordinary
-    # assertion and it is re-raised as **itself**.
-    _raise_first_interruption(creation_interrupts)
+        creation_cleanup_facts['actions'].append('join:creator')
+        creation_cleanup_facts['alive'] = _owner_alive(creation_join)
+        # CORRECTION 23 (M3): the publication of the cleanup is
+        # **unconditional** and it happens **after** every action of the
+        # cleanup and **before** the priority of the failures.
+        _publish_cleanup(
+            creation_cleanup_facts,
+            lambda: write_phase('r02-creation-cleanup',
+                                creation_cleanup_facts),
+            creation_cleanup_errors, creation_interrupts,
+            verdict=lambda: _cleanup_verdict(
+                creation_cleanup_errors, None,
+                'the cleanup of the creation met'))
+        # the **exact** cancellation of the cleanup wins over an ordinary
+        # assertion and it is re-raised as **itself**.
+        _raise_first_interruption(creation_interrupts)
     facts = {'error': getattr(outcome.get('error'), 'code', None),
              'created': outcome.get('created') is not None,
              'closed': list(closed_handles),
@@ -2101,7 +2236,13 @@ def test_n10_r04_the_launch_aggregate_finds_the_partial_channel():
     # and it never replaces the failure that is already unwinding.
     launch_cleanup_errors = []
     launch_interrupts = []
+    # CORRECTION 23 (M3): the facts of the cleanup of this region exist
+    # **before** its body runs: a body that fails before its own happy
+    # facts exist never leaves the cleanup of the region without a
+    # durable document.
+    launch_cleanup_facts = _cleanup_facts('partial-launch')
     try:
+        launch_cleanup_facts['executed'] = True
         with unittest.mock.patch.object(threading.Thread, 'start',
                                         failing_start):
             with pytest.raises(RuntimeError):
@@ -2189,6 +2330,10 @@ def test_n10_r04_the_launch_aggregate_finds_the_partial_channel():
         assert custody.items() == [], \
             'the table of the launcher kept an item of a released launch'
     finally:
+        # CORRECTION 23 (M3): the **exact** original failure that is
+        # unwinding is read **before** the first action of the cleanup
+        # runs: it is the priority that follows the publication.
+        launch_cleanup_facts['original'] = _original_facts()
         # The salvage of the owner of the test: the thread that the
         # channel really started is joined with a bounded wait.
         #
@@ -2196,6 +2341,7 @@ def test_n10_r04_the_launch_aggregate_finds_the_partial_channel():
         # exact object of a cancellation of it is retained.
         _release_gate(read_release.set, launch_cleanup_errors,
                       launch_interrupts)
+        launch_cleanup_facts['actions'].append('release:gate')
         partial = aggregate.channel
         # CORRECTION 22 (M3): the lookup of the thread of the owner is
         # guarded: a failure of it is retained with its exact type and
@@ -2217,6 +2363,19 @@ def test_n10_r04_the_launch_aggregate_finds_the_partial_channel():
             launch_join = _join_owner('launch-reader', thread,
                                       launch_cleanup_errors,
                                       launch_interrupts, seconds=10.0)
+            launch_cleanup_facts['actions'].append('join:launch-reader')
+        launch_cleanup_facts['alive'] = _owner_alive(launch_join)
+        # CORRECTION 23 (M3): the publication of the cleanup is
+        # **unconditional** and it happens **after** every action of the
+        # cleanup and **before** the priority of the failures.
+        _publish_cleanup(
+            launch_cleanup_facts,
+            lambda: write_phase('r04-partial-cleanup',
+                                launch_cleanup_facts),
+            launch_cleanup_errors, launch_interrupts,
+            verdict=lambda: _cleanup_verdict(
+                launch_cleanup_errors, None,
+                'the cleanup of the launch met'))
         # CORRECTION 22 (M3): the priority of the failures is enforced
         # **after** every action of the cleanup: a pending interruption
         # is never raised while the owner of the round was left behind.
@@ -2842,7 +3001,13 @@ def test_n10_r06_an_expired_or_cancelled_call_performs_no_primitive_call():
     # failure that is already unwinding.
     r06_cleanup_errors = []
     r06_interrupts = []
+    # CORRECTION 23 (M3): the facts of the cleanup of this region exist
+    # **before** its body runs: a body that fails before its own happy
+    # facts exist never leaves the cleanup of the region without a
+    # durable document.
+    r06_cleanup_facts = _cleanup_facts('r06-close')
     try:
+        r06_cleanup_facts['executed'] = True
         with pytest.raises(BrokerError) as info:
             endpoint.read(clock.value - 1.0, None)
         assert info.value.code == 'BROKER_PIPE_TIMEOUT'
@@ -2960,6 +3125,10 @@ def test_n10_r06_an_expired_or_cancelled_call_performs_no_primitive_call():
                      'detail': str(error)})
                 _note_interruption(r06_interrupts, error)
     finally:
+        # CORRECTION 23 (M3): the **exact** original failure that is
+        # unwinding is read **before** the first action of the cleanup
+        # runs: it is the priority that follows the publication.
+        r06_cleanup_facts['original'] = _original_facts()
         # CORRECTION 22 (M3): the close of the last endpoint is
         # **guarded** and the priority of the failures of the cleanup is
         # enforced **after** it: the failure that is already unwinding
@@ -2973,6 +3142,19 @@ def test_n10_r06_an_expired_or_cancelled_call_performs_no_primitive_call():
                  'type': type(error).__name__,
                  'detail': str(error)})
             _note_interruption(r06_interrupts, error)
+        r06_cleanup_facts['actions'].append('close:r06:endpoint')
+        # CORRECTION 23 (M3): the publication of the cleanup is
+        # **unconditional** and it happens **after** every action of the
+        # cleanup and **before** the priority of the failures: the
+        # diagnostics of the cleanup are durable even when the original
+        # failure of the region is unwinding.
+        _publish_cleanup(
+            r06_cleanup_facts,
+            lambda: write_phase('r06-close-cleanup', r06_cleanup_facts),
+            r06_cleanup_errors, r06_interrupts,
+            verdict=lambda: _cleanup_verdict(
+                r06_cleanup_errors, None,
+                'the cleanup of the endpoints met'))
         _raise_first_interruption(r06_interrupts)
         if r06_cleanup_errors and sys.exc_info()[0] is None:
             raise AssertionError('the cleanup of the endpoints met %s'
@@ -3455,7 +3637,13 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
     # CORRECTION 18 (M3): the **exact** objects of the interruptions
     # that the cleanup of the round of the parent met.
     parent_interrupts = []
+    # CORRECTION 23 (M3): the facts of the cleanup of this region exist
+    # **before** its body runs: a body that fails before its own happy
+    # facts exist never leaves the cleanup of the region without a
+    # durable document.
+    parent_cleanup_facts = _cleanup_facts('parent-salvage')
     try:
+        parent_cleanup_facts['executed'] = True
         # -- the parent: the PRODUCTION default launcher and the
         #    PRODUCTION launch_broker, with the creation of the process
         #    replaced by the in-process fake -------------------------
@@ -3567,7 +3755,13 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         # cancellation is retained.
         admission_cleanup_errors = []
         admission_interrupts = []
+        # CORRECTION 23 (M3): the facts of the cleanup of this region
+        # exist **before** its body runs: a body that fails before its
+        # own happy facts exist never leaves the cleanup of the region
+        # without a durable document.
+        admission_cleanup_facts = _cleanup_facts('admission')
         try:
+            admission_cleanup_facts['executed'] = True
             # -- the pump of the parent is really alive and it reaches
             #    its next admission: the liveness of the owner of the
             #    read is a **fact** of the round and not an assumption.
@@ -3621,6 +3815,11 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
             assert reply_waits[-1] == pytest.approx(remaining), \
                 'the reply event of the parent did not use the actual remaining'
         finally:
+            # CORRECTION 23 (M3): the **exact** original failure that is
+            # unwinding is read **before** the first action of the
+            # cleanup runs: it is the priority that follows the
+            # publication.
+            admission_cleanup_facts['original'] = _original_facts()
             # The gate of the owner of the test is released
             # **unconditionally**: no admission of the parent stays
             # blocked behind the test and no thread of the test is left
@@ -3631,6 +3830,18 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
             # replaces the failure that is already unwinding.
             _release_gate(admission_gate.set, admission_cleanup_errors,
                           admission_interrupts)
+            admission_cleanup_facts['actions'].append('release:admission')
+            # CORRECTION 23 (M3): the publication of the cleanup is
+            # **unconditional** and it happens **after** every action of
+            # the cleanup and **before** the priority of the failures.
+            _publish_cleanup(
+                admission_cleanup_facts,
+                lambda: write_phase('r07-admission-cleanup',
+                                    admission_cleanup_facts),
+                admission_cleanup_errors, admission_interrupts,
+                verdict=lambda: _cleanup_verdict(
+                    admission_cleanup_errors, None,
+                    'the cleanup of the admission met'))
         # CORRECTION 20 (M3): the priority of the failures of this round
         # is fixed: the failure that is already unwinding wins, then the
         # **exact** interruption of the cleanup and only then an ordinary
@@ -3701,6 +3912,11 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         # fact of the cleanup, it is never a fabricated empty registry
         # and it never replaces the failure that is unwinding.
         zero_registry_errors = []
+        # CORRECTION 23 (M3): the facts of the cleanup of this region
+        # exist **before** its body runs: a body that fails before its
+        # own happy facts exist never leaves the cleanup of the region
+        # without a durable document.
+        zero_cleanup_facts = _cleanup_facts('zero-salvage')
         zero_queue_waits = []
         zero_reply_waits = []
         zero_gate = threading.Event()
@@ -3824,6 +4040,7 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         with zero_observer.install():
             zero_observer.arm()
             try:
+                zero_cleanup_facts['executed'] = True
                 with unittest.mock.patch.object(
                         broker_module.BrokerProcess, 'read',
                         zero_gated_broker_read), \
@@ -4015,10 +4232,17 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                 # cancellation is retained and it is re-raised with the
                 # priority of the cleanup.
                 zero_cleanup_errors = []
+                # CORRECTION 23 (M3): the **exact** original failure that
+                # is unwinding is read **before** the first action of the
+                # cleanup runs: it is the priority that follows the
+                # publication.
+                zero_cleanup_facts['original'] = _original_facts()
                 _release_gate(zero_gate.set, zero_cleanup_errors,
                               zero_interrupts)
                 _release_gate(zero_api.frames_ready.set, zero_cleanup_errors,
                               zero_interrupts)
+                zero_cleanup_facts['actions'].extend(
+                    ['release:gate', 'release:frames_ready'])
                 # The **returned** state of the product is captured
                 # **before** the salvage: the salvage of the test is
                 # separate from it and it never discards it.
@@ -4059,9 +4283,6 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                                                       'the round of zero')
                 if zero_proof is None and zero_stop_proof is not None:
                     zero_proof = zero_stop_proof
-                if zero_proof is None and zero_cleanup_errors:
-                    zero_proof = ('the round of zero met %s'
-                                  % (zero_cleanup_errors,))
                 # CORRECTION 19 (M3): the **quiescence** of the round of
                 # zero is part of its proof: an owner that the final
                 # resnapshot of the drain found and that no join
@@ -4078,60 +4299,61 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                 zero_registry_snapshot = _registry_snapshot(
                     zero_registry, zero_registry_errors, zero_interrupts,
                     label='ZERO_REGISTRY_FACTS')
-                # CORRECTION 22 (M2): the errors of the query of the
-                # registry are an **explicit durable field** of the
-                # evidence of the round: they survive next to a proof
-                # that already failed and they never vanish because the
-                # proof of the round names another failure.
-                zero_proof = _cleanup_verdict(
-                    zero_registry_errors, zero_proof,
-                    'the registry of the round of zero could not be read')
-                facts = {'salvage': zero_salvage,
-                         'all_salvage': zero_drain.get('all_salvage', []),
-                         'stop': zero_stop,
-                         'drain': zero_drain['attempts'],
-                         'quiescent': zero_drain['quiescent'],
-                         'proof_failure': zero_proof,
-                         'stop_proof_failure': zero_stop_proof,
-                         'cleanup_errors': zero_cleanup_errors,
-                         'interrupts': _interruption_facts(zero_interrupts),
-                         'registry': zero_registry_snapshot,
-                         'registry_errors': list(zero_registry_errors),
-                         **_drain_facts(zero_drain)}
+
+                def zero_current_verdict():
+                    """The **current** verdict of the cleanup of the round.
+
+                    CORRECTION 23 (M2/M3): the verdict is derived from the
+                    **complete** history of the errors of the cleanup - the
+                    errors of its actions **and** the errors of the
+                    guarded query of the registry - and from the **actual**
+                    physical proof of the round.  A proof that the drain
+                    found never hides an error that the cleanup met and
+                    the verdict is recomputed **before every attempt to
+                    write** and **before the retry** of a failed write.
+                    """
+                    history = (list(zero_cleanup_errors)
+                               + list(zero_registry_errors))
+                    return _cleanup_verdict(
+                        history, zero_proof,
+                        'the cleanup of the round of zero met')
+
+                facts = dict(zero_cleanup_facts)
+                facts.update({'salvage': zero_salvage,
+                              'all_salvage': zero_drain.get('all_salvage', []),
+                              'stop': zero_stop,
+                              'drain': zero_drain['attempts'],
+                              'quiescent': zero_drain['quiescent'],
+                              'proof_failure': zero_current_verdict(),
+                              'stop_proof_failure': zero_stop_proof,
+                              'cleanup_errors': list(zero_cleanup_errors),
+                              'interrupts': _interruption_facts(
+                                  zero_interrupts),
+                              'registry': zero_registry_snapshot,
+                              'registry_errors': list(zero_registry_errors),
+                              **_drain_facts(zero_drain)})
+                zero_cleanup_facts['alive'] = bool(zero_drain['quiescent'])
                 # the state of the unwinding is read **before** the
                 # write: inside the handler of the write the state of the
                 # frame is the write error itself and the original
-                # failure would never be seen.
-                unwinding = sys.exc_info()[0] is not None
+                # failure would never be seen.  The write itself is
+                # guarded by the helper of the cleanup and the priority
+                # that follows it reads the state of the frame again.
                 try:
-                    try:
-                        write_phase('r07-zero-salvage', facts)
-                    except BaseException as write_error:  # noqa: BLE001
-                        zero_cleanup_errors.append(
-                            {'kind': 'EVIDENCE',
-                             'type': type(write_error).__name__,
-                             'detail': str(write_error)})
-                        interrupted = _note_interruption(zero_interrupts,
-                                                        write_error)
-                        if not unwinding:
-                            if zero_interrupts:
-                                # CORRECTION 20 (M3): the **first** exact
-                                # pending cancellation of the cleanup wins
-                                # over the current one and over the
-                                # ordinary assertion of the evidence: a
-                                # cancellation of the write is never
-                                # preferred to the cancellation that the
-                                # cleanup met **before** it.
-                                raise zero_interrupts[0]
-                            if interrupted:
-                                # CORRECTION 19 (M3): an **exact**
-                                # cancellation of the write is re-raised
-                                # as **itself**.
-                                raise
-                            raise AssertionError(
-                                'the evidence of the cleanup of the round of '
-                                'zero could not be written: %s'
-                                % (write_error,))
+                    # CORRECTION 23 (M2/M3): the publication of the
+                    # cleanup is **unconditional**, it happens **after**
+                    # every action of the cleanup and **before** the
+                    # priority of the failures, and the verdict of the
+                    # cleanup is recomputed **before** every attempt to
+                    # write and **before** the retry of a failed write: a
+                    # write that failed is an **actual** error of the
+                    # cleanup and the artifact of the retry carries the
+                    # **failed** proof.
+                    _publish_cleanup(
+                        facts,
+                        lambda: write_phase('r07-zero-salvage', facts),
+                        zero_cleanup_errors, zero_interrupts,
+                        verdict=zero_current_verdict)
                 finally:
                     zero_observer.disarm()
                 # CORRECTION 19 (M3): the priority of the failures is
@@ -4140,8 +4362,9 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                 # the ordinary assertion of the proof.
                 if zero_interrupts and sys.exc_info()[0] is None:
                     raise zero_interrupts[0]
-                if zero_proof is not None and sys.exc_info()[0] is None:
-                    raise AssertionError(zero_proof)
+                zero_verdict = zero_current_verdict()
+                if zero_verdict is not None and sys.exc_info()[0] is None:
+                    raise AssertionError(zero_verdict)
                 # CORRECTION 17 (M1): the proof of the cleanup of the
                 # round of the zero expiry is **hard**: no owner of the
                 # round may have an unknown start state, no owner may
@@ -4351,6 +4574,10 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         # follow it and it never replaces the failure that is already
         # unwinding.
         parent_cleanup_errors = []
+        # CORRECTION 23 (M3): the **exact** original failure that is
+        # unwinding is read **before** the first action of the cleanup
+        # runs: it is the priority that follows the publication.
+        parent_cleanup_facts['original'] = _original_facts()
         # CORRECTION 21 (M3): the errors of the **guarded** query of the
         # facts of the registry of the parent: a query that failed is a
         # fact of the cleanup and it never replaces the failure that is
@@ -4392,9 +4619,8 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                                                 'the round of the parent')
         if parent_proof is None and parent_stop_proof is not None:
             parent_proof = parent_stop_proof
-        if parent_proof is None and parent_cleanup_errors:
-            parent_proof = ('the round of the parent met %s'
-                            % (parent_cleanup_errors,))
+        if parent_proof is None and parent_stop_proof is not None:
+            parent_proof = parent_stop_proof
         # CORRECTION 19 (M3): the **quiescence** of the round of the
         # parent is part of its proof: an owner that the final
         # resnapshot of the drain found and that no join released fails
@@ -4409,54 +4635,60 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         parent_registry_snapshot = _registry_snapshot(
             parent_registry, parent_registry_errors, parent_interrupts,
             label='PARENT_REGISTRY_FACTS')
-        if parent_proof is None and parent_registry_errors:
-            parent_proof = ('the registry of the round of the parent could '
-                            'not be read: %s' % (parent_registry_errors,))
+
+        def parent_current_verdict():
+            """The **current** verdict of the cleanup of the parent.
+
+            CORRECTION 23 (M2/M3): the verdict is derived from the
+            **complete** history of the errors of the cleanup - the errors
+            of its actions **and** the errors of the guarded query of the
+            registry - and from the **actual** physical proof of the
+            round.  A proof that the drain found never hides an error
+            that the cleanup met and the verdict is recomputed **before
+            every attempt to write** and **before the retry** of a failed
+            write.
+            """
+            history = (list(parent_cleanup_errors)
+                       + list(parent_registry_errors))
+            return _cleanup_verdict(
+                history, parent_proof,
+                'the cleanup of the round of the parent met')
+
+        parent_document = dict(parent_cleanup_facts)
+        parent_document.update(
+            {'salvage': parent_salvage,
+             'all_salvage': parent_drain.get('all_salvage', []),
+             'stop': parent_stop,
+             'drain': parent_drain['attempts'],
+             'quiescent': parent_drain['quiescent'],
+             'proof_failure': parent_current_verdict(),
+             'stop_proof_failure': parent_stop_proof,
+             'cleanup_errors': list(parent_cleanup_errors),
+             'child_close_failures': child_close_failures,
+             'interrupts': _interruption_facts(parent_interrupts),
+             'registry': parent_registry_snapshot,
+             'registry_errors': list(parent_registry_errors),
+             **_drain_facts(parent_drain)})
+        parent_cleanup_facts['alive'] = bool(parent_drain['quiescent'])
         # the state of the unwinding is read **before** the write: inside
         # the handler of the write the state of the frame is the write
-        # error itself and the original failure would never be seen.
-        unwinding = sys.exc_info()[0] is not None
+        # error itself and the original failure would never be seen.  The
+        # write itself is guarded by the helper of the cleanup and the
+        # priority that follows it reads the state of the frame again.
         try:
-            try:
-                write_phase('r07-parent-salvage',
-                            {'salvage': parent_salvage,
-                             'all_salvage':
-                                 parent_drain.get('all_salvage', []),
-                             'stop': parent_stop,
-                             'drain': parent_drain['attempts'],
-                             'quiescent': parent_drain['quiescent'],
-                             'proof_failure': parent_proof,
-                             'stop_proof_failure': parent_stop_proof,
-                             'cleanup_errors': parent_cleanup_errors,
-                             'child_close_failures': child_close_failures,
-                             'interrupts': _interruption_facts(
-                                 parent_interrupts),
-                             'registry': parent_registry_snapshot,
-                             'registry_errors':
-                                 list(parent_registry_errors),
-                             **_drain_facts(parent_drain)})
-            except BaseException as write_error:  # noqa: BLE001
-                parent_cleanup_errors.append(
-                    {'kind': 'EVIDENCE',
-                     'type': type(write_error).__name__,
-                     'detail': str(write_error)})
-                interrupted = _note_interruption(parent_interrupts,
-                                                write_error)
-                if not unwinding:
-                    if parent_interrupts:
-                        # CORRECTION 20 (M3): the **first** exact pending
-                        # cancellation of the cleanup wins over the
-                        # current one and over the ordinary assertion of
-                        # the evidence.
-                        raise parent_interrupts[0]
-                    if interrupted:
-                        # CORRECTION 19 (M3): an **exact** cancellation
-                        # of the write is re-raised as **itself**: it is
-                        # never converted into an ordinary assertion.
-                        raise
-                    raise AssertionError(
-                        'the evidence of the cleanup of the parent could not '
-                        'be written: %s' % (write_error,))
+            # CORRECTION 23 (M2/M3): the publication of the cleanup is
+            # **unconditional**, it happens **after** every action of the
+            # cleanup and **before** the priority of the failures, and
+            # the verdict of the cleanup is recomputed **before** every
+            # attempt to write and **before** the retry of a failed
+            # write: a write that failed is an **actual** error of the
+            # cleanup and the artifact of the retry carries the **failed**
+            # proof.
+            _publish_cleanup(
+                parent_document,
+                lambda: write_phase('r07-parent-salvage', parent_document),
+                parent_cleanup_errors, parent_interrupts,
+                verdict=parent_current_verdict)
         finally:
             parent_observer.disarm()
             parent_observer_patch.stop()
@@ -4466,8 +4698,9 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         # assertion of the proof.
         if parent_interrupts and sys.exc_info()[0] is None:
             raise parent_interrupts[0]
-        if parent_proof is not None and sys.exc_info()[0] is None:
-            raise AssertionError(parent_proof)
+        parent_verdict = parent_current_verdict()
+        if parent_verdict is not None and sys.exc_info()[0] is None:
+            raise AssertionError(parent_verdict)
     # CORRECTION 17 (M3): no unrelated failure of a close of the child
     # is tolerated next to the intended ones: every failure of a close
     # of the child fails the round of the parent.
@@ -4539,8 +4772,13 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         # the cancellation is retained.
         dispatch_cleanup_errors = []
         dispatch_interrupts = []
-        dispatch_facts = {}
+        # CORRECTION 23 (M3): the facts of the cleanup of this region
+        # exist **before** its body runs: a body that fails before its
+        # own happy facts exist never leaves the cleanup of the region
+        # without a durable document.
+        dispatch_facts = _cleanup_facts('dispatch-%s' % mode)
         try:
+            dispatch_facts['executed'] = True
             assert worker.wait_ready(5.0), 'the worker never came up'
             # The request is really submitted and the dispatch of the
             # worker is paused: the flag of the call and the flag of
@@ -4557,9 +4795,9 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                 'the refused generation never completed'
             outcome = worker.outcome(generation)
             assert outcome is not None, 'the outcome of the generation is gone'
-            dispatch_facts = {'mode': mode, 'generation': generation,
-                              'error': outcome['error'],
-                              'calls': list(api.calls)}
+            dispatch_facts.update({'mode': mode, 'generation': generation,
+                                   'error': outcome['error'],
+                                   'calls': list(api.calls)})
             write_phase('r07-dispatch-%s' % mode, dispatch_facts)
             # The primitive of the round was never called: the
             # admission of the generation was refused before it.
@@ -4572,12 +4810,17 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
             assert outcome['generation'] == generation, \
                 'the outcome of another generation was read'
         finally:
+            # CORRECTION 23 (M3): the **exact** original failure that is
+            # unwinding is read **before** the first action of the cleanup
+            # runs: it is the priority that follows the publication.
+            dispatch_facts['original'] = _original_facts()
             # CORRECTION 20 (M3): the release of the paused queue is
             # guarded and the exact object of a cancellation of it is
             # retained: it never replaces the failure that is already
             # unwinding.
             _release_gate(paused.release.set, dispatch_cleanup_errors,
                           dispatch_interrupts)
+            dispatch_facts['actions'].append('release:paused-queue')
             # CORRECTION 21 (M3): the stop and the join of the worker are
             # **guarded**: a failure of them is retained with its exact
             # type and its exact detail, the **exact** object of a
@@ -4599,16 +4842,24 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
             # the fact that the guarded join returned: the query is
             # never repeated outside its guard.
             dispatch_alive = _owner_alive(dispatch_join)
+            dispatch_facts['actions'].append('join:dispatch-worker')
+            dispatch_facts['alive'] = dispatch_alive
+            dispatch_facts['worker_alive'] = dispatch_alive
             # CORRECTION 22 (M3): the facts of the cleanup are
             # **complete** and they are **durable** before the priority
             # is applied.
-            if dispatch_facts:
-                dispatch_facts['worker_alive'] = dispatch_alive
-                _publish_cleanup(
-                    dispatch_facts,
-                    lambda: write_phase('r07-dispatch-%s' % mode,
-                                        dispatch_facts),
-                    dispatch_cleanup_errors, dispatch_interrupts)
+            # CORRECTION 23 (M3): the publication is **unconditional** -
+            # it never waits for the happy facts of the body - and the
+            # verdict of the cleanup is recomputed **before** every
+            # attempt to write and **before** the retry of a failed write.
+            _publish_cleanup(
+                dispatch_facts,
+                lambda: write_phase('r07-dispatch-%s' % mode,
+                                    dispatch_facts),
+                dispatch_cleanup_errors, dispatch_interrupts,
+                verdict=lambda: _cleanup_verdict(
+                    dispatch_cleanup_errors, None,
+                    'the cleanup of the dispatch met'))
             # the **exact** cancellation wins over the ordinary assertion
             # of the join that follows it.
             _raise_first_interruption(dispatch_interrupts)
@@ -4676,8 +4927,13 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
     # unwinding.
     await_cleanup_errors = []
     await_interrupts = []
-    await_facts = {}
+    # CORRECTION 23 (M3): the facts of the cleanup of this region exist
+    # **before** its body runs: a body that fails before its own happy
+    # facts exist never leaves the cleanup of the region without a
+    # durable document.
+    await_facts = _cleanup_facts('await-context')
     try:
+        await_facts['executed'] = True
         deadline = time.monotonic() + 10.0
         while endpoint._reader is None and time.monotonic() < deadline:
             time.sleep(0.005)
@@ -4688,18 +4944,23 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         reader.join(10.0)
         assert not reader.is_alive(), 'the read of the round was left behind'
         error = holder.get('error')
-        await_facts = {'error': type(error).__name__,
-                       'code': getattr(error, 'code', None),
-                       'calls': endpoint._api.calls}
+        await_facts.update({'error': type(error).__name__,
+                            'code': getattr(error, 'code', None),
+                            'calls': endpoint._api.calls})
         write_phase('r07-await-context', await_facts)
         assert isinstance(error, BrokerError), \
             'the await of the endpoint did not name the cancellation'
         assert error.code == 'BROKER_PIPE_CANCELLED', \
             'the await of the endpoint did not notice the original context'
     finally:
+        # CORRECTION 23 (M3): the **exact** original failure that is
+        # unwinding is read **before** the first action of the cleanup
+        # runs: it is the priority that follows the publication.
+        await_facts['original'] = _original_facts()
         # CORRECTION 20 (M3): the release of the gate is guarded and the
         # exact object of a cancellation of it is retained.
         _release_gate(released.set, await_cleanup_errors, await_interrupts)
+        await_facts['actions'].append('release:gate')
         # CORRECTION 21 (M3): the join of the reader is **guarded**: a
         # failure of it is retained with its exact type and its exact
         # detail and it never skips the close of the endpoint that
@@ -4721,12 +4982,20 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
             _note_interruption(await_interrupts, error)
         # CORRECTION 22 (M3): the facts of the cleanup are **complete**
         # and they are **durable** before the priority is applied.
-        if await_facts:
-            await_facts['reader_alive'] = _owner_alive(await_join)
-            _publish_cleanup(
-                await_facts,
-                lambda: write_phase('r07-await-context', await_facts),
-                await_cleanup_errors, await_interrupts)
+        # CORRECTION 23 (M3): the publication is **unconditional** - it
+        # never waits for the happy facts of the body - and the verdict
+        # of the cleanup is recomputed **before** every attempt to write
+        # and **before** the retry of a failed write.
+        await_facts['actions'].append('join:await-reader')
+        await_facts['alive'] = _owner_alive(await_join)
+        await_facts['reader_alive'] = _owner_alive(await_join)
+        _publish_cleanup(
+            await_facts,
+            lambda: write_phase('r07-await-context', await_facts),
+            await_cleanup_errors, await_interrupts,
+            verdict=lambda: _cleanup_verdict(
+                await_cleanup_errors, None,
+                'the cleanup of the await met'))
     # the **exact** cancellation of the cleanup wins over an ordinary
     # assertion and it is re-raised as **itself**.
     _raise_first_interruption(await_interrupts)
@@ -4821,6 +5090,35 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         # CORRECTION 18 (M3): the **exact** objects of the interruptions
         # that the cleanup of this subcase met.
         controlled_interrupts = []
+        # CORRECTION 23 (M3): the facts of the cleanup of this subcase
+        # exist **before** its body runs: a body that fails before its
+        # own happy facts exist never leaves the cleanup of the subcase
+        # without a durable document.
+        facts = _cleanup_facts('controlled-%s' % checkpoint.lower(),
+                               checkpoint=checkpoint)
+        facts['executed'] = True
+        # CORRECTION 23 (M2/M3): the **base proof** of the cleanup and the
+        # detail of its verdict are fixed **before** the body runs: the
+        # verdict is recomputed from them and from the **complete**
+        # history of the errors of the cleanup.
+        controlled_base_proof = None
+        controlled_detail = ('the cleanup of the controlled failure of %s met'
+                             % checkpoint)
+
+        def controlled_current_verdict():
+            """The **current** verdict of the cleanup of the subcase.
+
+            CORRECTION 23 (M2/M3): the verdict is derived from the
+            **complete** history of the errors of the cleanup - never a
+            slice of it - and from the **actual** physical proof of the
+            subcase.  An error of an inner writer that was recorded
+            **after** the proof was computed is part of the verdict and
+            the verdict is recomputed **before every attempt to write**
+            and **before the retry** that follows a failed write.
+            """
+            return _cleanup_verdict(controlled_cleanup_errors,
+                                     controlled_base_proof,
+                                     controlled_detail)
 
         def write_facts():
             """Write the facts of the subcase of the group."""
@@ -5141,19 +5439,25 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                         controlled_stop,
                         'the controlled failure of %s' % checkpoint)
                     salvage = drain['salvage']
-                    proof = drain['proof']
-                    if proof is None and stop_proof is not None:
-                        proof = stop_proof
-                    if proof is None and controlled_cleanup_errors:
-                        proof = ('the controlled failure of %s met %s'
-                                 % (checkpoint, controlled_cleanup_errors))
+                    # CORRECTION 23 (M2/M3): the **base proof** of the
+                    # cleanup is the **actual** physical proof of the
+                    # subcase and the **complete** history of the errors of
+                    # the cleanup is added to it by the verdict.  An error
+                    # that the cleanup met is never hidden by a proof that
+                    # the drain already found.
+                    controlled_base_proof = drain['proof']
+                    if (controlled_base_proof is None
+                            and stop_proof is not None):
+                        controlled_base_proof = stop_proof
                     # CORRECTION 19 (M3): the **quiescence** of the round
                     # of the controlled failure is part of its proof: an
                     # owner that the final resnapshot of the drain found
                     # and that no join released fails the subcase with it.
-                    if proof is None and drain['quiescent'] is not True:
-                        proof = ('the owners of the controlled failure of %s '
-                                 'were not quiescent' % checkpoint)
+                    if (controlled_base_proof is None
+                            and drain['quiescent'] is not True):
+                        controlled_base_proof = (
+                            'the owners of the controlled failure of %s '
+                            'were not quiescent' % checkpoint)
                     # CORRECTION 21 (M3): the query of the facts of the
                     # registry is **guarded**: it is the very query of
                     # the entries that the fallback of the drain
@@ -5166,56 +5470,45 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                         controlled_registry, controlled_cleanup_errors,
                         controlled_interrupts,
                         label='CONTROLLED_REGISTRY_FACTS')
-                    if proof is None and controlled_registry_snapshot is None:
-                        proof = ('the registry of the controlled failure of '
-                                 '%s could not be read: %s'
-                                 % (checkpoint, controlled_cleanup_errors))
-                    facts = {'checkpoint': checkpoint,
-                             'failure': raised[0] if raised else None,
-                             'gate_released': bool(gate.is_set()),
-                             'stop': controlled_stop,
-                             'close_failures': list(close_failures),
-                             'cleanup_errors':
-                                 list(controlled_cleanup_errors),
-                             'cleanup_ran_while_unwinding':
-                                 sys.exc_info()[0] is not None,
-                             'salvage': salvage,
-                             'all_salvage': drain.get('all_salvage', []),
-                             'drain': drain['attempts'],
-                             'quiescent': drain['quiescent'],
-                             'proof_failure': proof,
-                             'stop_proof_failure': stop_proof,
-                             'interrupts': _interruption_facts(
-                                 controlled_interrupts),
-                             'injected_starts': list(injected_starts),
-                             'registry': controlled_registry_snapshot,
-                             **_drain_facts(drain)}
+                    if (controlled_base_proof is None
+                            and controlled_registry_snapshot is None):
+                        controlled_base_proof = (
+                            'the registry of the controlled failure of '
+                            '%s could not be read: %s'
+                            % (checkpoint, controlled_cleanup_errors))
+                    facts.update({'checkpoint': checkpoint,
+                                  'failure': raised[0] if raised else None,
+                                  'gate_released': bool(gate.is_set()),
+                                  'stop': controlled_stop,
+                                  'close_failures': list(close_failures),
+                                  'cleanup_errors':
+                                      list(controlled_cleanup_errors),
+                                  'cleanup_ran_while_unwinding':
+                                      sys.exc_info()[0] is not None,
+                                  'salvage': salvage,
+                                  'all_salvage': drain.get('all_salvage', []),
+                                  'drain': drain['attempts'],
+                                  'quiescent': drain['quiescent'],
+                                  'proof_failure': controlled_base_proof,
+                                  'stop_proof_failure': stop_proof,
+                                  'interrupts': _interruption_facts(
+                                      controlled_interrupts),
+                                  'injected_starts': list(injected_starts),
+                                  'registry': controlled_registry_snapshot,
+                                  **_drain_facts(drain)})
                     unwinding = sys.exc_info()[0] is not None
-                    try:
-                        write_facts()
-                    except BaseException as write_error:  # noqa: BLE001
-                        controlled_cleanup_errors.append(
-                            {'kind': 'EVIDENCE',
-                             'type': type(write_error).__name__,
-                             'detail': str(write_error)})
-                        interrupted = _note_interruption(
-                            controlled_interrupts, write_error)
-                        if not unwinding:
-                            if controlled_interrupts:
-                                # CORRECTION 20 (M3): the **first** exact
-                                # pending cancellation of the cleanup wins
-                                # over the current one and over the
-                                # ordinary assertion of the evidence.
-                                raise controlled_interrupts[0]
-                            if interrupted:
-                                # CORRECTION 19 (M3): an **exact**
-                                # cancellation of the write is re-raised
-                                # as **itself**.
-                                raise
-                            raise AssertionError(
-                                'the evidence of the controlled failure of %s '
-                                'could not be written: %s'
-                                % (checkpoint, write_error))
+                    # CORRECTION 23 (M2/M3): the write of the evidence is
+                    # an action of the cleanup and it is **guarded**: a
+                    # write that failed is an **actual** error of the
+                    # cleanup, the verdict is recomputed **with** it
+                    # **before** the retry and the artifact of the retry
+                    # carries the **failed** proof and never a proof of
+                    # ``None``.  The write never replaces the failure that
+                    # is already unwinding.
+                    _publish_cleanup(facts, write_facts,
+                                     controlled_cleanup_errors,
+                                     controlled_interrupts,
+                                     verdict=controlled_current_verdict)
                     # CORRECTION 19 (M3): the priority of the failures is
                     # fixed: the failure that is already unwinding wins,
                     # then the **exact** interruption of the cleanup and
@@ -5224,22 +5517,29 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                     # exact interruption unreachable.
                     if controlled_interrupts and not unwinding:
                         raise controlled_interrupts[0]
-                    if proof is not None and not unwinding:
-                        raise AssertionError(proof)
+                    inner_verdict = controlled_current_verdict()
+                    if inner_verdict is not None and not unwinding:
+                        raise AssertionError(inner_verdict)
         except _R07Sentinel as error:
             raised.append({'class': _R07Sentinel,
                            'type': type(error).__name__,
                            'token': str(error),
                            'detail': str(error)})
             facts['failure'] = raised[0]
-            write_facts()
+            _publish_cleanup(facts, write_facts,
+                             controlled_cleanup_errors,
+                             controlled_interrupts,
+                             verdict=controlled_current_verdict)
         except _R07ConstructorFailure as error:
             raised.append({'class': _R07ConstructorFailure,
                            'type': type(error).__name__,
                            'token': str(error),
                            'detail': str(error)})
             facts['failure'] = raised[0]
-            write_facts()
+            _publish_cleanup(facts, write_facts,
+                             controlled_cleanup_errors,
+                             controlled_interrupts,
+                             verdict=controlled_current_verdict)
         except _R07OrdinaryAssertion as error:
             raised.append({'class': _R07OrdinaryAssertion,
                            'type': type(error).__name__,
@@ -5248,18 +5548,23 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                            'is_assertion_error': isinstance(
                                error, AssertionError)})
             facts['failure'] = raised[0]
-            write_facts()
+            _publish_cleanup(facts, write_facts,
+                             controlled_cleanup_errors,
+                             controlled_interrupts,
+                             verdict=controlled_current_verdict)
         finally:
             # CORRECTION 22 (M2/M3): the state of the unwinding is read
             # **before** the last actions of the cleanup run: the failure
             # that is already unwinding wins over every other failure of
             # the cleanup and it is never replaced by one of them.
             final_unwinding = sys.exc_info()[0] is not None
-            # the errors that the **inner** region of the subcase
-            # already proved are not counted twice: the verdict of the
-            # subcase is recomputed with the errors of the **last**
-            # actions of the cleanup.
-            late_start = len(controlled_cleanup_errors)
+            # CORRECTION 23 (M2/M3): the **complete** history of the
+            # errors of the cleanup is the history of the verdict: the
+            # errors of the **inner** region of the subcase are **not**
+            # sliced away and an error of an inner writer that was
+            # recorded after the physical proof was computed fails the
+            # subcase with the whole history of the cleanup.
+            facts['original'] = _original_facts()
             # CORRECTION 21 (M3): the observer of the starts and the patch
             # of the round are restored **unconditionally** - they are
             # never skipped - and a failure of them is **recorded** with
@@ -5287,6 +5592,9 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
             # added after the last check and ignored.
             _release_gate(controlled_api.frames_ready.set,
                           controlled_cleanup_errors, controlled_interrupts)
+            facts['actions'].extend(['disarm:observer',
+                                     'stop:observer-patch',
+                                     'release:frames_ready'])
             # CORRECTION 22 (M2/M3): the facts of the subcase are
             # **complete** before the **last** write of the evidence:
             # every actual error and every actual interruption of the
@@ -5294,24 +5602,24 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
             # recomputed with them.  A late ordinary error of the
             # release, of the disarm or of the stop of the patch fails
             # the subcase even when the physical salvage passed.
-            base_proof = facts.get('proof_failure')
-            detail = ('the cleanup of the controlled failure of %s met'
-                      % checkpoint)
-            if 'checkpoint' in facts:
-                facts['proof_failure'] = _cleanup_verdict(
-                    controlled_cleanup_errors[late_start:], base_proof,
-                    detail)
-                _publish_cleanup(facts, write_facts,
-                                 controlled_cleanup_errors,
-                                 controlled_interrupts)
+            #
+            # CORRECTION 23 (M2/M3): the publication is **unconditional**
+            # and it happens **after** every action of the cleanup and
+            # **before** the priority of the failures; the verdict of the
+            # subcase is recomputed **before** every attempt to write and
+            # **before** the retry that follows a failed write, so the
+            # durable artifact carries the verdict that the cleanup
+            # really has.
+            _publish_cleanup(facts, write_facts,
+                             controlled_cleanup_errors,
+                             controlled_interrupts,
+                             verdict=controlled_current_verdict)
             # the write of the evidence is an action of the cleanup as
             # well: a write that failed is an **actual** error of it, it
             # updates the facts **in memory** and it rejects the success
             # of the subcase.
-            verdict = _cleanup_verdict(
-                controlled_cleanup_errors[late_start:], base_proof, detail)
-            if 'checkpoint' in facts:
-                facts['proof_failure'] = verdict
+            verdict = controlled_current_verdict()
+            facts['proof_failure'] = verdict
             # CORRECTION 22 (M3): the priority of the failures is
             # enforced **after** the last action of the cleanup and
             # **after** the last write of the evidence: the failure that
@@ -5497,17 +5805,22 @@ def test_n10_r08_the_retry_of_a_cancellation_re_reads_the_context():
     # and it never replaces the failure that is already unwinding.
     retry_cleanup_errors = []
     retry_interrupts = []
-    retry_facts = {}
+    # CORRECTION 23 (M3): the facts of the cleanup of this region exist
+    # **before** its body runs: a body that fails before its own happy
+    # facts exist never leaves the cleanup of the region without a
+    # durable document.
+    retry_facts = _cleanup_facts('retry')
     try:
+        retry_facts['executed'] = True
         assert worker.wait_ready(5.0), 'the worker never came up'
         worker.submit(None)
         assert worker.inside.wait(5.0), 'the worker never entered its read'
         started = time.monotonic()
         state = worker.request_cancel(None)
         elapsed = time.monotonic() - started
-        retry_facts = {'state': state, 'attempts': len(attempts),
-                       'elapsed': elapsed,
-                       'cleanup': context.cleanup_deadline_value()}
+        retry_facts.update({'state': state, 'attempts': len(attempts),
+                            'elapsed': elapsed,
+                            'cleanup': context.cleanup_deadline_value()})
         write_phase('r08-retry', retry_facts)
         assert len(attempts) >= 2, \
             'the cancellation was not really repeated'
@@ -5515,9 +5828,14 @@ def test_n10_r08_the_retry_of_a_cancellation_re_reads_the_context():
             'the retry ignored the cleanup deadline of the round'
         assert context.cleanup_deadline_value() is not None
     finally:
+        # CORRECTION 23 (M3): the **exact** original failure that is
+        # unwinding is read **before** the first action of the cleanup
+        # runs: it is the priority that follows the publication.
+        retry_facts['original'] = _original_facts()
         # CORRECTION 20 (M3): the release of the gate is guarded and the
         # exact object of a cancellation of it is retained.
         _release_gate(release.set, retry_cleanup_errors, retry_interrupts)
+        retry_facts['actions'].append('release:gate')
         # CORRECTION 21 (M3): the join of the worker is **guarded** and
         # the priority of the failures is enforced **after** it.
         retry_join = _join_owner('retry-worker', worker,
@@ -5527,13 +5845,21 @@ def test_n10_r08_the_retry_of_a_cancellation_re_reads_the_context():
         # fact that the guarded join returned: the query is never
         # repeated outside its guard.
         retry_alive = _owner_alive(retry_join)
+        retry_facts['actions'].append('join:retry-worker')
+        retry_facts['alive'] = retry_alive
         # CORRECTION 22 (M3): the facts of the cleanup are **complete**
         # and they are **durable** before the priority is applied.
-        if retry_facts:
-            retry_facts['worker_alive'] = retry_alive
-            _publish_cleanup(
-                retry_facts, lambda: write_phase('r08-retry', retry_facts),
-                retry_cleanup_errors, retry_interrupts)
+        # CORRECTION 23 (M3): the publication is **unconditional** - it
+        # never waits for the happy facts of the body - and the verdict of
+        # the cleanup is recomputed **before** every attempt to write and
+        # **before** the retry of a failed write.
+        retry_facts['worker_alive'] = retry_alive
+        _publish_cleanup(
+            retry_facts, lambda: write_phase('r08-retry', retry_facts),
+            retry_cleanup_errors, retry_interrupts,
+            verdict=lambda: _cleanup_verdict(
+                retry_cleanup_errors, None,
+                'the cleanup of the retry met'))
         # the **exact** cancellation wins over the ordinary assertion of
         # the join that follows it.
         _raise_first_interruption(retry_interrupts)
@@ -5607,7 +5933,14 @@ def test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread(tmp_path):
     startup_cleanup_errors = []
     startup_interrupts = []
     startup_documents = []
+    # CORRECTION 23 (M3): the facts of the cleanup of this region exist
+    # **before** its body runs: a body that fails before its own happy
+    # facts exist never leaves the cleanup of the region without a
+    # durable document.  The documents of the phases of the body are
+    # **kept** and they never replace the document of the cleanup.
+    startup_cleanup_facts = _cleanup_facts('startup')
     try:
+        startup_cleanup_facts['executed'] = True
         for error in (BrokerError('BROKER_STARTUP_ORDINARY'),
                       KeyboardInterrupt('startup_cancelled'),
                       SystemExit(3)):
@@ -5661,12 +5994,17 @@ def test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread(tmp_path):
                 ('r09-%s' % type(error).__name__.lower(), facts))
             write_phase('r09-%s' % type(error).__name__.lower(), facts)
     finally:
+        # CORRECTION 23 (M3): the **exact** original failure that is
+        # unwinding is read **before** the first action of the cleanup
+        # runs: it is the priority that follows the publication.
+        startup_cleanup_facts['original'] = _original_facts()
         # The salvage of the owner of the test: the threads that the
         # product started are released and joined with a bounded wait.
         # The join is **unconditional**: no phase leaves a thread of the
         # round behind.
         _release_gate(release.set, startup_cleanup_errors,
                       startup_interrupts)
+        startup_cleanup_facts['actions'].append('release:gate')
         # CORRECTION 21 (M3): **every** owner of the round is attempted
         # and **every** join and **every** liveness query of it is
         # **guarded**: a failure of the join of the first owner never
@@ -5688,6 +6026,15 @@ def test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread(tmp_path):
             startup_joins.append(
                 _join_owner('startup-owner', thread, startup_cleanup_errors,
                             startup_interrupts, seconds=10.0))
+        startup_cleanup_facts['actions'].append('join:startup-owners')
+        # CORRECTION 23 (M3): the **actual** liveness of every owner that
+        # the traversal joined is a **durable** list of the cleanup: it
+        # never waits for the documents of the phases of the body.
+        startup_cleanup_facts['joins'] = [
+            {'owner': item.get('owner'), 'joined': item.get('joined'),
+             'alive': item.get('alive')} for item in startup_joins]
+        startup_cleanup_facts['alive'] = any(
+            _owner_alive(item) for item in startup_joins)
         # CORRECTION 22 (M3): the facts of the cleanup are **complete**
         # and they are **durable** before the priority is applied: every
         # actual error and every actual interruption of the cleanup is in
@@ -5697,6 +6044,19 @@ def test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread(tmp_path):
                 document,
                 lambda p=phase, d=document: write_phase(p, d),
                 startup_cleanup_errors, startup_interrupts)
+        # CORRECTION 23 (M3): the document of the cleanup itself is
+        # **unconditional** - the documents of the phases of the body are
+        # never its only failure-evidence path - and the verdict of the
+        # cleanup is recomputed **before** every attempt to write and
+        # **before** the retry of a failed write.
+        _publish_cleanup(
+            startup_cleanup_facts,
+            lambda: write_phase('r09-startup-cleanup',
+                                startup_cleanup_facts),
+            startup_cleanup_errors, startup_interrupts,
+            verdict=lambda: _cleanup_verdict(
+                startup_cleanup_errors, None,
+                'the cleanup of the startup met'))
         # CORRECTION 21 (M3): the priority of the failures is enforced
         # **after** the whole traversal of the owners: the failure that
         # is already unwinding wins, then the **first** exact pending
@@ -5770,23 +6130,48 @@ def test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread(tmp_path):
     tightener = threading.Thread(target=tighten, daemon=True,
                                   name='lvw-n10-r09-tightener')
     tightener.start()
+    # CORRECTION 23 (M3): the facts of the cleanup of this region exist
+    # **before** its body runs: a body that fails before its own happy
+    # facts exist never leaves the cleanup of the region without a
+    # durable document.
+    tightener_errors = []
+    tightener_interrupts = []
+    tightener_cleanup_facts = _cleanup_facts('tightener')
     try:
+        tightener_cleanup_facts['executed'] = True
         with pytest.raises(BrokerError) as info:
             owner.await_result()
     finally:
+        # CORRECTION 23 (M3): the **exact** original failure that is
+        # unwinding is read **before** the first action of the cleanup
+        # runs: it is the priority that follows the publication.
+        tightener_cleanup_facts['original'] = _original_facts()
         # CORRECTION 21 (M3): the join of the tightener is **guarded**:
         # a failure of it is retained with its exact type and its exact
         # detail and it never replaces the failure that is already
         # unwinding.
-        tightener_errors = []
-        tightener_interrupts = []
         tightener_join = _join_owner('tightener', tightener,
                                      tightener_errors, tightener_interrupts,
                                      seconds=10.0)
+        tightener_cleanup_facts['actions'].append('join:tightener')
         # CORRECTION 22 (M3): the **actual** liveness of the owner is the
         # fact that the guarded join returned: the query is never
         # repeated outside its guard.
         tightener_alive = _owner_alive(tightener_join)
+        tightener_cleanup_facts['alive'] = tightener_alive
+        # CORRECTION 23 (M3): the publication of the cleanup is
+        # **unconditional** and it happens **after** every action of the
+        # cleanup and **before** the priority of the failures: the
+        # diagnostics of the cleanup are durable even when the original
+        # failure of the region is unwinding.
+        _publish_cleanup(
+            tightener_cleanup_facts,
+            lambda: write_phase('r09-await-wait-cleanup',
+                                tightener_cleanup_facts),
+            tightener_errors, tightener_interrupts,
+            verdict=lambda: _cleanup_verdict(
+                tightener_errors, None,
+                'the cleanup of the tightener met'))
         # the **exact** cancellation wins over the ordinary assertion of
         # the join that follows it.
         _raise_first_interruption(tightener_interrupts)
@@ -5850,17 +6235,41 @@ def test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread(tmp_path):
     # already unwinding.
     interrupted_cleanup_errors = []
     interrupted_interrupts = []
-    interrupted_facts = {}
+    # CORRECTION 23 (M3): the facts of the cleanup of this region exist
+    # **before** its body runs: a body that fails before its own happy
+    # facts exist never leaves the cleanup of the region without a
+    # durable document.
+    interrupted_facts = _cleanup_facts('interrupted-start')
+    # CORRECTION 23 (M3): the **observed** owner of the interrupted start
+    # and its **exact** thread are held **independently** of the query of
+    # the owners that are in flight.  A failure of that query never loses
+    # the owner that the body really observed and it never replaces the
+    # settle and the join of it.
+    interrupted_observed_owner = None
+    interrupted_observed_thread = None
+    interrupted_owner_observed = False
     try:
+        interrupted_facts['executed'] = True
         with unittest.mock.patch.object(threading.Thread, 'start',
                                         failing_start):
             with pytest.raises(KeyboardInterrupt):
                 loop._run_startup('ARM', lambda: tail_release.wait(15.0))
         owner = loop._startup_owner
         assert owner is not None, 'the owner of the step was never built'
-        interrupted_facts = {'started': owner._started,
-                             'in_flight': owner.in_flight,
-                             'retained': loop._startup_in_flight is owner}
+        # CORRECTION 23 (M3): the owner and its thread are recorded
+        # **before** any fallible container query of the cleanup runs.
+        interrupted_observed_owner = owner
+        interrupted_owner_observed = True
+        try:
+            interrupted_observed_thread = getattr(owner, '_thread', None)
+        except BaseException as error:  # noqa: BLE001 - it stays visible
+            interrupted_cleanup_errors.append(
+                {'kind': 'OWNER_THREAD', 'type': type(error).__name__,
+                 'detail': str(error)})
+            _note_interruption(interrupted_interrupts, error)
+        interrupted_facts.update({'started': owner._started,
+                                  'in_flight': owner.in_flight,
+                                  'retained': loop._startup_in_flight is owner})
         write_phase('r09-interrupted-start', interrupted_facts)
         # The facts of the thread decided: the thread of the step really
         # came up and the owner does not release it.
@@ -5877,10 +6286,15 @@ def test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread(tmp_path):
             'the later settle of the owner did not converge'
         assert owner.in_flight is False
     finally:
+        # CORRECTION 23 (M3): the **exact** original failure that is
+        # unwinding is read **before** the first action of the cleanup
+        # runs: it is the priority that follows the publication.
+        interrupted_facts['original'] = _original_facts()
         # CORRECTION 20 (M3): the release of the gate is guarded and the
         # exact object of a cancellation of it is retained.
         _release_gate(tail_release.set, interrupted_cleanup_errors,
                       interrupted_interrupts)
+        interrupted_facts['actions'].append('release:gate')
         # CORRECTION 21 (M3): every owner that is still in flight is
         # attempted and every settle of it is **guarded**: a failure of
         # one settle never skips the owners that follow it and it never
@@ -5897,7 +6311,22 @@ def test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread(tmp_path):
                 {'kind': 'INFLIGHT', 'type': type(error).__name__,
                  'detail': str(error)})
             _note_interruption(interrupted_interrupts, error)
-        for pending in pending_owners:
+        # CORRECTION 23 (M3): the owners that the query returned are
+        # **merged** with the owner that the body really observed: the
+        # identity of an owner is never counted twice and the fallback
+        # never loses a known owner.  A failure of the query of the owners
+        # that are in flight never cancels the settle of the owner that
+        # was really observed.
+        merged_owners = []
+        for candidate in list(pending_owners) + [interrupted_observed_owner]:
+            if candidate is None:
+                continue
+            if any(candidate is item for item in merged_owners):
+                continue
+            merged_owners.append(candidate)
+        interrupted_facts['actions'].append('settle:startup-owners')
+        interrupted_facts['owners_attempted'] = len(merged_owners)
+        for pending in merged_owners:
             try:
                 pending.settle(5.0)
             except BaseException as error:  # noqa: BLE001
@@ -5916,20 +6345,46 @@ def test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread(tmp_path):
                 {'kind': 'OWNER_THREAD', 'type': type(error).__name__,
                  'detail': str(error)})
             _note_interruption(interrupted_interrupts, error)
+        # CORRECTION 23 (M3): the **known** thread of the observed owner
+        # is the fallback of the lookup: a failure of the lookup never
+        # cancels the join of a thread that the body really observed.
+        if thread is None:
+            thread = interrupted_observed_thread
+        interrupted_facts['actions'].append('join:interrupted-start')
         interrupted_join = None
         if thread is not None:
             interrupted_join = _join_owner(
                 'interrupted-start', thread, interrupted_cleanup_errors,
                 interrupted_interrupts, seconds=10.0)
+        # CORRECTION 23 (M3): the liveness of a **known** owner is never
+        # read from an unknown join: an owner whose thread could not be
+        # determined is recorded as **unknown** and the round fails with
+        # it - it is never a synthetic cleanup success.
+        interrupted_liveness_known = True
+        if interrupted_owner_observed and thread is None:
+            interrupted_liveness_known = False
+            interrupted_facts['unknown'].append('owner_thread')
+            interrupted_cleanup_errors.append(
+                {'kind': 'OWNER_LIVENESS_UNKNOWN', 'type': 'RuntimeError',
+                 'detail': 'the thread of the observed owner of the '
+                           'interrupted start could not be determined'})
+        interrupted_facts['liveness_known'] = interrupted_liveness_known
         # CORRECTION 22 (M3): the facts of the cleanup are **complete**
         # and they are **durable** before the priority is applied.
-        if interrupted_facts:
-            interrupted_facts['owner_alive'] = _owner_alive(interrupted_join)
-            _publish_cleanup(
-                interrupted_facts,
-                lambda: write_phase('r09-interrupted-start',
-                                    interrupted_facts),
-                interrupted_cleanup_errors, interrupted_interrupts)
+        # CORRECTION 23 (M3): the publication is **unconditional** - it
+        # never waits for the happy facts of the body - and the verdict of
+        # the cleanup is recomputed **before** every attempt to write and
+        # **before** the retry of a failed write.
+        interrupted_facts['owner_alive'] = _owner_alive(interrupted_join)
+        interrupted_facts['alive'] = interrupted_facts['owner_alive']
+        _publish_cleanup(
+            interrupted_facts,
+            lambda: write_phase('r09-interrupted-start',
+                                interrupted_facts),
+            interrupted_cleanup_errors, interrupted_interrupts,
+            verdict=lambda: _cleanup_verdict(
+                interrupted_cleanup_errors, None,
+                'the cleanup of the interrupted start met'))
         # the **exact** cancellation wins over the ordinary assertion of
         # the join that follows it - and it wins **after** every action
         # of the cleanup was attempted.
@@ -5938,6 +6393,10 @@ def test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread(tmp_path):
         # of the cleanup and it never replaces the failure that is already
         # unwinding.
         if sys.exc_info()[0] is None:
+            if not interrupted_liveness_known:
+                raise AssertionError(
+                    'the liveness of the owner of the interrupted start is '
+                    'unknown: %s' % (interrupted_cleanup_errors,))
             assert not _owner_alive(interrupted_join), \
                 'the thread of a startup step was left behind'
         # the ordinary errors of the cleanup are **consumed**: they fail
@@ -8718,10 +9177,16 @@ def test_n10_r11_the_overflow_of_the_channel_is_a_named_failure(tmp_path):
     # unwinding.
     r11_cleanup_errors = []
     r11_interrupts = []
+    # CORRECTION 23 (M3): the facts of the cleanup of this round exist
+    # **before** its body runs: a body that fails before its own happy
+    # facts exist never leaves the cleanup of the round without a
+    # durable document.
+    r11_cleanup_facts = _cleanup_facts('r11')
     api = _F5Api()
     session, holder, channel_closes, channel_facts = _chain(
         api, document, plan, tmp_path)
     try:
+        r11_cleanup_facts['executed'] = True
         session.start()
         # The owner of the test publishes the frame that does not fit
         # into the channel of the round: the frame is a **complete**
@@ -8767,6 +9232,10 @@ def test_n10_r11_the_overflow_of_the_channel_is_a_named_failure(tmp_path):
         assert second['broker_retained'] is True
         assert second['state'] == 'UNKNOWN_RETAINED'
     finally:
+        # CORRECTION 23 (M3): the **exact** original failure that is
+        # unwinding is read **before** the first action of the cleanup
+        # runs: it is the priority that follows the publication.
+        r11_cleanup_facts['original'] = _original_facts()
         # CORRECTION 22 (M3): the **stop** of the round is guarded and it
         # is never silently passed: its failure is retained with its
         # exact type and its exact detail and the priority of the
@@ -8778,6 +9247,17 @@ def test_n10_r11_the_overflow_of_the_channel_is_a_named_failure(tmp_path):
                 {'kind': 'STOP', 'type': type(error).__name__,
                  'detail': str(error)})
             _note_interruption(r11_interrupts, error)
+        r11_cleanup_facts['actions'].append('stop:round')
+        # CORRECTION 23 (M3): the publication of the cleanup is
+        # **unconditional** and it happens **after** every action of the
+        # cleanup and **before** the priority of the failures.
+        _publish_cleanup(
+            r11_cleanup_facts,
+            lambda: write_phase('r11-round-cleanup', r11_cleanup_facts),
+            r11_cleanup_errors, r11_interrupts,
+            verdict=lambda: _cleanup_verdict(
+                r11_cleanup_errors, None,
+                'the cleanup of the round of R11 met'))
         _raise_first_interruption(r11_interrupts)
         if r11_cleanup_errors and sys.exc_info()[0] is None:
             raise AssertionError('the cleanup of the round of R11 met %s'
@@ -8802,6 +9282,10 @@ def test_n10_r11_the_overflow_of_the_channel_is_a_named_failure(tmp_path):
         assert channel.overflow is False
         assert channel._error is None
     finally:
+        # CORRECTION 23 (M3): the **exact** original failure that is
+        # unwinding is read **before** the first action of the cleanup
+        # runs: it is the priority that follows the publication.
+        r11_cleanup_facts['original'] = _original_facts()
         # CORRECTION 22 (M3): the close of the channel is **guarded**: it
         # never replaces the failure that is already unwinding and it
         # never replaces the **first** exact pending interruption of the
@@ -8814,6 +9298,17 @@ def test_n10_r11_the_overflow_of_the_channel_is_a_named_failure(tmp_path):
                  'type': type(error).__name__,
                  'detail': str(error)})
             _note_interruption(r11_interrupts, error)
+        r11_cleanup_facts['actions'].append('close:r11:exact')
+        # CORRECTION 23 (M3): the publication of the cleanup is
+        # **unconditional** and it happens **after** every action of the
+        # cleanup and **before** the priority of the failures.
+        _publish_cleanup(
+            r11_cleanup_facts,
+            lambda: write_phase('r11-exact-cleanup', r11_cleanup_facts),
+            r11_cleanup_errors, r11_interrupts,
+            verdict=lambda: _cleanup_verdict(
+                r11_cleanup_errors, None,
+                'the cleanup of the round of R11 met'))
 
     # The frame count of the channel: the frame that is one beyond the
     # number of the frames of the package is refused with the same named
@@ -8835,6 +9330,10 @@ def test_n10_r11_the_overflow_of_the_channel_is_a_named_failure(tmp_path):
         assert channel._error == 'BROKER_CHANNEL_OVERFLOW'
         assert channel._overflow_facts.get('reason') == 'TOO_MANY_FRAMES'
     finally:
+        # CORRECTION 23 (M3): the **exact** original failure that is
+        # unwinding is read **before** the first action of the cleanup
+        # runs: it is the priority that follows the publication.
+        r11_cleanup_facts['original'] = _original_facts()
         # CORRECTION 22 (M3): the close of the channel is **guarded** and
         # the priority of the failures of the cleanup is enforced
         # **after** it: the failure that is already unwinding wins, then
@@ -8848,6 +9347,17 @@ def test_n10_r11_the_overflow_of_the_channel_is_a_named_failure(tmp_path):
                  'type': type(error).__name__,
                  'detail': str(error)})
             _note_interruption(r11_interrupts, error)
+        r11_cleanup_facts['actions'].append('close:r11:frames')
+        # CORRECTION 23 (M3): the publication of the cleanup is
+        # **unconditional** and it happens **after** every action of the
+        # cleanup and **before** the priority of the failures.
+        _publish_cleanup(
+            r11_cleanup_facts,
+            lambda: write_phase('r11-frames-cleanup', r11_cleanup_facts),
+            r11_cleanup_errors, r11_interrupts,
+            verdict=lambda: _cleanup_verdict(
+                r11_cleanup_errors, None,
+                'the cleanup of the round of R11 met'))
         _raise_first_interruption(r11_interrupts)
         if r11_cleanup_errors and sys.exc_info()[0] is None:
             raise AssertionError('the cleanup of the channels met %s'
@@ -8923,8 +9433,15 @@ def test_n10_r12_the_reader_publishes_its_wait_before_it_waits(tmp_path):
     owner = _F5ExternalCancelOwner(api, holder)
     thread = threading.Thread(target=owner.run, name='lvw-n10-r12-owner')
     thread.start()
-    r12_facts = {}
+    # CORRECTION 23 (M3): the facts of the cleanup of this round exist
+    # **before** its body runs: a body that fails before its own happy
+    # facts exist never leaves the cleanup of the round without a
+    # durable document.
+    r12_facts = _cleanup_facts('r12-stop')
+    r12_cleanup_errors = []
+    r12_interrupts = []
     try:
+        r12_facts['executed'] = True
         session.start()
         # The confirmation of the external owner is published in every
         # case and the failure of the owner is the failure of the test.
@@ -8951,10 +9468,10 @@ def test_n10_r12_the_reader_publishes_its_wait_before_it_waits(tmp_path):
         # confirmation of the owner.
         first = session.stop()
         close_facts = first['broker_close_facts'] or {}
-        r12_facts = {'state': first['state'],
-                     'reader_error':
-                     close_facts.get('channel_reader_error'),
-                     'retained': first['broker_retained']}
+        r12_facts.update({'state': first['state'],
+                          'reader_error':
+                          close_facts.get('channel_reader_error'),
+                          'retained': first['broker_retained']})
         write_phase('r12-stop', r12_facts)
         # The code of the cancellation is the one that the real
         # observation layer raised and it is one of the two codes that
@@ -8973,8 +9490,10 @@ def test_n10_r12_the_reader_publishes_its_wait_before_it_waits(tmp_path):
         # CORRECTION 21 (M3): the join is **guarded**: a failure of it
         # never skips the stop of the round that follows it and it never
         # replaces the failure that is already unwinding.
-        r12_cleanup_errors = []
-        r12_interrupts = []
+        # CORRECTION 23 (M3): the **exact** original failure that is
+        # unwinding is read **before** the first action of the cleanup
+        # runs: it is the priority that follows the publication.
+        r12_facts['original'] = _original_facts()
         r12_join = _join_owner('owner-of-the-round', thread,
                                r12_cleanup_errors, r12_interrupts,
                                seconds=30.0)
@@ -8990,15 +9509,24 @@ def test_n10_r12_the_reader_publishes_its_wait_before_it_waits(tmp_path):
                 {'kind': 'STOP', 'type': type(error).__name__,
                  'detail': str(error)})
             _note_interruption(r12_interrupts, error)
+        r12_facts['actions'].extend(['join:owner-of-the-round',
+                                     'stop:round'])
         # CORRECTION 22 (M3): the facts of the cleanup are **complete**
         # and they are **durable** before the priority is applied.
-        if r12_facts:
-            r12_facts['owner_alive'] = _owner_alive(r12_join)
-            r12_facts['cleanup_stop_state'] = (
-                r12_stop.get('state') if isinstance(r12_stop, dict) else None)
-            _publish_cleanup(
-                r12_facts, lambda: write_phase('r12-stop', r12_facts),
-                r12_cleanup_errors, r12_interrupts)
+        # CORRECTION 23 (M3): the publication is **unconditional** - it
+        # never waits for the happy facts of the body - and the verdict of
+        # the cleanup is recomputed **before** every attempt to write and
+        # **before** the retry of a failed write.
+        r12_facts['owner_alive'] = _owner_alive(r12_join)
+        r12_facts['alive'] = r12_facts['owner_alive']
+        r12_facts['cleanup_stop_state'] = (
+            r12_stop.get('state') if isinstance(r12_stop, dict) else None)
+        _publish_cleanup(
+            r12_facts, lambda: write_phase('r12-stop', r12_facts),
+            r12_cleanup_errors, r12_interrupts,
+            verdict=lambda: _cleanup_verdict(
+                r12_cleanup_errors, None,
+                'the cleanup of the round of R12 met'))
         # the **exact** cancellation wins over the ordinary assertion of
         # the join that follows it - and it wins **after** every action
         # of the cleanup was attempted.
@@ -9050,11 +9578,17 @@ def test_n10_r13_the_fault_is_unlocked_by_the_owner_and_observed_first(tmp_path)
     # already unwinding.
     r13_cleanup_errors = []
     r13_interrupts = []
+    # CORRECTION 23 (M3): the facts of the cleanup of this round exist
+    # **before** its body runs: a body that fails before its own happy
+    # facts exist never leaves the cleanup of the round without a
+    # durable document.
+    r13_cleanup_facts = _cleanup_facts('r13')
     # -- PHASE ONE: the ordinary failure of the read --------------------
     api = _F5Api(read_fault=RuntimeError('read_fault'))
     session, holder, channel_closes, channel_facts = _chain(
         api, document, plan, tmp_path)
     try:
+        r13_cleanup_facts['executed'] = True
         session.start()
         assert api.read_waiting.wait(15.0), \
             'the reader of the chain was never inside its read'
@@ -9076,6 +9610,10 @@ def test_n10_r13_the_fault_is_unlocked_by_the_owner_and_observed_first(tmp_path)
         assert first['broker_retained'] is True
         assert first['state'] == 'UNKNOWN_RETAINED'
     finally:
+        # CORRECTION 23 (M3): the **exact** original failure that is
+        # unwinding is read **before** the first action of the cleanup
+        # runs: it is the priority that follows the publication.
+        r13_cleanup_facts['original'] = _original_facts()
         # CORRECTION 22 (M3): the **stop** of the round is guarded and it
         # is never silently passed: its failure is retained with its
         # exact type and its exact detail and the priority of the
@@ -9087,6 +9625,17 @@ def test_n10_r13_the_fault_is_unlocked_by_the_owner_and_observed_first(tmp_path)
                 {'kind': 'STOP', 'type': type(error).__name__,
                  'detail': str(error)})
             _note_interruption(r13_interrupts, error)
+        r13_cleanup_facts['actions'].append('stop:round')
+        # CORRECTION 23 (M3): the publication of the cleanup is
+        # **unconditional** and it happens **after** every action of the
+        # cleanup and **before** the priority of the failures.
+        _publish_cleanup(
+            r13_cleanup_facts,
+            lambda: write_phase('r13-fault-cleanup', r13_cleanup_facts),
+            r13_cleanup_errors, r13_interrupts,
+            verdict=lambda: _cleanup_verdict(
+                r13_cleanup_errors, None,
+                'the cleanup of the round of R13 met'))
         _raise_first_interruption(r13_interrupts)
         if r13_cleanup_errors and sys.exc_info()[0] is None:
             raise AssertionError('the cleanup of the round of R13 met %s'
@@ -9119,6 +9668,10 @@ def test_n10_r13_the_fault_is_unlocked_by_the_owner_and_observed_first(tmp_path)
         assert first['broker_retained'] is True
         assert first['state'] == 'UNKNOWN_RETAINED'
     finally:
+        # CORRECTION 23 (M3): the **exact** original failure that is
+        # unwinding is read **before** the first action of the cleanup
+        # runs: it is the priority that follows the publication.
+        r13_cleanup_facts['original'] = _original_facts()
         # CORRECTION 22 (M3): the **stop** of the round is guarded and it
         # is never silently passed: its failure is retained with its
         # exact type and its exact detail and the priority of the
@@ -9130,6 +9683,17 @@ def test_n10_r13_the_fault_is_unlocked_by_the_owner_and_observed_first(tmp_path)
                 {'kind': 'STOP', 'type': type(error).__name__,
                  'detail': str(error)})
             _note_interruption(r13_interrupts, error)
+        r13_cleanup_facts['actions'].append('stop:round')
+        # CORRECTION 23 (M3): the publication of the cleanup is
+        # **unconditional** and it happens **after** every action of the
+        # cleanup and **before** the priority of the failures.
+        _publish_cleanup(
+            r13_cleanup_facts,
+            lambda: write_phase('r13-partial-cleanup', r13_cleanup_facts),
+            r13_cleanup_errors, r13_interrupts,
+            verdict=lambda: _cleanup_verdict(
+                r13_cleanup_errors, None,
+                'the cleanup of the round of R13 met'))
         _raise_first_interruption(r13_interrupts)
         if r13_cleanup_errors and sys.exc_info()[0] is None:
             raise AssertionError('the cleanup of the round of R13 met %s'
@@ -9168,10 +9732,16 @@ def test_n10_r14_the_closed_obligations_of_the_package_do_not_regress(tmp_path):
     # unwinding.
     r14_cleanup_errors = []
     r14_interrupts = []
+    # CORRECTION 23 (M3): the facts of the cleanup of this round exist
+    # **before** its body runs: a body that fails before its own happy
+    # facts exist never leaves the cleanup of the round without a
+    # durable document.
+    r14_cleanup_facts = _cleanup_facts('r14')
     api = _F5Api()
     session, holder, channel_closes, channel_facts = _chain(
         api, document, plan, tmp_path)
     try:
+        r14_cleanup_facts['executed'] = True
         session.start()
         # The unknown state is latched under one lock and it is never
         # cleared.  The latch is checked on a **separate** session, so
@@ -9202,6 +9772,10 @@ def test_n10_r14_the_closed_obligations_of_the_package_do_not_regress(tmp_path):
         first = session.stop()
         assert first['state'] in ('UNKNOWN_RETAINED', 'RELEASED')
     finally:
+        # CORRECTION 23 (M3): the **exact** original failure that is
+        # unwinding is read **before** the first action of the cleanup
+        # runs: it is the priority that follows the publication.
+        r14_cleanup_facts['original'] = _original_facts()
         # CORRECTION 22 (M3): the **stop** of the round is guarded and it
         # is never silently passed: its failure is retained with its
         # exact type and its exact detail and the priority of the
@@ -9213,6 +9787,17 @@ def test_n10_r14_the_closed_obligations_of_the_package_do_not_regress(tmp_path):
                 {'kind': 'STOP', 'type': type(error).__name__,
                  'detail': str(error)})
             _note_interruption(r14_interrupts, error)
+        r14_cleanup_facts['actions'].append('stop:round')
+        # CORRECTION 23 (M3): the publication of the cleanup is
+        # **unconditional** and it happens **after** every action of the
+        # cleanup and **before** the priority of the failures.
+        _publish_cleanup(
+            r14_cleanup_facts,
+            lambda: write_phase('r14-cleanup', r14_cleanup_facts),
+            r14_cleanup_errors, r14_interrupts,
+            verdict=lambda: _cleanup_verdict(
+                r14_cleanup_errors, None,
+                'the cleanup of the round of R14 met'))
         _raise_first_interruption(r14_interrupts)
         if r14_cleanup_errors and sys.exc_info()[0] is None:
             raise AssertionError('the cleanup of the round of R14 met %s'
