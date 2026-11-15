@@ -1,0 +1,180 @@
+{
+  "kind": "implementation_receipt",
+  "scope_id": "OPT-B-04-CONSOLIDATED-REPAIR",
+  "packet": "N1-OPTIMIZED-01",
+  "stage": "OPT-B consolidated repair, OFFLINE implementation only; no runtime ACK",
+  "status": "READY_FOR_REVIEW",
+  "source_candidate_sha": "9b6d9d4b827587d132eaf20e2b838d449ed89bd3",
+  "base_source_candidate": "d645bd559af89921cd0359612cce7b78c4892fe8",
+  "delivery_commit": null,
+  "delivery_commit_note": "the commit that carries this receipt is reported in the worker_done summary; it is NOT the source candidate: the source candidate is source_candidate_sha above.  No self-referential pointer commit is created for it.",
+  "review_commit": "94cdd82d25102cc342df90d9b4afe1c8f1bcdb2d",
+  "source_pins": {
+    "tools/test_v0_s3_native_custody_correction10.py": "c30b9bc5f585cc7f3295aba6cd8188421843affc6cb55df62727c0a96dccca77",
+    "tools/test_v0_s3_native_custody_correction05.py": "fcba8f5d53d3bc40115ae30899ef8bf7aee6800cb21af430519dc914024ddfa1",
+    "tools/test_v0_s3_native_custody_cleanup_faults.py": "00c851ecb1ee8caf2c388da46a797621fa59d16b1483ad67a709db039a11b526"
+  },
+  "exact_diff": {
+    "files": [
+      {"path": "LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py", "insertions": 17, "deletions": 5},
+      {"path": "LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction05.py", "insertions": 19, "deletions": 2},
+      {"path": "LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_cleanup_faults.py", "insertions": 132, "deletions": 30}
+    ],
+    "other_files_changed": [],
+    "production_files_changed": [],
+    "contracts_thresholds_counters_control_packets_manifest": "untouched"
+  },
+  "mapping_of_the_five_majors_to_the_changed_lines": [
+    {
+      "id": "OPT04-M1-SHUTDOWN-WIRING",
+      "file": "tools/test_v0_s3_native_custody_correction10.py",
+      "lines": "4469-4476 (the endpoints of the channel are now its real _reader and its real _writer) and 4500-4510 (the real stop_accepting and request_cancel of the worker are now really called and their result is forwarded)",
+      "before": "the fixture asked the channel for _read and _write, so it found no endpoint and its list of the workers of the round was empty; the lambdas only took the bound methods and never called them",
+      "after": "the endpoints are the real attributes of the production channel, the query stays guarded, a missing endpoint stays a missing owner, and the two real methods of the worker are really called and their result is recorded",
+      "oracles": "none removed: the T10 assertion multiset stays 424 with 0 removed and 0 added"
+    },
+    {
+      "id": "OPT04-M2-FINAL-QUERY-FAULT-MISSED",
+      "file": "tools/test_v0_s3_native_custody_cleanup_faults.py",
+      "lines": "78-87 (the depth of the stack of the final query is 3 and the reason is documented) and 151-156 (the recorder names the worker that it faulted and the fault is injected once)",
+      "before": "the recorder read the stack at depth 2 and stopped at the lambda of the fixture, so the fault was never injected (16 and 12 calls, 0 injections in the real run)",
+      "after": "the recorder reaches the guarded query of the fixture, injects the fault exactly once and records the worker that it faulted; the case proves the hit by the name of that worker in the facts of the shutdown and by the unknown that the fixture really recorded",
+      "oracles": "the injection count assertion is kept and strengthened by the identity of the faulted worker"
+    },
+    {
+      "id": "OPT04-M3-NONTRANSPARENT-K1-RECORDER",
+      "file": "tools/test_v0_s3_native_custody_cleanup_faults.py",
+      "lines": "300-330 (the exact cancellation is pre-created and the original third callback of the drain is kept, really called and its result is forwarded)",
+      "before": "the recorder replaced the third release callback - the real close of the channel - and called the first gate instead: the real close was omitted and the first gate ran twice; every iteration built a new cancellation object",
+      "after": "the original third callback is really called and forwarded, the exact cancellation is one pre-created object and it is injected once, and the later iterations forward the original callbacks unchanged",
+      "oracles": "the assertion that the first interruption really reached the mechanism of the cleanup is kept"
+    },
+    {
+      "id": "OPT04-M4-UNKNOWN-ORACLE-CONTRADICTION",
+      "file": "tools/test_v0_s3_native_custody_cleanup_faults.py",
+      "lines": "235-278 (the oracles of SUP-01) and 377-410 (the oracles of SUP-02)",
+      "before": "the cases demanded fixture_handle_proof is None and alive_after is False where the fixture correctly fails closed with an unknown",
+      "after": "the cases require the retained unknown, the retained error and the non-empty failed proof, and they prove the physical cleanup INDEPENDENTLY through the drain of the round, which really joined every owner and never overwrites the unknown; the callee was not changed to report a false",
+      "oracles": "the removed predicates were the wrong ones and their replacements are stronger: the four removed assertions are replaced by the retention of the unknown, the non-empty failed proof, the unknown entry of the shutdown list and the independent physical proof of every owner",
+      "distinction": "a callee that fails with the unknown is a negative success of the case; the outer result is not the result of the callee"
+    },
+    {
+      "id": "OPT04-M5-EXACT-IDENTITY-NOT-ASSERTED",
+      "file": "tools/test_v0_s3_native_custody_cleanup_faults.py",
+      "lines": "182-212 (SUP-01), 300-360 (SUP-02) and 543-645 (SUP-05)",
+      "before": "the cases compared only the type and the token of the failures; the injected object of the original was never compared and the join of the held thread was never compared with the thread of the held owner",
+      "after": "the exact injected original and the exact injected interruption are pre-created and the case asserts that the object that left the round IS it, that the later interruption is a different object, and that the thread the fixture joined IS the thread of the owner it really held",
+      "oracles": "no identity oracle was removed; four identity oracles were added"
+    }
+  ],
+  "n05_output_routing": {
+    "file": "tools/test_v0_s3_native_custody_correction05.py",
+    "lines": "91-109",
+    "change": "the evidence root of the module REQUIRES an absolute LVW_N1_N05_EVIDENCE_DIR and it never falls back to a historical root: the documents of the correction 14 are historical evidence and a run of this module never overwrites them",
+    "fail_closed": "the module raises at import when the environment names no fresh root, exactly like the module correction 10",
+    "oracles": "none removed: the assertion multiset of the module stays 317 with 0 removed and 0 added"
+  },
+  "static_audit_of_the_output_routing_of_the_five_original_test_modules": {
+    "method": "read-only text inspection of the five original test modules; no import, no compile, no collection and no run",
+    "rows": [
+      {"module": "tools/test_v0_s3_native_custody.py", "output_routing": "none: the module writes no phase document", "hardcoded_path": null, "action": "none needed"},
+      {"module": "tools/test_v0_s3_native_custody_regressions.py", "output_routing": "none: the module writes no phase document", "hardcoded_path": null, "action": "none needed"},
+      {"module": "tools/test_v0_s3_native_custody_correction05.py", "output_routing": "bound to the run by LVW_N1_N05_EVIDENCE_DIR, absolute required, fail closed", "hardcoded_path": null, "action": "corrected in this delivery"},
+      {"module": "tools/test_v0_s3_native_custody_correction07.py", "output_routing": "LVW_N1_F5_EVIDENCE_DIR **with a fallback**", "hardcoded_path": "PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0' / 'implementation-native-custody-correction-14' / 'f5-evidence'", "action": "LISTED ONLY - the module is outside the three allowed files of this scope and it was not changed"},
+      {"module": "tools/test_v0_s3_native_custody_correction10.py", "output_routing": "bound to the run by LVW_N1_T10_EVIDENCE_DIR, fail closed", "hardcoded_path": null, "action": "none needed"}
+    ],
+    "additional_hardcoded_paths_listed": [
+      "tools/test_v0_s3_native_custody_correction07.py:160-164 - the fallback of F5_EVIDENCE_DIR points at the historical root implementation-native-custody-correction-14/f5-evidence; the same class of defect as the one of N05 and it needs its own frozen scope"
+    ],
+    "the_supplemental_module": "tools/test_v0_s3_native_custody_cleanup_faults.py writes no document of its own: every case patches the EVIDENCE_DIR of the module correction 10 to its own child root below the run root and restores the route when the case ends"
+  },
+  "static_facts": {
+    "method": "read-only git blob inspection and standard-library ast.parse as data; no import, no compile, no collect, no pytest and no runtime of any kind",
+    "exact_189_node_identities_order_signatures_decorators": "unchanged; 117+16+24+18+14, unique 189",
+    "T10_assert_occurrences": {"before": 424, "after": 424, "removed": 0, "added": 0},
+    "N05_assert_occurrences": {"before": 317, "after": 317, "removed": 0, "added": 0},
+    "supplement_assert_occurrences": {"before": 46, "after": 64, "removed": 4, "added": 22},
+    "supplement_removed_predicates": [
+      "document['fixture_handle_proof'] is None (twice) - the wrong demand of a free handle proof where the fixture correctly fails closed",
+      "entry['alive_after'] is False - the wrong demand of a known false where the correct state is unknown",
+      "entry['thread_handle_released'] is True - replaced by the independent physical proof of the drain"
+    ],
+    "supplement_added_oracles": "the retention of the unknown, the non-empty failed proof, the unknown entry of the shutdown list, the independent physical proof of every owner, the identity of the injected original, the identity of the injected interruption, the distinction of the two interruptions, the identity of the joined thread with the thread of the held owner and the name of the faulted worker",
+    "changed_functions_in_the_original_modules": ["test_n10_r07_the_context_of_the_round_reaches_every_layer (module correction 10 only)"],
+    "supplement_node_names": ["test_n1_sup_01_final_query_preserves_original", "test_n1_sup_02_final_query_preserves_first_interruption", "test_n1_sup_03_inner_writer_error_rejects_success", "test_n1_sup_04_recovered_final_write_has_failed_proof", "test_n1_sup_05_held_startup_owner_survives_query_faults"],
+    "production_sources": {
+      "tools/v0_s3_native_broker.py": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
+      "tools/v0_s3_native_custody.py": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581"
+    },
+    "new_framework_or_generic_diagnostic_platform": 0,
+    "no_production_change": true
+  },
+  "ten_incident_files": {
+    "handled": "not restored, not staged and not modified by this delivery; they were independently captured at the root incident directory and they are left exactly as the incident left them",
+    "count": 10,
+    "unrelated_dirty_report": "the report of the implementation integration stays dirty and untouched"
+  },
+  "necessary_followup_runtime_obligations": [
+    "root must seal the new source candidate 9b6d9d4 and freeze ONE finite guarded controlled plan for it (candidate pins, exact argv/cwd/env/nodeids, bounded budget, guard before the candidate import, per-run evidence roots, counter observation policy, its own ACK)",
+    "that run must re-execute the supplemental 5 with the environment of the run: the module correction 05 now REQUIRES an absolute LVW_N1_N05_EVIDENCE_DIR, so the plan must provide it, and the module correction 10 requires LVW_N1_T10_EVIDENCE_DIR",
+    "the plan must bind a fresh evidence root for the module correction 07 as well, or the fallback of that module will write into the historical root of the correction 14 again",
+    "the five supplemental cases must really exercise the branches of M1 to M5: the final-query fault, the distinct later interruption, the shutdown of the actual workers and the handle release, and the case must show the unknown and the failed proof instead of a known false",
+    "the independent review of the new candidate must confirm that the guarded final query of the review 86ab300 really covers the query of the actual held worker, and that the identities are exact",
+    "the fixed 189 checkpoint, the product 29 cases, the native lifecycle and the human gates remain separate obligations and are not advanced by this delivery"
+  ],
+  "unresolved_limits": [
+    "NOTHING WAS EXECUTED: the candidate was never imported, never compiled, never collected and never run.  The five Majors are addressed by the source and they are not closed by this delivery; the repair is a design until root freezes and dispatches a finite run and the independent review reads the new raw.",
+    "the fault of the final query is recognised by the code object of the guarded query of the fixture: the lookup is explicit and a renamed helper makes the cases fail loudly on the injection count instead of injecting silently somewhere else.",
+    "the repair of the shutdown wiring changes what the fixture really asks of the production workers for the first time; the real behaviour of that path has never been executed and the cleanup of the round may yet show a new fact.",
+    "the additional hard-coded fallback of the module correction 07 is LISTED and not repaired: it is outside the three allowed files of this scope and it needs its own frozen scope.",
+    "the ten incident files are left exactly as the incident left them; nothing was restored and nothing was staged.",
+    "the known open Major of the review 86ab300 and the historical M2/M3 of the correction 22 are not rewritten and no Major is closed by this delivery"
+  ],
+  "states": {
+    "runtime_authorized": false,
+    "candidate_import_allowed": false,
+    "tests_run": 0,
+    "dynamic_correction23": "NOT_RUN",
+    "native": "NOT_PROVEN",
+    "product_acceptance": false,
+    "stage_pass": false,
+    "human_signoff": false,
+    "budget_reset": false,
+    "major_closed_by_this_delivery": 0,
+    "test_pass_claimed": false,
+    "result_of_this_delivery": "READY_FOR_REVIEW"
+  },
+  "ten_fields": {
+    "coordinate": "V1/R1/WP-R1-U3/S3_P4",
+    "this_batch": "the consolidated offline repair of the five Majors and of the output routing of N05 is delivered as a sealed candidate",
+    "last_passed_gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
+    "current_blocker": "the five concentrated Majors of the independent review 94cdd82d are addressed in the source and await a finite controlled run and the independent review of the new candidate",
+    "route": "OPT-B -> OPT-C",
+    "remaining": "the finite controlled re-verification of the new candidate, the independent review, then the fixed 189 checkpoint, the admission of the real main chain and the product 29",
+    "next_owner": "coordinator and implementer",
+    "authorisation": "this round is OFFLINE implementation only; no runtime ACK is granted by it and the trusted executor write boundary stays with root",
+    "evidence": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-05/implementation-receipt.json bound to the source candidate 9b6d9d4",
+    "stop": "READY_FOR_REVIEW - no Major is closed, no test PASS is claimed, no Stage or native or product acceptance"
+  },
+  "development_outline": [
+    {"stage_id": "V0-S0", "completed_substeps": 1, "total_substeps": 2, "implementation": "ARCHIVED", "machine_acceptance": "NO_GO_HISTORICAL", "independent_review": "COMPLETED_WITH_BLOCKERS", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "V0-S1", "completed_substeps": 5, "total_substeps": 5, "implementation": "DELIVERED", "machine_acceptance": "ACCEPTED_SCOPE_ONLY", "independent_review": "COMPLETED", "human_signoff": "APPROVED"},
+    {"stage_id": "R0", "completed_substeps": 1, "total_substeps": 2, "implementation": "PARTIAL_REUSED", "machine_acceptance": "SINGLE_IMAGE_SUBSET_ONLY", "independent_review": "NO_SEPARATE_R0_VERDICT", "human_signoff": "NO_SEPARATE_R0_SIGNOFF"},
+    {"stage_id": "R1a", "completed_substeps": 5, "total_substeps": 5, "implementation": "DELIVERED", "machine_acceptance": "ACCEPTED_SCOPE_ONLY", "independent_review": "COMPLETED", "human_signoff": "APPROVED"},
+    {"stage_id": "V0-S2", "completed_substeps": 7, "total_substeps": 8, "implementation": "IMPLEMENTED", "machine_acceptance": "COMPLETE_FIXED9_PASSED", "independent_review": "COMPLETE_FATAL0_MAJOR0_MINOR0", "human_signoff": "PENDING"},
+    {"stage_id": "V0-S3", "completed_substeps": 0, "total_substeps": 6, "implementation": "NOT_DELIVERED", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "R1", "completed_substeps": 0, "total_substeps": 4, "implementation": "EARLY_SLICE_IMPLEMENTED_FULL_R1_PENDING", "machine_acceptance": "EARLY_SLICE_UM10_ONLY", "independent_review": "EARLY_SLICE_FATAL0_MAJOR0", "human_signoff": "EARLY_SLICE_APPROVED_FULL_R1_PENDING"},
+    {"stage_id": "V1-M1", "completed_substeps": 0, "total_substeps": 3, "implementation": "DESIGN_ONLY", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "R2", "completed_substeps": 0, "total_substeps": 4, "implementation": "NOT_DELIVERED", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "R3", "completed_substeps": 0, "total_substeps": 4, "implementation": "NOT_DELIVERED", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "R4", "completed_substeps": 0, "total_substeps": 4, "implementation": "NOT_DELIVERED", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "R5a", "completed_substeps": 0, "total_substeps": 4, "implementation": "NOT_DELIVERED", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "R5b", "completed_substeps": 0, "total_substeps": 4, "implementation": "NOT_DELIVERED", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "R5c", "completed_substeps": 0, "total_substeps": 4, "implementation": "NOT_DELIVERED", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"}
+  ],
+  "unrelated_dirty_state_preserved": [
+    "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-01/report.md"
+  ],
+  "next_owner": "coordinator",
+  "next_action": "root seals the new source candidate 9b6d9d4 and freezes one finite guarded controlled plan for it, and the independent review reads the new raw; this delivery runs nothing, closes no Major and grants no runtime ACK"
+}
