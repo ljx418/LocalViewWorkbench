@@ -1,0 +1,169 @@
+{
+  "kind": "append_only_execution_receipt_correction",
+  "correction_id": "combined01-execution-receipt.correction-01",
+  "scope_id": "OPT-B-12-ENVELOPE-CORRECTION",
+  "packet": "N1-OPTIMIZED-01",
+  "appends_to": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined01-execution-receipt.json",
+  "appended_sha256_of_the_original_receipt": "833fb339089c9c510c87bce5a3bbce8594d268ef7c5ad0619f4b105426ba911a",
+  "the_evidence_commit_of_the_original_batch": "c87e6456e3c0fc585af9f47fc4c2ebaa0d825a45",
+  "original_bytes_preserved": true,
+  "original_receipt_rewritten": false,
+  "existing_corrections_rewritten": false,
+  "snapshots_rewritten": false,
+  "finding": "CP09-M1 - the navigation receipt of the combined01 checkpoint repeated the frozen timeout assumption of the plan as the parameter that was really configured, and the real tool calls carried larger caps",
+  "the_review_that_found_it": {
+    "the_review_sha": "a52ff44246005cb985d312d5f6f925b79ef9ea87",
+    "the_review_sha256_of_the_findings": "938dbba283f6eeaba693034b7d574afeddcb0f600742a7427f36811117e08f1c",
+    "the_review_sha256_of_the_recomputation": "bfd997a105b4aa70487d26b6abb5a4d84d17ca20b35b069198b508cfa5e3e0a1",
+    "the_review_sha256_of_the_report": "f74c662eb92fb5409c0a421e890d84d5153e3891eb480368c744eaa01ec5bfd2",
+    "the_review_counts": {
+      "Fatal": 0,
+      "Major": 1,
+      "Minor": 0
+    },
+    "the_review_title": null,
+    "the_review_terminal": "CHANGES_REQUIRED_FOR_FROZEN_COMPONENT_ENVELOPE; observed194 functional/count/cleanup facts remain valid; no Stage/N2 clearance.",
+    "the_review_classification": "Major"
+  },
+  "the_wrong_statements": [
+    {
+      "json_pointer": "/the_commands/0/timeout_ms",
+      "the_label": "before",
+      "the_recorded_value": 5000,
+      "the_recorded_value_is": "the FROZEN value of the plan of the batch (the assumption of the plan), copied into the navigation receipt as if it were the parameter that was actually configured on the Bash tool call",
+      "the_actual_configured_tool_timeout_ms": 30000,
+      "the_frozen_timeout_ms_of_the_plan": 5000,
+      "the_actual_tool_call_id": "call_01a1e00e5e7e7573ae736d8c",
+      "the_actual_tool_call_timestamp_utc": "2026-11-15T16:33:22.268Z",
+      "the_argv_was_exact": true,
+      "the_environment_was_exact": true,
+      "the_observed_exit_lines": [
+        "EXIT=0"
+      ],
+      "why_it_is_wrong": "the field names the parameter of the frozen plan and it does not record the parameter that the tool call really carried.  The configured kill cap of that call was 30000 ms and not 5000 ms, so the field of the navigation receipt was not the enforcement of the batch and it could not prove it."
+    },
+    {
+      "json_pointer": "/the_commands/1/timeout_ms",
+      "the_label": "guard",
+      "the_recorded_value": 290000,
+      "the_recorded_value_is": "the FROZEN value of the plan of the batch (the assumption of the plan), copied into the navigation receipt as if it were the parameter that was actually configured on the Bash tool call",
+      "the_actual_configured_tool_timeout_ms": 300000,
+      "the_frozen_timeout_ms_of_the_plan": 290000,
+      "the_actual_tool_call_id": "call_01a1e00ed7647416bb0ce0e6",
+      "the_actual_tool_call_timestamp_utc": "2026-11-15T16:33:53.204Z",
+      "the_argv_was_exact": true,
+      "the_environment_was_exact": true,
+      "the_observed_exit_lines": [
+        "GUARD_EXIT=0"
+      ],
+      "why_it_is_wrong": "the field names the parameter of the frozen plan and it does not record the parameter that the tool call really carried.  The configured kill cap of that call was 300000 ms and not 290000 ms, so the field of the navigation receipt was not the enforcement of the batch and it could not prove it."
+    },
+    {
+      "json_pointer": "/the_commands/2/timeout_ms",
+      "the_label": "after",
+      "the_recorded_value": 5000,
+      "the_recorded_value_is": "the FROZEN value of the plan of the batch (the assumption of the plan), copied into the navigation receipt as if it were the parameter that was actually configured on the Bash tool call",
+      "the_actual_configured_tool_timeout_ms": 30000,
+      "the_frozen_timeout_ms_of_the_plan": 5000,
+      "the_actual_tool_call_id": "call_01a1e0116bc6777f86d834ac",
+      "the_actual_tool_call_timestamp_utc": "2026-11-15T16:36:42.275Z",
+      "the_argv_was_exact": true,
+      "the_environment_was_exact": true,
+      "the_observed_exit_lines": [
+        "EXIT=0"
+      ],
+      "why_it_is_wrong": "the field names the parameter of the frozen plan and it does not record the parameter that the tool call really carried.  The configured kill cap of that call was 30000 ms and not 5000 ms, so the field of the navigation receipt was not the enforcement of the batch and it could not prove it."
+    },
+    {
+      "json_pointer": "/the_commands/3/timeout_ms",
+      "the_label": "outer",
+      "the_recorded_value": 5000,
+      "the_recorded_value_is": "the FROZEN value of the plan of the batch (the assumption of the plan), copied into the navigation receipt as if it were the parameter that was actually configured on the Bash tool call",
+      "the_actual_configured_tool_timeout_ms": 30000,
+      "the_frozen_timeout_ms_of_the_plan": 5000,
+      "the_actual_tool_call_id": "call_01a1e011a8d37660aca45f16",
+      "the_actual_tool_call_timestamp_utc": "2026-11-15T16:36:57.745Z",
+      "the_argv_was_exact": true,
+      "the_environment_was_exact": true,
+      "the_observed_exit_lines": [
+        "EXIT=0"
+      ],
+      "why_it_is_wrong": "the field names the parameter of the frozen plan and it does not record the parameter that the tool call really carried.  The configured kill cap of that call was 30000 ms and not 5000 ms, so the field of the navigation receipt was not the enforcement of the batch and it could not prove it."
+    },
+    {
+      "json_pointer": "/the_commands/4/timeout_ms",
+      "the_label": "receipt",
+      "the_recorded_value": 5000,
+      "the_recorded_value_is": "the FROZEN value of the plan of the batch (the assumption of the plan), copied into the navigation receipt as if it were the parameter that was actually configured on the Bash tool call",
+      "the_actual_configured_tool_timeout_ms": 30000,
+      "the_frozen_timeout_ms_of_the_plan": 5000,
+      "the_actual_tool_call_id": "call_01a1e012c25d732385383655",
+      "the_actual_tool_call_timestamp_utc": "2026-11-15T16:38:10.380Z",
+      "the_argv_was_exact": true,
+      "the_environment_was_exact": true,
+      "the_observed_exit_lines": [
+        "EXIT=0"
+      ],
+      "why_it_is_wrong": "the field names the parameter of the frozen plan and it does not record the parameter that the tool call really carried.  The configured kill cap of that call was 30000 ms and not 5000 ms, so the field of the navigation receipt was not the enforcement of the batch and it could not prove it."
+    }
+  ],
+  "the_actual_configured_parameters_of_the_five_calls": {
+    "the_source_of_these_values": "the immutable review recomputation of the combined01 batch (received-review09/recomputation.json, /execution_commands and /timeout_comparison), which reads the original Bash tool call metadata of that batch",
+    "the_frozen_ms": {
+      "before": 5000,
+      "guard": 290000,
+      "after": 5000,
+      "outer": 5000,
+      "receipt": 5000
+    },
+    "the_actual_ms": {
+      "before": 30000,
+      "guard": 300000,
+      "after": 30000,
+      "outer": 30000,
+      "receipt": 30000
+    },
+    "the_frozen_sum_seconds": 310,
+    "the_actual_sum_seconds": 420.0,
+    "the_matches": false,
+    "the_actual_guard_measured_seconds": 54.23432517051697
+  },
+  "what_was_and_was_not_correct_in_that_batch": {
+    "the_exact_shell_argv_was_correct": true,
+    "the_exact_seven_key_environment_was_correct": true,
+    "the_exact_redirections_were_correct": true,
+    "the_exact_cwd_was_correct": true,
+    "the_statement": "the argv, the environment, the redirections and the cwd of the five calls were exactly the frozen ones and the review confirms it for every call (argv_exact and env_exact are true for all five).  NOTHING in this correction says that the shell of that batch differed; what differed was only the timeout parameter of the tool call itself.",
+    "the_five_renderings_statement": "the statement of the navigation receipt that the renderings 'were executed verbatim, each in its own Bash call, with the frozen cwd, the exact seven variable REPLACE environment, the frozen argv and the frozen redirections' is TRUE and it stays true.  What it does not say and what it cannot prove is the conformance of the TIMEOUT of those calls: a verbatim shell and a verbatim environment do not establish which kill cap the tool was actually configured with.",
+    "the_functional_facts_of_that_batch_remain_valid": true,
+    "the_functional_facts": "the 194 selected node ids really ran in that one fresh run directory, all 194 passed, the ordinary denial ledger of the guard was empty, the preload window was closed before the candidate, the cleanup of the batch was proven and the outer validator accepted the selected feedback.  Those facts are not disputed by this correction.",
+    "what_the_elapsed_time_does_not_prove": "the guard of that batch measured 54.23432517051697 s of wall time, which is under the frozen 290 s.  An elapsed time that happens to be under a bound is NOT a proof that the bound was configured, and it is not a substitute for the configured kill cap: a cooperative run that had hung would have received the larger configured lease of 300 s instead of the frozen 290 s, and the unchanged guard and runner contain no independent external kill deadline of their own.",
+    "no_conforming_external_deadline_was_established": "the evidence of that batch establishes NO conforming external deadline for the guard command, and this correction does not establish one either."
+  },
+  "the_effect_on_the_qualification": {
+    "the_finding_stays_a_Major": true,
+    "the_finding_was_not_downgraded": true,
+    "the_finding_was_not_relabelled": true,
+    "the_exact_frozen_checkpoint_of_combined01_is": "NOT_QUALIFIED",
+    "the_root_adjudication": "OPEN_PENDING_PROVENANCE_CORRECTION_AND_NEW_CONFORMING_RUN",
+    "the_root_disposition": "the root adjudicated the finding as an open Major with no hard control waiver, no retroactive raising of the frozen cap and no rewrite of the old bytes, and it explicitly authorized a NEW finite child that proves the required envelope instead of a retrospective waiver.",
+    "no_prior_PASS_certification_is_faked": "this correction does NOT certify the combined01 checkpoint as an exact conforming frozen checkpoint, and it does NOT claim that the timeout conformance of that batch was proven.  It records the deviation and it leaves the qualification of that checkpoint to the authorized root."
+  },
+  "what_is_NOT_claimed": [
+    "this correction does not close CP09-M1 and it does not close any other Major",
+    "this correction does not change the functional 194 facts, the counts, the cleanup facts or the outer result of the combined01 batch",
+    "this correction does not claim that the guard of the combined01 batch overran its bound: no overrun was observed and the elapsed time was under the frozen bound",
+    "this correction does not claim a defect of the product, of the guard, of the runner or of the candidate",
+    "the correction does not rewrite the old inputs, the old navigation or any old artifact",
+    "the product 29, the native 9, the human signs and the formal Stage and N2 obligations stay NOT_PROVEN and no clearance is claimed",
+    "the correction of the provenance of that batch does not authorize a replay of it: the new conforming run is a separately frozen child under a new root ACK"
+  ],
+  "attribution": {
+    "kind": "commit attribution of the producing agent",
+    "produced_by": "Visible ClaudeCode, the fixture implementer of the packet N1-OPTIMIZED-01 and the executor of the combined01 checkpoint",
+    "git_identity_used_for_the_commit": "ljx418 <1173696783@qq.com>",
+    "not_a_cryptographic_signature": "this attribution names the author of the correction and the git identity under which the commit is recorded.  It is NOT a digital signature, it proves no key, no signature and no identity beyond the git metadata of the commit itself.",
+    "scope": "the correction is bound to the original navigation receipt by its SHA256 and by the five JSON pointers and to the review by its sha and by the sha256 of the immutable recomputation that carries the original tool call metadata"
+  },
+  "next_owner": "coordinator"
+}
