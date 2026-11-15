@@ -1,0 +1,6 @@
+用户已明确报告ClaudeCode额度恢复并批准CHANGE-V1-DELIVERY-FLOW-01，恢复原task_e5483baf6e31；不增加预算、不重开新Run。首次新的429立即停止并报告，不自动重试、不切换供应商或请求root接手。
+本次仅OPT-A候选封存任务，替代旧correction23继续泛化静态诊断的路线。先读取主控仓库绝对路径 /mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/ 下 AGENTS.md、docs/36_DELIVERY_WORKFLOW_REBASELINE.md、docs/adr/ADR-16-DELIVERY-FLOW.md、reports/workflow-rebaseline-2026-11-15/optimized-n1-01/contract.json与obligation-review.json。工作区内旧版冲突约束以这些批准增量为准，不复制主控治理文件到实现区。
+当前实现HEAD必须03f8127dfd2511df3d388224025fa0a5ec9d696a；现有未提交tools/test_v0_s3_native_custody_correction10.py SHA256应6a659b0820fff937bfdce7d3dd1edc7c4cab5d6f51508072eeef8c64dade4809。不同则停止报告，不覆盖。保留未提交的implementation-integration-01/report.md，它不是本次范围。
+目标：将现有中断源码原样封存为新的Git候选，供root冻结首个受控定向执行计划。此步不修源码、不导入候选、不执行pytest/模型/GPU/服务/原生API，不补建证据框架。只可使用Git只读检查、源码字节hash、显式git add这一个测试源码文件及git commit。不得git add -A或批量清理。提交用临时git -c user.name=ljx418 -c user.email=1173696783@qq.com，不改永久配置。提交后确认候选文件hash不变、原无关报告仍dirty、生产broker/custody未改。
+可以在NEW reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/ 内写简短seal-receipt.json/README，先提交源码，再写收据，收据区分source_candidate_sha和delivery_commit。禁止修改历史报告/合同/计数器。无需扩展静态自检，已知历史M2/M3继续OPEN直到新规范真实证据及独审。
+报告候选Git SHA、源码hash、精确变更文件、未解决义务、未执行项目、无关dirty状态。完成后使用worker_done汇总返回，由root安排新定向计划；不要启动任何验证或进入下一Workpack。若命令被审批拒绝立即停止，不包装重试或修改审批配置。
