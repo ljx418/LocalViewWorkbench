@@ -1,0 +1,297 @@
+{
+  "method": "Source-only read, hashes, AST parse and independent JSON recomputation; NO controller/canary/candidate import/compile/execution or process scan.",
+  "root_source_pins": [
+    {
+      "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/bounded_exec.py",
+      "expected": "4323d266bbd0c1afab99138af8c1962ea27a9e01ff7380d9c56c52e199cba7c0",
+      "actual": "4323d266bbd0c1afab99138af8c1962ea27a9e01ff7380d9c56c52e199cba7c0",
+      "match": true
+    },
+    {
+      "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control_canary.py",
+      "expected": "e11ae8c3547314b57898f3288dc2fe902659f51b7f80cd841ffc76da2e919d3c",
+      "actual": "e11ae8c3547314b57898f3288dc2fe902659f51b7f80cd841ffc76da2e919d3c",
+      "match": true
+    }
+  ],
+  "interpreter_pin": {
+    "path": "/usr/bin/python3.12",
+    "expected": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+    "actual": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+    "match": true
+  },
+  "plan_sha256": "4bdd36852b95caeef6bb89c398dd4715d80d293adae19ec41e3a08bfdc936606",
+  "conditional_ACK_sha256": "d4b8957ed291416bdad446d0402fbf247ec288c461945ab0167c858538e83648",
+  "conditional_ACK": {
+    "kind": "CONDITIONAL_ROOT_ACK_FOUR_TRUSTED_STOP_CANARIES",
+    "plan_sha256": "4bdd36852b95caeef6bb89c398dd4715d80d293adae19ec41e3a08bfdc936606",
+    "parent_authority": "AUTH-PROGRAM-V1-COMPLETE-03",
+    "condition": "Independent source readiness Fatal0/Major0 and unchanged pins BEFORE runtime",
+    "max_seconds": 20,
+    "cases": 4,
+    "retries": 0,
+    "expires": "selftest terminal; no replay",
+    "actual_permission_to_launch_now": false
+  },
+  "source_ast": {
+    "bounded_exec.py": {
+      "sha256": "4323d266bbd0c1afab99138af8c1962ea27a9e01ff7380d9c56c52e199cba7c0",
+      "ast_parsed": true
+    },
+    "control_canary.py": {
+      "sha256": "e11ae8c3547314b57898f3288dc2fe902659f51b7f80cd841ffc76da2e919d3c",
+      "ast_parsed": true
+    }
+  },
+  "cases": [
+    {
+      "mode": "normal",
+      "request_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control-selftest-01/normal.request.json",
+      "request_sha256": "78520146d90394f27b3e70e55e3923e73d652fca78f920ea3a2131ed6e8b235f",
+      "expected_sha256": "78520146d90394f27b3e70e55e3923e73d652fca78f920ea3a2131ed6e8b235f",
+      "pin_match": true,
+      "request": {
+        "kind": "LVW_BOUNDED_CHILD/1",
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-B",
+          "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control_canary.py",
+          "normal"
+        ],
+        "cwd": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0",
+        "environment": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/home/administrator",
+          "PYTHONDONTWRITEBYTECODE": "1"
+        },
+        "output_dir": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control-selftest-01/run/normal",
+        "wall_seconds": 0.5,
+        "term_grace_seconds": 0.2,
+        "kill_grace_seconds": 0.5
+      },
+      "expected": {
+        "status": "EXITED_ZERO",
+        "returncode": 0,
+        "controller_exit": 0,
+        "timed_out": false,
+        "signals": []
+      },
+      "total_execution_and_grace_seconds": 1.2,
+      "owned_output_under_new_run": true,
+      "controller_argv_frozen": true,
+      "child_argv_mode_frozen": true
+    },
+    {
+      "mode": "nonzero",
+      "request_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control-selftest-01/nonzero.request.json",
+      "request_sha256": "aab04f8b26bde7f5ca9af41fa21f876d5add5bdc507f440ab50b5d5f2f8c6164",
+      "expected_sha256": "aab04f8b26bde7f5ca9af41fa21f876d5add5bdc507f440ab50b5d5f2f8c6164",
+      "pin_match": true,
+      "request": {
+        "kind": "LVW_BOUNDED_CHILD/1",
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-B",
+          "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control_canary.py",
+          "nonzero"
+        ],
+        "cwd": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0",
+        "environment": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/home/administrator",
+          "PYTHONDONTWRITEBYTECODE": "1"
+        },
+        "output_dir": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control-selftest-01/run/nonzero",
+        "wall_seconds": 0.5,
+        "term_grace_seconds": 0.2,
+        "kill_grace_seconds": 0.5
+      },
+      "expected": {
+        "status": "EXITED_NONZERO",
+        "returncode": 13,
+        "controller_exit": 1,
+        "timed_out": false,
+        "signals": []
+      },
+      "total_execution_and_grace_seconds": 1.2,
+      "owned_output_under_new_run": true,
+      "controller_argv_frozen": true,
+      "child_argv_mode_frozen": true
+    },
+    {
+      "mode": "term",
+      "request_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control-selftest-01/term.request.json",
+      "request_sha256": "29e2fe447f0912552fee61c380a64e40751f36e127343575f0fc5759f5b43468",
+      "expected_sha256": "29e2fe447f0912552fee61c380a64e40751f36e127343575f0fc5759f5b43468",
+      "pin_match": true,
+      "request": {
+        "kind": "LVW_BOUNDED_CHILD/1",
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-B",
+          "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control_canary.py",
+          "term"
+        ],
+        "cwd": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0",
+        "environment": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/home/administrator",
+          "PYTHONDONTWRITEBYTECODE": "1"
+        },
+        "output_dir": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control-selftest-01/run/term",
+        "wall_seconds": 0.5,
+        "term_grace_seconds": 0.2,
+        "kill_grace_seconds": 0.5
+      },
+      "expected": {
+        "status": "DEADLINE_EXPIRED",
+        "returncode": -15,
+        "controller_exit": 1,
+        "timed_out": true,
+        "signals": [
+          "SIGTERM"
+        ]
+      },
+      "total_execution_and_grace_seconds": 1.2,
+      "owned_output_under_new_run": true,
+      "controller_argv_frozen": true,
+      "child_argv_mode_frozen": true
+    },
+    {
+      "mode": "ignore-term",
+      "request_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control-selftest-01/ignore-term.request.json",
+      "request_sha256": "e90721c6778f6202c308170c55548dd94bdc1f3c85c05cb3568a54a4a2b426b4",
+      "expected_sha256": "e90721c6778f6202c308170c55548dd94bdc1f3c85c05cb3568a54a4a2b426b4",
+      "pin_match": true,
+      "request": {
+        "kind": "LVW_BOUNDED_CHILD/1",
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-B",
+          "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control_canary.py",
+          "ignore-term"
+        ],
+        "cwd": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0",
+        "environment": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/home/administrator",
+          "PYTHONDONTWRITEBYTECODE": "1"
+        },
+        "output_dir": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control-selftest-01/run/ignore-term",
+        "wall_seconds": 0.5,
+        "term_grace_seconds": 0.2,
+        "kill_grace_seconds": 0.5
+      },
+      "expected": {
+        "status": "DEADLINE_EXPIRED",
+        "returncode": -9,
+        "controller_exit": 1,
+        "timed_out": true,
+        "signals": [
+          "SIGTERM",
+          "SIGKILL"
+        ]
+      },
+      "total_execution_and_grace_seconds": 1.2,
+      "owned_output_under_new_run": true,
+      "controller_argv_frozen": true,
+      "child_argv_mode_frozen": true
+    }
+  ],
+  "case_count": 4,
+  "sum_case_execution_and_cleanup_graces_seconds": 4.8,
+  "overall_budget_seconds": 20,
+  "new_root_lexists_at_review": false,
+  "supporting_stdlib_source": {
+    "path": "/usr/lib/python3.12/subprocess.py",
+    "sha256": "baa9f9138d8d20df6284f67e7d2e790f847f65e2c5370de322d54cccd737f2d9",
+    "locations": [
+      "1026-1067 constructor exception cleanup does not terminate an already-created child",
+      "1120-1133 destructor retains running process in _active instead of killing",
+      "1885-1895 child creation occurs before Popen constructor returns",
+      "2176-2210 send_signal polls owned Popen first"
+    ]
+  },
+  "supporting_source_hashes": {
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/README.md": "a53cf85bb7e5d74465410112d59874f3c02cdc66caebeb7842649e1e09fe3ab4",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/root-control-remediation.json": "6c4fe09190322feda6edd5f7f8f6d8b8727e1008925be0e60fbd8d1f494ff8ec",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/source-review-prompt.md": "c3948b335fd34ee62f877450678867d9e12280aa4e517683a9a470ff9fc26505",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control-selftest-01/plan.json": "4bdd36852b95caeef6bb89c398dd4715d80d293adae19ec41e3a08bfdc936606"
+  },
+  "outline": [
+    {
+      "stage_id": "V0-S0",
+      "completed_substeps": 1,
+      "total_substeps": 2
+    },
+    {
+      "stage_id": "V0-S1",
+      "completed_substeps": 5,
+      "total_substeps": 5
+    },
+    {
+      "stage_id": "R0",
+      "completed_substeps": 1,
+      "total_substeps": 2
+    },
+    {
+      "stage_id": "R1a",
+      "completed_substeps": 5,
+      "total_substeps": 5
+    },
+    {
+      "stage_id": "V0-S2",
+      "completed_substeps": 7,
+      "total_substeps": 8
+    },
+    {
+      "stage_id": "V0-S3",
+      "completed_substeps": 0,
+      "total_substeps": 6
+    },
+    {
+      "stage_id": "R1",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "V1-M1",
+      "completed_substeps": 0,
+      "total_substeps": 3
+    },
+    {
+      "stage_id": "R2",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R3",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R4",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R5a",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R5b",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R5c",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    }
+  ]
+}

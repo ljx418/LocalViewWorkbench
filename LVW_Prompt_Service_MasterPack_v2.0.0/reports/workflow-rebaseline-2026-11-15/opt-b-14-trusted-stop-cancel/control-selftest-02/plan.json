@@ -1,0 +1,144 @@
+{
+  "kind": "ROOT_FROZEN_TRUSTED_STOP_DEFERRED_CANCEL_SELFTEST",
+  "parent_authority": "AUTH-PROGRAM-V1-COMPLETE-03",
+  "sourcepins": {
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/bounded_exec.py": "e3b18a954084c5c89ff1cf7f35e719d4669c8e6df21e652b4d6d54014ff48ba1",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/cancel_publication_canary.py": "988be19565e10747af1695327a9353f5aee562f259d1fc01066ed6b3f1cc4ee2",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control_canary.py": "e11ae8c3547314b57898f3288dc2fe902659f51b7f80cd841ffc76da2e919d3c"
+  },
+  "interpreter_pin": {
+    "path": "/usr/bin/python3.12",
+    "sha256": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f"
+  },
+  "cases": [
+    {
+      "mode": "normal",
+      "request": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/normal.request.json",
+      "request_sha256": "5c2463fd4f5b449c8069297670b58e178bd4d9fb066f1cfdc4e58401895f2c6c",
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/bounded_exec.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/normal.request.json"
+      ],
+      "expected": {
+        "status": "EXITED_ZERO",
+        "returncode": 0,
+        "controller_exit": 0,
+        "timed_out": false,
+        "signals": []
+      }
+    },
+    {
+      "mode": "nonzero",
+      "request": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/nonzero.request.json",
+      "request_sha256": "9da39eaf293ee47ca72e0ec04cb48173d99cca4f94a6e49de84c95df26125f58",
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/bounded_exec.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/nonzero.request.json"
+      ],
+      "expected": {
+        "status": "EXITED_NONZERO",
+        "returncode": 13,
+        "controller_exit": 1,
+        "timed_out": false,
+        "signals": []
+      }
+    },
+    {
+      "mode": "term",
+      "request": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/term.request.json",
+      "request_sha256": "4e572dd96f3842ccac33248b2e3a7b4d66a17b0c9e5d3bbf7400a0f2f5f7858a",
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/bounded_exec.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/term.request.json"
+      ],
+      "expected": {
+        "status": "DEADLINE_EXPIRED",
+        "returncode": -15,
+        "controller_exit": 1,
+        "timed_out": true,
+        "signals": [
+          "SIGTERM"
+        ]
+      }
+    },
+    {
+      "mode": "ignore-term",
+      "request": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/ignore-term.request.json",
+      "request_sha256": "f0a290fd48ab299c690eb4f7a23a70bbf58f82d53bb84aaac2b0366d065eb102",
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/bounded_exec.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/ignore-term.request.json"
+      ],
+      "expected": {
+        "status": "DEADLINE_EXPIRED",
+        "returncode": -9,
+        "controller_exit": 1,
+        "timed_out": true,
+        "signals": [
+          "SIGTERM",
+          "SIGKILL"
+        ]
+      }
+    },
+    {
+      "mode": "cancel-publication",
+      "request": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/cancel-publication.request.json",
+      "request_sha256": "4d93daad15850f50c1513c33e2abddbc47e53590f57ea37e6ac837a3ecfc4c49",
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/cancel_publication_canary.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/bounded_exec.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/cancel-publication.request.json",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/run/cancel-publication-oracle.json"
+      ],
+      "expected": {
+        "driver_exit": 0,
+        "controller_exit": 1,
+        "status": "CANCELLED",
+        "cancel_signals": [
+          15,
+          2
+        ],
+        "reaped": true,
+        "same_actual_Popen_PID": true,
+        "fallback_used": false,
+        "child_returncode_one_of": [
+          -15,
+          -9
+        ]
+      },
+      "start_oracle": "Actual Popen kernel child retained at factory return; user-code ready output not required if cancelled before exec completion. No fake or replacement child."
+    }
+  ],
+  "cases_max": 5,
+  "retries": 0,
+  "overall_budget_seconds": 20,
+  "new_run_root": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/run",
+  "root_only_new_directory_creation": [
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/run"
+  ],
+  "required_source_review": "Independent Fatal0/Major0 of corrected controller plus real pre-publication cancellation driver before activation",
+  "oracle": "Actual child ready+identity matches child journal; exact expected signal escalation, negative returncode, waitpid reap; exact /proc/pid/birth absent after reap; timeout/nonzero never accepted as successful workload. No foreign PID signals. Fifthcase requires real same-Popen/PID and actual parentTERM+INT at created/pre-local-publication seam; nonthrowing deferral must lead to CANCELLED and bounded actual reap. Adapter fallback cleanup is separately flagged and always fails regression.",
+  "cleanup": "Controller owns only one unreaped child; no group-wide/foreign termination. Root may signal only exact owned PID/birth from new journal if cleanup failed; otherwise unknown blocks. No broadprocessscan.",
+  "excluded": [
+    "candidate import/tests/full194 rerun",
+    "model/GPU/media/network/services/DB",
+    "Windows/native/descendanttree/parentSIGKILL guarantee"
+  ],
+  "actual_execution_performed": false,
+  "prior_unexecuted_plan": "opt-b-13/control-selftest-01 remains preserved unexecuted; no grant replay"
+}

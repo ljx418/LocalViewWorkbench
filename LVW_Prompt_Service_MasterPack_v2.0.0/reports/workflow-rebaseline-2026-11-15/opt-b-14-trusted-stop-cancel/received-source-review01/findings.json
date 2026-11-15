@@ -1,0 +1,42 @@
+{
+  "result": "NOTREADY",
+  "counts": {
+    "Fatal": 0,
+    "Major": 1,
+    "Minor": 0
+  },
+  "findings": [
+    {
+      "id": "CTRL01-M1",
+      "candidate": "root bounded_exec.py SHA4323d266bbd0c1afab99138af8c1962ea27a9e01ff7380d9c56c52e199cba7c0",
+      "spec": "OPT-B-13 trusted single-child control; ordinary parent TERM/INT and exception cleanup",
+      "layer": "trusted controller ownership publication / cancellation boundary",
+      "location": "bounded_exec.py:70,74-80,84-88,106-114; supporting /usr/lib/python3.12/subprocess.py:1026-1067,1120-1133,1885-1895",
+      "trigger": "Deliver ordinary parent SIGTERM or SIGINT after Popen has created its child but before the constructor returns and the assignment to local proc completes.",
+      "expected": "Retain the exact newly created child through cancellation, publish recoverable ownership, then run the same bounded TERM/KILL/wait/reap path and honest failure receipt.",
+      "actual": "cancel raises InterruptedError immediately. RHS Popen construction is interrupted, proc remainsNone, outer except records CONTROLLER_ERROR, finally skips child cleanup because proc isNone. Popen constructor/destructor cleanup closes descriptors/polls/retains a running object in _active; it does not terminate that already-created child. Child has its own session, and term/ignore-term canary may continue without the controller journal/stop owner.",
+      "oracle": "Cancellation at the child-created/pre-publication boundary must retain that original owner and prove bounded signal/reap or STOP_UNPROVEN with exact recovery identity; no process scan or replacement owner.",
+      "negative": "Ordinary parent cancellation must not skip an already-created child; repeated cancellation must not interrupt entry to mandatory cleanup. No parentSIGKILL/adversarial/descendant guarantee is requested.",
+      "terminal": "NOTREADY for conditional four-case selftest activation; no runtime performed",
+      "cleanup": "No actual child/probe started by reviewer. This is a source control-flow failure path, not an allegation of a currently leaked process. The source may return1/CONTROLLER_ERROR, but that does not clean an unretained child.",
+      "evidence": [
+        "sourcecheck.json exact controller/interpreter/subprocess-source hashes",
+        "bounded_exec.py lines74-88 and114",
+        "CPython subprocess constructor creates child before returning; exception/destructor paths do not kill it"
+      ],
+      "classification": "Major",
+      "owner": "root trusted harness owner",
+      "minimal_fix": "Defer throwing cancellation across child construction and publication; retain pending TERM/INT until exact Popen reference/PID and recovery facts are held, then consume it immediately via the existing bounded cleanup. Make transition into cleanup nonthrowing so repeated ordinary cancellation cannot bypass it. Preserve child signal semantics; do not simply block signals across fork/exec without addressing inherited child masks. Rehash/re-freeze changed source before source readiness/root activation.",
+      "uncertainty": "No runtime reproduction was made and exact timing probability is not asserted. Parent crash/SIGKILL, hostile child/native code, descendants and hard real-time Popen/scheduling bounds remain expressly excluded.",
+      "Minor_policy": "Not auxiliary: exact resource ownership/cleanup can be lost under an explicitly supported ordinary signal path; no actualFAIL-only Minor exception applies."
+    }
+  ],
+  "source_pins_match": true,
+  "plan_pin_match": true,
+  "runtime": "NOT_RUN",
+  "conditional_root_activation": "NOT_SATISFIED; rootACK actual_permission_to_launch_now=false",
+  "CP10_M1": "OPEN",
+  "old194_functional_CPU_cleanup": "SUPPORTED_UNCHANGED",
+  "old_attempt_hard_control": "NOT_QUALIFIED/NOT_ESTABLISHED unchanged",
+  "Stage_N2_product_native": "NO_CLEARANCE"
+}
