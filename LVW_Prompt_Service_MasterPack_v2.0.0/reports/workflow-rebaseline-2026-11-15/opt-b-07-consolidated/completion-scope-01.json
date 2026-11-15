@@ -1,0 +1,35 @@
+{
+  "id": "OPT-B-07-OFFLINE-COMPLETION-01",
+  "base_candidate": "05fec68cb6b19a285e520e8474242b6a3d56d613",
+  "authority": "Complete existing F06-M1/M3/M4 obligations in original scope; no new product/API/threshold/denominator change",
+  "allowed_source_files": [
+    "tools/test_v0_s3_native_custody_correction10.py",
+    "tools/test_v0_s3_native_custody_cleanup_faults.py"
+  ],
+  "allowed_output": "NEW implementation-native-custody-optimized-06/implementation-completion-01.receipt.json; original receipts and correction01 immutable",
+  "required_completion": {
+    "M1": [
+      "Install the zero-context producer schedule seam BEFORE channel constructor can start its real reader. Existing instance replacement after constructor is too late to guarantee the first check. A scoped class-method patch before start_round is acceptable when it filters exact zero context and forwards original check/results/errors unchanged",
+      "Require actual producer-held AND pump-held readiness before deadline tightening using real bounded waits. Preserve all original deadlines and assertions; add premise assertions as needed, never suppress a real prior pump/channel failure",
+      "Observe actual queue.put RETURN or ERROR and original reader-error publication, with truthful before/after labels. Current CHANNEL_STATE_AFTER_PUBLICATION before actual put is not post-publication evidence. Record actual ordering; do not fabricate facts or infer oldrun timing",
+      "Keep producer held until original broker.read completes its actual empty queue/error check, then release; always release both gates on every failure/cleanup path. No fake EOF, timeout extension or clearing errors"
+    ],
+    "M3": [
+      "Set original k1 compatibility counter at the actual once-only injection as well as injected counter, so preserved k1==1 assertion is meaningful",
+      "Repeat real callback and assert forwarded increment relative to captured pre-repeat count, not fixed2 (original drain may already repeat). Preserve all original assertions from9b6 base; new05fec qualification assertions may be corrected. Record actual callback results and one exact K1, distinct K2"
+    ],
+    "M4": [
+      "SUP05 must actually read independently captured r09:owner and r09:thread references and assert settled owner, settled thread and joined thread against those exact expected objects, not merely each other ornonnull",
+      "Make observation default truly inert (e.g. inactive sentinel plus scoped fresh per-case map installed/restored by evidence context manager). Every SUP case gets fresh isolated map; normal original tests must not retain extra global object references",
+      "Keep WindowsPipeWorker and ParentReplyPump distinct; retain correct independent read-worker capture added05fec and all exact O/K assertions"
+    ]
+  },
+  "invariants": [
+    "No import/compile/collect/tests/runtime; AST-only and Gitdiff checks",
+    "Rootguard/runner/validator/approval/producer historical files unchanged; no unrelatedreport reads/staging",
+    "Preserve original189 identities/order/signatures/decorators and all9b6 baseline assertion predicates; mayaddpremise/identity assertions",
+    "Commit only exact2sourcefiles then NEWcompletionreceipt withsourceSHA/hashes/staticmapping and pendingdynamiclimits",
+    "First429STOP, no retry/providerswitch/root takeover"
+  ],
+  "next": "Root freeze targeted6 only after complete source candidate delivered. No runtime slot consumed for these source-obvious gaps."
+}

@@ -1,0 +1,306 @@
+{
+  "kind": "implementation_receipt",
+  "scope_id": "OPT-B-07-CONSOLIDATED-QUALIFICATION",
+  "packet": "N1-OPTIMIZED-01",
+  "state": "READY_FOR_REVIEW",
+  "runtime_authorized": false,
+  "base_candidate": "9b6d9d4b827587d132eaf20e2b838d449ed89bd3",
+  "review_commit": "c2c0880041defd406490911d42ea2a2a64c8cf70",
+  "source_candidate_sha": "05fec68cb6b19a285e520e8474242b6a3d56d613",
+  "source_pins": {
+    "tools/test_v0_s3_native_custody_correction10.py": "5a289bfd7dfdf981d05041331b9baf9ba05f151ddc8ce3c7afe2fa015362cdc6",
+    "tools/test_v0_s3_native_custody_cleanup_faults.py": "04da1464f4b8cd976c65376f7fcab8411d7fd54656e3a6a35afd722e24fbde08"
+  },
+  "exact_diff": {
+    "files": [
+      {
+        "path": "LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py",
+        "insertions": 129,
+        "deletions": 2
+      },
+      {
+        "path": "LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_cleanup_faults.py",
+        "insertions": 99,
+        "deletions": 9
+      }
+    ],
+    "other_source_files_changed": [],
+    "production_files_changed": [],
+    "guard_runner_validator_plan_or_config_changed": [],
+    "note": "the guard, the runner, the validator, the plans and the approvals belong to root and were not touched"
+  },
+  "static_facts": {
+    "method": "read-only git blob inspection and standard-library ast.parse as data",
+    "exact_189_node_identities_order_signatures_decorators": "unchanged; 117+16+24+18+14, unique 189",
+    "T10_assert_occurrences": {
+      "before": 424,
+      "after": 424,
+      "removed": 0,
+      "added": 0
+    },
+    "supplement_assert_occurrences": {
+      "before": 64,
+      "after": 76,
+      "removed": 0,
+      "added": 12
+    },
+    "other_four_test_modules": "byte-identical to the base source candidate",
+    "production_sources": {
+      "tools/v0_s3_native_broker.py": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
+      "tools/v0_s3_native_custody.py": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581"
+    },
+    "no_old_assertion_removed": true,
+    "new_generic_diagnostic_framework": 0,
+    "new_fixture_observation_seams": 1
+  },
+  "the_single_fixture_observation_seam": {
+    "name": "_observe_reference / _HELD_REFERENCES in tools/test_v0_s3_native_custody_correction10.py",
+    "default_inert": true,
+    "shape": "a module level dict and one function that remembers the object that the fixture really observed at a real seam",
+    "is_not_a_production_api": true,
+    "is_not_a_framework": true,
+    "per_case_reset": "every one of the five supplemental cases clears the dict before it drives the round, so that no reference of an earlier case can ever qualify a later one",
+    "captured_references": {
+      "zero:read-worker": "the actual pipe worker of the read end of the real channel of the zero round, observed at the construction of that channel in zero_install_queue_recorder; it is the object that the final query of the cleanup really asks about",
+      "zero:parent-pump": "the actual reply pump of the custody that the public admission really saw; it is a DIFFERENT resource from the pipe worker and the two are never asserted identical",
+      "r09:owner": "the actual owner of the interrupted start, observed in the body of the R09 case before any fault of the cleanup",
+      "r09:thread": "the actual thread of that owner, observed in the body of the R09 case before any fault of the cleanup"
+    }
+  },
+  "static_mapping_of_each_obligation": {
+    "F06-M1": {
+      "region": "tools/test_v0_s3_native_custody_correction10.py: the R07 zero expiry region",
+      "what_was_done": [
+        "a bounded transparent producer schedule of the ZERO CONTEXT ONLY: the producer of the round - the reader thread of the real channel that publishes the frames - is held between its ORIGINAL check of the wait and the publication of the frame",
+        "the original check runs FIRST and its result and its exception are forwarded unchanged: the fixture never asks the production to publish a frame that the production would have refused, and a timeout that the production really publishes stays a failure",
+        "the deadline of the round is tightened only after the real producer AND the real pump are both held, so the original check of the producer always ran against the valid deadline",
+        "the real read of the pump really completes its empty queue and error check BEFORE the producer is released: the release of the producer happens after the original broker read returned or raised",
+        "every failure and cleanup path releases BOTH gates: the cleanup releases the producer gate beside the gate of the round and of the frames",
+        "a real trace of the pre tightening queue and error state, of the tightening, of the real broker read return or error, of the producer release and of the channel error after the publication is recorded with the existing zero_record mechanism"
+      ],
+      "preserved": [
+        "the real public and default zero round path, the original context tightening and the exact 0 reply and queue waits",
+        "the real pump and worker identities and the cleanup of the round",
+        "the original check and error semantics of the production: no fake successful pump, no swallowed timeout, no extended deadline and no changed threshold"
+      ],
+      "no_new_framework": "the schedule uses the existing zero_record trace and the existing seams of the fixture; no new module, no new helper module and no production change"
+    },
+    "F06-M3": {
+      "region": "tools/test_v0_s3_native_custody_cleanup_faults.py: the recorder of the drain of SUP-02",
+      "what_was_done": [
+        "the exact cancellation is ONE precreated object and the counter of the injections is incremented only at the injection and exactly once",
+        "the ORIGINAL third release callback of the drain is really called on EVERY invocation and its real result is forwarded and recorded",
+        "a labelled CONTROLLED REPEAT of the callback on the ACTUAL fixture resource after the original drain returned proves the repeated branch: the real idempotent close of the channel is really called again, the real result is forwarded again and NO second cancellation is injected; it is not a second synthetic lifecycle"
+      ],
+      "preserved": [
+        "the first exact pending interruption still wins over the distinct later one",
+        "the distinct precreated K2 and the exact O assertions are unchanged"
+      ]
+    },
+    "F06-M4": {
+      "region": "tools/test_v0_s3_native_custody_cleanup_faults.py: SUP-01, SUP-02 and SUP-05",
+      "what_was_done": [
+        "the faulted worker of the final query is compared with the INDEPENDENTLY observed pipe worker of the read end of the round, captured by the fixture at the construction of the real channel",
+        "the reply pump of the custody is observed under its OWN name and the two resources are explicitly asserted to be different: they are never asserted identical",
+        "the settled owner is compared with the independently observed owner and the joined thread with the independently observed thread of the interrupted start, both captured in the body before the fault",
+        "the expected references are never assigned from the faulted object and never from the first entry of the settle calls"
+      ],
+      "preserved": [
+        "the exact O and the first K object identity assertions, the transparent original setters and recorders and their real results"
+      ]
+    },
+    "F06-M5": {
+      "region": "NEW reports/v0-s3/product-gate0/implementation-native-custody-optimized-05/combined02-execution-receipt.correction-01.json",
+      "what_was_done": [
+        "an APPEND ONLY correction that binds the original receipt by its SHA256 295bbac758eed84c7006b719179260240fea3b42f20731d2de2ad4a6ecae80f8 and names the wrong JSON pointer /unresolved_limits/3",
+        "it states the actual counts of that run: the original 189 were selected, collected and called and all 189 PASSED; the supplemental 5 were selected, collected and called with 4 PASS and 1 FAIL; the overall outer result was REJECTED with GUARD_RUNTIME_DENIALS_NONEMPTY; the product 29 are NOT_RUN",
+        "the original receipt and every raw file of that run are preserved byte for byte and nothing is rewritten",
+        "the attribution names the producing agent and the git identity of the commit and it states that it is NOT a cryptographic signature"
+      ]
+    }
+  },
+  "gate_release_and_error_forwarding_paths": {
+    "producer_release": "the producer gate is set after the original broker read of the pump returned or raised, inside the same gated reader of the fixture",
+    "cleanup_release": "the cleanup of the zero region releases the gate of the round, the gate of the frames and the gate of the producer, each through the guarded release helper, and records the three actions",
+    "producer_check_forwarding": "the original _check_wait of the channel is called first and its result and its exception are forwarded unchanged; the fixture never converts a refusal into a publication",
+    "pump_read_forwarding": "the original broker read is called with the original signature and its result is forwarded; an error of it is recorded with its exact type and detail and is re-raised",
+    "original_third_callback_forwarding": "the original third release callback of the drain is called on every invocation and its real result is recorded"
+  },
+  "the_compile_check_that_actually_ran": {
+    "command": "python3 -c \"src=open('tools/test_v0_s3_native_custody_correction10.py',encoding='utf-8').read(); compile(src,'x','exec'); print('compile ok')\"  (and the same command for tools/test_v0_s3_native_custody_cleanup_faults.py)",
+    "when": "during the edits of this delivery, before the scope reminder about AST only",
+    "real_limited_effect": "it compiles the SOURCE TEXT of the two changed modules into a code object IN MEMORY.  It does NOT import the module, it does NOT execute any module level statement of the fixture, it does NOT collect and it does NOT run any test, and it writes no file: no .pyc, no evidence and no artifact of any kind was produced by it.",
+    "repeated": false,
+    "after_the_reminder": "the final verification of this delivery used ast.parse only - no compile, no import, no collection and no run - and the same AST only check is the one that is reported here"
+  },
+  "not_executed": [
+    "candidate import",
+    "pytest collect",
+    "pytest run",
+    "any execution of the candidate, of the supplement or of any test",
+    "model, GPU, native, service, network, media, database or counter actions",
+    "any change of the guard, the runner, the validator, the plans, the approvals or the configuration",
+    "any change of the production broker or custody"
+  ],
+  "unresolved_limits_and_remaining_risks": [
+    "DYNAMIC NOT RUN: the candidate was never executed.  The producer schedule of F06-M1 and the one shot injection of F06-M3 and the exact identity checks of F06-M4 are DESIGNED against the sources and the raw of the attempt02, and they are UNVERIFIED until root freezes a new finite plan and the independent review reads the new raw.",
+    "the producer schedule changes the ORDER in which the real producer and the real pump of the zero round meet the deadline.  The old interleaving is not inferred from the new schedule and the schedule is NOT a proof of the old order; the review of the change is the evidence that is missing.",
+    "the read worker of the channel may still record a real error under another schedule.  The schedule removes the race that the attempt02 hit, it does not remove the possibility of a real timeout: a timeout that the production really publishes stays a failure.",
+    "the SUP-03 prerequisite may still be preempted by the zero region if the zero region fails again: the case must reach the controlled subcase, and that is exactly what the new run has to show.",
+    "the controlled repeat of the third callback of the drain is a LABELLED repeat of the REAL callback on the ACTUAL fixture resource after the original drain returned; it proves the one shot injection on the repeated branch and it is not an observation of a natural repetition.",
+    "the F06-M2 pytest alias compatibility belongs to root and the trusted guard: this delivery did not touch it and the attempt02 feedback stays rejected.",
+    "the five concentrated Majors of the review 94cdd82d and the known Major of the review 86ab300 stay OPEN: this delivery addresses the sources, it closes nothing.",
+    "the historical M2 and M3 of the correction 22 review are not rewritten and the nine native uncertainties of the production review stay unproved"
+  ],
+  "scope_of_this_result": {
+    "is_a_checkpoint": false,
+    "is_a_product_acceptance": false,
+    "is_a_stage_acceptance": false,
+    "major_closed_by_this_delivery": 0,
+    "test_pass_claimed": false,
+    "native_proven": false,
+    "result": "READY_FOR_REVIEW - the source is sealed and the runtime evidence of the change is still missing"
+  },
+  "ten_fields": {
+    "coordinate": "V1/R1/WP-R1-U3/S3_P4",
+    "last_passed_scope": "the unified media UM10 early slice, not the full R1",
+    "current_batch": "the consolidated offline qualification of F06-M1, F06-M3, F06-M4 and F06-M5 is delivered as a sealed source candidate",
+    "blockers": "F06-M2 belongs to root; the dynamic evidence of the new schedule, of the one shot injection and of the exact identities is missing; the historical Majors stay open",
+    "route": "the consolidated correction, then the frozen finite feedback, then the concentrated independent review",
+    "remaining": "the new finite plan of root, the new raw, the requalification of the affected negatives, the fixed 189 checkpoint, the admission of the real main chain and the product 29",
+    "next_owner": "root for the scope, the harness and the next plan; ClaudeCode for the frozen test corrections",
+    "authority": "offline implementation only; no runtime ACK, no Stage, no product 29 and no N2 clearance",
+    "evidence": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/implementation-receipt.json and the append only correction reports/v0-s3/product-gate0/implementation-native-custody-optimized-05/combined02-execution-receipt.correction-01.json",
+    "stop": "READY_FOR_REVIEW - the source is sealed, nothing was executed, no Major is closed and no acceptance is granted"
+  },
+  "development_outline": [
+    {
+      "stage_id": "V0-S0",
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "implementation": "ARCHIVED",
+      "machine_acceptance": "NO_GO_HISTORICAL",
+      "independent_review": "COMPLETED_WITH_BLOCKERS",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "V0-S1",
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "R0",
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "implementation": "PARTIAL_REUSED",
+      "machine_acceptance": "SINGLE_IMAGE_SUBSET_ONLY",
+      "independent_review": "NO_SEPARATE_R0_VERDICT",
+      "human_signoff": "NO_SEPARATE_R0_SIGNOFF"
+    },
+    {
+      "stage_id": "R1a",
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "V0-S2",
+      "completed_substeps": 7,
+      "total_substeps": 8,
+      "implementation": "IMPLEMENTED",
+      "machine_acceptance": "COMPLETE_FIXED9_PASSED",
+      "independent_review": "COMPLETE_FATAL0_MAJOR0_MINOR0",
+      "human_signoff": "PENDING"
+    },
+    {
+      "stage_id": "V0-S3",
+      "completed_substeps": 0,
+      "total_substeps": 6,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R1",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "EARLY_SLICE_IMPLEMENTED_FULL_R1_PENDING",
+      "machine_acceptance": "EARLY_SLICE_UM10_ONLY",
+      "independent_review": "EARLY_SLICE_FATAL0_MAJOR0",
+      "human_signoff": "EARLY_SLICE_APPROVED_FULL_R1_PENDING"
+    },
+    {
+      "stage_id": "V1-M1",
+      "completed_substeps": 0,
+      "total_substeps": 3,
+      "implementation": "DESIGN_ONLY",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R2",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R3",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R4",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5a",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5b",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5c",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    }
+  ],
+  "next_owner": "coordinator",
+  "next_action": "root reviews the minimal diff and freezes a new finite plan for the new source candidate; this delivery runs nothing, closes no Major and grants no acceptance"
+}

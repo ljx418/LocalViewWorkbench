@@ -1,0 +1,30 @@
+{
+  "kind": "ROOT_ONE_PASS_STATIC_QUALIFICATION_FEEDBACK_NOT_RUNTIME_TEST",
+  "candidate_sha": "05fec68cb6b19a285e520e8474242b6a3d56d613",
+  "source_commit_preserved": true,
+  "known_frozen_obligations_only": true,
+  "facts": {
+    "F06-M3": {
+      "k1_subscript_writes": [],
+      "k1_assert_reads": [
+        445
+      ],
+      "conclusion": "Counter initialized0 and never updated; old k1==1 assertion cannot be satisfied on the completed branch. Preserve oldassertion and update compatibility k1 at actual once-only injection."
+    },
+    "F06-M4": {
+      "SUP05_has_HELD_REFERENCES_usage": false,
+      "conclusion": "T10 captures r09 owner/thread but SUP05 still lacks independent expected-reference comparisons; requiredidentityqualification not delivered. Existing default _observe_reference unconditionally retains data, despite default-inert claim."
+    },
+    "F06-M1": {
+      "conclusion": "Instance _check_wait is replaced in recorder after channel construction (reader already may start); held flags recorded but not asserted; CHANNEL_STATE_AFTER_PUBLICATION is emitted before caller actual queue.put. Need guarantee required schedule/premises and capture actual publication/error outcomes."
+    }
+  },
+  "next": "One consolidated offlinecompletion on existing2file scope, no runtime slots consumed, then targeted6 before independent semantic/actual review",
+  "not_claimed": [
+    "actualtestfailure",
+    "precise old scheduling interleaving",
+    "production ownership flaw",
+    "newproductscope"
+  ],
+  "recorded_utc": "2026-11-15T14:45:31.833573+00:00"
+}
