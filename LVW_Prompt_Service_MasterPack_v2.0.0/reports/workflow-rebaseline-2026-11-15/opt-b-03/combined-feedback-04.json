@@ -1,0 +1,62 @@
+{
+  "kind": "COMBINED_CPU_FEEDBACK_NOT_PRODUCT_GATE",
+  "candidate_sha": "d645bd559af89921cd0359612cce7b78c4892fe8",
+  "plan_sha256": "6eee1bafcba0d3de0c630b5d94b8dc2fa0d7e5fa7026a5b62799699af11cba37",
+  "counts": {
+    "original189": {
+      "denominator": 189,
+      "pass": 189,
+      "fail": 0,
+      "skip": 0,
+      "blocked_or_not_run": 0
+    },
+    "supplement5": {
+      "denominator": 5,
+      "pass": 3,
+      "fail": 2,
+      "skip": 0,
+      "blocked_or_not_run": 0
+    }
+  },
+  "selected_total": 194,
+  "actual_call_count": 194,
+  "pytest_exit": 1,
+  "duration_seconds": 53.43683671951294,
+  "batch_cleanup_proven": true,
+  "threads_after": [
+    "MainThread"
+  ],
+  "new_or_reused_fds": [],
+  "guard_runtime_denials": [],
+  "failed_reports": [
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_01_final_query_preserves_original",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.5128286849976575,
+      "longrepr": "tools/test_v0_s3_native_custody_cleanup_faults.py:198: in test_n1_sup_01_final_query_preserves_original\n    assert state['injected'] == 1, (\nE   AssertionError: the fault of the final query was not injected exactly once: {'calls': 16, 'injected': 0}\nE   assert 0 == 1"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_02_final_query_preserves_first_interruption",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.5112351050011057,
+      "longrepr": "tools/test_v0_s3_native_custody_cleanup_faults.py:306: in test_n1_sup_02_final_query_preserves_first_interruption\n    assert state['injected'] == 1, (\nE   AssertionError: the fault of the final query was not injected exactly once: {'calls': 12, 'injected': 0}\nE   assert 0 == 1"
+    }
+  ],
+  "raw_refs_sha256": {
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/native-custody-correction-03.receipt.json": "a1a54be4decd04f7485c8734232df82ef9e2c1fbf90f5ad60088f7999f685192",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/guard.json": "3a2c9ca3be5677b0943358dab342a9614a761061ed15ce71477fecb2cbac63a4",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/guard.stdout.log": "288e9731f352a914f316b4437438b6234c8daf77d5ce42491c1ff9c2a00e2a8a",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/guard.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/counter-absence-before.json": "bfe4e7b1a3f9d9d912e432a13d16313f40e3857e0895a556bd73e2f08bcffc23",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/counter-absence-after.json": "bfe4e7b1a3f9d9d912e432a13d16313f40e3857e0895a556bd73e2f08bcffc23"
+  },
+  "after_metadata_observation_received": true,
+  "negative01_02_fault_injection_reached": false,
+  "remaining_supplemental_oracle_source_concerns": "independent review pending; original exception/interruption and held-owner identity, unknown evidence handling, transparent callback forwarding",
+  "native_or_GPU_or_native_handle_proven": false,
+  "stage_pass": false,
+  "product29_run": false,
+  "next_action": "finish original archive and one concentrated independent review; freeze a single supplemental correction, never count untriggered negative as PASS"
+}
