@@ -4427,22 +4427,74 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                 # budget of the fixture - the overall bound of the drain
                 # and the bound of every owner - is the one that is
                 # already in use.
+                # CORRECTION 23 (M3) / OPT-B-03: a query of the **final**
+                # state of the round can fail.  A failure of it is an
+                # **actual** error of the cleanup: it is retained with
+                # its exact type and its exact detail, an exact
+                # cancellation is retained as a pending interruption of
+                # the cleanup and the state is recorded as **unknown** -
+                # it is never read as a fact.  The query never replaces
+                # the failure that is already unwinding, it never skips
+                # the other owners of the round and it never skips the
+                # publication of the evidence: the priority of the
+                # failures - the original, then the **first** exact
+                # pending interruption, then the ordinary verdict - is
+                # enforced after the publication.
+                zero_unknown = []
+
+                def zero_guarded_query(label, call, default=None):
+                    """Read one fact of the final state of the round.
+
+                    CORRECTION 23 (M3) / OPT-B-03: the read is guarded.
+                    A failure of it is an actual error of the cleanup, the
+                    exact cancellation is retained as a pending
+                    interruption and the state is **unknown**: it is
+                    never read as a fact and it never replaces the
+                    failure that is already unwinding.
+                    """
+                    try:
+                        return call()
+                    except BaseException as error:  # noqa: BLE001
+                        zero_cleanup_errors.append(
+                            {'kind': 'FINAL_QUERY',
+                             'type': type(error).__name__,
+                             'detail': str(error), 'query': label})
+                        _note_interruption(zero_interrupts, error)
+                        zero_unknown.append(label)
+                        return default
+
                 zero_shutdown = []
                 zero_shutdown_workers = []
-                for endpoint in (getattr(zero_channel, '_reader', None),
-                                 getattr(zero_channel, '_writer', None)):
+                zero_endpoints = []
+                for endpoint_label in ('read', 'write'):
+                    endpoint = zero_guarded_query(
+                        'channel:%s-endpoint' % endpoint_label,
+                        lambda label=endpoint_label: getattr(
+                            zero_channel, '_' + label, None))
                     if endpoint is None:
                         continue
+                    zero_endpoints.append((endpoint_label, endpoint))
+                for endpoint_label, endpoint in zero_endpoints:
                     for role, label in (('_reader', 'read'),
                                         ('_writer', 'write')):
-                        worker = getattr(endpoint, role, None)
+                        worker = zero_guarded_query(
+                            'endpoint:%s:%s-worker'
+                            % (endpoint_label, label),
+                            lambda role=role, endpoint=endpoint: getattr(
+                                endpoint, role, None))
                         if worker is None:
                             continue
-                        entry = {'endpoint': label, 'role': role,
-                                 'thread': getattr(worker, 'name', None)}
+                        entry = {'endpoint': endpoint_label, 'role': role,
+                                 'thread': zero_guarded_query(
+                                     'worker:%s:%s:name'
+                                     % (endpoint_label, label),
+                                     lambda worker=worker: getattr(
+                                         worker, 'name', None))}
                         for action, call in (
-                                ('stop_accepting', worker.stop_accepting),
-                                ('request_cancel', worker.request_cancel)):
+                                ('stop_accepting',
+                                 lambda worker=worker: worker.stop_accepting),
+                                ('request_cancel',
+                                 lambda worker=worker: worker.request_cancel)):
                             try:
                                 entry[action] = repr(call())
                             except BaseException as error:  # noqa: BLE001
@@ -4543,16 +4595,35 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                 # the round.
                 zero_handle_proof = None
                 zero_retained = 0
+                for endpoint_label, endpoint in zero_endpoints:
+                    retained = zero_guarded_query(
+                        'endpoint:%s:retained' % endpoint_label,
+                        lambda endpoint=endpoint: getattr(
+                            endpoint, '_retained', None) or [])
+                    if retained is None:
+                        continue
+                    zero_retained += len(retained)
                 for entry, worker in zip(zero_shutdown,
                                          zero_shutdown_workers):
-                    released = bool(getattr(worker, 'thread_handle_released',
-                                            False))
-                    alive = bool(worker.is_alive())
+                    label = 'worker:%s:%s' % (entry.get('endpoint'),
+                                              entry.get('role'))
+                    released = zero_guarded_query(
+                        '%s:thread-handle-released' % label,
+                        lambda worker=worker: getattr(
+                            worker, 'thread_handle_released', None))
+                    alive = zero_guarded_query(
+                        '%s:alive' % label,
+                        lambda worker=worker: worker.is_alive())
                     entry['alive_after'] = alive
-                    entry['joined_after'] = bool(
-                        getattr(worker, 'joined', None))
+                    entry['joined_after'] = zero_guarded_query(
+                        '%s:joined' % label,
+                        lambda worker=worker: getattr(worker, 'joined', None))
                     entry['thread_handle_released'] = released
-                    if alive:
+                    if alive is None or released is None:
+                        zero_handle_proof = (
+                            'the final state of the %s worker of the zero '
+                            'round is unknown' % (entry.get('role'),))
+                    elif alive:
                         zero_handle_proof = (
                             'the %s worker of the zero round is still alive'
                             % (entry.get('role'),))
@@ -4563,12 +4634,10 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                             % (entry.get('role'),))
                     if zero_handle_proof is not None:
                         break
-                for endpoint in (getattr(zero_channel, '_reader', None),
-                                 getattr(zero_channel, '_writer', None)):
-                    if endpoint is None:
-                        continue
-                    zero_retained += len(getattr(endpoint, '_retained', None)
-                                         or [])
+                if zero_handle_proof is None and zero_unknown:
+                    zero_handle_proof = (
+                        'the final state of the round of zero is unknown: %s'
+                        % (zero_unknown,))
                 if zero_handle_proof is None and zero_retained:
                     zero_handle_proof = (
                         'the round of zero retained %d worker(s) after the '
@@ -4638,6 +4707,7 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                               'fixture_channel_close': dict(zero_channel_close),
                               'fixture_handle_proof': zero_handle_proof,
                               'fixture_retained_workers': zero_retained,
+                              'fixture_unknown_queries': list(zero_unknown),
                               'drain': zero_drain['attempts'],
                               'quiescent': zero_drain['quiescent'],
                               'proof_failure': zero_current_verdict(),
