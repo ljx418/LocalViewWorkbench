@@ -1,0 +1,282 @@
+{
+  "kind": "targeted_execution_receipt",
+  "packet": "N1-OPTIMIZED-01",
+  "scope": "OPT-A first real targeted feedback, one root-ACKed guarded CPU batch",
+  "outcome": "FAIL",
+  "outcome_summary": "the batch really ran and really failed: 1 of the 14 selected nodes failed, 13 passed, 0 skipped, pytest exit 1, guard exit 1",
+  "candidate_sha": "1a34fbbe318fbe240823a2bf2f09517a98294744",
+  "source_sha256": "f89ef38a7fcb0f48a47f9498ed1c9100c6f0832df57257c7b27e7c5461ad3ee0",
+  "plan_sha256": "16549d45fcd87e274b7abc05f1dcc69a95ea06850ea77bb793443e45832d8ff1",
+  "plan_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-a-01/targeted-plan-01/plan.json",
+  "root_ack": {
+    "decision": "ACK_ONE_GUARDED_CPU_TARGETED_BATCH",
+    "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-a-01/targeted-plan-01/root-ack.json",
+    "sha256": "b4c91dacc88ebbac3d9ad5f61622d849017978e9b9eae6939662cafcdc923268",
+    "max_batches": 1,
+    "max_wall_seconds": 300,
+    "on_refusal": "STOP_NO_RETRY_NO_WRAPPER_NO_APPROVAL_CONFIG_CHANGE"
+  },
+  "preflight_read_only": {
+    "plan_sha256_matches_expected": true,
+    "root_ack_present": true,
+    "pins_verified_on_disk": {
+      "sourcepins": 60,
+      "toolpins": 3,
+      "dependency_pins": 223,
+      "stdlib_pins": 3
+    },
+    "pin_drift": 0,
+    "source_sha256_matches_expected": true,
+    "candidate_sha_matches_plan": true,
+    "attempt01_root_existed_before_the_run": false,
+    "attempt01_created_for": "the logs and the phase artifacts of this attempt only",
+    "note": "no import, no collect and no pytest was performed outside the single guarded batch; no source was modified"
+  },
+  "commands": [
+    {
+      "step": "before",
+      "kind": "outer counter observation (absence mode)",
+      "argv": "LVW_N1_F5_EVIDENCE_DIR=<attempt01>/f5-evidence PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3.12 -I -B <plan>/outer_counter_observe.py /tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json <attempt01>/counter-absence-before.json > <attempt01>/before.stdout.log 2> <attempt01>/before.stderr.log",
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "started_utc": "2026-11-15T07:26:55+00:00",
+      "ended_utc": "2026-11-15T07:26:55+00:00",
+      "exit_code": 0,
+      "result": "accepted_absence=true; the counter parent and the counter itself are MISSING (errno 2); the content was not read and nothing was created, written, reset or refunded",
+      "gate_effect": "exit 0, so the guard batch was allowed to run"
+    },
+    {
+      "step": "guard",
+      "kind": "single guarded targeted batch (hard guard, then the pinned runner, then pytest on the 14 frozen node ids)",
+      "argv": "LVW_N1_F5_EVIDENCE_DIR=<attempt01>/f5-evidence PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3.12 -I -B <plan>/guard.py <plan>/runner.py <attempt01>/guard.json > <attempt01>/guard.stdout.log 2> <attempt01>/guard.stderr.log",
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "started_utc": "2026-11-15T07:28:42+00:00",
+      "ended_utc": "2026-11-15T07:29:12+00:00",
+      "exit_code": 1,
+      "wall_seconds": 30.154,
+      "runner_duration_seconds": 30.013,
+      "pytest_exit": 1,
+      "result": "13 passed, 1 failed, 0 skipped of the 14 selected nodes; the raw stdout, the raw stderr and the exit code are kept unchanged",
+      "guard_facts": {
+        "guard_precedes_candidate_and_pytest": true,
+        "runtime_denials": 0,
+        "selftest_denials": [
+          "subprocess.Popen",
+          "socket.__new__",
+          "os.fork",
+          "os.exec",
+          "os.system",
+          "sqlite3.connect",
+          "ctypes.dlopen",
+          "ctypes.dlsym"
+        ],
+        "preload_events": [
+          "ctypes.dlopen"
+        ],
+        "preload_window_final_state": "CLOSED"
+      }
+    },
+    {
+      "step": "after",
+      "kind": "outer counter observation (absence mode)",
+      "argv": "LVW_N1_F5_EVIDENCE_DIR=<attempt01>/f5-evidence PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3.12 -I -B <plan>/outer_counter_observe.py /tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json <attempt01>/counter-absence-after.json > <attempt01>/after.stdout.log 2> <attempt01>/after.stderr.log",
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "started_utc": "2026-11-15T07:29:28+00:00",
+      "ended_utc": "2026-11-15T07:29:28+00:00",
+      "exit_code": 0,
+      "result": "accepted_absence=true; the counter parent and the counter itself are still MISSING (errno 2) after the batch; the content was not read and nothing was created, written, reset or refunded"
+    }
+  ],
+  "budget": {
+    "elapsed_wall_seconds_first_command_to_last_command": 153,
+    "sum_of_command_wall_seconds": 30.2,
+    "gap_between_commands_seconds": 107,
+    "gap_note": "the gap is the read-only analysis between the commands (reading the before observation and the artifacts); no command ran during it and no guard batch was spent on it",
+    "guard_wall_seconds": 30.154,
+    "observation_wall_seconds_each": "<1",
+    "max_wall_seconds_allowed": 300,
+    "max_guard_seconds_allowed": 290,
+    "batches_used": 1,
+    "max_batches_allowed": 1,
+    "retries": 0,
+    "automatic_retries_used": false
+  },
+  "selected_nodes": {
+    "count": 14,
+    "module": "tools/test_v0_s3_native_custody_correction10.py",
+    "collected_order_equal_to_the_frozen_order": true,
+    "call_count": 14,
+    "pass_count": 13,
+    "fail_count": 1,
+    "skip_count": 0,
+    "functional_pass_count": 13,
+    "integrity_only_nodes": [],
+    "passing_nodes": [
+      "test_n10_r01_the_control_handle_is_closed_only_after_the_exit",
+      "test_n10_r02_the_claim_of_the_recovery_and_the_handover_are_exclusive",
+      "test_n10_r03_every_confirmed_close_notifies_the_owner_of_the_handle",
+      "test_n10_r04_the_launch_aggregate_finds_the_partial_channel",
+      "test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel",
+      "test_n10_r06_an_expired_or_cancelled_call_performs_no_primitive_call",
+      "test_n10_r08_the_retry_of_a_cancellation_re_reads_the_context",
+      "test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread",
+      "test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation",
+      "test_n10_r11_the_overflow_of_the_channel_is_a_named_failure",
+      "test_n10_r12_the_reader_publishes_its_wait_before_it_waits",
+      "test_n10_r13_the_fault_is_unlocked_by_the_owner_and_observed_first",
+      "test_n10_r14_the_closed_obligations_of_the_package_do_not_regress"
+    ],
+    "failing_nodes": [
+      "test_n10_r07_the_context_of_the_round_reaches_every_layer"
+    ]
+  },
+  "failure": {
+    "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r07_the_context_of_the_round_reaches_every_layer",
+    "when": "call",
+    "outcome": "failed",
+    "duration_seconds": 15.4149,
+    "location": "tools/test_v0_s3_native_custody_correction10.py:4158",
+    "assertion": "assert facts['zero_pump_finished'] is True",
+    "message": "the attached pump of the zero round did not end",
+    "raw_longrepr": "tools/test_v0_s3_native_custody_correction10.py:4158: in test_n10_r07_the_context_of_the_round_reaches_every_layer\n    assert facts['zero_pump_finished'] is True, \\\nE   AssertionError: the attached pump of the zero round did not end\nE   assert False is True",
+    "durable_evidence_ref": "attempt01/evidence/n10-r07-zero-public-chain.json",
+    "observed_facts_of_the_failed_round": {
+      "zero_pump_finished": false,
+      "zero_pump_context_is_the_session_context": false,
+      "zero_pump_frames": null,
+      "zero_pump_error_is_none": true,
+      "zero_pump_error_type": null,
+      "zero_queue_waits": [
+        0.0
+      ],
+      "zero_premise_pump_at_admission": true,
+      "zero_premise_pump_eof_at_admission": false,
+      "zero_premise_pump_error_is_none": true,
+      "zero_state": "UNKNOWN_RETAINED",
+      "zero_broker_retained": true,
+      "zero_failures": [
+        "CUSTODY_CHANNEL_TIMEOUT",
+        "CUSTODY_BROKER_CLOSE_INCOMPLETE:read_end_closed",
+        "CUSTODY_BROKER_CLOSE_INCOMPLETE:worker_thread_handle_released",
+        "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers",
+        "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_error",
+        "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers"
+      ],
+      "note": "these are the values that the candidate itself wrote into its durable phase document; they are reported as they are and are not reinterpreted here"
+    },
+    "cleanup_of_the_failed_round": {
+      "durable_evidence_ref": "attempt01/evidence/n10-r07-zero-salvage.json",
+      "original_recorded_while_unwinding": {
+        "type": "AssertionError",
+        "detail": "the attached pump of the zero round did not end\nassert False is True"
+      },
+      "cleanup_errors": [],
+      "interrupts": [],
+      "actions": [
+        "release:gate",
+        "release:frames_ready"
+      ],
+      "quiescent": true,
+      "drain_proof": null,
+      "registry_errors": [],
+      "proof_failure": null,
+      "note": "the cleanup of the failing round met no error of its own; the failure is the body assertion above"
+    },
+    "not_reinterpreted": "the classification of this failure, whether it is a regression, a pre-existing defect or a bound/timing observation, is NOT decided here; it belongs to the independent review"
+  },
+  "cleanup_and_resource_facts": {
+    "cleanup_proven_for_batch": true,
+    "threads_before": [
+      "MainThread"
+    ],
+    "threads_after": [
+      "MainThread"
+    ],
+    "fd_rows_before": 3,
+    "fd_rows_after": 3,
+    "new_or_reused_fds": [],
+    "fd_unknown_before": [],
+    "fd_unknown_after": [],
+    "counter_observation_only": true,
+    "counter_created": false,
+    "counter_written": false,
+    "counter_reset": false,
+    "counter_refunded": false,
+    "historical_grant_revived": false,
+    "historical_counter_continuity": "UNAVAILABLE_NOT_PROVEN"
+  },
+  "artifacts": {
+    "root": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt01",
+    "evidence_directory": "attempt01/evidence",
+    "evidence_document_count": 87,
+    "cleanup_phase_documents_written_by_the_candidate": [
+      "n10-r02-creation-cleanup.json",
+      "n10-r02-report-cleanup.json",
+      "n10-r04-partial-cleanup.json",
+      "n10-r06-close-cleanup.json",
+      "n10-r07-admission-cleanup.json",
+      "n10-r09-await-wait-cleanup.json",
+      "n10-r09-startup-cleanup.json",
+      "n10-r11-exact-cleanup.json",
+      "n10-r11-frames-cleanup.json",
+      "n10-r11-round-cleanup.json",
+      "n10-r13-fault-cleanup.json",
+      "n10-r13-partial-cleanup.json",
+      "n10-r14-cleanup.json"
+    ],
+    "artifact_file_count": 101,
+    "artifact_symlink_count": 10,
+    "sha256": {
+      "before.stdout.log": "410440f407966a80b4f054e49f8e99276a72a8b9a9149f6412c3f217424fdaff",
+      "before.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "counter-absence-before.json": "bfe4e7b1a3f9d9d912e432a13d16313f40e3857e0895a556bd73e2f08bcffc23",
+      "guard.stdout.log": "15bc246584e293d036eebc67d49a5158c21e70dfad17fc8da97ec82cda6925e4",
+      "guard.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "guard.json": "cde695f6d9f1ee8d2675b8c3b9f584bee1d841f5b6b6f361fc73732ea1b0bc1f",
+      "native-custody-correction-03.receipt.json": "400055e2f0305eb63372f4bd176b34711abaf976f5f51178bff68ea8db4b4216",
+      "after.stdout.log": "410440f407966a80b4f054e49f8e99276a72a8b9a9149f6412c3f217424fdaff",
+      "after.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "counter-absence-after.json": "bfe4e7b1a3f9d9d912e432a13d16313f40e3857e0895a556bd73e2f08bcffc23"
+    },
+    "runner_result_rewritten_by_hand": false
+  },
+  "scope_of_this_result": {
+    "is_14_node_targeted_check": true,
+    "is_189_checkpoint": false,
+    "is_product_29": false,
+    "is_stage_acceptance": false,
+    "major_closed_by_this_run": 0,
+    "stage_pass_claimed": false,
+    "native_proven": false,
+    "product_acceptance": false,
+    "human_signoff": false,
+    "note": "this is a targeted feedback run of 14 frozen nodes; it is never the fixed 189 checkpoint and it is never a product or Stage acceptance"
+  },
+  "obligations_not_run": [
+    "N1-OPT-01 (BLOCKING_FALSE_GREEN) was not closed by this run; the run produced a real FAIL of another node and no Major is closed",
+    "N1-OPT-02 (INDEPENDENT_RECLASSIFICATION_PENDING) not reclassified",
+    "N1-OPT-03 (INDEPENDENT_RECLASSIFICATION_PENDING) not reclassified",
+    "N1-OPT-04 (BLOCKING_RESOURCE_SAFETY) not closed by this run; the batch cleanup was proven for this batch but the known owner fallback is not classified",
+    "the remaining 175 frozen nodes of the 189 were NOT selected and NOT run",
+    "the product fixed 29 cases were NOT run",
+    "native, model, GPU, service, network, media, database, ledger and counter actions were NOT performed"
+  ],
+  "not_executed_or_not_performed": [
+    "any second guard batch",
+    "any rerun of the failed node",
+    "any source modification after the run",
+    "any other test module or any native API call",
+    "any counter creation, write, reset, refund or revival",
+    "any old budget revival"
+  ],
+  "failures_are_reported_as_failures": {
+    "source_modified_after_the_failure": false,
+    "rerun_after_the_failure": false,
+    "guard_refusal_treated_as_pass": false,
+    "note": "the batch really failed; the failure is reported as it is and the classification is left to the independent review"
+  },
+  "unrelated_dirty_state_preserved": [
+    "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-01/report.md"
+  ],
+  "next_owner": "coordinator",
+  "next_action": "independent review of the raw attempt01 artifacts and the classification of the failing node; this delivery claims no test PASS and closes no Major"
+}
