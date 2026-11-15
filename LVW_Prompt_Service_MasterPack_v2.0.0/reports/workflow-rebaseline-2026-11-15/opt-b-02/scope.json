@@ -1,0 +1,48 @@
+{
+  "id": "OPT-B-R07-FIXTURE-SHUTDOWN-02",
+  "base_candidate": "62e0d429dd78418220235359d068ae28d7b37e6e",
+  "base_source_sha256": "2a8e951b357068e835f6c7d276062395d83dc691ad5e51afde5c9e1da6cb64ac",
+  "review_commit": "62dbb5d",
+  "finding": "OPT-R07-CLEANUP-02",
+  "architecture_review": "reports/workflow-rebaseline-2026-11-15/opt-b-01/scope-oracle-review-01.md",
+  "scope_review_decision": "Fix missing fixture-owned explicit shutdown; no evidence for production owner modification; static reachable gap is proven, exact final idle/IN_IO branch remains unknown until new evidence.",
+  "allowed_source_file": "tools/test_v0_s3_native_custody_correction10.py",
+  "allowed_regions": [
+    "R07 zero finally/fixture-owned cleanup only",
+    "module EVIDENCE_DIR configuration expression only"
+  ],
+  "requirements": [
+    "Keep public returned/stop facts captured before fixture cleanup; never relabel UNKNOWN_RETAINED as production cleanup success",
+    "Use known actual zero channel/endpoint/worker identity; drive bounded explicit stop/cancel/close via existing owner methods, then bounded join and final handle release; no forced live-handle close",
+    "Respect reader-end ownership ordering: do not close read endpoint beneath live channel reader; existing repeatable channel.close may be used boundedly",
+    "Use existing fixture shared budget30/per-owner10; no new product deadline/context or runtime budget",
+    "Keep complete errors and first-exception priority; all known owners attempted and actual quiescence/FD/thread cleanup required",
+    "Retain public default launcher, exact0, noEOF, timeout/UNKNOWN_RETAINED/retained original broker and observed-pump assertions",
+    "Record only compact actual held worker state and explicit cleanup actions/results; no generic diagnostic framework",
+    "Preserve attempt01/02 artifacts and old findings; no retry in this implementation task"
+  ],
+  "evidence_route_interface": {
+    "key": "LVW_N1_T10_EVIDENCE_DIR",
+    "owner": "root-frozen per-run environment",
+    "missing": "fail closed before tests; no fallback to spent evidence roots",
+    "purpose": "one immutable source candidate can be verified in isolated targeted and later full189 runs without source edits solely to change output directory",
+    "new_model_or_production_permission": false,
+    "path_supplied_in_frozen_plan": true,
+    "root_preflight_requires_fresh_path": true,
+    "public_schema_change": false
+  },
+  "forbidden": [
+    "production broker/custody edits",
+    "shared registry/drain framework rewrite",
+    "other R07 functional scenarios or other test groups changed",
+    "fixed189 identity/order/signature/decorator changes",
+    "new OS processes/native APIs/DB/model/GPU/services",
+    "test execution or candidate import",
+    "manual finished flags or fake cleanup facts",
+    "deadline extension or suppressing errors"
+  ],
+  "implementation_receipt_dir": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-03/",
+  "runtime_authorized": false,
+  "candidate_import_allowed": false,
+  "root_next_action": "review new minimal diff and freeze exact candidate/guard/env/nodeids/budget/cleanup before one fresh finite retest"
+}
