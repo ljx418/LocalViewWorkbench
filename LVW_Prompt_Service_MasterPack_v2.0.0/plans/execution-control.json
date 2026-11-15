@@ -1,6 +1,6 @@
 {
   "schema_version": "lvw.execution-control/1",
-  "updated_at": "2026-11-15T18:38:46.858344+00:00",
+  "updated_at": "2026-11-15T18:58:21.515481+00:00",
   "project_id": "lvw-prompt-service",
   "design_version": "2.0.0",
   "target_version": "V1",
@@ -9,7 +9,7 @@
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
     "gate": "GATE1_R1_PERSISTENCE_SOURCE_IMPLEMENTATION",
-    "state": "RUNNING"
+    "state": "WAIT_BUDGET"
   },
   "last_passed_gate": {
     "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
@@ -21,7 +21,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "R1_PERSISTENCE_CANDIDATE_IMPLEMENTATION_AND_RUNTIME_SEAL",
+  "current_blocking_gate": "CLAUDE429_PERSISTENCE_WAIT_BUDGET",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -34,9 +34,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "VisibleClaudeCode implementation owner; root DB-aware trusted execution boundary owner",
-  "next_action": "Implement frozen version1 core persistentmedia/manualshot/revision public path and16test sources inonebatch. Submit sourcecandidate before any import/test; root then seals ownedSQLite guard+supervisor. N2 nativeassembly/live remains separate.",
-  "required_authorization": "ParentCOMPLETE03 and rootGate0 allow offline code only, zero external/runtime/DBopen now. No newhumanapproval needed; firstClaude429stops.",
+  "next_owner": "User quota-restored/resume notice; original visibleClaude implementation task thereafter",
+  "next_action": "STOP on firstClaude429. Preserve candidate23bd8da8 and eight exact source/test snapshots, no retry/switch/root takeover. Resume same task/workspace/scope only after explicit user restoration notice or separately authorized takeover.",
+  "required_authorization": "Standinguser429stop rule: await explicit user notice to resumeClaude afterquota restored, or explicit approval forroot takeover ofthisinterruption. Original offline scope/parentbudget notreset; no otherpermission requested.",
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -2502,7 +2502,7 @@
     "id": "WP-R1-U3-PERSIST-01",
     "packet": "reports/r1-persistence/packet-01",
     "packet_manifest": "reports/r1-persistence/packet-01/PAYLOAD_MANIFEST.sha256",
-    "state": "ROOT_GATE0_CODE_ONLY_READY",
+    "state": "WAIT_BUDGET_FIRST_CLAUDE429",
     "maps_to": [
       "R1-A",
       "R1-B manual subset"
@@ -2510,6 +2510,22 @@
     "component_denominator": 16,
     "public_overlay_active": false,
     "tests_runtime_admitted": false,
-    "parent_workpack": "WP-R1-U3"
+    "parent_workpack": "WP-R1-U3",
+    "candidate_discovered": "23bd8da803903370be3b154a8cf21b9cc8f145a8",
+    "candidate_completeness_verified": false,
+    "handoff": "reports/r1-persistence/quota-stop-01/handoff.json",
+    "dispatch": "ctx_c949d98d1aaa",
+    "task_id": "task_ac873d7aa063",
+    "worker_terminal_closed": true
+  },
+  "quota_stop_current": {
+    "kind": "FIRST429",
+    "dispatch": "ctx_c949d98d1aaa",
+    "task": "task_ac873d7aa063",
+    "error_code": 2056,
+    "state": "WAIT_BUDGET",
+    "retry": false,
+    "root_takeover": false,
+    "handoff": "reports/r1-persistence/quota-stop-01/handoff.json"
   }
 }
