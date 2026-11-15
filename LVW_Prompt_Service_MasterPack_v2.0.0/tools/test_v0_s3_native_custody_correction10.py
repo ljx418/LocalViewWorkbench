@@ -143,8 +143,10 @@ from tools.test_v0_s3_native_custody_regressions import (  # noqa: E402
 #: directory of the correction 23.  The real documents of the batch of the
 #: correction 22 stay in the directory of the correction 22: they are
 #: never overwritten, never deleted and never replaced by a summary.
+#: OPT-A: this fresh attempt01 routing supersedes the correction 23 root.
 EVIDENCE_DIR = (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'
-                / 'implementation-native-custody-correction-23' / 'evidence')
+                / 'implementation-native-custody-optimized-01' / 'attempt01'
+                / 'evidence')
 
 #: The nonce of the private channel of the probes of this module.  It
 #: is a closed form of 32 hexadecimal characters and it is the nonce of
