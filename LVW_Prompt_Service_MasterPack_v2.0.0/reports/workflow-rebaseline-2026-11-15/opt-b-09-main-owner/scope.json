@@ -1,0 +1,42 @@
+{
+  "id": "OPT-B-09-MAIN-OWNER-OBSERVATION",
+  "base_candidate": "ab12b0a01f733403a4986744c77853dbeeee6f68",
+  "review_commit": "d7364a0ac247759687cca950bbb69c9dd9a6092c",
+  "state": "FROZEN_OFFLINE_ONLY",
+  "allowed_source_files": [
+    "tools/test_v0_s3_native_custody_correction10.py"
+  ],
+  "allowed_evidence": [
+    "NEW reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/",
+    "NEW reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01-execution-receipt.correction-01.json"
+  ],
+  "T07-M1": [
+    "Capture actual MAIN-session custody pump before pointer retirement, not the distinct zero_session pump. Bind exact reference to original main broker/context, production _background_threads pump record and parent start observer/provenance. Never derive finished from absent pointer",
+    "Feasible minimal seam: transparently observe NativeCustodySession._start_background_thread(owner,kind,thread), filtering owner is main session and kind==pump before forwarding original start. Observe actual join_bounded calls on the independently held pump, original arguments/result/error forwarded. Instance-local transparent join recorder avoids broad global lifecycle replacement. Keep observations across body and cleanup, label pre-salvage versus salvage so later fixture cleanup cannot satisfy earlier boundary",
+    "Use held actual owner consistently at current-minimum diagnostic and later direct zero-expiry loop/facts. Record pointer state SAME_HELD/ABSENT/REPLACED/NOT_STARTED separately; only classify confirmed retirement with actual STARTED provenance and real successful join/end evidence before salvage. Keep actual finished/alive/error/context/broker/background/start facts and original product returned failures/state/retention",
+    "Unknown, unfinished, unexpected/errorful or identity-mismatched owners remain failures; no absent=>PASS, no process/threaddeath as successful service, no fabricated join/start. Preserve real errors and fail-closed/public failures. If facts reveal a different semantic question, report it rather than suppressing it",
+    "No longer15s wait, sleeps/retries, productdeadline changes, new pump or simplified private lifecycle. Inspect all R07 mutable owner reads once as d736 list; minimal fixture/observation change only. Preserve all original acceptance assertions as obligations; where oracle expression itself must move from mutablepointer to heldowner, record exact equivalence and why no weakening"
+  ],
+  "T07-M2": [
+    "Append producer-attributed correction binding original receipt SHA2564b4c04c79d1fcd7025df1917598f80010db2ce329881ab57f58fcd9568b0fd04 and JSON pointers /outcome_summary, /unresolved_limits/0",
+    "Correct actual cause ACTUAL_CHECKS_NOT_ALL_PASSED due selectedR07FAIL; selected6=1originalFAIL+5suppPASS,188originalNOT_RUN, product29/nativeNOT_RUN. Group required189 is reporting only, not local6 rejection predicate",
+    "Bind actual outer SHA256fc0547ccc637efa1aa050d94c5fac8d9a5076a3472e2a04b72b372e34e4d93f2 and exact plan/candidate/evidence; use canonical targeted01 paths, preserve original/corrections/snapshots. Attribution is not a cryptographic signature"
+  ],
+  "invariants": [
+    "Supplement module unchanged byte-for-byte; previous five negative qualifications preserved and must be reverified later",
+    "Original189 identities/order/signatures/decorators and thresholds unchanged; no weakened required result/identity/cleanup/error proof",
+    "No source outside single T10 file; no product broker/custody/API/schema changes, root harness and approvalconfig unchanged",
+    "AST-only/Git/static analysis, no compile/import/collect/tests/run. All runtime pending new seal/ACK",
+    "No model/GPU/native/network/media/services/DB/countercontents, no unrelateddirtyreport body/staging, no bulkadd",
+    "First429STOP, no retries/provider switch/root takeover"
+  ],
+  "receipt_requirements": [
+    "Source candidate/hash/diff and exact held-reference capture/real start/join/end path",
+    "Oracle mapping for each changed mutablepointer read, all original assertions retained or precisely equivalent observed-owner mapping",
+    "Append correction hash/pointers and original unchanged proof",
+    "Known actual owner state still unverified until finite run; no claim retirement was historical cause",
+    "New implementation-native-custody-optimized-07/implementation-receipt.json, source/evidencecommit separate/fulloutline/tenfields"
+  ],
+  "next": "Root reviews concrete change, freezes new targeted6, then concentrated review and fresh194 before component exit",
+  "runtime_authorized": false
+}

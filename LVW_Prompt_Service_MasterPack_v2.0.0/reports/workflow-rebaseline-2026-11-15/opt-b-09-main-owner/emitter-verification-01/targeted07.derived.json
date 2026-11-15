@@ -1,0 +1,69 @@
+{
+  "kind": "DERIVED_MACHINE_CPU_FEEDBACK_NOT_EXECUTION_OR_EXIT_PROOF",
+  "generated_utc": "2026-11-15T15:35:51.434486+00:00",
+  "candidate_sha": "ab12b0a01f733403a4986744c77853dbeeee6f68",
+  "spec_version": "ADR16 + OPT-B-CONSOLIDATED-PRIORITY-AND-NEGATIVES-01",
+  "stage": "R1",
+  "workpack": "WP-R1-U3",
+  "run_directory": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01",
+  "plan_sha256": "2786c5a52237ab89d80dde36dbd9651d26bfd551017c4541259ce1d84e731607",
+  "input_sha256": {
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-08-targeted/targeted-plan-07/plan.json": "2786c5a52237ab89d80dde36dbd9651d26bfd551017c4541259ce1d84e731607",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/native-custody-correction-03.receipt.json": "16425c1d2525031a11e1a496ef2be8b963d7dab6d9fbc489c203056268498211",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/guard.json": "28c0021787a8009e61d4c90b452fe1024ccaa6c783ffc5a93ef83bb38f0851ba",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/outer-decision.json": "fc0547ccc637efa1aa050d94c5fac8d9a5076a3472e2a04b72b372e34e4d93f2"
+  },
+  "selected_count": 6,
+  "collected_count": 6,
+  "call_records": 6,
+  "unique_calls": 6,
+  "unexpected_calls": [],
+  "duplicate_calls": [],
+  "selected_without_call": [],
+  "fixed_original": {
+    "fixed": 189,
+    "selected": 1,
+    "call_records": 1,
+    "PASS": 0,
+    "FAIL": 1,
+    "SKIPPED": 0,
+    "NOT_RUN": 188,
+    "AMBIGUOUS": 0,
+    "not_selected": 188
+  },
+  "supplemental": {
+    "fixed": 5,
+    "selected": 5,
+    "call_records": 5,
+    "PASS": 5,
+    "FAIL": 0,
+    "SKIPPED": 0,
+    "NOT_RUN": 0,
+    "AMBIGUOUS": 0,
+    "not_selected": 0
+  },
+  "failed_reports": [
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r07_the_context_of_the_round_reaches_every_layer",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 15.414857411000412,
+      "longrepr": "tools/test_v0_s3_native_custody_correction10.py:4991: in test_n10_r07_the_context_of_the_round_reaches_every_layer\n    assert facts['pump_finished'] is True, \\\nE   AssertionError: the pump of the round did not end after the bound arrived\nE   assert False is True"
+    }
+  ],
+  "guard_runtime_denial_count": 0,
+  "outer_reported_errors": [
+    "ACTUAL_CHECKS_NOT_ALL_PASSED"
+  ],
+  "deterministic_findings": [
+    "ACTUAL_CHECKS_NOT_ALL_PASSED",
+    "OUTER_REJECTED_OR_UNCONFIRMED"
+  ],
+  "accepted_selected_feedback": false,
+  "acceptance_scope": "EXACT_SELECTED_NODES_ONLY",
+  "component_checkpoint_claim": false,
+  "stage_pass_claim": false,
+  "human_signoff_claim": false,
+  "product29_claim": false,
+  "limitations": "Derived counts/causes from these inputs; does not independently prove command execution, environment, source preflight or historical ownership."
+}

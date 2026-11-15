@@ -1,0 +1,104 @@
+{
+  "candidate": "ab12b0a01f733403a4986744c77853dbeeee6f68",
+  "result": "CHANGES_REQUIRED",
+  "counts": {
+    "Fatal": 0,
+    "Major": 2,
+    "Minor": 0
+  },
+  "findings": [
+    {
+      "id": "T07-M1",
+      "candidate": "ab12b0a01f733403a4986744c77853dbeeee6f68",
+      "spec": "ADR16; opt-b-07 consolidated/completion scope; targeted-plan-07",
+      "layer": "necessary owner observation / test oracle",
+      "location": "tools/test_v0_s3_native_custody_correction10.py:3841-3844,4956-4992; production custody:1585-1664",
+      "trigger": "Selected original R07 reaches later direct zero-expiry supplement after the real public zero chain.",
+      "expected": "Distinguish independently held real owner completion/alive/error/context from mutable session pointer retirement, at the required boundary, and preserve actual product failure/retention facts.",
+      "actual": "At4962 and4980 the expression session._pump is not None and session._pump.finished collapses None and unfinished into false. Raw pump-zero-expiry has only pump_finished=false and both waits[0.0]; original call fails4991 after about15s. It contains no pointer state or held-owner completion/error/join fact.",
+      "oracle": "Capture actual original main-session pump before it can be retired, bind it to production background record and start observer, preserve it across calls; independently record finished/alive/error/context/broker and actual join/end plus pointer state, distinguishing not started/absent/replaced/same. Continue failing any unknown, unfinished/error or identity mismatch.",
+      "negative": "Never accept None as finished, actual thread death as successful semantics, or full-batch cleanup as pre-salvage proof; do not extend15s/product deadlines, sleep/retry, clear errors or replace the real public path.",
+      "terminal": "CHANGES_REQUIRED; spent local6 plan; no runtimeACK/N2/Stage clearance",
+      "cleanup": "Batch CPU cleanup supported by equal FD identities, no unknown/new/reused FD, MainThread only; parent salvage joined/dead. This is later cleanup, not proof of pre-salvage expiry semantics.",
+      "evidence": [
+        "evidence/n10-r07-pump-zero-expiry.json",
+        "evidence/n10-r07-parent-salvage.json",
+        "evidence/n10-r07-pump-current-minimum.json",
+        "runner failed report T10:4991"
+      ],
+      "classification": "Major",
+      "status": "OPEN",
+      "minimal_closure": "One bounded observation/oracle correction for the same root: hold the expected main-session pump and dependent owner references before the fallible read/expiry sequence, record boundary and join/end facts plus pointer state, then root freezes necessary verification. Review all R07 mutable owner reads together as listed in review; do not change product behavior.",
+      "owner": "ClaudeCode for minimum observation/correction under root frozen scope; root for admission/adjudication",
+      "uncertainty": "Production _stop_background can clear the pointer after a successful join, so retirement is a feasible explanation, not proved actual cause. It can also clear a never-started pump. Raw cannot decide original owner state at failure. No production ownership flaw or harmless failure is established."
+    },
+    {
+      "id": "T07-M2",
+      "candidate": "ab12b0a01f733403a4986744c77853dbeeee6f68",
+      "spec": "ADR16; opt-b-07 consolidated/completion scope; targeted-plan-07",
+      "layer": "producer evidence truth",
+      "location": "targeted01-execution-receipt.json /outcome_summary and /unresolved_limits/0",
+      "trigger": "Producer describes why targeted6 outer rejected.",
+      "expected": "Report actual selected-call failure as rejection cause;188 unselected original nodes are NOT_RUN and do not themselves cause local6 rejection.",
+      "actual": "Producer says rejection was because original189 required189 but passed0 within6. Actual outer errors are solely ACTUAL_CHECKS_NOT_ALL_PASSED, and unchanged validator accepts local selection based on plan.nodeids; group189 required/pass is reporting only. Root preserves original and records contradiction.",
+      "oracle": "Append-only attributed correction binds original SHA2564b4c04c79d1fcd7025df1917598f80010db2ce329881ab57f58fcd9568b0fd04 and the two JSON pointers, exact6 order/outcomes and actual outer hash/error.",
+      "negative": "No silent rewrite, no turning188 NOT_RUN into failures, no suggesting local6 success would itself be full189 or194 acceptance.",
+      "terminal": "CHANGES_REQUIRED; spent local6 plan; no runtimeACK/N2/Stage clearance",
+      "cleanup": "Batch CPU cleanup supported by equal FD identities, no unknown/new/reused FD, MainThread only; parent salvage joined/dead. This is later cleanup, not proof of pre-salvage expiry semantics.",
+      "evidence": [
+        "targeted01-execution-receipt.json",
+        "outer-decision.json",
+        "root actual-targeted07-feedback.json",
+        "pinned validate_feedback.py:38-65"
+      ],
+      "classification": "Major",
+      "status": "OPEN",
+      "minimal_closure": "Producer adds attributed correction recording selectedR07FAIL plus supp5PASS, outer ACTUAL_CHECKS_NOT_ALL_PASSED,188NOT_RUN, no fullcheckpoint/product/native closure, and preserves original bytes/snapshot.",
+      "owner": "ClaudeCode for minimum observation/correction under root frozen scope; root for admission/adjudication",
+      "uncertainty": "Actual rejection and counts are independently known. Correcting producer causality cannot close T07-M1 or authorize a rerun."
+    }
+  ],
+  "old_findings_partial_dispositions": {
+    "F06-M1": {
+      "static": "CLOSED_STATIC for producer scheduling and missing inner-writer reachability fix",
+      "branch": "QUALIFIED targeted SUP03 PASS: first CHILD_TRANSPORT write hit once; sentinel, durable E/proof_failure and quiescent raw present",
+      "formal": "No full R07/checkpoint exit: later selected original R07 failed, T07-M1"
+    },
+    "F06-M2": {
+      "static": "Boundary03 source unchanged from reviewed c8a4b36",
+      "branch": "Actual owncanary23/23 with18 expecteddenials; ordinary targeted6 zero-denials and6 matching owned aliases support bounded compatibility",
+      "formal": "No retroactive waiver of old106; no full189/194 or OS/native/adversarial claim"
+    },
+    "F06-M3": {
+      "static": "CLOSED_STATIC: one-shot K1 counter now changes at actual raise; real third callback returns original result on every subsequent invocation",
+      "branch": "QUALIFIED SUP02 PASS including controlled repeat, relative forwarding increment, unchanged injected1, exact K1 is escaping object, distinct K2",
+      "formal": "Branch evidence only; historical failure unchanged, no checkpoint clearance"
+    },
+    "F06-M4": {
+      "static": "CLOSED_STATIC: independently captured real pipeworker and expected startup owner/thread asserted with is; default map None, per-case fresh map/restored finally",
+      "branch": "QUALIFIED SUP01/02/05 PASS; not a pipeworker-parentpump identity substitution",
+      "formal": "No full suite owner proof; T07-M1 covers the distinct later original main-session pump observation"
+    },
+    "F06-M5": {
+      "static": "Append correction01 present and hash-bound; original bytes preserved",
+      "branch": "Independent counts/hash match old combined02 original189PASS/supp4PASS1FAIL/outerREJECTED, product29NOT_RUN",
+      "formal": "Original175 false sentence corrected append-only for its frozen requirement; new targeted producer causality T07-M2 remains separate"
+    }
+  },
+  "N1_obligations": {
+    "N1-OPT-01": "Controlled inner writer branch QUALIFIED by SUP03, calleeFAIL not falsePASS; whole original R07 stillFAIL",
+    "N1-OPT-02": "Recovered final-write branch QUALIFIED by SUP04 durable error+failed proof; no downgrade of actual failure",
+    "N1-OPT-03": "ExactO/firstK priority, durable queryUNKNOWN and independent physical cleanup QUALIFIED on SUP01/02; source callback repeat fixed",
+    "N1-OPT-04": "Exact expected startup owner/thread and real settle/join fallback QUALIFIED by SUP05; fullcheckpoint remains unproved"
+  },
+  "process_deviation": {
+    "scope": "Original05fec source delivery",
+    "fact": "Producer acknowledges memory-only compile(src, x, exec) syntax check despite source scope prohibiting compilation",
+    "effect": "Not module execution/import/collection/test evidence; no .pyc/evidence generated by that reported command; completion says AST-only thereafter",
+    "disposition": "Disclosed historical nonconformance retained; no reviewer rerun, no runtime acceptance credit or invented Major downgrade"
+  },
+  "full_checkpoint": "Original189/full194 NOT_RUN on ab12 in this batch; one originalFAIL plus188 NOT_RUN, supp5PASS",
+  "product29": "NOT_RUN",
+  "native9": "NOT_PROVEN; unchanged prior scope only",
+  "runtimeACK": "NOT_ISSUED"
+}

@@ -1,0 +1,70 @@
+{
+  "kind": "DERIVED_MACHINE_CPU_FEEDBACK_NOT_EXECUTION_OR_EXIT_PROOF",
+  "generated_utc": "2026-11-15T15:35:51.393353+00:00",
+  "candidate_sha": "9b6d9d4b827587d132eaf20e2b838d449ed89bd3",
+  "spec_version": "ADR16 + OPT-B-CONSOLIDATED-PRIORITY-AND-NEGATIVES-01",
+  "stage": "R1",
+  "workpack": "WP-R1-U3",
+  "run_directory": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-05/combined02",
+  "plan_sha256": "1e370a2fdb74a3bda372100ac5323eb47d9b9ef22ce865dc85dd2738b1208271",
+  "input_sha256": {
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-06-feedback/combined-plan-06/plan.json": "1e370a2fdb74a3bda372100ac5323eb47d9b9ef22ce865dc85dd2738b1208271",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-05/combined02/native-custody-correction-03.receipt.json": "09bb14012c19490fb4ed60614afedcdf9e4ac0e824e14bbcfad69a452cf2df25",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-05/combined02/guard.json": "1bfad3f917fb3f61c1ad6c4c61b758cfccec31d255629ddc343cf43769c95f00",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-05/combined02/outer-decision.json": "d3b395ef74039df6982c6951ff06561263dd7a5de8a9ed931ae1c9252639b242"
+  },
+  "selected_count": 194,
+  "collected_count": 194,
+  "call_records": 194,
+  "unique_calls": 194,
+  "unexpected_calls": [],
+  "duplicate_calls": [],
+  "selected_without_call": [],
+  "fixed_original": {
+    "fixed": 189,
+    "selected": 189,
+    "call_records": 189,
+    "PASS": 189,
+    "FAIL": 0,
+    "SKIPPED": 0,
+    "NOT_RUN": 0,
+    "AMBIGUOUS": 0,
+    "not_selected": 0
+  },
+  "supplemental": {
+    "fixed": 5,
+    "selected": 5,
+    "call_records": 5,
+    "PASS": 4,
+    "FAIL": 1,
+    "SKIPPED": 0,
+    "NOT_RUN": 0,
+    "AMBIGUOUS": 0,
+    "not_selected": 0
+  },
+  "failed_reports": [
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_03_inner_writer_error_rejects_success",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.512425748995156,
+      "longrepr": "tools/test_v0_s3_native_custody_cleanup_faults.py:431: in test_n1_sup_03_inner_writer_error_rejects_success\n    assert len(writer.injected) == 1, (\nE   AssertionError: the error of the inner writer was not injected exactly once: []\nE   assert 0 == 1\nE    +  where 0 = len([])\nE    +    where [] = <function _phase_writer.<locals>.writer at 0x76072ae091c0>.injected"
+    }
+  ],
+  "guard_runtime_denial_count": 106,
+  "outer_reported_errors": [
+    "GUARD_RUNTIME_DENIALS_NONEMPTY"
+  ],
+  "deterministic_findings": [
+    "ACTUAL_CHECKS_NOT_ALL_PASSED",
+    "GUARD_LEDGER_NONEMPTY_MISSING_OR_INVALID",
+    "OUTER_REJECTED_OR_UNCONFIRMED"
+  ],
+  "accepted_selected_feedback": false,
+  "acceptance_scope": "EXACT_SELECTED_NODES_ONLY",
+  "component_checkpoint_claim": false,
+  "stage_pass_claim": false,
+  "human_signoff_claim": false,
+  "product29_claim": false,
+  "limitations": "Derived counts/causes from these inputs; does not independently prove command execution, environment, source preflight or historical ownership."
+}
