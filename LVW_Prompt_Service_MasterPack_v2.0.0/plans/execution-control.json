@@ -1,6 +1,6 @@
 {
   "schema_version": "lvw.execution-control/1",
-  "updated_at": "2026-11-15T17:43:44.229548+00:00",
+  "updated_at": "2026-11-15T17:54:38.089994+00:00",
   "project_id": "lvw-prompt-service",
   "design_version": "2.0.0",
   "target_version": "V1",
@@ -21,7 +21,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "S3_P4_TRUSTED_STOP_FIVE_CASE_ACTUAL_REVIEW",
+  "current_blocking_gate": "S3_P4_NEW_SUPERVISED194_INTEGRATION",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -34,9 +34,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "Isolated actual-control reviewer; then root gate owner",
-  "next_action": "Independently qualify five actual stop/reap/cancel cases and truthful append correction; only afterward decide a newly sealed guarded integration. No automatic194rerun or retroactive oldconformance.",
-  "required_authorization": "Parent COMPLETE03 covers trusted CPU harness repair; newly frozen FIVE-case20s selftest awaits independent source readiness and root activation, not human reapproval. Old fourcase plan remains unexecuted; no194rerun.",
+  "next_owner": "Trusted deterministic executor (root orchestration); then isolated evidence reviewer",
+  "next_action": "Execute one newly sealed five-step supervisor-owned guard194 integration with outside-payload control journals; verify actual child arguments/deadline/reap plus194 and CPUcleanup. No oldattempt retrofit or productrelease.",
+  "required_authorization": "ParentCOMPLETE03 and root explicit NEW supervised11 ACK cover310s onebatch0retry; no new human authorization. No model/GPU/native/media/network actions.",
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -2447,7 +2447,7 @@
   "trusted_stop_preparation": {
     "source": "reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/bounded_exec.py",
     "selftest_plan": "reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/plan.json",
-    "state": "ACTUAL_FIVE_CASE_PASS_INDEPENDENT_REVIEW_PENDING",
+    "state": "ACTUAL_FIVE_CASE_INDEPENDENTLY_QUALIFIED",
     "cases": 5,
     "budget_seconds": 20,
     "retries": 0,
@@ -2458,12 +2458,25 @@
       "root_binding_check": "reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/producer-correction-binding-check.json",
       "state": "APPEND_DELIVERED_BINDING_VERIFIED_NOT_CONTROL_CLOSED"
     },
-    "blocking_finding": "CP10-M1_ACTUAL_CONTROL_REVIEW",
+    "blocking_finding": null,
     "prior_source_review": "cc403e6e6e57d9ce408ed38887437e4462422724",
     "source_review": "39a5ce57bf5840c1c596ef84e9f14020ad202183",
     "actual_cases": 5,
     "actual_PASS": 5,
     "actual_owned_children_reaped": 5,
-    "run_receipt": "reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/run/summary.json"
+    "run_receipt": "reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/run/summary.json",
+    "actual_review": "c4955c7cfa17ba6f85f7be5249688a6805cce29a"
+  },
+  "current_supervised_integration": {
+    "plan": "reports/workflow-rebaseline-2026-11-15/opt-b-15-supervised-integration/supervised-plan-11/plan.json",
+    "plan_sha256": "40098ff3d63632bf7ae03e371119a971171ea9609a956a6a1455e8341ea4cdfc",
+    "candidate_sha": "b9a81aed8e8f8fe6763a4dfd3d051cacf10e0820",
+    "state": "FROZEN_ROOT_ACK_NEW_RUN",
+    "fixed_original": 189,
+    "supplemental": 5,
+    "supervisor_sha256": "e3b18a954084c5c89ff1cf7f35e719d4669c8e6df21e652b4d6d54014ff48ba1",
+    "control_outside_payload": true,
+    "budget_seconds": 310,
+    "retries": 0
   }
 }
