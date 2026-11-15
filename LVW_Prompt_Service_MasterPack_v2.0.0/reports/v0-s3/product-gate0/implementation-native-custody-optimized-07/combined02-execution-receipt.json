@@ -1,0 +1,471 @@
+{
+  "kind": "component_checkpoint_execution_receipt_navigation",
+  "packet": "N1-OPTIMIZED-01",
+  "scope": "ADR16 O1 - one fresh original 189 plus supplemental 5 CPU COMPONENT checkpoint with the EXACT frozen tool caps, on the candidate b9a81ae, in one fresh run, with no splicing of any earlier output",
+  "the_authority_of_the_counts_and_of_the_causes": {
+    "the_document": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined02/machine-feedback-receipt.json",
+    "the_sha256": "2f0e40687fc04fdaeed84cae6115afcae40cb71c78f4a7ac8b5f583548a54af0",
+    "the_emitter": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-09-main-owner/emit_feedback_receipt.py",
+    "the_emitter_sha256": "332ecc5a97918455d078a9a4ad63bbd87d122dfbe8d03288c07acb1193ed8c5c",
+    "the_emitter_is_a_tool_pin_of_the_frozen_plan": true,
+    "the_note": "this document NAVIGATES the batch.  It does not restate a count and it does not restate a cause of its own: the machine receipt is the authority for both, and the exit of the emitter only means that the file was created.",
+    "the_acceptance_of_the_selected_feedback": true,
+    "the_acceptance_scope": "EXACT_SELECTED_NODES_ONLY",
+    "the_component_checkpoint_claim": false,
+    "the_stage_pass_claim": false,
+    "the_human_signoff_claim": false,
+    "the_product29_claim": false,
+    "the_limits_of_the_emitter": "Derived counts/causes from these inputs; does not independently prove command execution, environment, source preflight or historical ownership."
+  },
+  "the_control_envelope_of_this_batch": {
+    "the_frozen_tool_input_file": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-12-envelope-correction/combined-plan-10/frozen-bash-tool-inputs.json",
+    "the_frozen_tool_input_sha256": "e3dc059b1cc394553ebe10add80a74c7f161721ffc71ac795ad314e277525db8",
+    "the_frozen_tool_input_sha256_matches_the_root_ack": true,
+    "the_labels": [
+      "before",
+      "guard",
+      "after",
+      "outer",
+      "receipt"
+    ],
+    "the_frozen_timeout_ms": [
+      5000,
+      290000,
+      5000,
+      5000,
+      5000
+    ],
+    "the_actual_configured_tool_timeout_ms": [
+      5000,
+      290000,
+      5000,
+      5000,
+      5000
+    ],
+    "the_sum_of_the_configured_caps_seconds": 310.0,
+    "every_configured_cap_equals_the_frozen_cap": true,
+    "the_provenance_of_the_configured_value": "the configured value of every call of this batch was the timeout parameter of the Bash tool of this run and it was the literal value of the frozen tool input file: 5000, 290000, 5000, 5000 and 5000 milliseconds.  No default minimum, no rounding and no rephrasing was used, and no timeout wrapper, script, environment variable or alternate provider was introduced.",
+    "the_capability_probe_that_was_run_before_the_batch": {
+      "what_it_was": "one plain 'sleep 6' command issued with the tool timeout 5000 ms BEFORE any command of the batch",
+      "why": "the plan requires that the tool accepts and enforces the frozen cap of 5000 ms, and that the executor stops before the execution instead of falling back when the tool cannot take it",
+      "what_happened": "the tool accepted the value 5000 and cut the command off at its 5 second cap and moved it to the background, which proves that the cap is accepted and enforced and that it is not silently raised to the 30000 ms value of the previous batch",
+      "what_it_touched": "nothing: the probe ran no candidate code, it imported nothing, it compiled nothing, it collected nothing, it ran no test, it wrote no file, it opened no network and it touched neither the counter nor the report root",
+      "the_residue": "the backgrounded sleep finished on its own a moment later; it left nothing behind"
+    },
+    "the_elapsed_time_is_not_the_proof": "the guard of this batch measured 55.397374868 s of wall time and the runner 55.284785271 s, and both are under the frozen 290 s cap.  An elapsed time that happens to be under a bound is NOT a proof that the bound was configured; the proof of this batch is the CONFIGURED parameter of the tool call, which is recorded above and which the independent review reads from the original call metadata of this batch.",
+    "the_relation_to_CP09_M1": "the finding CP09-M1 of the review of the combined01 batch stays OPEN and it is not closed here: it concerned the combined01 batch, whose calls carried 30000/300000/30000/30000/30000 ms.  The provenance of that deviation was appended as reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined01-execution-receipt.correction-01.json (sha256 9246305899c159e853b7182938291dca7bf6741b13fcae6ecc37a355da1823a3) and the qualified root adjudication of it is root-cp09-m1-disposition.json.  This batch is the separately frozen conforming child that the root authorized; it does not retroactively qualify the combined01 batch."
+  },
+  "the_binding": {
+    "the_plan_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-12-envelope-correction/combined-plan-10/plan.json",
+    "the_plan_sha256": "fe0f03d14b5a57b7463f342507294e409a9ac7dc38f3ec0f233533f2510cf34f",
+    "the_plan_sha256_matches_the_frozen_plan": true,
+    "the_root_ack_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-12-envelope-correction/combined-plan-10/root-ack.json",
+    "the_root_ack_sha256": "76883f1a273a98094e24480139c9c05c40e79d1e6937816a961caed7ff3202b3",
+    "the_static_admission_sha256": "26484f8a3c1e5f537fc062005a909698b2fe98aa2edd588c89f39298c677d26e",
+    "the_parent_disposition_sha256": "5c2b0c998144aaa02b831550dcfaebd8cb893873441be6f9366a5065541894cc",
+    "the_candidate_sha": "b9a81aed8e8f8fe6763a4dfd3d051cacf10e0820",
+    "the_implementation_delivery_commit": "10a7ea8f007b6599edaccf8ede8ccb6d76e88ce0",
+    "the_parent_authority": "AUTH-PROGRAM-V1-COMPLETE-03",
+    "the_budget_reset": false,
+    "the_max_seconds": 310,
+    "the_batches_max": 1,
+    "the_retries": 0,
+    "the_cp09_m1_state_at_the_start": "OPEN_PENDING_PROVENANCE_CORRECTION_AND_NEW_CONFORMING_RUN",
+    "the_prior_checkpoint_accepted_by_this_ack": false,
+    "this_is_a_new_child_not_a_replay": "the root ACK names the exact new child (expires: combined02 terminal; no replay) and the fresh run directory of this batch was absent before it was created"
+  },
+  "the_selection_that_was_executed": {
+    "the_original_189_count": 189,
+    "the_original_189_is_unique": true,
+    "the_189_order_equals_the_prior_full_frozen_plan": true,
+    "the_supplemental_5_count": 5,
+    "the_supplemental_equals_the_prior_full_frozen_plan": true,
+    "the_selection_count": 194,
+    "the_selection_is_unique": true,
+    "the_selection_is_the_189_then_the_5": true,
+    "the_two_integrity_only_nodes": [
+      "tools/test_v0_s3_native_custody.py::test_the_old_owners_are_unchanged",
+      "tools/test_v0_s3_native_custody.py::test_the_old_refusal_points_are_still_declared"
+    ],
+    "the_two_integrity_only_nodes_are_inside_the_189": true,
+    "the_integrity_only_nodes_are_not_functional_behaviour": "the two integrity only nodes check the presence of the old owners and of the old refusal points; they are part of the 189 and they are counted separately from the functional behaviour",
+    "the_integrity_only_call_records": [
+      {
+        "nodeid": "tools/test_v0_s3_native_custody.py::test_the_old_owners_are_unchanged",
+        "when": "call",
+        "outcome": "passed",
+        "duration_seconds": 0.0005175179976504296
+      },
+      {
+        "nodeid": "tools/test_v0_s3_native_custody.py::test_the_old_refusal_points_are_still_declared",
+        "when": "call",
+        "outcome": "passed",
+        "duration_seconds": 0.0001501580045442097
+      }
+    ],
+    "the_functional_call_records": 192,
+    "the_no_splicing": "all 194 node ids really executed in this one fresh run directory; no result of the combined01 batch, of the targeted 08 run and no historical output was reused, substituted or merged"
+  },
+  "the_preflight_before_the_import": {
+    "the_method": "a read only hash and git inspection: no compile, no import, no collection and no run of any kind outside the guarded command",
+    "the_plan_the_ack_and_the_literal_inputs_were_verified": true,
+    "the_pins_verified_on_disk": {
+      "sourcepins": 61,
+      "toolpins": 5,
+      "dependency_pins": 223,
+      "stdlib_pins": 3
+    },
+    "the_source_pins_split": "60 Git bound files of the candidate plus 1 external file (/usr/bin/python3.12)",
+    "the_candidate_git_blobs_of_the_60_source_pins": "every one of them equals the blob of the candidate b9a81ae",
+    "the_protected_history_files": 10,
+    "the_pin_drift_before": 0,
+    "the_pin_drift_after": 0,
+    "the_pins_were_rehashed_after_the_batch": true,
+    "the_source_is_unchanged": "the diff of the tools between the candidate b9a81ae and the head is empty: the source was not touched by this run, by the correction or by the evidence commits",
+    "the_report_root_existed_before": false,
+    "the_report_root_created_with": "os.makedirs of the fresh root reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined02 and of its owned children tmp, evidence, f5-evidence and n05-evidence, with the bounded parent implementation-native-custody-optimized-07 already present",
+    "the_tracked_status": [
+      "M LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-01/report.md"
+    ],
+    "the_unrelated_dirty_report_metadata": {
+      "bytes": 28407,
+      "mtime": 1794530996.7716174,
+      "mode": "644",
+      "body_read": false
+    },
+    "the_lifecycle_before_the_run": "the dispatch of the previous run of this workspace exited and its terminal was released, and the capacity of one additional worker was allowed and used by this dispatch",
+    "the_note": "the preflight printed only counts and drift; no pin list was dumped into the working context"
+  },
+  "the_commands": [
+    {
+      "label": "before",
+      "the_frozen_timeout_ms_of_the_plan": 5000,
+      "the_actual_configured_tool_timeout_ms": 5000,
+      "the_two_values_are_equal": true,
+      "the_command_was_executed": "verbatim, as the literal command of the frozen tool input file, with the frozen cwd, the exact seven variable REPLACE environment, the frozen argv and the frozen redirections",
+      "the_exit_code": 0,
+      "the_stderr_bytes": 0,
+      "the_stdout": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined02/before.stdout.log",
+      "the_stderr": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined02/before.stderr.log",
+      "the_kind": "outer counter observation (absence mode)",
+      "the_result": "accepted_absence=true; the counter parent and the counter itself are MISSING (errno 2); the content was never read and nothing was created, written, reset or refunded"
+    },
+    {
+      "label": "guard",
+      "the_frozen_timeout_ms_of_the_plan": 290000,
+      "the_actual_configured_tool_timeout_ms": 290000,
+      "the_two_values_are_equal": true,
+      "the_command_was_executed": "verbatim, as the literal command of the frozen tool input file, with the frozen cwd, the exact seven variable REPLACE environment, the frozen argv and the frozen redirections",
+      "the_exit_code": 0,
+      "the_stderr_bytes": 0,
+      "the_stdout": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined02/guard.stdout.log",
+      "the_stderr": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined02/guard.stderr.log",
+      "the_kind": "the hard guard of the boundary 03, then the frozen runner of the plan 10, then pytest on the 194 frozen node ids",
+      "the_result": "the runner of the batch reports pytest_exit 0, 194 call records, 194 passed, no failure and no skip, and the cleanup of the batch is proven",
+      "the_measured_wall_seconds_of_the_guard": 55.397374868392944,
+      "the_guard_facts": {
+        "guard_precedes_candidate_and_pytest": true,
+        "runtime_denials": 0,
+        "clean_runtime_denial_ledger": true,
+        "selftest_denials": [
+          "subprocess.Popen",
+          "socket.__new__",
+          "os.fork",
+          "os.exec",
+          "os.system",
+          "sqlite3.connect",
+          "ctypes.dlopen",
+          "ctypes.dlsym"
+        ],
+        "preload_events": [
+          {
+            "event": "ctypes.dlopen",
+            "name": null
+          }
+        ],
+        "preload_window_final_state": "CLOSED",
+        "write_root": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined02",
+        "new_symlinks": "ONLY_OWNED_PYTEST_DIRECT_NUMBERED_CURRENT_SIBLINGS",
+        "allowed_pytest_aliases": 106,
+        "relative_dir_fd_open_write": "DENIED_UNSUPPORTED",
+        "note": "the ordinary ledger of the guard is EMPTY: the canary denials of the guard are the selftest denials and no ordinary operation was denied"
+      }
+    },
+    {
+      "label": "after",
+      "the_frozen_timeout_ms_of_the_plan": 5000,
+      "the_actual_configured_tool_timeout_ms": 5000,
+      "the_two_values_are_equal": true,
+      "the_command_was_executed": "verbatim, as the literal command of the frozen tool input file, with the frozen cwd, the exact seven variable REPLACE environment, the frozen argv and the frozen redirections",
+      "the_exit_code": 0,
+      "the_stderr_bytes": 0,
+      "the_stdout": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined02/after.stdout.log",
+      "the_stderr": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined02/after.stderr.log",
+      "the_kind": "outer counter observation (absence mode)",
+      "the_result": "accepted_absence=true; the counter parent and the counter itself are MISSING (errno 2); the content was never read and nothing was created, written, reset or refunded"
+    },
+    {
+      "label": "outer",
+      "the_frozen_timeout_ms_of_the_plan": 5000,
+      "the_actual_configured_tool_timeout_ms": 5000,
+      "the_two_values_are_equal": true,
+      "the_command_was_executed": "verbatim, as the literal command of the frozen tool input file, with the frozen cwd, the exact seven variable REPLACE environment, the frozen argv and the frozen redirections",
+      "the_exit_code": 0,
+      "the_stderr_bytes": 0,
+      "the_stdout": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined02/outer.stdout.log",
+      "the_stderr": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined02/outer.stderr.log",
+      "the_kind": "the outer validator with the hard veto",
+      "the_result": "the outer validator ACCEPTED the selected feedback of this plan: accepted_cpu_feedback=true and an empty error list; the group block of the decision is reporting only and the decision is not a product acceptance",
+      "the_outer_decision_sha256": "5492273fcfc1420cf0254e6ce358c3ea85cebb815d7a93d2999ce3b1324d91b1"
+    },
+    {
+      "label": "receipt",
+      "the_frozen_timeout_ms_of_the_plan": 5000,
+      "the_actual_configured_tool_timeout_ms": 5000,
+      "the_two_values_are_equal": true,
+      "the_command_was_executed": "verbatim, as the literal command of the frozen tool input file, with the frozen cwd, the exact seven variable REPLACE environment, the frozen argv and the frozen redirections",
+      "the_exit_code": 0,
+      "the_stderr_bytes": 0,
+      "the_stdout": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined02/receipt.stdout.log",
+      "the_stderr": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined02/receipt.stderr.log",
+      "the_kind": "the pinned trusted emitter of the machine receipt",
+      "the_result": "the machine receipt was created; its exit 0 means that the file was created and it does NOT mean a PASS"
+    }
+  ],
+  "the_execution_binding": {
+    "the_five_renderings": "the exact five literal Bash inputs of the frozen tool input file were executed verbatim, each in its own Bash tool call, with the frozen cwd, the exact seven variable REPLACE environment, the frozen argv and the frozen redirections",
+    "the_configured_caps": "5000, 290000, 5000, 5000 and 5000 milliseconds were the timeout parameters that the five calls really carried",
+    "no_wrapper": "no wrapper, no script file, no timeout environment variable, no rephrasing and no indirection was used to replace or to alter a command",
+    "no_retry": true,
+    "second_batch": false,
+    "first_429_observed": false,
+    "approval_refusal_observed": false,
+    "no_other_import_compile_collect_or_test": true,
+    "guard_before_any_candidate_or_pytest_import": true,
+    "the_source_was_not_changed": "no source fix was made in this task: the candidate b9a81ae was executed exactly as it was delivered"
+  },
+  "the_cleanup_and_resource_facts_of_the_batch": {
+    "the_source": "the runner receipt of the batch: reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined02/native-custody-correction-03.receipt.json",
+    "cleanup_proven_for_batch": true,
+    "threads_before": [
+      "MainThread"
+    ],
+    "threads_after": [
+      "MainThread"
+    ],
+    "new_or_reused_fds": [],
+    "the_fd_rows_before": 3,
+    "the_fd_rows_after": 3,
+    "the_fd_unknown_before": [],
+    "the_fd_unknown_after": [],
+    "counter_observation_only": true,
+    "counter_created": false,
+    "counter_written": false,
+    "counter_reset": false,
+    "counter_refunded": false,
+    "historical_grant_revived": false,
+    "historical_counter_continuity": "UNAVAILABLE_NOT_PROVEN"
+  },
+  "the_actual_facts_of_the_run": {
+    "the_T10_production_chain_documents": 97,
+    "the_negative_case_documents": 45,
+    "the_negative_case_directories": 5,
+    "the_F5_documents": 22,
+    "the_N05_documents": 12,
+    "the_held_owner_of_the_MAIN_session": "the document evidence/n10-r07-pump-zero-expiry.json of this batch records the held owner of the pump of the MAIN session: it was observed before the pointer could be retired, it is the object of the production background table, its start provenance is STARTED, it carries the ORIGINAL context and the broker of the round, it was alive before the expiry sequence, it ended without an error and the mutable pointer was the very same object during the body",
+    "the_pointer_at_the_end_of_the_region": "the document evidence/n10-r07-parent-salvage.json of this batch records the pointer as ABSENT and the confirmed join of the held pump that the production made during the salvage of the region",
+    "the_note": "these facts describe THIS batch only.  The body ABSENT pointer branch of the prior targeted 08 run and the cause of the historical targeted 07 failure are not made proven by them."
+  },
+  "the_artifacts": {
+    "the_root": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined02",
+    "the_regular_file_count": 233,
+    "the_symlink_count": 104,
+    "the_symlink_note": "the links are the pytest 'current' aliases of the owned basetemp; the guard of the boundary 03 admits exactly that owned alias operation and its ordinary ledger is empty",
+    "the_runner_result_rewritten_by_hand": false,
+    "the_sha256": {
+      "guard.json": "e7f244852f51327ef0c7e678859ca1bd808b4ebb5bbe5c9258b0ee42ca568cd5",
+      "guard.stdout.log": "c2c2f71d9aeda516e094375f455a2fe9f50ff963c090b03ee08ca3aabd06bc33",
+      "native-custody-correction-03.receipt.json": "3865f7260880de67088ab2a8e1b6b9dbee42ce7bd25ff269aed206b4d57f700d",
+      "outer-decision.json": "5492273fcfc1420cf0254e6ce358c3ea85cebb815d7a93d2999ce3b1324d91b1",
+      "machine-feedback-receipt.json": "2f0e40687fc04fdaeed84cae6115afcae40cb71c78f4a7ac8b5f583548a54af0",
+      "before.stdout.log": "410440f407966a80b4f054e49f8e99276a72a8b9a9149f6412c3f217424fdaff",
+      "after.stdout.log": "410440f407966a80b4f054e49f8e99276a72a8b9a9149f6412c3f217424fdaff",
+      "counter-absence-before.json": "bfe4e7b1a3f9d9d912e432a13d16313f40e3857e0895a556bd73e2f08bcffc23",
+      "counter-absence-after.json": "bfe4e7b1a3f9d9d912e432a13d16313f40e3857e0895a556bd73e2f08bcffc23",
+      "evidence/n10-r07-pump-zero-expiry.json": "8f346b9cf650370a8ca2823ce7b0617b6b93e692cb1cf0f79b0cc00234828701",
+      "evidence/n10-r07-pump-current-minimum.json": "8d5814369ef98c94742f7a2dbdfa255f96b9de9c79f9a42844cc0dcbe7f8da35",
+      "evidence/n10-r07-parent-salvage.json": "2d178987c5eaf5117d89cc4cc9f5398c8c8ca98adab63452613cb81c5701d96c",
+      "evidence/n10-r07-zero-public-chain.json": "30d0553d3490f7b13d9c9314f421d609124fd103326093c6b8dc3b8273694065"
+    }
+  },
+  "not_executed": [
+    "any import, compile, collection or test outside the one guarded batch",
+    "model, GPU, native, service, network, media, database or counter actions",
+    "any content of the old counter: only the precise absence observer was used",
+    "any fix, any second batch, any rerun of any node and any change of the candidate",
+    "any change of the guard, the runner, the validator, the plans or the configuration",
+    "any splicing of an earlier run or any reuse of an earlier result",
+    "any timeout wrapper, script, environment variable or alternate provider",
+    "any read of the body of the unrelated dirty report"
+  ],
+  "the_limits_of_this_result": {
+    "is_a_fresh_component_checkpoint_of_the_selected_nodes_only": true,
+    "is_the_full_product_checkpoint": false,
+    "is_the_product_29": false,
+    "is_a_stage_acceptance": false,
+    "is_an_N2_clearance": false,
+    "is_a_native_proof": false,
+    "is_a_human_signoff": false,
+    "the_CP09_M1_finding": "CP09-M1 stays OPEN: this batch proves the required envelope of a NEW frozen child and it does not close the finding of the combined01 batch nor does it qualify that batch",
+    "the_product_checkpoint_counts": "this CPU component checkpoint does NOT consume and does NOT reset the counts of the full product checkpoint",
+    "the_product_29_and_the_native_9": "they stay separate NOT_PROVEN obligations",
+    "the_known_majors": "the known Majors of the reviews 94cdd82d and 86ab300 stay OPEN; a component checkpoint closes nothing",
+    "the_body_ABSENT_branch": "the branch of the prior targeted 08 run in which the pointer was absent during the body was statically reviewed only; this batch does not claim that it was executed here",
+    "the_historical_targeted07_cause": "it stays UNDECIDED: this batch does not reproduce that failure and it does not explain it",
+    "the_counter_continuity": "the historical content continuity of the counter and the balance of the historical grant stay UNAVAILABLE_NOT_PROVEN",
+    "the_guard_boundary": "the cooperative Python audit boundary keeps its inherited limitations: no inherited file descriptor, native, adversarial or TOCTOU guarantee is added",
+    "the_next_review": "the independent review of this batch and of its original tool call metadata is the next step of the root; it is not done by this run"
+  },
+  "ten_fields": {
+    "coordinate": "V1/R1/WP-R1-U3/S3_P4",
+    "last_passed_scope": "the unified media UM10 early slice, not the full R1",
+    "current_batch": "the fresh original 189 plus supplemental 5 CPU component checkpoint with the exact frozen tool caps really ran in one fresh run directory and the outer validator accepted the selected feedback; the counts and the causes are the ones of the machine receipt",
+    "blockers": "CP09-M1 of the combined01 batch stays open, the product 29, the native 9, the human signs and the formal Stage and N2 obligations stay pending, and the known Majors stay open",
+    "route": "the focused independent review of this conforming batch and of its original tool call metadata by root, then the adjudication of the formal product obligations",
+    "remaining": "the independent review, the root adjudication of CP09-M1, the product 29 and the native obligations",
+    "next_owner": "coordinator and the independent reviewer",
+    "authority": "a bounded local CPU component checkpoint under ADR16 O1 with the exact frozen tool caps; no Stage, no N2 clearance, no product acceptance, no human signoff and no Major closure",
+    "evidence": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined02-execution-receipt.json navigating the raw of the batch, whose authority for the counts and the causes is reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined02/machine-feedback-receipt.json, and the append only provenance correction reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined01-execution-receipt.correction-01.json",
+    "stop": "one fresh accepted component feedback of the selected 194 under the exact frozen caps - no product or Stage acceptance, no Major closure, no closure of CP09-M1 and no further run"
+  },
+  "development_outline": [
+    {
+      "stage_id": "V0-S0",
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "implementation": "ARCHIVED",
+      "machine_acceptance": "NO_GO_HISTORICAL",
+      "independent_review": "COMPLETED_WITH_BLOCKERS",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "V0-S1",
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "R0",
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "implementation": "PARTIAL_REUSED",
+      "machine_acceptance": "SINGLE_IMAGE_SUBSET_ONLY",
+      "independent_review": "NO_SEPARATE_R0_VERDICT",
+      "human_signoff": "NO_SEPARATE_R0_SIGNOFF"
+    },
+    {
+      "stage_id": "R1a",
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "V0-S2",
+      "completed_substeps": 7,
+      "total_substeps": 8,
+      "implementation": "IMPLEMENTED",
+      "machine_acceptance": "COMPLETE_FIXED9_PASSED",
+      "independent_review": "COMPLETE_FATAL0_MAJOR0_MINOR0",
+      "human_signoff": "PENDING"
+    },
+    {
+      "stage_id": "V0-S3",
+      "completed_substeps": 0,
+      "total_substeps": 6,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R1",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "EARLY_SLICE_IMPLEMENTED_FULL_R1_PENDING",
+      "machine_acceptance": "EARLY_SLICE_UM10_ONLY",
+      "independent_review": "EARLY_SLICE_FATAL0_MAJOR0",
+      "human_signoff": "EARLY_SLICE_APPROVED_FULL_R1_PENDING"
+    },
+    {
+      "stage_id": "V1-M1",
+      "completed_substeps": 0,
+      "total_substeps": 3,
+      "implementation": "DESIGN_ONLY",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R2",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R3",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R4",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5a",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5b",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5c",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    }
+  ],
+  "next_owner": "coordinator",
+  "next_action": "the focused independent review of this conforming batch and of its original tool call metadata, and the root adjudication of CP09-M1; this delivery closes no Major, claims no Stage, N2 or product acceptance and starts no further run"
+}

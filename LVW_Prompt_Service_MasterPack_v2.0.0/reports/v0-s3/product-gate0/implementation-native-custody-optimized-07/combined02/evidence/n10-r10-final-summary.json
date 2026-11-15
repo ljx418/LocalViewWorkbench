@@ -1,0 +1,2390 @@
+{
+ "facts": {
+  "r10-barrier-absent": {
+   "barrier": {
+    "entered_at": 54130.00015068,
+    "expected_generation": 3,
+    "failure": "BARRIER_OUTCOME_MISSING",
+    "generation": 3,
+    "left_at": 54131.009238903,
+    "observed": false,
+    "observed_at": 54131.00922782,
+    "observed_error": null,
+    "observed_generation": null,
+    "observed_object": null,
+    "passed": false,
+    "probe": "ABSENT",
+    "probe_generation": 1000003,
+    "refused": "BARRIER_OUTCOME_MISSING",
+    "return_state": "REFUSED",
+    "returned": null
+   },
+   "barrier_expectation": "REFUSED",
+   "barrier_observed_object_detail": null,
+   "barrier_observed_object_is_original": false,
+   "barrier_observed_object_type": null,
+   "barrier_persisted": true,
+   "barrier_write_error": null,
+   "cancel_calls": 2,
+   "cleanup_errors": [],
+   "drain": [
+    {
+     "errors": [],
+     "generation": 5,
+     "generation_after": 5,
+     "generation_before": 5,
+     "owners": [
+      "thread:lvw-native-custody-channel#124189105989504",
+      "thread:lvw-native-custody-pipe-read#124189105985760",
+      "thread:lvw-native-custody-channel-pump#124189121004080",
+      "thread:lvw-native-custody-heartbeat#124189105982304",
+      "thread:lvw-native-custody-closer#124189105980384"
+     ],
+     "pending": 0
+    }
+   ],
+   "drain_all_salvage": [
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel#124189105989504",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-pipe-read#124189105985760",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel-pump#124189121004080",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-heartbeat#124189105982304",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-closer#124189105980384",
+     "start_state": "STARTED",
+     "started": true
+    }
+   ],
+   "drain_attempts": [
+    {
+     "errors": [],
+     "generation": 5,
+     "generation_after": 5,
+     "generation_before": 5,
+     "owners": [
+      "thread:lvw-native-custody-channel#124189105989504",
+      "thread:lvw-native-custody-pipe-read#124189105985760",
+      "thread:lvw-native-custody-channel-pump#124189121004080",
+      "thread:lvw-native-custody-heartbeat#124189105982304",
+      "thread:lvw-native-custody-closer#124189105980384"
+     ],
+     "pending": 0
+    }
+   ],
+   "drain_errors": [],
+   "drain_owner_errors": [],
+   "drain_proof": null,
+   "drain_quiescent": true,
+   "drain_salvage": [
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel#124189105989504",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-pipe-read#124189105985760",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel-pump#124189121004080",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-heartbeat#124189105982304",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-closer#124189105980384",
+     "start_state": "STARTED",
+     "started": true
+    }
+   ],
+   "evidence_write_errors": [],
+   "generation": 3,
+   "interrupts": [],
+   "original_failure": {
+    "detail": null,
+    "type": null
+   },
+   "outcome_error": "RuntimeError",
+   "outcome_object": "RuntimeError",
+   "parallel_timeout": {
+    "cancel_sequence": 3,
+    "code": "BROKER_PIPE_TIMEOUT",
+    "coordination_error": "BrokerError",
+    "generation": 3,
+    "sequence": 4
+   },
+   "proof_failure": null,
+   "published_before_cancel_return": false,
+   "quiescent": true,
+   "state": "UNKNOWN_RETAINED",
+   "status": "PASSED",
+   "stop": {
+    "admission_produced": false,
+    "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "background_open": false,
+    "background_threads": [
+     {
+      "alive": false,
+      "error_type": null,
+      "kind": "pump",
+      "started": true,
+      "state": "RUNNING"
+     },
+     {
+      "alive": false,
+      "error_type": null,
+      "kind": "heartbeat",
+      "started": true,
+      "state": "RUNNING"
+     }
+    ],
+    "broker": {
+     "executable": "C:/python.exe",
+     "executable_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "identity_source": "PARENT_ORIGINAL_HANDLE",
+     "pid": 4242,
+     "reported_by_the_broker": false
+    },
+    "broker_channel_deadline_bound": 1006.0,
+    "broker_channel_reader_finished": true,
+    "broker_close_facts": {
+     "channel_closed": true,
+     "channel_overflow": false,
+     "channel_overflow_facts": {},
+     "channel_reader_error": "RuntimeError",
+     "channel_reader_error_source": "REPEATED_CLOSE",
+     "channel_reader_finished": true,
+     "channel_reader_secondary_errors": [],
+     "channel_retained_workers": 0,
+     "cleanup_budget_seconds": 0.0,
+     "cleanup_deadline": 1006.0,
+     "close_cancellation": null,
+     "exit_code": 0,
+     "overflow": false,
+     "overflow_facts": {},
+     "process_exited": true,
+     "process_handle_release_method": "POSIX_PROCESS_EXIT",
+     "process_handle_released": true,
+     "read_end_closed": true,
+     "read_retained_workers": 0,
+     "read_worker_thread_handle_released": true,
+     "reader_error": "RuntimeError",
+     "reader_finished": true,
+     "reader_parallel_cancellation": null,
+     "reader_start_unconfirmed": false,
+     "stdin_closed": true,
+     "stdout_closed": true,
+     "terminated": false,
+     "worker_thread_handle_released": true,
+     "write_end_closed": true,
+     "write_retained_workers": 0,
+     "write_worker_thread_handle_released": true
+    },
+    "broker_close_facts_required": [
+     "channel_closed",
+     "process_exited",
+     "process_handle_released",
+     "channel_reader_finished",
+     "read_end_closed",
+     "write_end_closed",
+     "worker_thread_handle_released"
+    ],
+    "broker_close_failed": true,
+    "broker_deadline_aware": true,
+    "broker_retained": true,
+    "candidate_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "channel": {
+     "frame_budget_reserved_terminal": 8,
+     "frame_budget_total": 1024,
+     "frame_bytes_limit": 32768,
+     "frame_limit": 1024,
+     "frames_received": 2,
+     "frames_sent": 0,
+     "heartbeat_failure": null,
+     "heartbeat_interval_seconds": 60.0,
+     "heartbeat_missing_seconds": 120.0,
+     "last_alive_wall": 1794762154.0251222,
+     "last_sequence_received": 2,
+     "last_sequence_sent": 0,
+     "nonce": "161ff5224c18ddc14b471857cc43880a",
+     "private_to_the_parent": true,
+     "schema": "lvw.s3-native-custody-channel/1",
+     "stop_cleanup_budget_seconds": 5.0
+    },
+    "cleanup_deadline": 1006.0,
+    "close_finished": true,
+    "close_generation": 3,
+    "close_state": "FINISHED",
+    "close_waiters": 0,
+    "closer_alive": false,
+    "closer_exited": true,
+    "closer_start_state": "RUNNING",
+    "closer_threads": 1,
+    "failures": [
+     "RuntimeError",
+     "CUSTODY_PUMP_FAILED:BrokerError",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:read_end_closed",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:worker_thread_handle_released",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_error",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:read_end_closed",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:worker_thread_handle_released",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_error",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:read_end_closed",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:worker_thread_handle_released",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_error",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_error"
+    ],
+    "gpu_released_proven": false,
+    "grant_authority": "NOT_VERIFIED",
+    "heartbeat_alive": false,
+    "kind": "lvw.s3-native-custody-evidence/1",
+    "launcher_context_propagated": false,
+    "lease": {
+     "absolute": true,
+     "deadline_extended": false,
+     "effective_deadline_wall": 1794765753.1098044,
+     "lease_expires_at": 1794765753.1098044,
+     "max_runtime_seconds": 21600,
+     "parent_child_remaining_seconds": 21600
+    },
+    "native_cleanup_proven": false,
+    "native_execution_proven": false,
+    "parent_crash_recovery_proven": false,
+    "plan": {
+     "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+     "candidate_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "lease_expires_at": 1794765753.1098044,
+     "max_runtime_seconds": 21600,
+     "roles": [
+      {
+       "data": {
+        "user_directory": "user"
+       },
+       "log": "temp/native/comfy.log",
+       "role": "COMFY",
+       "tools": [
+        {
+         "path": "C:/ComfyUI-aki-v2/python/python.exe",
+         "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        {
+         "path": "C:/ComfyUI-aki-v2/ComfyUI/main.py",
+         "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        }
+       ]
+      },
+      {
+       "data": {},
+       "log": "temp/native/ollama.log",
+       "role": "OLLAMA",
+       "tools": [
+        {
+         "path": "C:/Program Files/Ollama/ollama.exe",
+         "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+       ]
+      }
+     ],
+     "run_id": "n1-correction-03",
+     "schema": "lvw.s3-native-custody-plan/1"
+    },
+    "plan_sha256": "13dc52a34767fa091ae7d36bf5a83678bb34735de76515e23dca01ed019777f3",
+    "plan_sha256_proves": "PLAN_INTEGRITY_ONLY",
+    "port_released_proven": false,
+    "product_gate0": false,
+    "pump_alive": false,
+    "pump_error": null,
+    "run_id": "n1-correction-03",
+    "sampler_proven": false,
+    "stage_pass_claim": false,
+    "state": "UNKNOWN_RETAINED",
+    "terminal": null,
+    "windows_stdin_eof_proven": false
+   }
+  },
+  "r10-barrier-absent-barrier": {
+   "barrier": {
+    "entered_at": 54130.00015068,
+    "expected_generation": 3,
+    "failure": "BARRIER_OUTCOME_MISSING",
+    "generation": 3,
+    "left_at": 54131.009238903,
+    "observed": false,
+    "observed_at": 54131.00922782,
+    "observed_error": null,
+    "observed_generation": null,
+    "observed_object": null,
+    "passed": false,
+    "probe": "ABSENT",
+    "probe_generation": 1000003,
+    "refused": "BARRIER_OUTCOME_MISSING",
+    "return_state": "REFUSED",
+    "returned": null
+   },
+   "barrier_completed": true,
+   "barrier_expectation": "REFUSED",
+   "barrier_observed_object_detail": null,
+   "barrier_observed_object_is_original": false,
+   "barrier_observed_object_type": null,
+   "barrier_persisted": true,
+   "barrier_probe": "ABSENT",
+   "barrier_return_state": "REFUSED",
+   "cancel_calls": 1,
+   "confirm_the_worker": false,
+   "expected_generation": 3,
+   "hold_the_worker": true,
+   "published_outcome": false,
+   "state": "UNKNOWN_RETAINED"
+  },
+  "r10-barrier-absent-construction": {
+   "construction": "COMPLETED",
+   "holder_keys": [],
+   "session_created": true,
+   "state": "NEW"
+  },
+  "r10-barrier-absent-first": {
+   "reader_error": "RuntimeError",
+   "retained": true,
+   "state": "UNKNOWN_RETAINED"
+  },
+  "r10-barrier-absent-second": {
+   "reader_error": "RuntimeError",
+   "source": "REPEATED_CLOSE",
+   "state": "UNKNOWN_RETAINED"
+  },
+  "r10-barrier-wrong-generation": {
+   "barrier": {
+    "entered_at": 54135.109268049,
+    "expected_generation": 4,
+    "failure": "BARRIER_GENERATION_MISMATCH",
+    "generation": 4,
+    "left_at": 54135.109407234,
+    "observed": true,
+    "observed_at": 54135.109393415,
+    "observed_error": "RuntimeError",
+    "observed_generation": 3,
+    "observed_object": "RuntimeError('read_fault')",
+    "passed": false,
+    "probe": "WRONG_GENERATION",
+    "probe_generation": 3,
+    "refused": "BARRIER_GENERATION_MISMATCH",
+    "return_state": "REFUSED",
+    "returned": null
+   },
+   "barrier_expectation": "REFUSED",
+   "barrier_observed_object_detail": "RuntimeError('read_fault')",
+   "barrier_observed_object_is_original": true,
+   "barrier_observed_object_type": "RuntimeError",
+   "barrier_persisted": true,
+   "barrier_write_error": null,
+   "cancel_calls": 1,
+   "cleanup_errors": [],
+   "drain": [
+    {
+     "errors": [],
+     "generation": 5,
+     "generation_after": 5,
+     "generation_before": 5,
+     "owners": [
+      "thread:lvw-native-custody-channel#124189105323616",
+      "thread:lvw-native-custody-pipe-read#124189105321264",
+      "thread:lvw-native-custody-channel-pump#124189121013680",
+      "thread:lvw-native-custody-heartbeat#124189105317520",
+      "thread:lvw-native-custody-closer#124189105310272"
+     ],
+     "pending": 0
+    }
+   ],
+   "drain_all_salvage": [
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel#124189105323616",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-pipe-read#124189105321264",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel-pump#124189121013680",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-heartbeat#124189105317520",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-closer#124189105310272",
+     "start_state": "STARTED",
+     "started": true
+    }
+   ],
+   "drain_attempts": [
+    {
+     "errors": [],
+     "generation": 5,
+     "generation_after": 5,
+     "generation_before": 5,
+     "owners": [
+      "thread:lvw-native-custody-channel#124189105323616",
+      "thread:lvw-native-custody-pipe-read#124189105321264",
+      "thread:lvw-native-custody-channel-pump#124189121013680",
+      "thread:lvw-native-custody-heartbeat#124189105317520",
+      "thread:lvw-native-custody-closer#124189105310272"
+     ],
+     "pending": 0
+    }
+   ],
+   "drain_errors": [],
+   "drain_owner_errors": [],
+   "drain_proof": null,
+   "drain_quiescent": true,
+   "drain_salvage": [
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel#124189105323616",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-pipe-read#124189105321264",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel-pump#124189121013680",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-heartbeat#124189105317520",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-closer#124189105310272",
+     "start_state": "STARTED",
+     "started": true
+    }
+   ],
+   "evidence_write_errors": [],
+   "generation": 3,
+   "interrupts": [],
+   "original_failure": {
+    "detail": null,
+    "type": null
+   },
+   "outcome_error": "RuntimeError",
+   "outcome_object": "RuntimeError",
+   "parallel_timeout": {
+    "cancel_sequence": 3,
+    "code": "BROKER_PIPE_TIMEOUT",
+    "coordination_error": "BrokerError",
+    "generation": 3,
+    "sequence": 4
+   },
+   "proof_failure": null,
+   "published_before_cancel_return": true,
+   "quiescent": true,
+   "state": "RUNNING",
+   "status": "PASSED",
+   "stop": {
+    "admission_produced": false,
+    "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "background_open": false,
+    "background_threads": [
+     {
+      "alive": false,
+      "error_type": null,
+      "kind": "pump",
+      "started": true,
+      "state": "RUNNING"
+     },
+     {
+      "alive": false,
+      "error_type": null,
+      "kind": "heartbeat",
+      "started": true,
+      "state": "RUNNING"
+     }
+    ],
+    "broker": {
+     "executable": "C:/python.exe",
+     "executable_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "identity_source": "PARENT_ORIGINAL_HANDLE",
+     "pid": 4242,
+     "reported_by_the_broker": false
+    },
+    "broker_channel_deadline_bound": 1006.0,
+    "broker_channel_reader_finished": true,
+    "broker_close_facts": {
+     "channel_closed": true,
+     "channel_overflow": false,
+     "channel_overflow_facts": {},
+     "channel_reader_error": "RuntimeError",
+     "channel_reader_error_source": "REPEATED_CLOSE",
+     "channel_reader_finished": true,
+     "channel_reader_secondary_errors": [],
+     "channel_retained_workers": 0,
+     "cleanup_budget_seconds": 0.0,
+     "cleanup_deadline": 1006.0,
+     "close_cancellation": null,
+     "exit_code": 0,
+     "overflow": false,
+     "overflow_facts": {},
+     "process_exited": true,
+     "process_handle_release_method": "POSIX_PROCESS_EXIT",
+     "process_handle_released": true,
+     "read_end_closed": true,
+     "read_retained_workers": 0,
+     "read_worker_thread_handle_released": true,
+     "reader_error": "RuntimeError",
+     "reader_finished": true,
+     "reader_parallel_cancellation": null,
+     "reader_start_unconfirmed": false,
+     "stdin_closed": true,
+     "stdout_closed": true,
+     "terminated": false,
+     "worker_thread_handle_released": true,
+     "write_end_closed": true,
+     "write_retained_workers": 0,
+     "write_worker_thread_handle_released": true
+    },
+    "broker_close_facts_required": [
+     "channel_closed",
+     "process_exited",
+     "process_handle_released",
+     "channel_reader_finished",
+     "read_end_closed",
+     "write_end_closed",
+     "worker_thread_handle_released"
+    ],
+    "broker_close_failed": true,
+    "broker_deadline_aware": true,
+    "broker_retained": true,
+    "candidate_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "channel": {
+     "frame_budget_reserved_terminal": 8,
+     "frame_budget_total": 1024,
+     "frame_bytes_limit": 32768,
+     "frame_limit": 1024,
+     "frames_received": 2,
+     "frames_sent": 1,
+     "heartbeat_failure": null,
+     "heartbeat_interval_seconds": 60.0,
+     "heartbeat_missing_seconds": 120.0,
+     "last_alive_wall": 1794762159.134327,
+     "last_sequence_received": 2,
+     "last_sequence_sent": 1,
+     "nonce": "98b64ea4a67f8639422aaa91420c987a",
+     "private_to_the_parent": true,
+     "schema": "lvw.s3-native-custody-channel/1",
+     "stop_cleanup_budget_seconds": 5.0
+    },
+    "cleanup_deadline": 1006.0,
+    "close_finished": true,
+    "close_generation": 2,
+    "close_state": "FINISHED",
+    "close_waiters": 0,
+    "closer_alive": false,
+    "closer_exited": true,
+    "closer_start_state": "RUNNING",
+    "closer_threads": 1,
+    "failures": [
+     "BROKER_PIPE_TIMEOUT",
+     "RuntimeError",
+     "CUSTODY_PUMP_FAILED:BrokerError",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:read_end_closed",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:worker_thread_handle_released",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_error",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:read_end_closed",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:worker_thread_handle_released",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_error",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_error"
+    ],
+    "gpu_released_proven": false,
+    "grant_authority": "NOT_VERIFIED",
+    "heartbeat_alive": false,
+    "kind": "lvw.s3-native-custody-evidence/1",
+    "launcher_context_propagated": false,
+    "lease": {
+     "absolute": true,
+     "deadline_extended": false,
+     "effective_deadline_wall": 1794765753.1098044,
+     "lease_expires_at": 1794765753.1098044,
+     "max_runtime_seconds": 21600,
+     "parent_child_remaining_seconds": 21600
+    },
+    "native_cleanup_proven": false,
+    "native_execution_proven": false,
+    "parent_crash_recovery_proven": false,
+    "plan": {
+     "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+     "candidate_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "lease_expires_at": 1794765753.1098044,
+     "max_runtime_seconds": 21600,
+     "roles": [
+      {
+       "data": {
+        "user_directory": "user"
+       },
+       "log": "temp/native/comfy.log",
+       "role": "COMFY",
+       "tools": [
+        {
+         "path": "C:/ComfyUI-aki-v2/python/python.exe",
+         "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        {
+         "path": "C:/ComfyUI-aki-v2/ComfyUI/main.py",
+         "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        }
+       ]
+      },
+      {
+       "data": {},
+       "log": "temp/native/ollama.log",
+       "role": "OLLAMA",
+       "tools": [
+        {
+         "path": "C:/Program Files/Ollama/ollama.exe",
+         "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+       ]
+      }
+     ],
+     "run_id": "n1-correction-03",
+     "schema": "lvw.s3-native-custody-plan/1"
+    },
+    "plan_sha256": "13dc52a34767fa091ae7d36bf5a83678bb34735de76515e23dca01ed019777f3",
+    "plan_sha256_proves": "PLAN_INTEGRITY_ONLY",
+    "port_released_proven": false,
+    "product_gate0": false,
+    "pump_alive": false,
+    "pump_error": null,
+    "run_id": "n1-correction-03",
+    "sampler_proven": false,
+    "stage_pass_claim": false,
+    "state": "UNKNOWN_RETAINED",
+    "terminal": null,
+    "windows_stdin_eof_proven": false
+   }
+  },
+  "r10-barrier-wrong-generation-barrier": {
+   "barrier": {
+    "entered_at": 54135.109268049,
+    "expected_generation": 4,
+    "failure": "BARRIER_GENERATION_MISMATCH",
+    "generation": 4,
+    "left_at": 54135.109407234,
+    "observed": true,
+    "observed_at": 54135.109393415,
+    "observed_error": "RuntimeError",
+    "observed_generation": 3,
+    "observed_object": "RuntimeError('read_fault')",
+    "passed": false,
+    "probe": "WRONG_GENERATION",
+    "probe_generation": 3,
+    "refused": "BARRIER_GENERATION_MISMATCH",
+    "return_state": "REFUSED",
+    "returned": null
+   },
+   "barrier_completed": true,
+   "barrier_expectation": "REFUSED",
+   "barrier_observed_object_detail": "RuntimeError('read_fault')",
+   "barrier_observed_object_is_original": true,
+   "barrier_observed_object_type": "RuntimeError",
+   "barrier_persisted": true,
+   "barrier_probe": "WRONG_GENERATION",
+   "barrier_return_state": "REFUSED",
+   "cancel_calls": 1,
+   "confirm_the_worker": false,
+   "expected_generation": 3,
+   "hold_the_worker": true,
+   "published_outcome": true,
+   "state": "RUNNING"
+  },
+  "r10-barrier-wrong-generation-construction": {
+   "construction": "COMPLETED",
+   "holder_keys": [],
+   "session_created": true,
+   "state": "NEW"
+  },
+  "r10-barrier-wrong-generation-first": {
+   "reader_error": "RuntimeError",
+   "retained": true,
+   "state": "UNKNOWN_RETAINED"
+  },
+  "r10-barrier-wrong-generation-second": {
+   "reader_error": "RuntimeError",
+   "source": "REPEATED_CLOSE",
+   "state": "UNKNOWN_RETAINED"
+  },
+  "r10-coordination": {
+   "cleanup_errors": [],
+   "detail": "read_fault",
+   "drain": [
+    {
+     "errors": [],
+     "generation": 2,
+     "generation_after": 2,
+     "generation_before": 2,
+     "owners": [
+      "thread:Thread-79 (run_read)#124189121004992",
+      "thread:lvw-native-custody-pipe-read#124189121004752"
+     ],
+     "pending": 0
+    }
+   ],
+   "drain_all_salvage": [
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:Thread-79 (run_read)#124189121004992",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-pipe-read#124189121004752",
+     "start_state": "STARTED",
+     "started": true
+    }
+   ],
+   "drain_attempts": [
+    {
+     "errors": [],
+     "generation": 2,
+     "generation_after": 2,
+     "generation_before": 2,
+     "owners": [
+      "thread:Thread-79 (run_read)#124189121004992",
+      "thread:lvw-native-custody-pipe-read#124189121004752"
+     ],
+     "pending": 0
+    }
+   ],
+   "drain_errors": [],
+   "drain_owner_errors": [],
+   "drain_proof": null,
+   "drain_quiescent": true,
+   "drain_salvage": [
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:Thread-79 (run_read)#124189121004992",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-pipe-read#124189121004752",
+     "start_state": "STARTED",
+     "started": true
+    }
+   ],
+   "error": "RuntimeError",
+   "interrupts": [],
+   "original_failure": {
+    "detail": null,
+    "type": null
+   },
+   "outcome": "RuntimeError",
+   "parallel": true,
+   "proof_failure": null,
+   "quiescent": true,
+   "status": "PASSED"
+  },
+  "r10-early-salvage": {
+   "all_salvage": [
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel#124189120994032",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-pipe-read#124189123472528",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel-pump#124189120722944",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-heartbeat#124189120723904",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-closer#124189120716176",
+     "start_state": "STARTED",
+     "started": true
+    }
+   ],
+   "cleanup_errors": [],
+   "drain": [
+    {
+     "errors": [],
+     "generation": 5,
+     "generation_after": 5,
+     "generation_before": 5,
+     "owners": [
+      "thread:lvw-native-custody-channel#124189120994032",
+      "thread:lvw-native-custody-pipe-read#124189123472528",
+      "thread:lvw-native-custody-channel-pump#124189120722944",
+      "thread:lvw-native-custody-heartbeat#124189120723904",
+      "thread:lvw-native-custody-closer#124189120716176"
+     ],
+     "pending": 0
+    }
+   ],
+   "drain_all_salvage": [
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel#124189120994032",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-pipe-read#124189123472528",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel-pump#124189120722944",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-heartbeat#124189120723904",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-closer#124189120716176",
+     "start_state": "STARTED",
+     "started": true
+    }
+   ],
+   "drain_attempts": [
+    {
+     "errors": [],
+     "generation": 5,
+     "generation_after": 5,
+     "generation_before": 5,
+     "owners": [
+      "thread:lvw-native-custody-channel#124189120994032",
+      "thread:lvw-native-custody-pipe-read#124189123472528",
+      "thread:lvw-native-custody-channel-pump#124189120722944",
+      "thread:lvw-native-custody-heartbeat#124189120723904",
+      "thread:lvw-native-custody-closer#124189120716176"
+     ],
+     "pending": 0
+    }
+   ],
+   "drain_errors": [],
+   "drain_owner_errors": [],
+   "drain_proof": null,
+   "drain_quiescent": true,
+   "drain_salvage": [
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel#124189120994032",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-pipe-read#124189123472528",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel-pump#124189120722944",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-heartbeat#124189120723904",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-closer#124189120716176",
+     "start_state": "STARTED",
+     "started": true
+    }
+   ],
+   "interrupts": [],
+   "original_failure": {
+    "detail": null,
+    "type": null
+   },
+   "proof_failure": null,
+   "quiescent": true,
+   "salvage": [
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel#124189120994032",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-pipe-read#124189123472528",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel-pump#124189120722944",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-heartbeat#124189120723904",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-closer#124189120716176",
+     "start_state": "STARTED",
+     "started": true
+    }
+   ],
+   "status": "PASSED"
+  },
+  "r10-first": {
+   "generation": 3,
+   "outcome_error": "RuntimeError",
+   "outcome_object": "RuntimeError",
+   "reader_error": "RuntimeError",
+   "sequence": 3,
+   "state": "UNKNOWN_RETAINED"
+  },
+  "r10-published-before-timeout": {
+   "cleanup_errors": [],
+   "drain": [
+    {
+     "errors": [],
+     "generation": 5,
+     "generation_after": 5,
+     "generation_before": 5,
+     "owners": [
+      "thread:lvw-native-custody-channel#124189120993024",
+      "thread:lvw-native-custody-pipe-read#124189120998976",
+      "thread:lvw-native-custody-channel-pump#124189123469456",
+      "thread:lvw-native-custody-heartbeat#124189120998544",
+      "thread:lvw-native-custody-closer#124189121002576"
+     ],
+     "pending": 0
+    }
+   ],
+   "drain_all_salvage": [
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel#124189120993024",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-pipe-read#124189120998976",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel-pump#124189123469456",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-heartbeat#124189120998544",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-closer#124189121002576",
+     "start_state": "STARTED",
+     "started": true
+    }
+   ],
+   "drain_attempts": [
+    {
+     "errors": [],
+     "generation": 5,
+     "generation_after": 5,
+     "generation_before": 5,
+     "owners": [
+      "thread:lvw-native-custody-channel#124189120993024",
+      "thread:lvw-native-custody-pipe-read#124189120998976",
+      "thread:lvw-native-custody-channel-pump#124189123469456",
+      "thread:lvw-native-custody-heartbeat#124189120998544",
+      "thread:lvw-native-custody-closer#124189121002576"
+     ],
+     "pending": 0
+    }
+   ],
+   "drain_errors": [],
+   "drain_owner_errors": [],
+   "drain_proof": null,
+   "drain_quiescent": true,
+   "drain_salvage": [
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel#124189120993024",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-pipe-read#124189120998976",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel-pump#124189123469456",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-heartbeat#124189120998544",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-closer#124189121002576",
+     "start_state": "STARTED",
+     "started": true
+    }
+   ],
+   "evidence_write_errors": [],
+   "gate_calls": [
+    {
+     "generation": 1,
+     "result": true,
+     "timeout": 0.05
+    },
+    {
+     "generation": 2,
+     "result": true,
+     "timeout": 0.05
+    },
+    {
+     "generation": 3,
+     "result": false,
+     "timeout": 0.05
+    }
+   ],
+   "generation": 3,
+   "interrupts": [],
+   "original_failure": {
+    "detail": null,
+    "type": null
+   },
+   "outcome_error": "RuntimeError",
+   "outcome_object": "RuntimeError",
+   "parallel_timeout": {
+    "cancel_sequence": null,
+    "code": "BROKER_PIPE_TIMEOUT",
+    "coordination_error": null,
+    "generation": 3,
+    "sequence": 3
+   },
+   "proof_failure": null,
+   "quiescent": true,
+   "state": "RUNNING",
+   "status": "PASSED",
+   "stop": {
+    "admission_produced": false,
+    "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "background_open": false,
+    "background_threads": [
+     {
+      "alive": false,
+      "error_type": null,
+      "kind": "pump",
+      "started": true,
+      "state": "RUNNING"
+     },
+     {
+      "alive": false,
+      "error_type": null,
+      "kind": "heartbeat",
+      "started": true,
+      "state": "RUNNING"
+     }
+    ],
+    "broker": {
+     "executable": "C:/python.exe",
+     "executable_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "identity_source": "PARENT_ORIGINAL_HANDLE",
+     "pid": 4242,
+     "reported_by_the_broker": false
+    },
+    "broker_channel_deadline_bound": 1006.0,
+    "broker_channel_reader_finished": true,
+    "broker_close_facts": {
+     "channel_closed": true,
+     "channel_overflow": false,
+     "channel_overflow_facts": {},
+     "channel_reader_error": "RuntimeError",
+     "channel_reader_error_source": "REPEATED_CLOSE",
+     "channel_reader_finished": true,
+     "channel_reader_secondary_errors": [],
+     "channel_retained_workers": 1,
+     "cleanup_budget_seconds": 0.0,
+     "cleanup_deadline": 1006.0,
+     "close_cancellation": null,
+     "exit_code": 0,
+     "overflow": false,
+     "overflow_facts": {},
+     "process_exited": true,
+     "process_handle_release_method": "POSIX_PROCESS_EXIT",
+     "process_handle_released": true,
+     "read_end_closed": false,
+     "read_retained_workers": 1,
+     "read_worker_thread_handle_released": false,
+     "reader_error": "RuntimeError",
+     "reader_finished": true,
+     "reader_parallel_cancellation": null,
+     "reader_start_unconfirmed": false,
+     "stdin_closed": true,
+     "stdout_closed": false,
+     "terminated": false,
+     "worker_thread_handle_released": false,
+     "write_end_closed": true,
+     "write_retained_workers": 0,
+     "write_worker_thread_handle_released": true
+    },
+    "broker_close_facts_required": [
+     "channel_closed",
+     "process_exited",
+     "process_handle_released",
+     "channel_reader_finished",
+     "read_end_closed",
+     "write_end_closed",
+     "worker_thread_handle_released"
+    ],
+    "broker_close_failed": true,
+    "broker_deadline_aware": true,
+    "broker_retained": true,
+    "candidate_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "channel": {
+     "frame_budget_reserved_terminal": 8,
+     "frame_budget_total": 1024,
+     "frame_bytes_limit": 32768,
+     "frame_limit": 1024,
+     "frames_received": 2,
+     "frames_sent": 1,
+     "heartbeat_failure": null,
+     "heartbeat_interval_seconds": 60.0,
+     "heartbeat_missing_seconds": 120.0,
+     "last_alive_wall": 1794762159.3884523,
+     "last_sequence_received": 2,
+     "last_sequence_sent": 1,
+     "nonce": "730b68eeebe2843a949472f79a8c480f",
+     "private_to_the_parent": true,
+     "schema": "lvw.s3-native-custody-channel/1",
+     "stop_cleanup_budget_seconds": 5.0
+    },
+    "cleanup_deadline": 1006.0,
+    "close_finished": true,
+    "close_generation": 2,
+    "close_state": "FINISHED",
+    "close_waiters": 0,
+    "closer_alive": false,
+    "closer_exited": true,
+    "closer_start_state": "RUNNING",
+    "closer_threads": 1,
+    "failures": [
+     "BROKER_PIPE_TIMEOUT",
+     "RuntimeError",
+     "CUSTODY_PUMP_FAILED:BrokerError",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:read_end_closed",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:worker_thread_handle_released",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_error",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:read_end_closed",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:worker_thread_handle_released",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_error",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:read_end_closed",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:worker_thread_handle_released",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_error",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers"
+    ],
+    "gpu_released_proven": false,
+    "grant_authority": "NOT_VERIFIED",
+    "heartbeat_alive": false,
+    "kind": "lvw.s3-native-custody-evidence/1",
+    "launcher_context_propagated": false,
+    "lease": {
+     "absolute": true,
+     "deadline_extended": false,
+     "effective_deadline_wall": 1794765753.1098044,
+     "lease_expires_at": 1794765753.1098044,
+     "max_runtime_seconds": 21600,
+     "parent_child_remaining_seconds": 21600
+    },
+    "native_cleanup_proven": false,
+    "native_execution_proven": false,
+    "parent_crash_recovery_proven": false,
+    "plan": {
+     "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+     "candidate_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "lease_expires_at": 1794765753.1098044,
+     "max_runtime_seconds": 21600,
+     "roles": [
+      {
+       "data": {
+        "user_directory": "user"
+       },
+       "log": "temp/native/comfy.log",
+       "role": "COMFY",
+       "tools": [
+        {
+         "path": "C:/ComfyUI-aki-v2/python/python.exe",
+         "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        {
+         "path": "C:/ComfyUI-aki-v2/ComfyUI/main.py",
+         "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        }
+       ]
+      },
+      {
+       "data": {},
+       "log": "temp/native/ollama.log",
+       "role": "OLLAMA",
+       "tools": [
+        {
+         "path": "C:/Program Files/Ollama/ollama.exe",
+         "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+       ]
+      }
+     ],
+     "run_id": "n1-correction-03",
+     "schema": "lvw.s3-native-custody-plan/1"
+    },
+    "plan_sha256": "13dc52a34767fa091ae7d36bf5a83678bb34735de76515e23dca01ed019777f3",
+    "plan_sha256_proves": "PLAN_INTEGRITY_ONLY",
+    "port_released_proven": false,
+    "product_gate0": false,
+    "pump_alive": false,
+    "pump_error": null,
+    "run_id": "n1-correction-03",
+    "sampler_proven": false,
+    "stage_pass_claim": false,
+    "state": "UNKNOWN_RETAINED",
+    "terminal": null,
+    "windows_stdin_eof_proven": false
+   },
+   "trace": [
+    {
+     "clock": 1000.0,
+     "generation": 3,
+     "step": "GATE_ENTERED"
+    },
+    {
+     "clock": 1000.0,
+     "error": "RuntimeError",
+     "generation": 3,
+     "sequence": 3,
+     "step": "FAULT_PUBLISHED"
+    },
+    {
+     "clock": 1001.0,
+     "effective": 1000.5,
+     "generation": 3,
+     "step": "TIMEOUT_ARRIVED"
+    },
+    {
+     "clock": 1001.0,
+     "generation": 3,
+     "step": "RELEASED"
+    },
+    {
+     "clock": 1001.0,
+     "generation": 3,
+     "parallel": {
+      "cancel_sequence": null,
+      "code": "BROKER_PIPE_TIMEOUT",
+      "coordination_error": null,
+      "generation": 3,
+      "sequence": 3
+     },
+     "step": "OUTCOME_CONSUMED"
+    }
+   ]
+  },
+  "r10-published-before-timeout-construction": {
+   "construction": "COMPLETED",
+   "holder_keys": [],
+   "session_created": true,
+   "state": "NEW"
+  },
+  "r10-published-before-timeout-first": {
+   "reader_error": "RuntimeError",
+   "retained": true,
+   "state": "UNKNOWN_RETAINED"
+  },
+  "r10-published-before-timeout-second": {
+   "reader_error": "RuntimeError",
+   "source": "REPEATED_CLOSE",
+   "state": "UNKNOWN_RETAINED"
+  },
+  "r10-second": {
+   "reader_error": "RuntimeError",
+   "source": "REPEATED_CLOSE",
+   "state": "UNKNOWN_RETAINED"
+  },
+  "r10-timeout-confirmed": {
+   "barrier": {
+    "entered_at": null,
+    "expected_generation": null,
+    "failure": null,
+    "generation": null,
+    "left_at": null,
+    "observed": false,
+    "observed_at": null,
+    "observed_error": null,
+    "observed_generation": null,
+    "observed_object": null,
+    "passed": false,
+    "probe": "EXACT",
+    "probe_generation": null,
+    "refused": null,
+    "return_state": null,
+    "returned": null
+   },
+   "barrier_expectation": "NOT_APPLICABLE",
+   "barrier_observed_object_detail": null,
+   "barrier_observed_object_is_original": false,
+   "barrier_observed_object_type": null,
+   "barrier_persisted": false,
+   "barrier_write_error": null,
+   "cancel_calls": 1,
+   "cleanup_errors": [],
+   "drain": [
+    {
+     "errors": [],
+     "generation": 5,
+     "generation_after": 5,
+     "generation_before": 5,
+     "owners": [
+      "thread:lvw-native-custody-channel#124189121019632",
+      "thread:lvw-native-custody-pipe-read#124189121012528",
+      "thread:lvw-native-custody-channel-pump#124189105645296",
+      "thread:lvw-native-custody-heartbeat#124189121012288",
+      "thread:lvw-native-custody-closer#124189105313344"
+     ],
+     "pending": 0
+    }
+   ],
+   "drain_all_salvage": [
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel#124189121019632",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-pipe-read#124189121012528",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel-pump#124189105645296",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-heartbeat#124189121012288",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-closer#124189105313344",
+     "start_state": "STARTED",
+     "started": true
+    }
+   ],
+   "drain_attempts": [
+    {
+     "errors": [],
+     "generation": 5,
+     "generation_after": 5,
+     "generation_before": 5,
+     "owners": [
+      "thread:lvw-native-custody-channel#124189121019632",
+      "thread:lvw-native-custody-pipe-read#124189121012528",
+      "thread:lvw-native-custody-channel-pump#124189105645296",
+      "thread:lvw-native-custody-heartbeat#124189121012288",
+      "thread:lvw-native-custody-closer#124189105313344"
+     ],
+     "pending": 0
+    }
+   ],
+   "drain_errors": [],
+   "drain_owner_errors": [],
+   "drain_proof": null,
+   "drain_quiescent": true,
+   "drain_salvage": [
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel#124189121019632",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-pipe-read#124189121012528",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel-pump#124189105645296",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-heartbeat#124189121012288",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-closer#124189105313344",
+     "start_state": "STARTED",
+     "started": true
+    }
+   ],
+   "evidence_write_errors": [],
+   "generation": 3,
+   "interrupts": [],
+   "original_failure": {
+    "detail": null,
+    "type": null
+   },
+   "outcome_error": "RuntimeError",
+   "outcome_object": "RuntimeError",
+   "parallel_timeout": {
+    "cancel_sequence": 3,
+    "code": "BROKER_PIPE_TIMEOUT",
+    "coordination_error": null,
+    "generation": 3,
+    "sequence": 4
+   },
+   "proof_failure": null,
+   "published_before_cancel_return": false,
+   "quiescent": true,
+   "state": "RUNNING",
+   "status": "PASSED",
+   "stop": {
+    "admission_produced": false,
+    "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "background_open": false,
+    "background_threads": [
+     {
+      "alive": false,
+      "error_type": null,
+      "kind": "pump",
+      "started": true,
+      "state": "RUNNING"
+     },
+     {
+      "alive": false,
+      "error_type": null,
+      "kind": "heartbeat",
+      "started": true,
+      "state": "RUNNING"
+     }
+    ],
+    "broker": {
+     "executable": "C:/python.exe",
+     "executable_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "identity_source": "PARENT_ORIGINAL_HANDLE",
+     "pid": 4242,
+     "reported_by_the_broker": false
+    },
+    "broker_channel_deadline_bound": 1006.0,
+    "broker_channel_reader_finished": true,
+    "broker_close_facts": {
+     "channel_closed": true,
+     "channel_overflow": false,
+     "channel_overflow_facts": {},
+     "channel_reader_error": "RuntimeError",
+     "channel_reader_error_source": "REPEATED_CLOSE",
+     "channel_reader_finished": true,
+     "channel_reader_secondary_errors": [],
+     "channel_retained_workers": 0,
+     "cleanup_budget_seconds": 0.0,
+     "cleanup_deadline": 1006.0,
+     "close_cancellation": null,
+     "exit_code": 0,
+     "process_exited": true,
+     "process_handle_release_method": "POSIX_PROCESS_EXIT",
+     "process_handle_released": true,
+     "read_end_closed": true,
+     "read_worker_thread_handle_released": true,
+     "reader_finished": true,
+     "stdin_closed": true,
+     "stdout_closed": true,
+     "terminated": false,
+     "worker_thread_handle_released": true,
+     "write_end_closed": true,
+     "write_worker_thread_handle_released": true
+    },
+    "broker_close_facts_required": [
+     "channel_closed",
+     "process_exited",
+     "process_handle_released",
+     "channel_reader_finished",
+     "read_end_closed",
+     "write_end_closed",
+     "worker_thread_handle_released"
+    ],
+    "broker_close_failed": true,
+    "broker_deadline_aware": true,
+    "broker_retained": true,
+    "candidate_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "channel": {
+     "frame_budget_reserved_terminal": 8,
+     "frame_budget_total": 1024,
+     "frame_bytes_limit": 32768,
+     "frame_limit": 1024,
+     "frames_received": 2,
+     "frames_sent": 1,
+     "heartbeat_failure": null,
+     "heartbeat_interval_seconds": 60.0,
+     "heartbeat_missing_seconds": 120.0,
+     "last_alive_wall": 1794762153.5163603,
+     "last_sequence_received": 2,
+     "last_sequence_sent": 1,
+     "nonce": "a779d2d6a704ef19636064f8d519d654",
+     "private_to_the_parent": true,
+     "schema": "lvw.s3-native-custody-channel/1",
+     "stop_cleanup_budget_seconds": 5.0
+    },
+    "cleanup_deadline": 1006.0,
+    "close_finished": true,
+    "close_generation": 2,
+    "close_state": "FINISHED",
+    "close_waiters": 0,
+    "closer_alive": false,
+    "closer_exited": true,
+    "closer_start_state": "RUNNING",
+    "closer_threads": 1,
+    "failures": [
+     "BROKER_PIPE_TIMEOUT",
+     "RuntimeError",
+     "CUSTODY_PUMP_FAILED:BrokerError",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_error",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_error",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_error"
+    ],
+    "gpu_released_proven": false,
+    "grant_authority": "NOT_VERIFIED",
+    "heartbeat_alive": false,
+    "kind": "lvw.s3-native-custody-evidence/1",
+    "launcher_context_propagated": false,
+    "lease": {
+     "absolute": true,
+     "deadline_extended": false,
+     "effective_deadline_wall": 1794765753.1098044,
+     "lease_expires_at": 1794765753.1098044,
+     "max_runtime_seconds": 21600,
+     "parent_child_remaining_seconds": 21600
+    },
+    "native_cleanup_proven": false,
+    "native_execution_proven": false,
+    "parent_crash_recovery_proven": false,
+    "plan": {
+     "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+     "candidate_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "lease_expires_at": 1794765753.1098044,
+     "max_runtime_seconds": 21600,
+     "roles": [
+      {
+       "data": {
+        "user_directory": "user"
+       },
+       "log": "temp/native/comfy.log",
+       "role": "COMFY",
+       "tools": [
+        {
+         "path": "C:/ComfyUI-aki-v2/python/python.exe",
+         "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        {
+         "path": "C:/ComfyUI-aki-v2/ComfyUI/main.py",
+         "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        }
+       ]
+      },
+      {
+       "data": {},
+       "log": "temp/native/ollama.log",
+       "role": "OLLAMA",
+       "tools": [
+        {
+         "path": "C:/Program Files/Ollama/ollama.exe",
+         "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+       ]
+      }
+     ],
+     "run_id": "n1-correction-03",
+     "schema": "lvw.s3-native-custody-plan/1"
+    },
+    "plan_sha256": "13dc52a34767fa091ae7d36bf5a83678bb34735de76515e23dca01ed019777f3",
+    "plan_sha256_proves": "PLAN_INTEGRITY_ONLY",
+    "port_released_proven": false,
+    "product_gate0": false,
+    "pump_alive": false,
+    "pump_error": null,
+    "run_id": "n1-correction-03",
+    "sampler_proven": false,
+    "stage_pass_claim": false,
+    "state": "UNKNOWN_RETAINED",
+    "terminal": null,
+    "windows_stdin_eof_proven": false
+   }
+  },
+  "r10-timeout-confirmed-barrier": {
+   "barrier": {
+    "entered_at": null,
+    "expected_generation": null,
+    "failure": null,
+    "generation": null,
+    "left_at": null,
+    "observed": false,
+    "observed_at": null,
+    "observed_error": null,
+    "observed_generation": null,
+    "observed_object": null,
+    "passed": false,
+    "probe": "EXACT",
+    "probe_generation": null,
+    "refused": null,
+    "return_state": null,
+    "returned": null
+   },
+   "barrier_completed": false,
+   "barrier_expectation": "NOT_APPLICABLE",
+   "barrier_observed_object_detail": null,
+   "barrier_observed_object_is_original": false,
+   "barrier_observed_object_type": null,
+   "barrier_persisted": false,
+   "barrier_probe": "EXACT",
+   "barrier_return_state": null,
+   "cancel_calls": 1,
+   "confirm_the_worker": true,
+   "expected_generation": 3,
+   "hold_the_worker": false,
+   "published_outcome": false,
+   "state": "RUNNING"
+  },
+  "r10-timeout-confirmed-construction": {
+   "construction": "COMPLETED",
+   "holder_keys": [],
+   "session_created": true,
+   "state": "NEW"
+  },
+  "r10-timeout-confirmed-first": {
+   "reader_error": "RuntimeError",
+   "retained": true,
+   "state": "UNKNOWN_RETAINED"
+  },
+  "r10-timeout-confirmed-second": {
+   "reader_error": "RuntimeError",
+   "source": "REPEATED_CLOSE",
+   "state": "UNKNOWN_RETAINED"
+  },
+  "r10-timeout-failed": {
+   "barrier": {
+    "entered_at": 54129.744497796,
+    "expected_generation": 3,
+    "failure": null,
+    "generation": 3,
+    "left_at": 54129.744699845,
+    "observed": true,
+    "observed_at": 54129.744696981,
+    "observed_error": "RuntimeError",
+    "observed_generation": 3,
+    "observed_object": "RuntimeError('read_fault')",
+    "passed": true,
+    "probe": "EXACT",
+    "probe_generation": 3,
+    "refused": null,
+    "return_state": "PASSED",
+    "returned": "REQUESTED"
+   },
+   "barrier_expectation": "PASSED",
+   "barrier_observed_object_detail": "RuntimeError('read_fault')",
+   "barrier_observed_object_is_original": true,
+   "barrier_observed_object_type": "RuntimeError",
+   "barrier_persisted": true,
+   "barrier_write_error": null,
+   "cancel_calls": 1,
+   "cleanup_errors": [],
+   "drain": [
+    {
+     "errors": [],
+     "generation": 5,
+     "generation_after": 5,
+     "generation_before": 5,
+     "owners": [
+      "thread:lvw-native-custody-channel#124189120975440",
+      "thread:lvw-native-custody-pipe-read#124189105423184",
+      "thread:lvw-native-custody-channel-pump#124189105350912",
+      "thread:lvw-native-custody-heartbeat#124189105991904",
+      "thread:lvw-native-custody-closer#124189105989888"
+     ],
+     "pending": 0
+    }
+   ],
+   "drain_all_salvage": [
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel#124189120975440",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-pipe-read#124189105423184",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel-pump#124189105350912",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-heartbeat#124189105991904",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-closer#124189105989888",
+     "start_state": "STARTED",
+     "started": true
+    }
+   ],
+   "drain_attempts": [
+    {
+     "errors": [],
+     "generation": 5,
+     "generation_after": 5,
+     "generation_before": 5,
+     "owners": [
+      "thread:lvw-native-custody-channel#124189120975440",
+      "thread:lvw-native-custody-pipe-read#124189105423184",
+      "thread:lvw-native-custody-channel-pump#124189105350912",
+      "thread:lvw-native-custody-heartbeat#124189105991904",
+      "thread:lvw-native-custody-closer#124189105989888"
+     ],
+     "pending": 0
+    }
+   ],
+   "drain_errors": [],
+   "drain_owner_errors": [],
+   "drain_proof": null,
+   "drain_quiescent": true,
+   "drain_salvage": [
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel#124189120975440",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-pipe-read#124189105423184",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-channel-pump#124189105350912",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-heartbeat#124189105991904",
+     "start_state": "STARTED",
+     "started": true
+    },
+    {
+     "alive": false,
+     "errors": [],
+     "joined": true,
+     "name": "thread:lvw-native-custody-closer#124189105989888",
+     "start_state": "STARTED",
+     "started": true
+    }
+   ],
+   "evidence_write_errors": [],
+   "generation": 3,
+   "interrupts": [],
+   "original_failure": {
+    "detail": null,
+    "type": null
+   },
+   "outcome_error": "RuntimeError",
+   "outcome_object": "RuntimeError",
+   "parallel_timeout": {
+    "cancel_sequence": 3,
+    "code": "BROKER_PIPE_TIMEOUT",
+    "coordination_error": "BrokerError",
+    "generation": 3,
+    "sequence": 4
+   },
+   "proof_failure": null,
+   "published_before_cancel_return": true,
+   "quiescent": true,
+   "state": "RUNNING",
+   "status": "PASSED",
+   "stop": {
+    "admission_produced": false,
+    "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "background_open": false,
+    "background_threads": [
+     {
+      "alive": false,
+      "error_type": null,
+      "kind": "pump",
+      "started": true,
+      "state": "RUNNING"
+     },
+     {
+      "alive": false,
+      "error_type": null,
+      "kind": "heartbeat",
+      "started": true,
+      "state": "RUNNING"
+     }
+    ],
+    "broker": {
+     "executable": "C:/python.exe",
+     "executable_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "identity_source": "PARENT_ORIGINAL_HANDLE",
+     "pid": 4242,
+     "reported_by_the_broker": false
+    },
+    "broker_channel_deadline_bound": 1006.0,
+    "broker_channel_reader_finished": true,
+    "broker_close_facts": {
+     "channel_closed": true,
+     "channel_overflow": false,
+     "channel_overflow_facts": {},
+     "channel_reader_error": "RuntimeError",
+     "channel_reader_error_source": "REPEATED_CLOSE",
+     "channel_reader_finished": true,
+     "channel_reader_secondary_errors": [],
+     "channel_retained_workers": 0,
+     "cleanup_budget_seconds": 0.0,
+     "cleanup_deadline": 1006.0,
+     "close_cancellation": null,
+     "exit_code": 0,
+     "overflow": false,
+     "overflow_facts": {},
+     "process_exited": true,
+     "process_handle_release_method": "POSIX_PROCESS_EXIT",
+     "process_handle_released": true,
+     "read_end_closed": true,
+     "read_retained_workers": 0,
+     "read_worker_thread_handle_released": true,
+     "reader_error": "RuntimeError",
+     "reader_finished": true,
+     "reader_parallel_cancellation": null,
+     "reader_start_unconfirmed": false,
+     "stdin_closed": true,
+     "stdout_closed": true,
+     "terminated": false,
+     "worker_thread_handle_released": true,
+     "write_end_closed": true,
+     "write_retained_workers": 0,
+     "write_worker_thread_handle_released": true
+    },
+    "broker_close_facts_required": [
+     "channel_closed",
+     "process_exited",
+     "process_handle_released",
+     "channel_reader_finished",
+     "read_end_closed",
+     "write_end_closed",
+     "worker_thread_handle_released"
+    ],
+    "broker_close_failed": true,
+    "broker_deadline_aware": true,
+    "broker_retained": true,
+    "candidate_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "channel": {
+     "frame_budget_reserved_terminal": 8,
+     "frame_budget_total": 1024,
+     "frame_bytes_limit": 32768,
+     "frame_limit": 1024,
+     "frames_received": 2,
+     "frames_sent": 1,
+     "heartbeat_failure": null,
+     "heartbeat_interval_seconds": 60.0,
+     "heartbeat_missing_seconds": 120.0,
+     "last_alive_wall": 1794762153.7698457,
+     "last_sequence_received": 2,
+     "last_sequence_sent": 1,
+     "nonce": "56a0662b4aebdcd03165ec229ae83712",
+     "private_to_the_parent": true,
+     "schema": "lvw.s3-native-custody-channel/1",
+     "stop_cleanup_budget_seconds": 5.0
+    },
+    "cleanup_deadline": 1006.0,
+    "close_finished": true,
+    "close_generation": 2,
+    "close_state": "FINISHED",
+    "close_waiters": 0,
+    "closer_alive": false,
+    "closer_exited": true,
+    "closer_start_state": "RUNNING",
+    "closer_threads": 1,
+    "failures": [
+     "BROKER_PIPE_TIMEOUT",
+     "RuntimeError",
+     "CUSTODY_PUMP_FAILED:BrokerError",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:read_end_closed",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:worker_thread_handle_released",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_error",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:read_end_closed",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:worker_thread_handle_released",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_error",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_retained_workers",
+     "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_error"
+    ],
+    "gpu_released_proven": false,
+    "grant_authority": "NOT_VERIFIED",
+    "heartbeat_alive": false,
+    "kind": "lvw.s3-native-custody-evidence/1",
+    "launcher_context_propagated": false,
+    "lease": {
+     "absolute": true,
+     "deadline_extended": false,
+     "effective_deadline_wall": 1794765753.1098044,
+     "lease_expires_at": 1794765753.1098044,
+     "max_runtime_seconds": 21600,
+     "parent_child_remaining_seconds": 21600
+    },
+    "native_cleanup_proven": false,
+    "native_execution_proven": false,
+    "parent_crash_recovery_proven": false,
+    "plan": {
+     "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+     "candidate_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+     "lease_expires_at": 1794765753.1098044,
+     "max_runtime_seconds": 21600,
+     "roles": [
+      {
+       "data": {
+        "user_directory": "user"
+       },
+       "log": "temp/native/comfy.log",
+       "role": "COMFY",
+       "tools": [
+        {
+         "path": "C:/ComfyUI-aki-v2/python/python.exe",
+         "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        {
+         "path": "C:/ComfyUI-aki-v2/ComfyUI/main.py",
+         "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        }
+       ]
+      },
+      {
+       "data": {},
+       "log": "temp/native/ollama.log",
+       "role": "OLLAMA",
+       "tools": [
+        {
+         "path": "C:/Program Files/Ollama/ollama.exe",
+         "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+       ]
+      }
+     ],
+     "run_id": "n1-correction-03",
+     "schema": "lvw.s3-native-custody-plan/1"
+    },
+    "plan_sha256": "13dc52a34767fa091ae7d36bf5a83678bb34735de76515e23dca01ed019777f3",
+    "plan_sha256_proves": "PLAN_INTEGRITY_ONLY",
+    "port_released_proven": false,
+    "product_gate0": false,
+    "pump_alive": false,
+    "pump_error": null,
+    "run_id": "n1-correction-03",
+    "sampler_proven": false,
+    "stage_pass_claim": false,
+    "state": "UNKNOWN_RETAINED",
+    "terminal": null,
+    "windows_stdin_eof_proven": false
+   }
+  },
+  "r10-timeout-failed-barrier": {
+   "barrier": {
+    "entered_at": 54129.744497796,
+    "expected_generation": 3,
+    "failure": null,
+    "generation": 3,
+    "left_at": 54129.744699845,
+    "observed": true,
+    "observed_at": 54129.744696981,
+    "observed_error": "RuntimeError",
+    "observed_generation": 3,
+    "observed_object": "RuntimeError('read_fault')",
+    "passed": true,
+    "probe": "EXACT",
+    "probe_generation": 3,
+    "refused": null,
+    "return_state": "PASSED",
+    "returned": "REQUESTED"
+   },
+   "barrier_completed": true,
+   "barrier_expectation": "PASSED",
+   "barrier_observed_object_detail": "RuntimeError('read_fault')",
+   "barrier_observed_object_is_original": true,
+   "barrier_observed_object_type": "RuntimeError",
+   "barrier_persisted": true,
+   "barrier_probe": "EXACT",
+   "barrier_return_state": "PASSED",
+   "cancel_calls": 1,
+   "confirm_the_worker": false,
+   "expected_generation": 3,
+   "hold_the_worker": true,
+   "published_outcome": true,
+   "state": "RUNNING"
+  },
+  "r10-timeout-failed-construction": {
+   "construction": "COMPLETED",
+   "holder_keys": [],
+   "session_created": true,
+   "state": "NEW"
+  },
+  "r10-timeout-failed-first": {
+   "reader_error": "RuntimeError",
+   "retained": true,
+   "state": "UNKNOWN_RETAINED"
+  },
+  "r10-timeout-failed-second": {
+   "reader_error": "RuntimeError",
+   "source": "REPEATED_CLOSE",
+   "state": "UNKNOWN_RETAINED"
+  }
+ },
+ "incomplete": [],
+ "interrupts": [],
+ "inventory_size": 28,
+ "not_persisted": [],
+ "original_failure": {
+  "type": null
+ },
+ "states": {
+  "r10-barrier-absent": "PASSED",
+  "r10-barrier-absent-barrier": "PASSED",
+  "r10-barrier-absent-construction": "PASSED",
+  "r10-barrier-absent-first": "PASSED",
+  "r10-barrier-absent-second": "PASSED",
+  "r10-barrier-wrong-generation": "PASSED",
+  "r10-barrier-wrong-generation-barrier": "PASSED",
+  "r10-barrier-wrong-generation-construction": "PASSED",
+  "r10-barrier-wrong-generation-first": "PASSED",
+  "r10-barrier-wrong-generation-second": "PASSED",
+  "r10-coordination": "PASSED",
+  "r10-early-salvage": "PASSED",
+  "r10-first": "PASSED",
+  "r10-published-before-timeout": "PASSED",
+  "r10-published-before-timeout-construction": "PASSED",
+  "r10-published-before-timeout-first": "PASSED",
+  "r10-published-before-timeout-second": "PASSED",
+  "r10-second": "PASSED",
+  "r10-timeout-confirmed": "PASSED",
+  "r10-timeout-confirmed-barrier": "PASSED",
+  "r10-timeout-confirmed-construction": "PASSED",
+  "r10-timeout-confirmed-first": "PASSED",
+  "r10-timeout-confirmed-second": "PASSED",
+  "r10-timeout-failed": "PASSED",
+  "r10-timeout-failed-barrier": "PASSED",
+  "r10-timeout-failed-construction": "PASSED",
+  "r10-timeout-failed-first": "PASSED",
+  "r10-timeout-failed-second": "PASSED"
+ },
+ "status": "PASSED",
+ "unwinding": false,
+ "write_errors": [],
+ "written": [
+  "r10-barrier-absent",
+  "r10-barrier-absent-barrier",
+  "r10-barrier-absent-construction",
+  "r10-barrier-absent-first",
+  "r10-barrier-absent-second",
+  "r10-barrier-wrong-generation",
+  "r10-barrier-wrong-generation-barrier",
+  "r10-barrier-wrong-generation-construction",
+  "r10-barrier-wrong-generation-first",
+  "r10-barrier-wrong-generation-second",
+  "r10-coordination",
+  "r10-early-salvage",
+  "r10-first",
+  "r10-published-before-timeout",
+  "r10-published-before-timeout-construction",
+  "r10-published-before-timeout-first",
+  "r10-published-before-timeout-second",
+  "r10-second",
+  "r10-timeout-confirmed",
+  "r10-timeout-confirmed-barrier",
+  "r10-timeout-confirmed-construction",
+  "r10-timeout-confirmed-first",
+  "r10-timeout-confirmed-second",
+  "r10-timeout-failed",
+  "r10-timeout-failed-barrier",
+  "r10-timeout-failed-construction",
+  "r10-timeout-failed-first",
+  "r10-timeout-failed-second"
+ ]
+}
