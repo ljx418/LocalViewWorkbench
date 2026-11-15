@@ -1,0 +1,360 @@
+{
+ "artifacts": {
+  "counterexample-mapping.md": {
+   "bytes": 13405,
+   "lines": 198,
+   "sha256": "c2d319efe9648240d20c63cf18a9965ebec0310067e6805d06fc28a0579bbb18"
+  },
+  "execution-request.md": {
+   "bytes": 6354,
+   "lines": 124,
+   "sha256": "3a1e163e2ed29048a57434e3c863ddeed3d91b2ccfbc486230e6bc21cc6b0c4b"
+  },
+  "pins.json": {
+   "bytes": 3534,
+   "lines": 99,
+   "sha256": "f3d6e12102c0d208a8e7e5acf1c987c99e8e6fd6830575c8a6e58c740a91f65c"
+  },
+  "preparation-checklist.md": {
+   "bytes": 8717,
+   "lines": 68,
+   "sha256": "39f875e084bb395e71bc80c7cb81b40b550ada403f997f628b385b96e4eb3456"
+  },
+  "report.md": {
+   "bytes": 12586,
+   "lines": 177,
+   "sha256": "2c4adf80719f613726eac3da854bdb2998b4e4602922687435d4440a8e27d261"
+  },
+  "static-checks/check_correction22.py": {
+   "bytes": 27205,
+   "lines": 662,
+   "sha256": "b9d19872ea5dc08e30e31138c8d503adde7deda46d61b6338ecff7dee979dd3f"
+  },
+  "static-checks/static-checks-report.json": {
+   "bytes": 49739,
+   "lines": 906,
+   "sha256": "6455892d509d3f80910e3d79ecade348b7efc0b8868c31e4adf87012d0fb1468"
+  },
+  "static-checks/static-checks-summary.md": {
+   "bytes": 3687,
+   "lines": 39,
+   "sha256": "691e24773e532c75904b1f0e48c970919115510bf6635f6466508922f25a18b1"
+  }
+ },
+ "assertion_equivalence": {
+  "added": [],
+  "baseline_total": 414,
+  "candidate_total": 414,
+  "historical_removals_against_15_16_17_18_20": {
+   "15": 10,
+   "16": 7,
+   "17": 0,
+   "18": 0,
+   "20": 0
+  },
+  "moved": 8,
+  "moved_predicates": [
+   {
+    "baseline": "not thread.is_alive()",
+    "candidate": "not _owner_alive(launch_join) / not _owner_alive(item) / not _owner_alive(interrupted_join) / not _owner_alive(r12_join)",
+    "equivalent_or_stronger": true
+   },
+   {
+    "baseline": "not worker.is_alive()",
+    "candidate": "not recovery_alive / not dispatch_alive / not retry_alive",
+    "equivalent_or_stronger": true
+   },
+   {
+    "baseline": "not tightener.is_alive()",
+    "candidate": "not tightener_alive",
+    "equivalent_or_stronger": true
+   }
+  ],
+  "note": "Every moved predicate is the requery of the liveness of an owner; its replacement is the fact of the guarded join and an unknown liveness is treated as alive, so a moved predicate can only fail more often and never passes where the baseline failed.  The messages of the moved predicates are unchanged and no oracle is added and none is removed.  The predicates that the corrections 15 and 16 removed are still removed (10 and 7 occurrences); the corrections 17, 18 and 20 removed none.",
+  "removed": []
+ },
+ "baseline": {
+  "Fatal": 0,
+  "M1": "CLOSED_STATIC",
+  "M2": "OPEN",
+  "M3": "OPEN",
+  "Major": 2,
+  "Minor": 0,
+  "independent_review": "reports/v0-s3/product-gate0/native-custody-correction-21/test-review-01/review-result",
+  "report_delivery": "08e2096ed67a3c0a158dfa2239bdbc549b6fba12",
+  "review_decision": "CHANGES_REQUIRED",
+  "source_candidate": "ed4afb50e3d6c12e8784d05dc40b9beb501a3668"
+ },
+ "budget_note": "the first new 429 stops with WAIT_BUDGET and ends the turn without a retry, without a switch of route and without a takeover of the root; an approval refusal or a timeout stops the route without a bypass and without an edit of a configuration file",
+ "callsite_inventory": [
+  {
+   "candidate": "1695",
+   "class": "cleanup finally, one owner",
+   "repair": "the liveness is the fact of the guarded join, the errors are durable and consumed",
+   "site": "1617"
+  },
+  {
+   "candidate": "1823",
+   "class": "cleanup finally, one owner",
+   "repair": "the facts of the join are durable, the errors are consumed",
+   "site": "1727"
+  },
+  {
+   "candidate": "2198",
+   "class": "cleanup finally, one owner",
+   "repair": "the lookup of the thread is guarded, the priority is outside the if, the errors are consumed",
+   "site": "2094"
+  },
+  {
+   "candidate": "2910/2948/2963",
+   "class": "cleanup finally, direct close",
+   "repair": "the closes are guarded and the priority follows the last close",
+   "site": "2816/2907/2936"
+  },
+  {
+   "candidate": "3637",
+   "class": "cleanup finally, one gate",
+   "repair": "the errors of the release are consumed",
+   "site": "3469"
+  },
+  {
+   "candidate": "4594",
+   "class": "cleanup finally, stop and join",
+   "repair": "the liveness is the fact of the guarded join, the facts are durable, the errors are consumed",
+   "site": "4404"
+  },
+  {
+   "candidate": "4700",
+   "class": "cleanup finally, join and close",
+   "repair": "the close is guarded, the facts are durable, the priority is outside",
+   "site": "4507"
+  },
+  {
+   "candidate": "5252",
+   "class": "cleanup finally, the controlled subcase",
+   "repair": "the verdict is recomputed with the late errors, the exemption is gone",
+   "site": "4849"
+  },
+  {
+   "candidate": "5523",
+   "class": "cleanup finally, one owner",
+   "repair": "the liveness is the fact of the guarded join, the facts are durable, the errors are consumed",
+   "site": "5276"
+  },
+  {
+   "candidate": "5668",
+   "class": "cleanup finally, multi owner loop",
+   "repair": "every owner is attempted, the facts are durable, the priority is after the traversal",
+   "site": "5404"
+  },
+  {
+   "candidate": "5783",
+   "class": "cleanup finally, one owner",
+   "repair": "the liveness is the fact of the guarded join, the facts are durable, the errors are consumed",
+   "site": "5503"
+  },
+  {
+   "candidate": "5886",
+   "class": "cleanup finally, settle loop and join",
+   "repair": "the query of the owners and the lookup of the thread are guarded, the priority is outside the if",
+   "site": "5585"
+  },
+  {
+   "candidate": "8770/9079/9122/9205",
+   "class": "cleanup finally, the salvage stop",
+   "repair": "the stops are guarded and never silently pass an ordinary exception",
+   "site": "8430/8665/8697/8763"
+  },
+  {
+   "candidate": "8805/8838",
+   "class": "cleanup finally, direct close",
+   "repair": "the closes are guarded, the errors are consumed",
+   "site": "8450/8472"
+  },
+  {
+   "candidate": "8976",
+   "class": "cleanup finally, join before the stop",
+   "repair": "the stop is attempted before the priority, the facts are durable, the errors are consumed",
+   "site": "8592"
+  }
+ ],
+ "candidate_base_sha": "08e2096ed67a3c0a158dfa2239bdbc549b6fba12",
+ "candidate_git_commit": "3c807ba483c5e6542430bc96ffefb2ea23e79db9",
+ "candidate_git_commit_note": "the actual Git identity of the committed static candidate of this correction",
+ "candidate_module": {
+  "after": {
+   "bytes": 478735,
+   "lines": 9219,
+   "sha256": "f1f8fe1a4167000265e3490417205adb52bcbe84ef54131c3835bfc6a895e6ec"
+  },
+  "before": {
+   "bytes": 453718,
+   "lines": 8765,
+   "sha256": "be29abdbc776a04212f6e1173456504eba2c5a1171561845f9ade90f70a1adcf"
+  },
+  "path": "tools/test_v0_s3_native_custody_correction10.py"
+ },
+ "candidate_sha": "NOT_USED_A_CONTENT_HASH_IS_NOT_A_CANDIDATE_IDENTITY",
+ "changed_files": [
+  "tools/test_v0_s3_native_custody_correction10.py"
+ ],
+ "coordinate": "V1/R1/WP-R1-U3/S3_P4",
+ "counterexample_mapping": [
+  {
+   "candidate": "T10:5252-5329, 5444-5454",
+   "id": "M2.a",
+   "repair": "the facts are complete, the verdict is recomputed with every actual error of the last actions, the last write is attempted and a write that failed rejects the success of the subcase",
+   "sites": "T10:4955-4974, 5062-5086, 5195-5205"
+  },
+  {
+   "candidate": "T10:4079-4100",
+   "id": "M2.b",
+   "repair": "the errors of the query of the registry are an explicit durable field (registry_errors) and the verdict is recomputed with them",
+   "sites": "T10:833-842, 3909-3926"
+  },
+  {
+   "candidate": "T10:8976-9017",
+   "id": "M3.a",
+   "repair": "the guarded public stop of the round is attempted before the priority, its failure is retained and never silently passed and the ordinary errors of the cleanup are consumed",
+   "sites": "T10:8594-8607"
+  },
+  {
+   "candidate": "T10:4700-4737",
+   "id": "M3.b",
+   "repair": "the close of the endpoint is guarded, the complete facts are durable before the priority and the priority is enforced outside the cleanup region",
+   "sites": "T10:4507-4519"
+  },
+  {
+   "candidate": "T10:1695, 1823, 2217, 4594, 4707, 5523, 5688, 5783, 5888, 5913, 8989",
+   "id": "M3.c",
+   "repair": "every collected error list has a consumer, the liveness of an owner is the fact of the guarded join, the queries of the cleanup are guarded and the priority is deferred after every action",
+   "sites": "T10:858-877, 5404-5441, 5585-5612, 1622-1635, 4419-4434, 5278-5287, 5503-5515"
+  },
+  {
+   "candidate": "T10:5252-5329",
+   "id": "M3.d",
+   "repair": "the verdict is recomputed with every actual error of the last actions, the \"not raised\" exemption is gone and the expected CLOSE_FAILURE singleton stays the only allowed injected fault",
+   "sites": "T10:5034-5086, 5195-5205"
+  }
+ ],
+ "current_coordinate_from_root_control": {
+  "gate": "S3_P4_OFFLINE_INTEGRATION_PREPARATION",
+  "stage_id": "R1",
+  "state": "READY",
+  "workpack_id": "WP-R1-U3"
+ },
+ "denominator": {
+  "count": 189,
+  "executed": false,
+  "full_order": "counterexample-mapping.md",
+  "ids_and_order_equal_to_the_baseline": true,
+  "per_module": {
+   "tools/test_v0_s3_native_custody.py": 117,
+   "tools/test_v0_s3_native_custody_correction05.py": 24,
+   "tools/test_v0_s3_native_custody_correction07.py": 18,
+   "tools/test_v0_s3_native_custody_correction10.py": 14,
+   "tools/test_v0_s3_native_custody_regressions.py": 16
+  },
+  "skip_calls": [],
+  "unique_count": 189
+ },
+ "design": {
+  "approved_by_root": true,
+  "authoritative_section": "section 10 of the approved design of the correction 17 and the six binding clarifications of its ACK",
+  "delta_of_correction_22": "the six residual counterexamples of the independent review of the correction 21 and the call sites of the same root cause; no new obligation and no new threshold"
+ },
+ "execution_audit": {
+  "429_or_approval_refusal": false,
+  "candidate_collect": false,
+  "candidate_executed": false,
+  "candidate_import": false,
+  "ctypes": false,
+  "extra_agents": false,
+  "ledger_counter": false,
+  "media_db": false,
+  "methods_used": [
+   "read-only text and JSON processing of the sources and of the reports",
+   "ast.parse of the five test modules and of the candidate",
+   "in-memory compile of the candidate as a syntax check",
+   "read-only git show of the frozen baseline blobs",
+   "git hash-object of the candidate",
+   "the static instrument of this report directory"
+  ],
+  "model_gpu": false,
+  "native_or_runtime": false,
+  "network_service": false,
+  "os_business_processes": false,
+  "pytest_run": false
+ },
+ "inspected_and_classified": {
+  "class": "scenario steps of a try body",
+  "note": "they skip no cleanup and no owner of a round; they are not cleanup actions and they are not repaired",
+  "sites": [
+   "1813",
+   "2161",
+   "4688",
+   "5986",
+   "5998",
+   "6241"
+  ]
+ },
+ "kind": "lvw.s3-native-custody-correction22-static-implementation-receipt/1",
+ "non_claims": {
+  "budget_reset": false,
+  "dynamic15": "NOT_RUN",
+  "dynamic16": "NOT_RUN",
+  "dynamic17": "NOT_RUN",
+  "dynamic18": "NOT_RUN",
+  "dynamic19": "NOT_RUN",
+  "dynamic20": "NOT_RUN",
+  "dynamic21": "NOT_RUN",
+  "dynamic22": "NOT_RUN",
+  "historical14": "the 189 PASS of the correction 14 stays historical",
+  "human_signoff": false,
+  "major_closure_claimed": false,
+  "native": "NOT_PROVEN",
+  "product_acceptance": false,
+  "runtime_ack": false,
+  "stage_pass": false
+ },
+ "source_sha256": "f1f8fe1a4167000265e3490417205adb52bcbe84ef54131c3835bfc6a895e6ec",
+ "source_sha256_note": "the sha256 of the CONTENT of the changed module tools/test_v0_s3_native_custody_correction10.py in the committed candidate; it is a content hash and it is never called candidate_sha",
+ "static_checks": {
+  "checks": [
+   "denominator",
+   "assertions",
+   "unchanged_sources",
+   "evidence_root",
+   "M2.a_final_controlled_verdict",
+   "M2.b_zero_registry_durable",
+   "M3.a_r12_all_actions_before_priority",
+   "M3.b_guarded_closes",
+   "M3.c_error_list_consumers",
+   "M3.c_deferred_priority"
+  ],
+  "exit_code": 0,
+  "failed": 0,
+  "file": "reports/v0-s3/product-gate0/implementation-native-custody-correction-22/static-checks/check_correction22.py",
+  "note": "the checks read the shape of the candidate; they are not an execution",
+  "passed": 10,
+  "report_ok": true,
+  "result_file": "reports/v0-s3/product-gate0/implementation-native-custody-correction-22/static-checks/static-checks-report.json",
+  "unconsumed_error_lists": []
+ },
+ "unchanged_files": [
+  "tools/v0_s3_native_broker.py",
+  "tools/v0_s3_native_custody.py",
+  "tools/test_v0_s3_native_custody.py",
+  "tools/test_v0_s3_native_custody_regressions.py",
+  "tools/test_v0_s3_native_custody_correction05.py",
+  "tools/test_v0_s3_native_custody_correction07.py"
+ ],
+ "validation_plan_request": {
+  "batches_max": 1,
+  "commands": 3,
+  "file": "reports/v0-s3/product-gate0/implementation-native-custody-correction-22/execution-request.md",
+  "max_seconds": 300,
+  "node_count": 189,
+  "requested_not_executed": true
+ }
+}
