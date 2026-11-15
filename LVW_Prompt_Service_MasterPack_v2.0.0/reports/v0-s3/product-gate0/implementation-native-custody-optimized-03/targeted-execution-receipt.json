@@ -1,0 +1,233 @@
+{
+  "kind": "targeted_execution_receipt",
+  "packet": "N1-OPTIMIZED-01",
+  "scope": "ADR16 O1 - one already frozen, isolated CPU R07 feedback under the known exit blocker",
+  "outcome": "PASS",
+  "outcome_summary": "the R07 node really ran and really passed: 1 of 1 selected node passed, pytest exit 0, and the cleanup of the batch is proven - the threads before and after are both exactly MainThread, no file descriptor was new or reused, and every owner of the round was really joined and its thread handle really released.  This does NOT close the known open Major and it is not an acceptance of anything.",
+  "candidate_sha": "a9a63cf7f7b5ec52e271639bb6278e54b457805a",
+  "candidate_source_sha256": "0aa352f2a0106e7ac700695b540b01e3a627ea5631e1d66aef80fa7122678dc1",
+  "plan_sha256": "fff5893d916509cae59ef036e6db39839c92d3074313ab0f7a9acf598f5bbf53",
+  "plan_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-02/targeted-plan-03/plan.json",
+  "root_ack": {
+    "decision": "ACK_ONE_GUARDED_CPU_R07_FEEDBACK_WITH_KNOWN_EXIT_BLOCKER",
+    "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-02/targeted-plan-03/root-ack.json",
+    "authority": "ADR16 O1: a known hard finding blocks the dependent live actions and any PASS, it does not block a bounded isolated CPU reproduction",
+    "known_open_major": "unguarded final is_alive/identity queries can replace original O or earlier K and skip required publication",
+    "known_major_closed_or_downgraded": false,
+    "stage_and_N2_admission": false,
+    "selected_count": 1,
+    "max_batches": 1,
+    "max_wall_seconds": 300,
+    "original_budget_not_reset": true
+  },
+  "preflight_read_only": {
+    "plan_sha256_matches_expected": true,
+    "root_ack_present": true,
+    "pins_verified_on_disk": {"sourcepins": 60, "toolpins": 3, "dependency_pins": 223, "stdlib_pins": 3},
+    "pin_drift": 0,
+    "candidate_sha_matches_plan_and_ack": true,
+    "candidate_source_sha256_matches_expected": true,
+    "report_dir_existed_before_the_run": false,
+    "report_dir_created_for": "the raw logs and the phase artifacts of this attempt only",
+    "source_modified": false,
+    "note": "no import, no collect and no pytest was performed outside the single guarded batch; no source was modified and no pin drifted"
+  },
+  "commands": [
+    {
+      "step": "before",
+      "kind": "outer counter observation (absence mode)",
+      "argv": "LVW_N1_F5_EVIDENCE_DIR=<attempt01>/f5-evidence LVW_N1_T10_EVIDENCE_DIR=<attempt01>/evidence PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3.12 -I -B <plan>/outer_counter_observe.py /tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json <attempt01>/counter-absence-before.json > <attempt01>/before.stdout.log 2> <attempt01>/before.stderr.log",
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "started_utc": "2026-11-15T08:09:21+00:00",
+      "ended_utc": "2026-11-15T08:09:21+00:00",
+      "exit_code": 0,
+      "result": "accepted_absence=true; the counter parent and the counter itself are MISSING (errno 2); the content was not read and nothing was created, written, reset or refunded",
+      "gate_effect": "exit 0, so the guard batch was allowed to run"
+    },
+    {
+      "step": "guard",
+      "kind": "single guarded targeted batch (hard guard, then the pinned runner, then pytest on the one frozen R07 node id)",
+      "argv": "LVW_N1_F5_EVIDENCE_DIR=<attempt01>/f5-evidence LVW_N1_T10_EVIDENCE_DIR=<attempt01>/evidence PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3.12 -I -B <plan>/guard.py <plan>/runner.py <attempt01>/guard.json > <attempt01>/guard.stdout.log 2> <attempt01>/guard.stderr.log",
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "started_utc": "2026-11-15T08:09:51+00:00",
+      "ended_utc": "2026-11-15T08:09:56+00:00",
+      "exit_code": 0,
+      "wall_seconds": 4.892,
+      "runner_duration_seconds": 4.779,
+      "pytest_exit": 0,
+      "result": "1 passed, 0 failed, 0 skipped of the 1 selected node in 4.75s; the raw stdout, the raw stderr and the exit code are kept unchanged",
+      "guard_facts": {
+        "guard_precedes_candidate_and_pytest": true,
+        "runtime_denials": 0,
+        "selftest_denials": ["subprocess.Popen", "socket.__new__", "os.fork", "os.exec", "os.system", "sqlite3.connect", "ctypes.dlopen", "ctypes.dlsym"],
+        "preload_events": ["ctypes.dlopen"],
+        "preload_window_final_state": "CLOSED",
+        "note": "the guard denied nothing at runtime; the exit code 0 is the result of the test and of the proven cleanup of the batch"
+      }
+    },
+    {
+      "step": "after",
+      "kind": "outer counter observation (absence mode)",
+      "argv": "LVW_N1_F5_EVIDENCE_DIR=<attempt01>/f5-evidence LVW_N1_T10_EVIDENCE_DIR=<attempt01>/evidence PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3.12 -I -B <plan>/outer_counter_observe.py /tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json <attempt01>/counter-absence-after.json > <attempt01>/after.stdout.log 2> <attempt01>/after.stderr.log",
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "started_utc": "2026-11-15T08:10:14+00:00",
+      "ended_utc": "2026-11-15T08:10:14+00:00",
+      "exit_code": 0,
+      "result": "accepted_absence=true; the counter parent and the counter itself are still MISSING (errno 2) after the batch; the content was not read and nothing was created, written, reset or refunded"
+    }
+  ],
+  "budget": {
+    "elapsed_wall_seconds_first_command_to_last_command": 53,
+    "sum_of_command_wall_seconds": 4.9,
+    "max_wall_seconds_allowed": 300,
+    "max_guard_seconds_allowed": 290,
+    "batches_used": 1,
+    "max_batches_allowed": 1,
+    "retries": 0,
+    "automatic_retries_used": false,
+    "first_429_observed": false,
+    "approval_refusal_observed": false
+  },
+  "selected_node": {
+    "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r07_the_context_of_the_round_reaches_every_layer",
+    "count": 1,
+    "collected_order_equal_to_the_frozen_order": true,
+    "call_count": 1,
+    "pass_count": 1,
+    "fail_count": 0,
+    "skip_count": 0,
+    "duration_seconds": 4.248
+  },
+  "cleanup_and_resource_facts": {
+    "cleanup_proven_for_batch": true,
+    "threads_before": ["MainThread"],
+    "threads_after": ["MainThread"],
+    "leftover_read_worker_of_the_round": "none: the thread 'lvw-native-custody-pipe-read' that the attempt02 run left behind is not alive any more",
+    "fd_rows_before": 3,
+    "fd_rows_after": 3,
+    "new_or_reused_fds": [],
+    "fd_unknown_before": [],
+    "fd_unknown_after": [],
+    "counter_observation_only": true,
+    "counter_created": false,
+    "counter_written": false,
+    "counter_reset": false,
+    "counter_refunded": false,
+    "historical_grant_revived": false,
+    "historical_counter_continuity": "UNAVAILABLE_NOT_PROVEN"
+  },
+  "fixture_shutdown_facts": {
+    "durable_evidence_ref": "attempt01/evidence/n10-r07-zero-salvage.json",
+    "actions": ["release:gate", "release:frames_ready", "stop:zero-endpoint-workers"],
+    "fixture_shutdown": [
+      {"endpoint": "read", "role": "_reader", "thread": "lvw-native-custody-pipe-read",
+       "stop_accepting": "None", "request_cancel": "'REQUESTED'",
+       "alive_after": false, "joined_after": true, "thread_handle_released": true}
+    ],
+    "fixture_channel_close": {
+      "reader_finished": true,
+      "read_end_closed": true,
+      "read_retained_workers": 0,
+      "read_worker_thread_handle_released": true,
+      "write_end_closed": true,
+      "write_retained_workers": 0,
+      "write_worker_thread_handle_released": true,
+      "worker_thread_handle_released": true,
+      "channel_retained_workers": 0
+    },
+    "fixture_handle_proof": null,
+    "fixture_retained_workers": 0,
+    "quiescent": true,
+    "drain_proof": null,
+    "cleanup_errors": [],
+    "interrupts": [],
+    "original": null,
+    "proof_failure": null,
+    "drain_owners_last_iteration": ["session:background-heartbeat", "session:background-pump", "launch:channel:drain", "launch:channel:read:read-worker"],
+    "drain_salvage_last_iteration": "all four owners joined=true alive=false",
+    "note": "the read worker of the read end - the owner that the attempt02 run left behind - really ended, its handle was really released and no endpoint retained a worker"
+  },
+  "observed_pump_facts": {
+    "durable_evidence_ref": "attempt01/evidence/n10-r07-zero-public-chain.json",
+    "zero_pump_observed": true,
+    "zero_pump_is_the_observed_pump": true,
+    "zero_pump_alive": false,
+    "zero_pump_finished": true,
+    "zero_pump_error_is_none": true,
+    "zero_pump_frames": 1,
+    "zero_pump_broker_is_the_round_broker": true,
+    "zero_pump_is_the_production_background_pump": true,
+    "zero_pump_is_an_observed_start": true,
+    "zero_pump_start_provenance": "STARTED",
+    "zero_session_pump_state": "ABSENT_AFTER_CONFIRMED_JOIN",
+    "zero_pump_context_is_the_session_context": true,
+    "zero_state": "UNKNOWN_RETAINED",
+    "zero_broker_retained": true,
+    "zero_queue_waits": [0.0],
+    "zero_reply_waits": [0.0]
+  },
+  "controlled_five_subscenarios": {
+    "reached": true,
+    "verified": true,
+    "evidence": "the attempt01 phase documents carry all five controlled documents of R07 and the documents of the dispatch, of the await and of the child, so the body of R07 ran to its end",
+    "subcases": [
+      {"checkpoint": "PARENT_ADMISSION", "failure": "_R07Sentinel", "proof_failure": null, "quiescent": true},
+      {"checkpoint": "CHILD_TRANSPORT", "failure": "_R07Sentinel", "proof_failure": null, "quiescent": true},
+      {"checkpoint": "ORDINARY_ASSERTION", "failure": "_R07OrdinaryAssertion", "proof_failure": null, "quiescent": true},
+      {"checkpoint": "CLOSE_FAILURE", "failure": null, "proof_failure": null, "quiescent": true},
+      {"checkpoint": "CONSTRUCTOR_FAILURE", "failure": "_R07ConstructorFailure", "proof_failure": null, "quiescent": true}
+    ],
+    "still_unverified": "the writer fault negative of the controlled branch was NOT exercised by this run: no injected writer error was run, so the branch that the Major of the review 86ab300 concerns is not proven by this result"
+  },
+  "known_open_major": {
+    "review_commit": "86ab300",
+    "finding": "unguarded final is_alive/identity queries can replace original O or earlier K and skip required publication",
+    "status": "OPEN",
+    "closed_by_this_run": false,
+    "downgraded_by_this_run": false,
+    "note": "this run was a bounded isolated CPU reproduction under ADR16 O1; it reproduces the actual behaviour of the candidate and it closes nothing.  The known Major keeps blocking the exit, the dependent live actions and N2, and the Stage and product gates stay closed."
+  },
+  "artifacts": {
+    "root": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-03/attempt01",
+    "evidence_directory": "attempt01/evidence",
+    "evidence_document_count": 16,
+    "pytest_temp_directory": "attempt01/pytest-temp - deliberately NOT committed (temporary directory and its link)",
+    "runner_result_rewritten_by_hand": false
+  },
+  "scope_of_this_result": {
+    "is_1_node_targeted_check": true,
+    "is_14_node_targeted_check": false,
+    "is_189_checkpoint": false,
+    "is_product_29": false,
+    "is_stage_acceptance": false,
+    "major_closed_by_this_run": 0,
+    "stage_pass_claimed": false,
+    "native_proven": false,
+    "product_acceptance": false,
+    "human_signoff": false,
+    "budget_reset": false,
+    "note": "one R07 node under one guarded CPU batch; it is not the 14 node check, not the 189 checkpoint, not the product 29 cases and not a Stage acceptance"
+  },
+  "obligations_not_run": [
+    "the writer fault negative of the controlled branch of R07 was not exercised",
+    "the query-failure fallback of N1-OPT-04 was not exercised by this run",
+    "the other 13 frozen nodes of T10 were NOT selected and NOT run",
+    "the remaining 175 frozen nodes of the 189 were NOT selected and NOT run",
+    "the product fixed 29 cases were NOT run",
+    "native, model, GPU, service, network, media, database, ledger and counter actions were NOT performed"
+  ],
+  "not_executed_or_not_performed": [
+    "any second guard batch",
+    "any rerun of the node",
+    "any source modification",
+    "any other test module or any native API call",
+    "any counter creation, write, reset, refund or revival",
+    "any old budget revival",
+    "any import, collect or pytest outside the single guarded batch"
+  ],
+  "unrelated_dirty_state_preserved": [
+    "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-01/report.md"
+  ],
+  "next_owner": "coordinator",
+  "next_action": "the independent review of this attempt and the next frozen scope for the known open Major; this delivery claims no Major closure, no test PASS beyond the one node that really ran, and no Stage, native or product acceptance"
+}
