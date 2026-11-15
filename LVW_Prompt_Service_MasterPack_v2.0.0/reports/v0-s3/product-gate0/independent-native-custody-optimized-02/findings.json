@@ -1,0 +1,59 @@
+{
+  "candidate_sha": "62e0d429dd78418220235359d068ae28d7b37e6e",
+  "baseline_sha": "1a34fbbe318fbe240823a2bf2f09517a98294744",
+  "decision": "CLOSED_STATIC_OPT_R07_OWNER_01_NO_STATIC_BLOCKER_TO_ROOT_FREEZING_GUARDED_R07_RETEST",
+  "new_findings_count": {
+    "Fatal": 0,
+    "Major": 0,
+    "Minor": 0
+  },
+  "reviewed_dispositions": [
+    {
+      "id": "OPT-R07-OWNER-01",
+      "candidate": "62e0d429dd78418220235359d068ae28d7b37e6e",
+      "candidate_sha": "62e0d429dd78418220235359d068ae28d7b37e6e",
+      "baseline": "1a34fbbe318fbe240823a2bf2f09517a98294744",
+      "spec": "ADR16 + N1-OPTIMIZED-01/1.0 + OPT-B-R07-OBSERVED-OWNER-01",
+      "layer": "R07 fixture oracle; production unchanged",
+      "location": "T10:3929-3934, 4008-4035, 4087-4113, 4127-4190, 4225-4310; custody:1585-1664; T10:341-372, 414-426, 1143-1173",
+      "trigger": "Public start timeout cleans and retires mutable session._pump after joining the real attached pump.",
+      "expected": "Keep actual admission object before deadline tightening; read its actual lifecycle and independently prove identity after public return; None alone or unknown cleanup never passes.",
+      "actual": "zero_observed[pump] saved before bind_absolute_deadline; zero_pump loaded from holder after public start, not from transient slot. Finished, alive, error, frames, context and broker come from that held production object. _session_owners reads production _background_threads thread; observer registry returns original observed thread and STARTED provenance. Actual non-null/finished/nonalive/no-error/context/broker/background/observer assertions precede slot acceptance; None branch also rejects NOT_STOPPED/NOT_STARTED.",
+      "oracle": "Same actual held object, real finished and not alive, error is None, original context and broker, production retained background identity, original observer identity and proven start. Session slot may be same object or None only with these predicates and exact confirmed-join producer path.",
+      "negative": "Missing held object/background identity/observer provenance, alive or unfinished pump, real error, foreign broker/context or replacement slot all fail. New unguarded identity query failure propagates through unchanged enclosing finally, so cannot return PASS; actual fault injections not run.",
+      "terminal": "CLOSED_STATIC; no dynamic closure, no Stage PASS, no runtime ACK.",
+      "cleanup": "New code performs observations/assertions before existing finally salvage; it neither joins nor mutates pump. Production confirms join before clearing transient slot; actual held lifecycle required, not None. Existing 15s observation bound and fixture release/stop/drain/quiescence unchanged.",
+      "evidence": [
+        "git show 62e0d429dd78418220235359d068ae28d7b37e6e:LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py",
+        "git diff 1a34fbbe318fbe240823a2bf2f09517a98294744 62e0d429dd78418220235359d068ae28d7b37e6e -- LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py",
+        "source-binding.json",
+        "prior cfee57a OPT-R07-OWNER-01; immutable attempt01 raw hash bindings retained"
+      ],
+      "classification": "CLOSED_STATIC",
+      "classification_reason": "Prior false-negative reference mechanism repaired inside frozen scope, with concrete real-object oracle replacing transient-slot equality; no reproducible new blocking source issue found.",
+      "uncertainty": "No attempt02 execution. Actual held pump error/frames, R07 success and downstream controlled subcases unverified. Writer failure/retry, early body failure/publication, interrupted-start inflight/thread-query failure negatives retain prior unverified status.",
+      "severity": "Prior Major; static repair only",
+      "owner_and_exit_condition": {
+        "owner": "root execution/guard owner, visible ClaudeCode runner, then isolated reviewer",
+        "exit_condition": "Root freezes exact candidate/source/dependencies/guard/nodeids/budget and ACKs finite R07 retest; preserve raw result and before/after cleanup; independently review real evidence; no test launched here."
+      }
+    }
+  ],
+  "new_findings": [],
+  "runtime": "NOT_RUN; no attempt02 lookup or polling",
+  "prior_M2_M3": "Reuse cfee57a static dispositions only; historical reviews unchanged; no formal closure or Minor reclassification",
+  "native_uncertainties": [
+    "N03-R16",
+    "N05-R06",
+    "N05-R07",
+    "N05-R08",
+    "N05-R24",
+    "N07-R08",
+    "N10-R12",
+    "N10-R13",
+    "N10-R14"
+  ],
+  "fixed_component_count": 189,
+  "fixed_product_count": 29,
+  "stage_pass": false
+}
