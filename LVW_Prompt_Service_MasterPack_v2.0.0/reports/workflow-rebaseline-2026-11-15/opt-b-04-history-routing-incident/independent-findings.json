@@ -1,0 +1,341 @@
+{
+  "candidate_sha": "d645bd559af89921cd0359612cce7b78c4892fe8",
+  "baseline_sha": "a9a63cf7f7b5ec52e271639bb6278e54b457805a",
+  "decision": "CHANGES_REQUIRED_CONSOLIDATED_REVIEW",
+  "counts": {
+    "Fatal": 0,
+    "Major": 5,
+    "Minor": 0
+  },
+  "findings": [
+    {
+      "candidate": "d645bd559af89921cd0359612cce7b78c4892fe8",
+      "candidate_sha": "d645bd559af89921cd0359612cce7b78c4892fe8",
+      "spec": "ADR16 + N1-OPTIMIZED-01 + OPT-B-CONSOLIDATED-PRIORITY-AND-NEGATIVES-01",
+      "layer": "test fixture / supplemental verification",
+      "terminal": "CHANGES_REQUIRED; no Stage/N2 clearance; canonical combined batch FAIL",
+      "cleanup": "Actual combined batch MainThread-only and FD identities unchanged; this does not validate unexecuted cleanup/fault mechanisms or imply native/product cleanup.",
+      "uncertainty": "No reviewer execution; distinguish observed raw facts from conditional static counterexample.",
+      "owner_and_exit_condition": {
+        "owner": "visible ClaudeCode test implementer; root freeze/run owner; isolated reviewer",
+        "exit_condition": "Consolidated minimal corrections preserving original189/new5 identities, actual public paths and unknown semantics; new root-frozen finite affected verification and independent exact raw review, without replaying old receipts."
+      },
+      "id": "OPT04-M1-SHUTDOWN-WIRING",
+      "severity": "Major",
+      "classification": "BLOCKING_REQUIRED_ORACLE_OR_CLEANUP_GAP",
+      "location": "T10:4469-4508; broker:5269-5276,5034-5037",
+      "trigger": "Zero channel has real reader/writer workers; fixture enumerates endpoints and calls shutdown actions.",
+      "expected": "Reach actual _reader/_writer endpoints and invoke real stop_accepting/request_cancel before bounded drain.",
+      "actual": "It queries _read/_write, absent on real StreamChannel, so defaults None and zero_endpoints stays empty without an unknown/error. Also lambdas at4495/4497 RETURN bound methods; repr(call()) never invokes either shutdown method even if endpoint lookup is corrected. Normal and SUP01/02 raw fixture_shutdown=[], fixture_handle_proof=None, unknown=[] despite registered read worker; observed original189 still genuinely passed this schedule.",
+      "oracle": "Correct real attribute wiring and invoke bound actions; assert known actual registered worker was attempted and its actual final handles/liveness verified; preserve existing bounded drain and returned product state.",
+      "negative": "Absent required known worker or omitted actual action must not create empty successful verification; no deadline relaxation.",
+      "evidence": [
+        "source-binding.json",
+        "git show d645bd559af89921cd0359612cce7b78c4892fe8:LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py",
+        "git show d645bd559af89921cd0359612cce7b78c4892fe8:LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_cleanup_faults.py"
+      ],
+      "raw_evidence_refs": [
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/evidence/n10-r07-zero-salvage.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/evidence/negative/sup-01/n10-r07-zero-salvage.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/evidence/negative/sup-02/n10-r07-zero-salvage.json"
+      ],
+      "classification_reason": "Necessary shutdown/handle verification silently skipped, not presentation; clean observed schedule cannot prove missing action under old failing schedule."
+    },
+    {
+      "candidate": "d645bd559af89921cd0359612cce7b78c4892fe8",
+      "candidate_sha": "d645bd559af89921cd0359612cce7b78c4892fe8",
+      "spec": "ADR16 + N1-OPTIMIZED-01 + OPT-B-CONSOLIDATED-PRIORITY-AND-NEGATIVES-01",
+      "layer": "test fixture / supplemental verification",
+      "terminal": "CHANGES_REQUIRED; no Stage/N2 clearance; canonical combined batch FAIL",
+      "cleanup": "Actual combined batch MainThread-only and FD identities unchanged; this does not validate unexecuted cleanup/fault mechanisms or imply native/product cleanup.",
+      "uncertainty": "No reviewer execution; distinguish observed raw facts from conditional static counterexample.",
+      "owner_and_exit_condition": {
+        "owner": "visible ClaudeCode test implementer; root freeze/run owner; isolated reviewer",
+        "exit_condition": "Consolidated minimal corrections preserving original189/new5 identities, actual public paths and unknown semantics; new root-frozen finite affected verification and independent exact raw review, without replaying old receipts."
+      },
+      "id": "OPT04-M2-FINAL-QUERY-FAULT-MISSED",
+      "severity": "Major",
+      "classification": "BLOCKING_REQUIRED_ORACLE_OR_CLEANUP_GAP",
+      "location": "supplement:58-83,134-146,198-200,306-308; T10:4614-4616",
+      "trigger": "SUP01/02 attempt final worker liveness E/K2 injection.",
+      "expected": "Fault exactly once at actual guarded final query after held-worker identity is established.",
+      "actual": "Runtime SUP01/02 FAIL with calls16/12 and injected0. Independently, _getframe(2) from _from_final_query invoked inside wrapper sees R07 lambda, not zero_guarded_query (depth3). Endpoint omission M1 additionally prevents any final worker query. Both must be corrected; fixing only depth is insufficient.",
+      "oracle": "Observe exact final-query invocation and target held worker; one-shot inject fault and assert exact injection/actual callee outcome before qualifying negative PASS.",
+      "negative": "Missing injection stays FAIL; ordinary R07/189 pass does not cover this negative.",
+      "evidence": [
+        "source-binding.json",
+        "git show d645bd559af89921cd0359612cce7b78c4892fe8:LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py",
+        "git show d645bd559af89921cd0359612cce7b78c4892fe8:LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_cleanup_faults.py"
+      ],
+      "raw_evidence_refs": [
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/native-custody-correction-03.receipt.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/guard.stdout.log",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/evidence/negative/sup-01/n10-r07-zero-salvage.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/evidence/negative/sup-02/n10-r07-zero-salvage.json"
+      ],
+      "classification_reason": "Two mandatory negatives not executed at their designated faults; actual failed tests correctly expose the gap."
+    },
+    {
+      "candidate": "d645bd559af89921cd0359612cce7b78c4892fe8",
+      "candidate_sha": "d645bd559af89921cd0359612cce7b78c4892fe8",
+      "spec": "ADR16 + N1-OPTIMIZED-01 + OPT-B-CONSOLIDATED-PRIORITY-AND-NEGATIVES-01",
+      "layer": "test fixture / supplemental verification",
+      "terminal": "CHANGES_REQUIRED; no Stage/N2 clearance; canonical combined batch FAIL",
+      "cleanup": "Actual combined batch MainThread-only and FD identities unchanged; this does not validate unexecuted cleanup/fault mechanisms or imply native/product cleanup.",
+      "uncertainty": "No reviewer execution; distinguish observed raw facts from conditional static counterexample.",
+      "owner_and_exit_condition": {
+        "owner": "visible ClaudeCode test implementer; root freeze/run owner; isolated reviewer",
+        "exit_condition": "Consolidated minimal corrections preserving original189/new5 identities, actual public paths and unknown semantics; new root-frozen finite affected verification and independent exact raw review, without replaying old receipts."
+      },
+      "id": "OPT04-M3-NONTRANSPARENT-K1-RECORDER",
+      "severity": "Major",
+      "classification": "BLOCKING_REQUIRED_ORACLE_OR_CLEANUP_GAP",
+      "location": "supplement:262-282, especially274-278; T10:4551-4557",
+      "trigger": "SUP02 replaces third original drain release callback to add controlled pending K1.",
+      "expected": "Forward that same original callback and its real effects/results, then inject exact K1 once at declared seam.",
+      "actual": "release[2] is actual zero_close_channel; replacement removes it and k1_release calls release[0] (gate) instead. Thus the original repeated channel.close during drain is omitted and an unrelated release is duplicated. K1 is newly constructed each callback invocation, so repeated drain rounds can generate multiple distinct K1 objects while k1 counter stays1.",
+      "oracle": "Hold original callback and precreated exact K1; transparently invoke correct callback, inject once, preserve later calls/results; actual real lifecycle and first interruption remain checked.",
+      "negative": "Do not substitute a gate release for channel.close or infer one exception occurrence from a wrapper-install counter.",
+      "evidence": [
+        "source-binding.json",
+        "git show d645bd559af89921cd0359612cce7b78c4892fe8:LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py",
+        "git show d645bd559af89921cd0359612cce7b78c4892fe8:LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_cleanup_faults.py"
+      ],
+      "raw_evidence_refs": [
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/evidence/negative/sup-02/n10-r07-zero-salvage.json"
+      ],
+      "classification_reason": "Required actual callback/lifecycle and exact earlier interruption order are changed by the supposedly transparent negative recorder."
+    },
+    {
+      "candidate": "d645bd559af89921cd0359612cce7b78c4892fe8",
+      "candidate_sha": "d645bd559af89921cd0359612cce7b78c4892fe8",
+      "spec": "ADR16 + N1-OPTIMIZED-01 + OPT-B-CONSOLIDATED-PRIORITY-AND-NEGATIVES-01",
+      "layer": "test fixture / supplemental verification",
+      "terminal": "CHANGES_REQUIRED; no Stage/N2 clearance; canonical combined batch FAIL",
+      "cleanup": "Actual combined batch MainThread-only and FD identities unchanged; this does not validate unexecuted cleanup/fault mechanisms or imply native/product cleanup.",
+      "uncertainty": "No reviewer execution; distinguish observed raw facts from conditional static counterexample.",
+      "owner_and_exit_condition": {
+        "owner": "visible ClaudeCode test implementer; root freeze/run owner; isolated reviewer",
+        "exit_condition": "Consolidated minimal corrections preserving original189/new5 identities, actual public paths and unknown semantics; new root-frozen finite affected verification and independent exact raw review, without replaying old receipts."
+      },
+      "id": "OPT04-M4-UNKNOWN-ORACLE-CONTRADICTION",
+      "severity": "Major",
+      "classification": "BLOCKING_REQUIRED_ORACLE_OR_CLEANUP_GAP",
+      "location": "supplement:221-234,323-325; T10:4614-4636,4707-4710",
+      "trigger": "After M1/M2 corrections, actual final liveness query correctly throws injected E/K2.",
+      "expected": "Callee must retain query unknown and failed cleanup proof; independently prove physical cleanup with separate legitimate actual observation while honoring exact original/first interrupt.",
+      "actual": "Guard intentionally returns alive=None and sets fixture_handle_proof unknown/non-null. SUP01 nevertheless demands fixture_handle_proof is None and every alive_after is False; SUP02 likewise demands handle_proof None. Correct failclosed callee would make these negatives fail; turning unknown into False/None would be false evidence. Current injection0 means this contradiction was not executed.",
+      "oracle": "Assert exact query error/unknown/non-null failed proof for callee; separately prove actual owner/thread cleanup after restoring/forwarding true observer, never rewrite captured unknown.",
+      "negative": "Injected query cannot simultaneously provide known False; distinguish outer negative PASS from callee FAIL/UNKNOWN.",
+      "evidence": [
+        "source-binding.json",
+        "git show d645bd559af89921cd0359612cce7b78c4892fe8:LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py",
+        "git show d645bd559af89921cd0359612cce7b78c4892fe8:LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_cleanup_faults.py"
+      ],
+      "raw_evidence_refs": [
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/evidence/negative/sup-01/n10-r07-zero-salvage.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/evidence/negative/sup-02/n10-r07-zero-salvage.json"
+      ],
+      "classification_reason": "Semantic contradiction in mandatory hard Oracle, not optional diagnostic format; cannot be repaired by weakening unknown handling."
+    },
+    {
+      "candidate": "d645bd559af89921cd0359612cce7b78c4892fe8",
+      "candidate_sha": "d645bd559af89921cd0359612cce7b78c4892fe8",
+      "spec": "ADR16 + N1-OPTIMIZED-01 + OPT-B-CONSOLIDATED-PRIORITY-AND-NEGATIVES-01",
+      "layer": "test fixture / supplemental verification",
+      "terminal": "CHANGES_REQUIRED; no Stage/N2 clearance; canonical combined batch FAIL",
+      "cleanup": "Actual combined batch MainThread-only and FD identities unchanged; this does not validate unexecuted cleanup/fault mechanisms or imply native/product cleanup.",
+      "uncertainty": "No reviewer execution; distinguish observed raw facts from conditional static counterexample.",
+      "owner_and_exit_condition": {
+        "owner": "visible ClaudeCode test implementer; root freeze/run owner; isolated reviewer",
+        "exit_condition": "Consolidated minimal corrections preserving original189/new5 identities, actual public paths and unknown semantics; new root-frozen finite affected verification and independent exact raw review, without replaying old receipts."
+      },
+      "id": "OPT04-M5-EXACT-IDENTITY-NOT-ASSERTED",
+      "severity": "Major",
+      "classification": "BLOCKING_REQUIRED_ORACLE_OR_CLEANUP_GAP",
+      "location": "supplement:172-204,270-275,298-308,466-469,516-539",
+      "trigger": "Callee replaces original O/K1 with another same-type/same-token object, or recorder joins some non-null thread/settles some owner at5sec.",
+      "expected": "Exact raised object is injected original/first K1; SUP05 records and compares actual held owner and its held original thread, not arbitrary non-null references.",
+      "actual": "SUP01/02/05 compare only type and token, never info.value is injected object (SUP01/05 writer.injected already retains object but unused). SUP02 constructs K1 inline and cannot compare. SUP05 merely requires some settle(5), an interrupted-start join and non-null thread; no comparison to independently held actual owner/thread. Actual SUP05 PASS/raw both error kinds and dead liveness support branch execution but do not satisfy specified exact identities.",
+      "oracle": "Precreate/capture original and K objects; assert is identity and distinct K2; capture target held actual owner/thread before faults and compare recorder receiver/join object with those exact originals; forward real settle/join results.",
+      "negative": "Same-type/token replacement or foreign owner/thread must fail the negative. No source-candidate assertion inferred from persisted repr/type alone.",
+      "evidence": [
+        "source-binding.json",
+        "git show d645bd559af89921cd0359612cce7b78c4892fe8:LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py",
+        "git show d645bd559af89921cd0359612cce7b78c4892fe8:LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_cleanup_faults.py"
+      ],
+      "raw_evidence_refs": [
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/native-custody-correction-03.receipt.json",
+        "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/evidence/negative/sup-05/n10-r09-interrupted-start.json"
+      ],
+      "classification_reason": "Explicit mandatory exception/held-resource identity oracle missing; potential false acceptance of an invalid negative, not extra formatting."
+    }
+  ],
+  "obligation_coverage": [
+    {
+      "id": "N1-OPT-01",
+      "status": "TARGETED_WRITER_BRANCH_VERIFIED_NOT_WHOLE_N1_CLOSED",
+      "case": "SUP03 actual PASS (callee FAIL)",
+      "evidence": "negative/sup-03 controlled CHILD_TRANSPORT durable EVIDENCE OSError, exact sentinel token CHILD_TRANSPORT, failed proof, actual quiescent/all_salvage dead; one injected writer failure asserted by executed test."
+    },
+    {
+      "id": "N1-OPT-02",
+      "status": "TARGETED_RECOVERED_FINAL_WRITE_VERIFIED_NO_MINOR_DOWNGRADE",
+      "case": "SUP04 actual PASS (callee FAIL)",
+      "evidence": "third phase writer injects once; retry persists E with non-null failed proof; source final path has no later same-phase overwrite; quiescent actual cleanup verified."
+    },
+    {
+      "id": "N1-OPT-03",
+      "status": "GUARD_REPAIR_CONDITIONAL_CLOSED_STATIC_REQUIRED_QUERY_NEGATIVES_OPEN",
+      "case": "SUP01/02 actual FAIL, E/K2 not injected",
+      "evidence": "guard catches BaseException, records exact interruption object/error/unknown, final publication precedes O>firstK>ordinaryverdict, but M1 skips real final queries and M2/M3/M4 invalidate required negatives."
+    },
+    {
+      "id": "N1-OPT-04",
+      "status": "ACTUAL_FALLBACK_PATH_SUPPORTED_EXACT_IDENTITY_QUALIFICATION_OPEN",
+      "case": "SUP05 actual PASS (callee FAIL)",
+      "evidence": "actual R09 original phase triggers O, inflight E occurs once; original settle(5) is forwarded then lookupK armed only afterward; real held-thread join forwarded, doc owner_aliveFalse/liveness_knownTrue/errors both present; M5 exact exception/owner/thread assertion missing."
+    }
+  ],
+  "runtime_counts": {
+    "initial_status": "PENDING: initial inventory lacked after/guard/runner; partial results not interpreted",
+    "update_trigger": "Coordinator message msg_8dbd99f69bc2 delivered new actual result; one event-driven readiness check found all four complete; no polling or rerun",
+    "status": "COMPLETED_FAIL_WITH_ORIGINAL189_PASS_AND_SUPPLEMENT_GAPS",
+    "raw_evidence_sha256": {
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/native-custody-correction-03.receipt.json": "a1a54be4decd04f7485c8734232df82ef9e2c1fbf90f5ad60088f7999f685192",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/guard.json": "3a2c9ca3be5677b0943358dab342a9614a761061ed15ce71477fecb2cbac63a4",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/counter-absence-before.json": "bfe4e7b1a3f9d9d912e432a13d16313f40e3857e0895a556bd73e2f08bcffc23",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/counter-absence-after.json": "bfe4e7b1a3f9d9d912e432a13d16313f40e3857e0895a556bd73e2f08bcffc23",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/guard.stdout.log": "288e9731f352a914f316b4437438b6234c8daf77d5ce42491c1ff9c2a00e2a8a",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/guard.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/before.stdout.log": "410440f407966a80b4f054e49f8e99276a72a8b9a9149f6412c3f217424fdaff",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/before.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/after.stdout.log": "410440f407966a80b4f054e49f8e99276a72a8b9a9149f6412c3f217424fdaff",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/after.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/evidence/n10-r07-zero-salvage.json": "c4bf1810e3fae012657ef0412a6754ab34b011474becccd0e68ecece87252150",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/evidence/negative/sup-01/n10-r07-zero-salvage.json": "f9fccf1d3bf200c5b50c0600eaca627e9464592f8673f4b24319a52b7b9b69e7",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/evidence/negative/sup-02/n10-r07-zero-salvage.json": "5fda07ace4e50dadc2a94991c921eaf121caf0c3d47ba489673b51ef819a430e",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/evidence/negative/sup-03/n10-r07-controlled-failure-child_transport.json": "99b94a1c68ffbc82e67b52556de3d011aaadc67d6c366f4266f0bf485b7175c1",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/evidence/negative/sup-04/n10-r07-controlled-failure-child_transport.json": "1f96aa6356bda4938aec280a91b03a1be0017a51e4611bdc9a0f06556aafda83",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-04/combined01/evidence/negative/sup-05/n10-r09-interrupted-start.json": "08e0fdfa11a83770b95d678e39e1057559a5f3283b93c723d2332bdcec5571b3"
+    },
+    "selected_collected_order_match": true,
+    "original189": {
+      "passed": 189,
+      "failed": 0,
+      "skipped": 0,
+      "missing": 0,
+      "note": "includes two explicitly integrity-only nodes; original functional subset187, not189 functional"
+    },
+    "supplement5": {
+      "passed": 3,
+      "failed": 2,
+      "skipped": 0,
+      "missing": 0,
+      "failed_nodes": [
+        "N1-SUP-01",
+        "N1-SUP-02"
+      ],
+      "passed_nodes": [
+        "N1-SUP-03",
+        "N1-SUP-04",
+        "N1-SUP-05"
+      ]
+    },
+    "aggregate": {
+      "calls": 194,
+      "passed": 192,
+      "failed": 2,
+      "skipped": 0,
+      "pytest_exit": 1,
+      "functional_pass_count": 190,
+      "hidden_setup_teardown_failure_or_skip": false
+    },
+    "runner_seconds": 53.43683671951294,
+    "guard_seconds": 53.54353308677673,
+    "fd_before": {
+      "available": true,
+      "rows": {
+        "0": [
+          6,
+          4,
+          8630
+        ],
+        "1": [
+          2096,
+          3085341,
+          33188
+        ],
+        "2": [
+          2096,
+          3085342,
+          33188
+        ]
+      },
+      "filtered": [
+        3
+      ],
+      "unknown": []
+    },
+    "fd_after": {
+      "available": true,
+      "rows": {
+        "0": [
+          6,
+          4,
+          8630
+        ],
+        "1": [
+          2096,
+          3085341,
+          33188
+        ],
+        "2": [
+          2096,
+          3085342,
+          33188
+        ]
+      },
+      "filtered": [
+        3
+      ],
+      "unknown": []
+    },
+    "new_or_reused_fds": [],
+    "threads_before": [
+      "MainThread"
+    ],
+    "threads_after": [
+      "MainThread"
+    ],
+    "batch_cleanup_proven": true,
+    "guard_runtime_denials": [],
+    "guard_selftest_denials": [
+      "subprocess.Popen",
+      "socket.__new__",
+      "os.fork",
+      "os.exec",
+      "os.system",
+      "sqlite3.connect",
+      "ctypes.dlopen",
+      "ctypes.dlsym"
+    ],
+    "preload": "one ctypes.dlopen(None); CLOSED before candidate",
+    "counter": "before/after exact parent and counter MISSING errno2; only absence, no historical continuity or authorization resurrection",
+    "new_runtime_executed_by_reviewer": false
+  },
+  "separate_denominators_retained": true,
+  "no_historical_review_or_failure_rewritten": true,
+  "native_uncertainties": [
+    "N03-R16",
+    "N05-R06",
+    "N05-R07",
+    "N05-R08",
+    "N05-R24",
+    "N07-R08",
+    "N10-R12",
+    "N10-R13",
+    "N10-R14"
+  ],
+  "stage_pass": false
+}
