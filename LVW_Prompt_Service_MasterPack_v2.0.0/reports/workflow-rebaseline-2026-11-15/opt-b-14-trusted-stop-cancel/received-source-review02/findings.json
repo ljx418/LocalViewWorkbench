@@ -1,0 +1,40 @@
+{
+  "result": "READY_FOR_ROOT_CONDITIONAL_FIVE_CASE_SOURCE_FEEDBACK",
+  "counts": {
+    "Fatal": 0,
+    "Major": 0,
+    "Minor": 0
+  },
+  "effective_findings": [],
+  "obligation_assessments": [
+    {
+      "id": "CTRL01-M1",
+      "source_sha256": "e3b18a954084c5c89ff1cf7f35e719d4669c8e6df21e652b4d6d54014ff48ba1",
+      "spec": "OPT-B-14 deferred cancellation source readiness; five-case plan5e1ee44d\u2026",
+      "layer": "trusted single-child controller ownership/cancellation",
+      "location": "bounded_exec.py:74-82,84-109,115-160; cancel_publication_canary.py:24-65",
+      "trigger": "Ordinary TERM/INT while real child exists but factory result is not yet assigned to controller proc, plus repeated cancellation during cleanup.",
+      "expected": "Pending cancellation cannot throw across ownership publication or cleanup entry; actual child is held, journaled, then stopped/reaped with failed workload status.",
+      "actual": "Handler only appends signal numbers. Exact real factory result reaches proc, PID/birth/session/group journal is written, pending cancellation is consumed before wait; running waits poll at most50ms, cleanup handler remains nonthrowing. Timeout/nonzero/cancellation/unknown reap cannot become successful workload.",
+      "oracle": "Fifth factory forwards realPopen args/result, retains same actual object, sends realTERM+INT before return, then checks controller CANCELLED/exit1/exactPID/cancel list/reaped/negative actual return and no fallback. Firstfour retain ready/identity/signal/reap checks.",
+      "negative": "Live or unknown child, foreign/replacement owner, different PID/signals, missing receipt, fallback rescue, unproved reap or erroneous workload exit cannot qualify.",
+      "terminal": "CLOSED_STATIC; READY_FOR_CONDITIONAL_FIVE_CASE_FEEDBACK only, actual runtime pending",
+      "cleanup": "No controller/canary/probe executed by reviewer; real bounded termination/reap not claimed from source.",
+      "evidence": [
+        "sourcecheck.json exact pins/request arithmetic",
+        "bounded_exec.py and source-only delta from old opt-b-13",
+        "cancel_publication_canary.py same actual child path"
+      ],
+      "historical_classification": "Major",
+      "current_classification": "CLOSED_STATIC_NO_DYNAMIC_CLOSURE",
+      "uncertainty": "No parentSIGKILL/crash, native/adversarial, descendant or hard real-time guarantee. Adapter poll can reap a terminated child: fallback_used describes rescue of a still-running child, so it is not alone an independent certificate of which code called waitpid. Current frozen success also depends on controller receipt and verified original wait path."
+    }
+  ],
+  "CTRL01_M1": "CLOSED_STATIC; short actual control proof pending",
+  "CP10_M1": "OPEN",
+  "runtime": "NOT_RUN",
+  "actual_root_activation": "NOT_ISSUED; conditional_ACK.actual_permission_to_launch_now=false",
+  "old_hard_control_attempts": "NOT_QUALIFIED/NOT_ESTABLISHED unchanged",
+  "old194_functional_CPUcleanup": "SUPPORTED unchanged",
+  "Stage_N2_product_native": "NO_CLEARANCE"
+}

@@ -1,0 +1,113 @@
+{
+  "kind": "ACTUAL_TRUSTED_STOP_SELFTEST_NOT_PRODUCT_CHECKPOINT",
+  "plan_sha256": "5e1ee44d5f6a8bdc48061e2153f61e83d20fc45270a8258b1e1894e0e7d6cd59",
+  "source_review": "39a5ce57bf5840c1c596ef84e9f14020ad202183",
+  "actual_cases": 5,
+  "PASS": 5,
+  "FAIL": 0,
+  "retries": 0,
+  "checks": [
+    {
+      "mode": "normal",
+      "passed": true,
+      "controller_status": "EXITED_ZERO",
+      "child_returncode": 0,
+      "signals": [],
+      "cancel_signals": [],
+      "reaped": true,
+      "child_identity_after": {
+        "pid": 1486494,
+        "expected_birth": "5635381",
+        "state": "MISSING",
+        "original_absent": true
+      },
+      "elapsed_seconds": 0.04024450299766613,
+      "receipt_sha256": "e56cab1759d424118571355f61650bc6d45387dd25dd8ef5b647a60bf11ad2f3"
+    },
+    {
+      "mode": "nonzero",
+      "passed": true,
+      "controller_status": "EXITED_NONZERO",
+      "child_returncode": 13,
+      "signals": [],
+      "cancel_signals": [],
+      "reaped": true,
+      "child_identity_after": {
+        "pid": 1486521,
+        "expected_birth": "5635402",
+        "state": "MISSING",
+        "original_absent": true
+      },
+      "elapsed_seconds": 0.04250399999727961,
+      "receipt_sha256": "14908c8d0abcb1a725b80004c294f43c47643e52c68dea1ee394443afeff24fa"
+    },
+    {
+      "mode": "term",
+      "passed": true,
+      "controller_status": "DEADLINE_EXPIRED",
+      "child_returncode": -15,
+      "signals": [
+        "SIGTERM"
+      ],
+      "cancel_signals": [],
+      "reaped": true,
+      "child_identity_after": {
+        "pid": 1486548,
+        "expected_birth": "5635420",
+        "state": "MISSING",
+        "original_absent": true
+      },
+      "elapsed_seconds": 0.5033692470024107,
+      "receipt_sha256": "4470f6281c5bdd0e2a9903eb76dd960e70834df4685654bafd786d298de39c29"
+    },
+    {
+      "mode": "ignore-term",
+      "passed": true,
+      "controller_status": "DEADLINE_EXPIRED",
+      "child_returncode": -9,
+      "signals": [
+        "SIGTERM",
+        "SIGKILL"
+      ],
+      "cancel_signals": [],
+      "reaped": true,
+      "child_identity_after": {
+        "pid": 1486575,
+        "expected_birth": "5635482",
+        "state": "MISSING",
+        "original_absent": true
+      },
+      "elapsed_seconds": 0.7034809899996617,
+      "receipt_sha256": "30154d046cf1a9fd9c25acc5dbdc5be30d21df525c22aa244b5826bd30a5695d"
+    },
+    {
+      "mode": "cancel-publication",
+      "passed": true,
+      "controller_status": "CANCELLED",
+      "child_returncode": -15,
+      "signals": [
+        "SIGTERM"
+      ],
+      "cancel_signals": [
+        15,
+        2
+      ],
+      "reaped": true,
+      "child_identity_after": {
+        "pid": 1486602,
+        "expected_birth": "5635564",
+        "state": "MISSING",
+        "original_absent": true
+      },
+      "elapsed_seconds": 0.010546787998464424,
+      "receipt_sha256": "b4a9e6ccdc544116e589d326ad753bed3aa14713bdfaf46bad8e05835f7a9a84"
+    }
+  ],
+  "post_pins_match": true,
+  "tool_orchestration_elapsed_seconds": 2.001,
+  "actual_owned_children_reaped": 5,
+  "old194_or_native_proof_added": false,
+  "independent_actual_review_pending": true,
+  "Stage_N2_clearance": false,
+  "limitations": "Linux single-child cooperative guard profile only; parentSIGKILL/tree/native guarantees excluded. Old attempted checkpoints not retroactively qualified."
+}

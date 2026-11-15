@@ -1,0 +1,440 @@
+{
+  "method": "Source-only hash/JSON/AST/read installed stdlib; no controller/driver/canary/candidate import/compile/run, no process scans.",
+  "plan_sha256": "5e1ee44d5f6a8bdc48061e2153f61e83d20fc45270a8258b1e1894e0e7d6cd59",
+  "source_pins": [
+    {
+      "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/bounded_exec.py",
+      "expected": "e3b18a954084c5c89ff1cf7f35e719d4669c8e6df21e652b4d6d54014ff48ba1",
+      "actual": "e3b18a954084c5c89ff1cf7f35e719d4669c8e6df21e652b4d6d54014ff48ba1",
+      "match": true
+    },
+    {
+      "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/cancel_publication_canary.py",
+      "expected": "988be19565e10747af1695327a9353f5aee562f259d1fc01066ed6b3f1cc4ee2",
+      "actual": "988be19565e10747af1695327a9353f5aee562f259d1fc01066ed6b3f1cc4ee2",
+      "match": true
+    },
+    {
+      "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control_canary.py",
+      "expected": "e11ae8c3547314b57898f3288dc2fe902659f51b7f80cd841ffc76da2e919d3c",
+      "actual": "e11ae8c3547314b57898f3288dc2fe902659f51b7f80cd841ffc76da2e919d3c",
+      "match": true
+    }
+  ],
+  "interpreter_pin": {
+    "path": "/usr/bin/python3.12",
+    "expected": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+    "actual": "e50d468e8b0adfb05733f5b87b3cff34829c4a8c1aea50c865aa8bdfe4bb150f",
+    "match": true
+  },
+  "conditional_ACK": {
+    "kind": "CONDITIONAL_ROOT_ACK_FIVE_SHORT_CONTROL_TESTS_NO_RUNTIME_YET",
+    "plan_sha256": "5e1ee44d5f6a8bdc48061e2153f61e83d20fc45270a8258b1e1894e0e7d6cd59",
+    "parent_authority": "AUTH-PROGRAM-V1-COMPLETE-03",
+    "condition": "Corrected source independently Fatal0/Major0 and root activation after unchanged pins",
+    "cases": 5,
+    "max_seconds": 20,
+    "retries": 0,
+    "actual_permission_to_launch_now": false,
+    "expires": "new selftest02 terminal"
+  },
+  "conditional_ACK_sha256": "5486a98121ba79b2995b213c47c6c7231fc324ea215d7542db54c49e22383435",
+  "cases": [
+    {
+      "mode": "normal",
+      "request_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/normal.request.json",
+      "sha256": "5c2463fd4f5b449c8069297670b58e178bd4d9fb066f1cfdc4e58401895f2c6c",
+      "expected": "5c2463fd4f5b449c8069297670b58e178bd4d9fb066f1cfdc4e58401895f2c6c",
+      "pin_match": true,
+      "request": {
+        "kind": "LVW_BOUNDED_CHILD/1",
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-B",
+          "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control_canary.py",
+          "normal"
+        ],
+        "cwd": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0",
+        "environment": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/home/administrator",
+          "PYTHONDONTWRITEBYTECODE": "1"
+        },
+        "output_dir": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/run/normal",
+        "wall_seconds": 0.5,
+        "term_grace_seconds": 0.2,
+        "kill_grace_seconds": 0.5
+      },
+      "expected_outcome": {
+        "status": "EXITED_ZERO",
+        "returncode": 0,
+        "controller_exit": 0,
+        "timed_out": false,
+        "signals": []
+      },
+      "execution_and_cleanup_seconds": 1.2,
+      "output_directly_under_new_run": true,
+      "unchanged_child_semantics": true,
+      "expected_outcome_unchanged": true,
+      "controller_argv_exact": true
+    },
+    {
+      "mode": "nonzero",
+      "request_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/nonzero.request.json",
+      "sha256": "9da39eaf293ee47ca72e0ec04cb48173d99cca4f94a6e49de84c95df26125f58",
+      "expected": "9da39eaf293ee47ca72e0ec04cb48173d99cca4f94a6e49de84c95df26125f58",
+      "pin_match": true,
+      "request": {
+        "kind": "LVW_BOUNDED_CHILD/1",
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-B",
+          "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control_canary.py",
+          "nonzero"
+        ],
+        "cwd": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0",
+        "environment": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/home/administrator",
+          "PYTHONDONTWRITEBYTECODE": "1"
+        },
+        "output_dir": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/run/nonzero",
+        "wall_seconds": 0.5,
+        "term_grace_seconds": 0.2,
+        "kill_grace_seconds": 0.5
+      },
+      "expected_outcome": {
+        "status": "EXITED_NONZERO",
+        "returncode": 13,
+        "controller_exit": 1,
+        "timed_out": false,
+        "signals": []
+      },
+      "execution_and_cleanup_seconds": 1.2,
+      "output_directly_under_new_run": true,
+      "unchanged_child_semantics": true,
+      "expected_outcome_unchanged": true,
+      "controller_argv_exact": true
+    },
+    {
+      "mode": "term",
+      "request_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/term.request.json",
+      "sha256": "4e572dd96f3842ccac33248b2e3a7b4d66a17b0c9e5d3bbf7400a0f2f5f7858a",
+      "expected": "4e572dd96f3842ccac33248b2e3a7b4d66a17b0c9e5d3bbf7400a0f2f5f7858a",
+      "pin_match": true,
+      "request": {
+        "kind": "LVW_BOUNDED_CHILD/1",
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-B",
+          "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control_canary.py",
+          "term"
+        ],
+        "cwd": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0",
+        "environment": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/home/administrator",
+          "PYTHONDONTWRITEBYTECODE": "1"
+        },
+        "output_dir": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/run/term",
+        "wall_seconds": 0.5,
+        "term_grace_seconds": 0.2,
+        "kill_grace_seconds": 0.5
+      },
+      "expected_outcome": {
+        "status": "DEADLINE_EXPIRED",
+        "returncode": -15,
+        "controller_exit": 1,
+        "timed_out": true,
+        "signals": [
+          "SIGTERM"
+        ]
+      },
+      "execution_and_cleanup_seconds": 1.2,
+      "output_directly_under_new_run": true,
+      "unchanged_child_semantics": true,
+      "expected_outcome_unchanged": true,
+      "controller_argv_exact": true
+    },
+    {
+      "mode": "ignore-term",
+      "request_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/ignore-term.request.json",
+      "sha256": "f0a290fd48ab299c690eb4f7a23a70bbf58f82d53bb84aaac2b0366d065eb102",
+      "expected": "f0a290fd48ab299c690eb4f7a23a70bbf58f82d53bb84aaac2b0366d065eb102",
+      "pin_match": true,
+      "request": {
+        "kind": "LVW_BOUNDED_CHILD/1",
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-B",
+          "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control_canary.py",
+          "ignore-term"
+        ],
+        "cwd": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0",
+        "environment": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/home/administrator",
+          "PYTHONDONTWRITEBYTECODE": "1"
+        },
+        "output_dir": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/run/ignore-term",
+        "wall_seconds": 0.5,
+        "term_grace_seconds": 0.2,
+        "kill_grace_seconds": 0.5
+      },
+      "expected_outcome": {
+        "status": "DEADLINE_EXPIRED",
+        "returncode": -9,
+        "controller_exit": 1,
+        "timed_out": true,
+        "signals": [
+          "SIGTERM",
+          "SIGKILL"
+        ]
+      },
+      "execution_and_cleanup_seconds": 1.2,
+      "output_directly_under_new_run": true,
+      "unchanged_child_semantics": true,
+      "expected_outcome_unchanged": true,
+      "controller_argv_exact": true
+    },
+    {
+      "mode": "cancel-publication",
+      "request_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/cancel-publication.request.json",
+      "sha256": "4d93daad15850f50c1513c33e2abddbc47e53590f57ea37e6ac837a3ecfc4c49",
+      "expected": "4d93daad15850f50c1513c33e2abddbc47e53590f57ea37e6ac837a3ecfc4c49",
+      "pin_match": true,
+      "request": {
+        "kind": "LVW_BOUNDED_CHILD/1",
+        "argv": [
+          "/usr/bin/python3.12",
+          "-I",
+          "-B",
+          "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control_canary.py",
+          "term"
+        ],
+        "cwd": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0",
+        "environment": {
+          "PATH": "/usr/bin:/bin",
+          "HOME": "/home/administrator",
+          "PYTHONDONTWRITEBYTECODE": "1"
+        },
+        "output_dir": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/run/cancel-publication",
+        "wall_seconds": 0.5,
+        "term_grace_seconds": 0.2,
+        "kill_grace_seconds": 0.5
+      },
+      "expected_outcome": {
+        "driver_exit": 0,
+        "controller_exit": 1,
+        "status": "CANCELLED",
+        "cancel_signals": [
+          15,
+          2
+        ],
+        "reaped": true,
+        "same_actual_Popen_PID": true,
+        "fallback_used": false,
+        "child_returncode_one_of": [
+          -15,
+          -9
+        ]
+      },
+      "execution_and_cleanup_seconds": 1.2,
+      "output_directly_under_new_run": true,
+      "real_term_child_argv": true,
+      "driver_argv_exact": true
+    }
+  ],
+  "case_count": 5,
+  "sum_case_execution_and_cleanup_graces_seconds": 6.0,
+  "fifth_fallback_max_seconds": 0.6,
+  "sum_including_failed_fifth_fallback_seconds": 6.6,
+  "overall_budget_seconds": 20,
+  "new_root_lexists": false,
+  "old_source_plan_preservation": [
+    {
+      "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/bounded_exec.py",
+      "sha256": "4323d266bbd0c1afab99138af8c1962ea27a9e01ff7380d9c56c52e199cba7c0",
+      "expected": "4323d266bbd0c1afab99138af8c1962ea27a9e01ff7380d9c56c52e199cba7c0"
+    },
+    {
+      "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/control-selftest-01/plan.json",
+      "sha256": "4bdd36852b95caeef6bb89c398dd4715d80d293adae19ec41e3a08bfdc936606",
+      "expected": "4bdd36852b95caeef6bb89c398dd4715d80d293adae19ec41e3a08bfdc936606"
+    }
+  ],
+  "old_run_root_lexists": false,
+  "source_ast": {
+    "bounded_exec.py": {
+      "sha256": "e3b18a954084c5c89ff1cf7f35e719d4669c8e6df21e652b4d6d54014ff48ba1",
+      "ast_only_parsed": true
+    },
+    "cancel_publication_canary.py": {
+      "sha256": "988be19565e10747af1695327a9353f5aee562f259d1fc01066ed6b3f1cc4ee2",
+      "ast_only_parsed": true
+    },
+    "control_canary.py": {
+      "sha256": "e11ae8c3547314b57898f3288dc2fe902659f51b7f80cd841ffc76da2e919d3c",
+      "ast_only_parsed": true
+    }
+  },
+  "source_document_hashes": {
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/README.md": "f906b4adf0b0505d903272627039bd0f69d2d1da2cb95f42c621bafa246f14f7",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/root-disposition.json": "24270dd7b08206705252c2aa10c58ebc0ece555cefc77e73ca8b3b1dcee68fa8",
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/source-review-prompt.md": "06b8814f54f7d9ea8b6e85f1c5184c91ffd7eae7f6372b1c1751213ebae5c234"
+  },
+  "installed_subprocess_source": {
+    "path": "/usr/lib/python3.12/subprocess.py",
+    "sha256": "baa9f9138d8d20df6284f67e7d2e790f847f65e2c5370de322d54cccd737f2d9",
+    "poll_limit": "poll can perform waitpid(WNOHANG) and reap; adapter fallback flag measures signal/wait rescue of still-running child, not all observations. Current success is also bound to controller receipt/status and unchanged real wait paths."
+  },
+  "outline": [
+    {
+      "stage_id": "V0-S0",
+      "completed_substeps": 1,
+      "total_substeps": 2
+    },
+    {
+      "stage_id": "V0-S1",
+      "completed_substeps": 5,
+      "total_substeps": 5
+    },
+    {
+      "stage_id": "R0",
+      "completed_substeps": 1,
+      "total_substeps": 2
+    },
+    {
+      "stage_id": "R1a",
+      "completed_substeps": 5,
+      "total_substeps": 5
+    },
+    {
+      "stage_id": "V0-S2",
+      "completed_substeps": 7,
+      "total_substeps": 8
+    },
+    {
+      "stage_id": "V0-S3",
+      "completed_substeps": 0,
+      "total_substeps": 6
+    },
+    {
+      "stage_id": "R1",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "V1-M1",
+      "completed_substeps": 0,
+      "total_substeps": 3
+    },
+    {
+      "stage_id": "R2",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R3",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R4",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R5a",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R5b",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    },
+    {
+      "stage_id": "R5c",
+      "completed_substeps": 0,
+      "total_substeps": 4
+    }
+  ],
+  "optional_finalized_producer_correction": {
+    "commit": "f820fd74a0e1ec364d18ea329c61470e0bdbf00a",
+    "path": "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined02-execution-receipt.correction-01.json",
+    "sha256": "51d3264c94eb24daa9a9d14dd2782658cb09aa5d33cf5bcf62f21d3d6157443f",
+    "expected_sha256": "51d3264c94eb24daa9a9d14dd2782658cb09aa5d33cf5bcf62f21d3d6157443f",
+    "keys": [
+      "kind",
+      "correction_id",
+      "scope_id",
+      "packet",
+      "appends_to",
+      "appended_sha256_of_the_original_receipt",
+      "the_evidence_commit_of_the_original_batch",
+      "the_review_that_found_it",
+      "original_bytes_preserved",
+      "original_receipt_rewritten",
+      "existing_corrections_rewritten",
+      "snapshots_rewritten",
+      "finding",
+      "the_wrong_statements",
+      "what_stays_valid_and_is_preserved",
+      "the_effect_on_the_qualification",
+      "what_is_NOT_claimed",
+      "not_executed",
+      "attribution",
+      "ten_fields",
+      "development_outline",
+      "next_owner",
+      "next_action"
+    ],
+    "claim_limit": "Finalized correction blob only; no194 raw redo or CP10 closure from document presence.",
+    "original_sha256": "084bb63e4928258315b170cfe051130f5d2d6bdda013cf64fa7b740a044d7f9a",
+    "original_hash_matches": true,
+    "pointer_count": 9,
+    "pointer_recorded_values_match": [
+      {
+        "pointer": "/the_control_envelope_of_this_batch/the_capability_probe_that_was_run_before_the_batch",
+        "matches": true
+      },
+      {
+        "pointer": "/the_execution_binding/the_five_renderings",
+        "matches": true
+      },
+      {
+        "pointer": "/the_commands/0/the_command_was_executed",
+        "matches": true
+      },
+      {
+        "pointer": "/the_commands/1/the_command_was_executed",
+        "matches": true
+      },
+      {
+        "pointer": "/the_commands/2/the_command_was_executed",
+        "matches": true
+      },
+      {
+        "pointer": "/the_commands/3/the_command_was_executed",
+        "matches": true
+      },
+      {
+        "pointer": "/the_commands/4/the_command_was_executed",
+        "matches": true
+      },
+      {
+        "pointer": "/the_execution_binding/the_configured_caps",
+        "matches": true
+      },
+      {
+        "pointer": "/the_control_envelope_of_this_batch/the_elapsed_time_is_not_the_proof",
+        "matches": true
+      }
+    ]
+  }
+}

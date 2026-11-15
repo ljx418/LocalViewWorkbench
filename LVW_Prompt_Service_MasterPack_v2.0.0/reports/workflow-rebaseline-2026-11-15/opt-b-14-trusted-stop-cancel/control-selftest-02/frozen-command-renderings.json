@@ -1,0 +1,76 @@
+[
+  {
+    "mode": "normal",
+    "cmd": "/usr/bin/python3.12 -I -B /mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/bounded_exec.py /mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/normal.request.json",
+    "cwd": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "expected": {
+      "status": "EXITED_ZERO",
+      "returncode": 0,
+      "controller_exit": 0,
+      "timed_out": false,
+      "signals": []
+    }
+  },
+  {
+    "mode": "nonzero",
+    "cmd": "/usr/bin/python3.12 -I -B /mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/bounded_exec.py /mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/nonzero.request.json",
+    "cwd": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "expected": {
+      "status": "EXITED_NONZERO",
+      "returncode": 13,
+      "controller_exit": 1,
+      "timed_out": false,
+      "signals": []
+    }
+  },
+  {
+    "mode": "term",
+    "cmd": "/usr/bin/python3.12 -I -B /mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/bounded_exec.py /mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/term.request.json",
+    "cwd": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "expected": {
+      "status": "DEADLINE_EXPIRED",
+      "returncode": -15,
+      "controller_exit": 1,
+      "timed_out": true,
+      "signals": [
+        "SIGTERM"
+      ]
+    }
+  },
+  {
+    "mode": "ignore-term",
+    "cmd": "/usr/bin/python3.12 -I -B /mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/bounded_exec.py /mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/ignore-term.request.json",
+    "cwd": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "expected": {
+      "status": "DEADLINE_EXPIRED",
+      "returncode": -9,
+      "controller_exit": 1,
+      "timed_out": true,
+      "signals": [
+        "SIGTERM",
+        "SIGKILL"
+      ]
+    }
+  },
+  {
+    "mode": "cancel-publication",
+    "cmd": "/usr/bin/python3.12 -I -B /mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/cancel_publication_canary.py /mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/bounded_exec.py /mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/cancel-publication.request.json /mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/run/cancel-publication-oracle.json",
+    "cwd": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0",
+    "expected": {
+      "driver_exit": 0,
+      "controller_exit": 1,
+      "status": "CANCELLED",
+      "cancel_signals": [
+        15,
+        2
+      ],
+      "reaped": true,
+      "same_actual_Popen_PID": true,
+      "fallback_used": false,
+      "child_returncode_one_of": [
+        -15,
+        -9
+      ]
+    }
+  }
+]

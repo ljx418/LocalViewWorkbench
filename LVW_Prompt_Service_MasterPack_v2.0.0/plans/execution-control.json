@@ -1,6 +1,6 @@
 {
   "schema_version": "lvw.execution-control/1",
-  "updated_at": "2026-11-15T17:32:59.135081+00:00",
+  "updated_at": "2026-11-15T17:43:44.229548+00:00",
   "project_id": "lvw-prompt-service",
   "design_version": "2.0.0",
   "target_version": "V1",
@@ -21,7 +21,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "S3_P4_CTRL01_M1_DEFERRED_CANCEL_SOURCE_READINESS",
+  "current_blocking_gate": "S3_P4_TRUSTED_STOP_FIVE_CASE_ACTUAL_REVIEW",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -34,8 +34,8 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "Root trusted-control owner and isolated source reviewer",
-  "next_action": "Review deferred nonthrowing cancellation and real created/prepublication regression source, then activate only newly sealed five-case short selftest after readiness; no194rerun.",
+  "next_owner": "Isolated actual-control reviewer; then root gate owner",
+  "next_action": "Independently qualify five actual stop/reap/cancel cases and truthful append correction; only afterward decide a newly sealed guarded integration. No automatic194rerun or retroactive oldconformance.",
   "required_authorization": "Parent COMPLETE03 covers trusted CPU harness repair; newly frozen FIVE-case20s selftest awaits independent source readiness and root activation, not human reapproval. Old fourcase plan remains unexecuted; no194rerun.",
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -2447,7 +2447,7 @@
   "trusted_stop_preparation": {
     "source": "reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/bounded_exec.py",
     "selftest_plan": "reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/plan.json",
-    "state": "DEFERRED_CANCEL_CORRECTION_SOURCE_REVIEW_PENDING_NOT_EXECUTED",
+    "state": "ACTUAL_FIVE_CASE_PASS_INDEPENDENT_REVIEW_PENDING",
     "cases": 5,
     "budget_seconds": 20,
     "retries": 0,
@@ -2458,7 +2458,12 @@
       "root_binding_check": "reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/producer-correction-binding-check.json",
       "state": "APPEND_DELIVERED_BINDING_VERIFIED_NOT_CONTROL_CLOSED"
     },
-    "blocking_finding": "CTRL01-M1",
-    "prior_source_review": "cc403e6e6e57d9ce408ed38887437e4462422724"
+    "blocking_finding": "CP10-M1_ACTUAL_CONTROL_REVIEW",
+    "prior_source_review": "cc403e6e6e57d9ce408ed38887437e4462422724",
+    "source_review": "39a5ce57bf5840c1c596ef84e9f14020ad202183",
+    "actual_cases": 5,
+    "actual_PASS": 5,
+    "actual_owned_children_reaped": 5,
+    "run_receipt": "reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/run/summary.json"
   }
 }
