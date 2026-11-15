@@ -8,8 +8,8 @@
   "source_candidate_sha256": "2a8e951b357068e835f6c7d276062395d83dc691ad5e51afde5c9e1da6cb64ac",
   "base_source_candidate": "1a34fbbe318fbe240823a2bf2f09517a98294744",
   "base_source_sha256": "f89ef38a7fcb0f48a47f9498ed1c9100c6f0832df57257c7b27e7c5461ad3ee0",
-  "delivery_commit": null,
-  "delivery_commit_note": "the commit that carries this receipt; it is recorded by the pointer commit that follows it and is reported in the worker_done summary. It is NOT the source candidate: the source candidate is source_candidate_sha above.",
+  "delivery_commit": "4edcd859bd2f70f1c5553d9de707f2d4462fb6b3",
+  "delivery_commit_note": "the commit that carries this receipt; it is NOT the source candidate: the source candidate is source_candidate_sha above.  This pointer commit records that identity and changes no source and no other receipt field.",
   "historical_failure_retained": {
     "attempt01": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt01",
     "evidence_commit": "946f587815964ab20edd5d69cb428224dcebac54",
@@ -23,7 +23,9 @@
     ],
     "insertions": 139,
     "deletions": 8,
-    "changed_functions_in_T10": ["test_n10_r07_the_context_of_the_round_reaches_every_layer"],
+    "changed_functions_in_T10": [
+      "test_n10_r07_the_context_of_the_round_reaches_every_layer"
+    ],
     "new_functions": [],
     "removed_functions": [],
     "other_source_files_changed": [],
@@ -80,7 +82,12 @@
       "'CUSTODY_PUMP_NOT_STOPPED' not in facts['zero_failures'] (only on the absent path)",
       "'CUSTODY_PUMP_NOT_STARTED' not in facts['zero_failures'] (only on the absent path)"
     ],
-    "assert_occurrences_T10": {"before": 414, "after": 424, "removed": 1, "added": 11},
+    "assert_occurrences_T10": {
+      "before": 414,
+      "after": 424,
+      "removed": 1,
+      "added": 11
+    },
     "retained_untouched": [
       "the public default launcher and the public start of the round",
       "the real event and queue waits of the round are exactly 0",
