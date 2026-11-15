@@ -1,0 +1,40 @@
+{
+ "actions": [
+  "release:gate",
+  "settle:startup-owners",
+  "join:interrupted-start"
+ ],
+ "alive": false,
+ "cleanup_errors": [
+  {
+   "detail": "sup-05-inflight-query-error",
+   "kind": "INFLIGHT",
+   "type": "OSError"
+  },
+  {
+   "detail": "sup-05-thread-lookup-interruption",
+   "kind": "OWNER_THREAD",
+   "type": "KeyboardInterrupt"
+  }
+ ],
+ "executed": true,
+ "in_flight": true,
+ "interrupts": [
+  {
+   "detail": "KeyboardInterrupt('sup-05-thread-lookup-interruption')",
+   "type": "KeyboardInterrupt"
+  }
+ ],
+ "liveness_known": true,
+ "original": {
+  "detail": "sup-05-original-failure",
+  "type": "AssertionError"
+ },
+ "owner_alive": false,
+ "owners_attempted": 1,
+ "proof_failure": "the cleanup of the interrupted start met: [{'kind': 'INFLIGHT', 'type': 'OSError', 'detail': 'sup-05-inflight-query-error'}, {'kind': 'OWNER_THREAD', 'type': 'KeyboardInterrupt', 'detail': 'sup-05-thread-lookup-interruption'}]",
+ "region": "interrupted-start",
+ "retained": true,
+ "started": true,
+ "unknown": []
+}

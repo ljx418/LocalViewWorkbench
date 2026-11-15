@@ -1,0 +1,780 @@
+{
+ "actions": [
+  "disarm:observer",
+  "stop:observer-patch",
+  "release:frames_ready"
+ ],
+ "alive": null,
+ "all_salvage": [
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "session:background-heartbeat",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "session:background-pump",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "launch:channel:drain",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "launch:channel:read:read-worker",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "launch:channel:write:write-worker",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "controlled:read-endpoint:read-worker",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "controlled:channel:drain",
+   "start_state": "STARTED",
+   "started": true
+  }
+ ],
+ "checkpoint": "CHILD_TRANSPORT",
+ "cleanup_errors": [
+  {
+   "detail": "sup-04-final-writer-error",
+   "kind": "EVIDENCE",
+   "type": "OSError"
+  }
+ ],
+ "cleanup_ran_while_unwinding": true,
+ "close_failures": [],
+ "drain": [
+  {
+   "errors": [],
+   "generation": 14,
+   "generation_after": 14,
+   "generation_before": 14,
+   "owners": [
+    "session:background-heartbeat",
+    "session:background-pump",
+    "launch:channel:drain",
+    "launch:channel:read:read-worker",
+    "launch:channel:write:write-worker",
+    "controlled:read-endpoint:read-worker",
+    "controlled:channel:drain"
+   ],
+   "pending": 0
+  }
+ ],
+ "drain_all_salvage": [
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "session:background-heartbeat",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "session:background-pump",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "launch:channel:drain",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "launch:channel:read:read-worker",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "launch:channel:write:write-worker",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "controlled:read-endpoint:read-worker",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "controlled:channel:drain",
+   "start_state": "STARTED",
+   "started": true
+  }
+ ],
+ "drain_attempts": [
+  {
+   "errors": [],
+   "generation": 14,
+   "generation_after": 14,
+   "generation_before": 14,
+   "owners": [
+    "session:background-heartbeat",
+    "session:background-pump",
+    "launch:channel:drain",
+    "launch:channel:read:read-worker",
+    "launch:channel:write:write-worker",
+    "controlled:read-endpoint:read-worker",
+    "controlled:channel:drain"
+   ],
+   "pending": 0
+  }
+ ],
+ "drain_errors": [],
+ "drain_owner_errors": [],
+ "drain_proof": null,
+ "drain_quiescent": true,
+ "drain_salvage": [
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "session:background-heartbeat",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "session:background-pump",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "launch:channel:drain",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "launch:channel:read:read-worker",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "launch:channel:write:write-worker",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "controlled:read-endpoint:read-worker",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "controlled:channel:drain",
+   "start_state": "STARTED",
+   "started": true
+  }
+ ],
+ "evidence_durable": true,
+ "executed": true,
+ "failure": {
+  "class": "<class 'tools.test_v0_s3_native_custody_correction10._R07Sentinel'>",
+  "detail": "CHILD_TRANSPORT",
+  "token": "CHILD_TRANSPORT",
+  "type": "_R07Sentinel"
+ },
+ "gate_released": true,
+ "injected_starts": [],
+ "interrupts": [],
+ "original": null,
+ "proof_failure": "the cleanup of the controlled failure of CHILD_TRANSPORT met: [{'kind': 'EVIDENCE', 'type': 'OSError', 'detail': 'sup-04-final-writer-error'}]",
+ "quiescent": true,
+ "region": "controlled-child_transport",
+ "registry": [
+  {
+   "kind": "session",
+   "name": "session",
+   "order": 1,
+   "seam": "fixture",
+   "start_state": null
+  },
+  {
+   "kind": "channel",
+   "name": "launch:channel",
+   "order": 2,
+   "seam": "custody.retain",
+   "start_state": null
+  },
+  {
+   "kind": "endpoint",
+   "name": "endpoint:channel-read",
+   "order": 3,
+   "seam": "make_endpoint",
+   "start_state": null
+  },
+  {
+   "kind": "endpoint",
+   "name": "endpoint:channel-write",
+   "order": 4,
+   "seam": "make_endpoint",
+   "start_state": null
+  },
+  {
+   "kind": "thread",
+   "name": "thread:lvw-native-custody-channel#126334450126336",
+   "order": 5,
+   "seam": "thread.start",
+   "start_state": "STARTED"
+  },
+  {
+   "kind": "thread",
+   "name": "thread:lvw-native-custody-pipe-read#126334432351664",
+   "order": 6,
+   "seam": "thread.start",
+   "start_state": "STARTED"
+  },
+  {
+   "kind": "thread",
+   "name": "thread:lvw-native-custody-channel-pump#126334447020864",
+   "order": 7,
+   "seam": "thread.start",
+   "start_state": "STARTED"
+  },
+  {
+   "kind": "thread",
+   "name": "thread:lvw-native-custody-heartbeat#126334432346720",
+   "order": 8,
+   "seam": "thread.start",
+   "start_state": "STARTED"
+  },
+  {
+   "kind": "endpoint",
+   "name": "controlled:read-endpoint",
+   "order": 9,
+   "seam": "fixture",
+   "start_state": null
+  },
+  {
+   "kind": "endpoint",
+   "name": "controlled:write-endpoint",
+   "order": 10,
+   "seam": "fixture",
+   "start_state": null
+  },
+  {
+   "kind": "channel",
+   "name": "controlled:channel",
+   "order": 11,
+   "seam": "custody.retain",
+   "start_state": null
+  },
+  {
+   "kind": "thread",
+   "name": "thread:lvw-native-custody-channel#126334446185184",
+   "order": 12,
+   "seam": "thread.start",
+   "start_state": "STARTED"
+  },
+  {
+   "kind": "thread",
+   "name": "thread:lvw-native-custody-pipe-read#126334446175152",
+   "order": 13,
+   "seam": "thread.start",
+   "start_state": "STARTED"
+  },
+  {
+   "kind": "thread",
+   "name": "thread:lvw-native-custody-pipe-write#126334432257776",
+   "order": 14,
+   "seam": "thread.start",
+   "start_state": "STARTED"
+  }
+ ],
+ "salvage": [
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "session:background-heartbeat",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "session:background-pump",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "launch:channel:drain",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "launch:channel:read:read-worker",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "launch:channel:write:write-worker",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "controlled:read-endpoint:read-worker",
+   "start_state": "STARTED",
+   "started": true
+  },
+  {
+   "alive": false,
+   "errors": [],
+   "joined": true,
+   "name": "controlled:channel:drain",
+   "start_state": "STARTED",
+   "started": true
+  }
+ ],
+ "stop": {
+  "evidence": {
+   "admission_produced": false,
+   "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+   "background_open": false,
+   "background_threads": [
+    {
+     "alive": false,
+     "error_type": null,
+     "kind": "pump",
+     "started": true,
+     "state": "RUNNING"
+    },
+    {
+     "alive": false,
+     "error_type": null,
+     "kind": "heartbeat",
+     "started": true,
+     "state": "RUNNING"
+    }
+   ],
+   "broker": {
+    "executable": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined01/pytest-temp/test_n1_sup_04_recovered_final0/synthetic-python.exe",
+    "executable_sha256": "33d0ec1ffb83bc03736d63bf6a52c553b2a5c838202be6ad527e3da666ac2e10",
+    "identity_source": "PARENT_ORIGINAL_HANDLE",
+    "pid": 4242,
+    "reported_by_the_broker": false
+   },
+   "broker_channel_deadline_bound": null,
+   "broker_channel_reader_finished": true,
+   "broker_close_facts": {
+    "channel_closed": true,
+    "channel_overflow": false,
+    "channel_overflow_facts": {},
+    "channel_reader_error": null,
+    "channel_reader_error_source": null,
+    "channel_reader_finished": true,
+    "channel_reader_secondary_errors": [],
+    "channel_retained_workers": 0,
+    "cleanup_budget_seconds": 0.0,
+    "cleanup_deadline": 3005.0,
+    "close_cancellation": null,
+    "exit_code": 0,
+    "overflow": false,
+    "overflow_facts": {},
+    "process_exited": true,
+    "process_handle_release_method": "POSIX_PROCESS_EXIT",
+    "process_handle_released": true,
+    "read_end_closed": true,
+    "read_retained_workers": 0,
+    "read_worker_thread_handle_released": true,
+    "reader_error": null,
+    "reader_finished": true,
+    "reader_parallel_cancellation": null,
+    "reader_start_unconfirmed": false,
+    "stdin_closed": true,
+    "stdout_closed": true,
+    "terminated": false,
+    "worker_thread_handle_released": true,
+    "write_end_closed": true,
+    "write_retained_workers": 0,
+    "write_worker_thread_handle_released": true
+   },
+   "broker_close_facts_required": [
+    "channel_closed",
+    "process_exited",
+    "process_handle_released",
+    "channel_reader_finished",
+    "read_end_closed",
+    "write_end_closed",
+    "worker_thread_handle_released"
+   ],
+   "broker_close_failed": false,
+   "broker_deadline_aware": false,
+   "broker_retained": false,
+   "candidate_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "channel": {
+    "frame_budget_reserved_terminal": 8,
+    "frame_budget_total": 1024,
+    "frame_bytes_limit": 32768,
+    "frame_limit": 1024,
+    "frames_received": 2,
+    "frames_sent": 1,
+    "heartbeat_failure": null,
+    "heartbeat_interval_seconds": 60.0,
+    "heartbeat_missing_seconds": 120.0,
+    "last_alive_wall": 1794760586.9339905,
+    "last_sequence_received": 2,
+    "last_sequence_sent": 1,
+    "nonce": "00000000000000000000000000000000",
+    "private_to_the_parent": true,
+    "schema": "lvw.s3-native-custody-channel/1",
+    "stop_cleanup_budget_seconds": 5.0
+   },
+   "cleanup_deadline": 3005.0,
+   "close_finished": true,
+   "close_generation": 0,
+   "close_state": "FINISHED",
+   "close_waiters": 0,
+   "closer_alive": false,
+   "closer_exited": false,
+   "closer_start_state": "NOT_STARTED",
+   "closer_threads": 0,
+   "failures": [
+    "CUSTODY_CHANNEL_EOF"
+   ],
+   "gpu_released_proven": false,
+   "grant_authority": "NOT_VERIFIED",
+   "heartbeat_alive": false,
+   "kind": "lvw.s3-native-custody-evidence/1",
+   "launcher_context_propagated": true,
+   "lease": {
+    "absolute": true,
+    "deadline_extended": false,
+    "effective_deadline_wall": 1794760706.931196,
+    "lease_expires_at": 1794760706.931196,
+    "max_runtime_seconds": 21600,
+    "parent_child_remaining_seconds": 21600
+   },
+   "native_cleanup_proven": false,
+   "native_execution_proven": false,
+   "parent_crash_recovery_proven": false,
+   "plan": {
+    "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "candidate_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "lease_expires_at": 1794760706.931196,
+    "max_runtime_seconds": 21600,
+    "roles": [
+     {
+      "data": {
+       "user_directory": "user"
+      },
+      "log": "temp/native/comfy.log",
+      "role": "COMFY",
+      "tools": [
+       {
+        "path": "C:/ComfyUI-aki-v2/python/python.exe",
+        "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+       },
+       {
+        "path": "C:/ComfyUI-aki-v2/ComfyUI/main.py",
+        "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+       }
+      ]
+     },
+     {
+      "data": {},
+      "log": "temp/native/ollama.log",
+      "role": "OLLAMA",
+      "tools": [
+       {
+        "path": "C:/Program Files/Ollama/ollama.exe",
+        "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+       }
+      ]
+     }
+    ],
+    "run_id": "n1-correction-03",
+    "schema": "lvw.s3-native-custody-plan/1"
+   },
+   "plan_sha256": "e3ace18e73e3e591e434cd0892707c991ac04b226c6e3f0cfbca4045f9673eae",
+   "plan_sha256_proves": "PLAN_INTEGRITY_ONLY",
+   "port_released_proven": false,
+   "product_gate0": false,
+   "pump_alive": false,
+   "pump_error": null,
+   "run_id": "n1-correction-03",
+   "sampler_proven": false,
+   "stage_pass_claim": false,
+   "state": "UNKNOWN_RETAINED",
+   "terminal": null,
+   "windows_stdin_eof_proven": false
+  },
+  "evidence_background_threads": [
+   {
+    "alive": false,
+    "error_type": null,
+    "kind": "pump",
+    "started": true,
+    "state": "RUNNING"
+   },
+   {
+    "alive": false,
+    "error_type": null,
+    "kind": "heartbeat",
+    "started": true,
+    "state": "RUNNING"
+   }
+  ],
+  "evidence_broker_retained": false,
+  "evidence_closer_start_state": "NOT_STARTED",
+  "evidence_failures": [
+   "CUSTODY_CHANNEL_EOF"
+  ],
+  "evidence_state": "UNKNOWN_RETAINED",
+  "exception": null,
+  "live_state": "UNKNOWN_RETAINED",
+  "retained_broker_id": null,
+  "retained_broker_is_original": false,
+  "returned": {
+   "admission_produced": false,
+   "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+   "background_open": false,
+   "background_threads": [
+    {
+     "alive": false,
+     "error_type": null,
+     "kind": "pump",
+     "started": true,
+     "state": "RUNNING"
+    },
+    {
+     "alive": false,
+     "error_type": null,
+     "kind": "heartbeat",
+     "started": true,
+     "state": "RUNNING"
+    }
+   ],
+   "broker": {
+    "executable": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-07/combined01/pytest-temp/test_n1_sup_04_recovered_final0/synthetic-python.exe",
+    "executable_sha256": "33d0ec1ffb83bc03736d63bf6a52c553b2a5c838202be6ad527e3da666ac2e10",
+    "identity_source": "PARENT_ORIGINAL_HANDLE",
+    "pid": 4242,
+    "reported_by_the_broker": false
+   },
+   "broker_channel_deadline_bound": null,
+   "broker_channel_reader_finished": true,
+   "broker_close_facts": {
+    "channel_closed": true,
+    "channel_overflow": false,
+    "channel_overflow_facts": {},
+    "channel_reader_error": null,
+    "channel_reader_error_source": null,
+    "channel_reader_finished": true,
+    "channel_reader_secondary_errors": [],
+    "channel_retained_workers": 0,
+    "cleanup_budget_seconds": 0.0,
+    "cleanup_deadline": 3005.0,
+    "close_cancellation": null,
+    "exit_code": 0,
+    "overflow": false,
+    "overflow_facts": {},
+    "process_exited": true,
+    "process_handle_release_method": "POSIX_PROCESS_EXIT",
+    "process_handle_released": true,
+    "read_end_closed": true,
+    "read_retained_workers": 0,
+    "read_worker_thread_handle_released": true,
+    "reader_error": null,
+    "reader_finished": true,
+    "reader_parallel_cancellation": null,
+    "reader_start_unconfirmed": false,
+    "stdin_closed": true,
+    "stdout_closed": true,
+    "terminated": false,
+    "worker_thread_handle_released": true,
+    "write_end_closed": true,
+    "write_retained_workers": 0,
+    "write_worker_thread_handle_released": true
+   },
+   "broker_close_facts_required": [
+    "channel_closed",
+    "process_exited",
+    "process_handle_released",
+    "channel_reader_finished",
+    "read_end_closed",
+    "write_end_closed",
+    "worker_thread_handle_released"
+   ],
+   "broker_close_failed": false,
+   "broker_deadline_aware": false,
+   "broker_retained": false,
+   "candidate_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+   "channel": {
+    "frame_budget_reserved_terminal": 8,
+    "frame_budget_total": 1024,
+    "frame_bytes_limit": 32768,
+    "frame_limit": 1024,
+    "frames_received": 2,
+    "frames_sent": 1,
+    "heartbeat_failure": null,
+    "heartbeat_interval_seconds": 60.0,
+    "heartbeat_missing_seconds": 120.0,
+    "last_alive_wall": 1794760586.9339905,
+    "last_sequence_received": 2,
+    "last_sequence_sent": 1,
+    "nonce": "00000000000000000000000000000000",
+    "private_to_the_parent": true,
+    "schema": "lvw.s3-native-custody-channel/1",
+    "stop_cleanup_budget_seconds": 5.0
+   },
+   "cleanup_deadline": 3005.0,
+   "close_finished": true,
+   "close_generation": 0,
+   "close_state": "FINISHED",
+   "close_waiters": 0,
+   "closer_alive": false,
+   "closer_exited": false,
+   "closer_start_state": "NOT_STARTED",
+   "closer_threads": 0,
+   "failures": [
+    "CUSTODY_CHANNEL_EOF"
+   ],
+   "gpu_released_proven": false,
+   "grant_authority": "NOT_VERIFIED",
+   "heartbeat_alive": false,
+   "kind": "lvw.s3-native-custody-evidence/1",
+   "launcher_context_propagated": true,
+   "lease": {
+    "absolute": true,
+    "deadline_extended": false,
+    "effective_deadline_wall": 1794760706.931196,
+    "lease_expires_at": 1794760706.931196,
+    "max_runtime_seconds": 21600,
+    "parent_child_remaining_seconds": 21600
+   },
+   "native_cleanup_proven": false,
+   "native_execution_proven": false,
+   "parent_crash_recovery_proven": false,
+   "plan": {
+    "authorization_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "candidate_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "lease_expires_at": 1794760706.931196,
+    "max_runtime_seconds": 21600,
+    "roles": [
+     {
+      "data": {
+       "user_directory": "user"
+      },
+      "log": "temp/native/comfy.log",
+      "role": "COMFY",
+      "tools": [
+       {
+        "path": "C:/ComfyUI-aki-v2/python/python.exe",
+        "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+       },
+       {
+        "path": "C:/ComfyUI-aki-v2/ComfyUI/main.py",
+        "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+       }
+      ]
+     },
+     {
+      "data": {},
+      "log": "temp/native/ollama.log",
+      "role": "OLLAMA",
+      "tools": [
+       {
+        "path": "C:/Program Files/Ollama/ollama.exe",
+        "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+       }
+      ]
+     }
+    ],
+    "run_id": "n1-correction-03",
+    "schema": "lvw.s3-native-custody-plan/1"
+   },
+   "plan_sha256": "e3ace18e73e3e591e434cd0892707c991ac04b226c6e3f0cfbca4045f9673eae",
+   "plan_sha256_proves": "PLAN_INTEGRITY_ONLY",
+   "port_released_proven": false,
+   "product_gate0": false,
+   "pump_alive": false,
+   "pump_error": null,
+   "run_id": "n1-correction-03",
+   "sampler_proven": false,
+   "stage_pass_claim": false,
+   "state": "UNKNOWN_RETAINED",
+   "terminal": null,
+   "windows_stdin_eof_proven": false
+  },
+  "snapshot_error": null
+ },
+ "stop_proof_failure": null,
+ "unknown": []
+}
