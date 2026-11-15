@@ -1,0 +1,79 @@
+{
+  "kind": "ROOT_RAW_RECOMPUTATION_NOT_INDEPENDENT_EXIT",
+  "candidate_sha": "b9a81aed8e8f8fe6763a4dfd3d051cacf10e0820",
+  "evidence_sha": "2818c910fa7cde238bd39b094e380940d50a62ee",
+  "plan_sha256": "e6d98c1efc8704f850ea726439bb53c9010c1942905fca11d6e2e08e76b51091",
+  "checked_evidence_git_blobs": 108,
+  "symlink_blobs_read_as_link_text": 6,
+  "current_pin_drift": 0,
+  "selected_calls": 6,
+  "selected_PASS": 6,
+  "original_selected_PASS": 1,
+  "original_NOT_RUN": 188,
+  "supplemental_PASS": 5,
+  "runtime_denials": 0,
+  "cleanup_proven_for_cpu_batch": true,
+  "outer_errors": [],
+  "input_hashes": {
+    "machine-feedback-receipt.json": "f843e16e02ab81d6d393577e993ed695ba3f5433a76eb9ad6c0a857ee46bcd3d",
+    "outer-decision.json": "7c4ec56fb961154b737a12a4ca5f6e59b309acc0e2af2980dde5f1eb2e1724b5",
+    "guard.json": "d7de161e5b135688b406542032fc85f95aa1ab61931cf97eb12f371d9fcf3362",
+    "native-custody-correction-03.receipt.json": "11c8449ad95396623ab44caefa760af828663536d9cbf2d13f949d41b65de35f",
+    "evidence/n10-r07-pump-zero-expiry.json": "036d598f69f088362a74f48a2797a730a41afaf726f669c309c38ca5ac7b593b"
+  },
+  "main_pump_raw": {
+    "pump_alive": false,
+    "pump_alive_before_expiry": true,
+    "pump_background_record_error": "None",
+    "pump_background_record_started": true,
+    "pump_background_record_state": "RUNNING",
+    "pump_broker_is_the_round_broker": true,
+    "pump_context_is_the_session_context": true,
+    "pump_error_is_none": true,
+    "pump_error_repr": null,
+    "pump_error_type": null,
+    "pump_finished": true,
+    "pump_finished_before_expiry": false,
+    "pump_frames": 2,
+    "pump_is_an_observed_start": true,
+    "pump_is_the_production_background_pump": true,
+    "pump_join_confirmed_before_salvage": false,
+    "pump_joins": [],
+    "pump_joins_before_salvage": [],
+    "pump_observed": true,
+    "pump_phase": "before-body-boundary",
+    "pump_pointer_state": "SAME",
+    "pump_salvage_started_at": null,
+    "pump_start_calls": [
+      {
+        "at": 51174.084270104,
+        "captured": true,
+        "kind": "pump",
+        "start_error": null,
+        "start_result": true,
+        "thread_id": 123848007415520
+      },
+      {
+        "at": 51174.084564975,
+        "captured": false,
+        "kind": "heartbeat",
+        "start_error": null,
+        "start_result": true,
+        "thread_id": 123848007413648
+      }
+    ],
+    "pump_start_provenance": "STARTED",
+    "queue_waits": [
+      0.0
+    ],
+    "reply_waits": [
+      0.0
+    ]
+  },
+  "prior_failed_run_cause": "UNDECIDED_NOT_REWRITTEN",
+  "independent_review_pending": true,
+  "stage_pass": false,
+  "product29_proven": false,
+  "native_proven": false,
+  "authoring_note": "Initial Git evidence comparison tried reading a pytestcurrent symlink as a regular file and stopped before writing; corrected to compare symlink Git blob with exact link text, no candidate executed."
+}
