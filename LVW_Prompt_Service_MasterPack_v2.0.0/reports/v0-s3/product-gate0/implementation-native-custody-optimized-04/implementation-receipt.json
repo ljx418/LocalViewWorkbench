@@ -1,0 +1,149 @@
+{
+  "kind": "implementation_receipt",
+  "scope_id": "OPT-B-CONSOLIDATED-PRIORITY-AND-NEGATIVES-01",
+  "packet": "N1-OPTIMIZED-01",
+  "stage": "OPT-B consolidated correction and supplemental negatives; no runtime admitted",
+  "source_candidate_sha": "d645bd559af89921cd0359612cce7b78c4892fe8",
+  "source_candidate_sha256_t10": "ee72673f4a8b746ba4fe4613a1cc7f9571d4f503e867839fceb7c2dd1ce4cc32",
+  "source_candidate_sha256_new_module": "d95f4e5e798348382d4bfbd77ba8b00f2746d4662e40fd2e107707a41162e05f",
+  "base_source_candidate": "a9a63cf7f7b5ec52e271639bb6278e54b457805a",
+  "base_source_sha256": "0aa352f2a0106e7ac700695b540b01e3a627ea5631e1d66aef80fa7122678dc1",
+  "delivery_commit": null,
+  "delivery_commit_note": "the commit that carries this receipt is reported in the worker_done summary; it is NOT the source candidate: the source candidate is source_candidate_sha above.  No self-referential pointer commit is created for it.",
+  "known_open_review": "86ab300",
+  "changed_files": [
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py",
+      "status": "M",
+      "insertions": 108,
+      "deletions": 19,
+      "changed_function": "test_n10_r07_the_context_of_the_round_reaches_every_layer",
+      "region": "the R07 zero final fixture verification block only"
+    },
+    {
+      "path": "LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_cleanup_faults.py",
+      "status": "A",
+      "insertions": 557,
+      "deletions": 0,
+      "lines": 558,
+      "nodes": [
+        "test_n1_sup_01_final_query_preserves_original",
+        "test_n1_sup_02_final_query_preserves_first_interruption",
+        "test_n1_sup_03_inner_writer_error_rejects_success",
+        "test_n1_sup_04_recovered_final_write_has_failed_proof",
+        "test_n1_sup_05_held_startup_owner_survives_query_faults"
+      ]
+    }
+  ],
+  "the_t10_fix": {
+    "region": "the R07 zero final fixture verification block only",
+    "what": "every query of the final state of the round is read through one guarded helper",
+    "rules": [
+      "a failure of a query is an ACTUAL error of the cleanup: it is retained with its exact type and its exact detail",
+      "an exact cancellation is retained as a pending interruption of the cleanup by the existing interruption mechanism",
+      "the state is recorded as UNKNOWN: it is never read as a fact and it never becomes a false success",
+      "a failing query never replaces the failure that is already unwinding",
+      "a failing query never skips the other owners of the round and never skips the publication of the evidence",
+      "the priority is unchanged and is enforced after the publication: the original, then the FIRST exact pending interruption, then the ordinary verdict",
+      "a worker that is still alive, a handle that was not released, a retained worker and an unknown state all fail the round with it"
+    ],
+    "no_shared_helper_rewrite": true,
+    "no_functional_deadline_or_oracle_change": true,
+    "the_normal_path_is_unchanged": "the T10 assertion multiset stays 424 with 0 removed and 0 added and the exact 189 node identities, their order, their signatures and their decorators are unchanged"
+  },
+  "the_supplemental_cases": {
+    "denominator": "separate supplemental denominator of five nodes; never a substitute for the fixed 189 and never the product 29",
+    "method": "every case drives the ACTUAL existing R07 or R09 function of T10 with the real public production start, the real owners and the real lowest synthetic OS seams; nothing of R07 or R09 is copied and no simplified substitute lifecycle is written",
+    "recorders": "every recorder is transparent: it calls the ORIGINAL real method and forwards its result, and it records the call so that the case can prove that the real call really happened",
+    "evidence_routing": "every case patches the EVIDENCE_DIR of the module to its own child root below the frozen run root (negative/<id>) and restores the route when the case ends; the normal R07 and R09 documents, the other rounds and the earlier rounds are never overwritten",
+    "cases": [
+      {
+        "id": "N1-SUP-01",
+        "node": "test_n1_sup_01_final_query_preserves_original",
+        "injection": "the phase writer of the zero body writes the raw facts with the original method and then raises an exact original failure; the final query of the real worker raises an ordinary error exactly once",
+        "oracle": "the callee leaves with the EXACT original and not with the error of the query; the publication retains the original and the error; the owners really ended and their handles were really released"
+      },
+      {
+        "id": "N1-SUP-02",
+        "node": "test_n1_sup_02_final_query_preserves_first_interruption",
+        "injection": "the release of the round records an exact earlier cancellation through the existing interruption mechanism; the final query of the real worker raises a DISTINCT exact cancellation exactly once",
+        "oracle": "the callee leaves with the FIRST exact pending interruption and not with the later one; both interruption facts survive in the publication; the real cleanup is proven",
+        "label": "the injected cancellation is a controlled pending state of the fixture and it is never called a real user interrupt"
+      },
+      {
+        "id": "N1-SUP-03",
+        "node": "test_n1_sup_03_inner_writer_error_rejects_success",
+        "injection": "exactly one inner phase write of the controlled subcase CHILD_TRANSPORT raises an ordinary error; the later writes really succeed",
+        "oracle": "the callee fails with the observed error in its verdict and never returns normally; the deliberate sentinel of the subcase stays recorded; the real raw and cleanup facts are retained; the injection count is exactly one"
+      },
+      {
+        "id": "N1-SUP-04",
+        "node": "test_n1_sup_04_recovered_final_write_has_failed_proof",
+        "injection": "only the final phase write of the controlled subcase CHILD_TRANSPORT raises an ordinary error once; the bounded retry of the fixture really succeeds",
+        "oracle": "the callee fails; the phase document that the RETRY wrote - read back from the disk - carries the error AND a non-empty failed proof, so the proof is never a late update that only exists in memory"
+      },
+      {
+        "id": "N1-SUP-05",
+        "node": "test_n1_sup_05_held_startup_owner_survives_query_faults",
+        "injection": "the interrupted start of R09 observes its owner and its thread; the body raises an exact original failure before the settle; the query of the owners in flight raises an ordinary error and the lookup of the thread raises an exact cancellation",
+        "oracle": "the EXACT original wins; the recorders prove that the real settle of the held owner and the real join of the held thread really happened despite the query errors; the known liveness is dead; the failure evidence survives and no owner is lost"
+      }
+    ]
+  },
+  "static_facts": {
+    "method": "read-only git blob inspection and standard-library ast.parse as data; no import, no collect, no pytest",
+    "exact_189_node_identities_order_signatures_decorators": "unchanged; 117+16+24+18+14, unique 189",
+    "T10_assert_occurrences": {"before": 424, "after": 424, "removed": 0, "added": 0},
+    "other_four_test_modules": "byte-identical to the base source candidate",
+    "production_sources": {
+      "tools/v0_s3_native_broker.py": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
+      "tools/v0_s3_native_custody.py": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581"
+    },
+    "shared_registry_and_drain": "unchanged",
+    "new_framework_or_generic_diagnostic_platform": 0,
+    "supplemental_nodes": 5,
+    "supplemental_nodes_are_inside_the_original_189": false,
+    "contracts_thresholds_counters_control_packets_manifest": "untouched"
+  },
+  "known_gaps_and_risks": [
+    "NO case was executed: the candidate was never imported, never collected and never run.  All five cases are designs until root freezes the combined 189 + 5 plan on the new source candidate.",
+    "the fault of the final query is recognised by the code object of the fixture helper that performs it (zero_guarded_query).  The lookup is explicit: if the helper is renamed the case FAILS loudly on the injection count and it never injects silently somewhere else.",
+    "the fault of the lookup of the thread of SUP-05 is carried by a subclass of the REAL owner class whose lookup of its thread fails only after the fixture really settled that very owner; the real settle and the real join run against that owner, so no substitute lifecycle is used.",
+    "the write of the controlled subcase of R07 happens three times before the retry of a failed one; the cases that inject into the final write count the writes of that phase and the case asserts the count, so a change of the structure fails loudly instead of mis-injecting.",
+    "the known open Major of the review 86ab300 is addressed by the source and it is NOT closed by this delivery: it keeps blocking the exit, the dependent live actions and N2.",
+    "the controlled five subcases of R07 were reached by the attempt03 run of the base candidate, but the writer fault negative of the controlled branch is only exercised by the new supplemental cases, which have not run yet.",
+    "the historical M2 and M3 of the independent review of the correction 22 are not rewritten and no Major is closed by this delivery"
+  ],
+  "not_executed": [
+    "candidate import",
+    "pytest collect",
+    "pytest run",
+    "the new supplemental cases",
+    "ctypes / native API call",
+    "runtime / OS business process",
+    "model or GPU",
+    "service or network",
+    "media",
+    "database",
+    "ledger",
+    "counter",
+    "any targeted execution plan"
+  ],
+  "states": {
+    "dynamic_correction23": "NOT_RUN",
+    "attempt03_result_of_the_base_candidate": "PASS (1 of 1 R07 node), retained",
+    "native": "NOT_PROVEN",
+    "product_acceptance": false,
+    "stage_pass": false,
+    "human_signoff": false,
+    "budget_reset": false,
+    "runtime_authorized": false,
+    "major_closed_by_this_delivery": 0,
+    "test_pass_claimed": false
+  },
+  "unrelated_dirty_state_preserved": [
+    "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-01/report.md"
+  ],
+  "next_owner": "coordinator",
+  "next_action": "root freezes the combined controlled plan of the fixed 189 and the supplemental 5 on the new source candidate d645bd55 with separate counts, exact nodes, guard, pins, budget and its own ACK, and the independent concentrated review; this delivery runs nothing and closes no Major"
+}
