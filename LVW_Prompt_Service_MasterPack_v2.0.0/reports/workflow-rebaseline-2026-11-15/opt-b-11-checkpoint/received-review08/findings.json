@@ -1,0 +1,69 @@
+{
+  "kind": "CONSOLIDATED_INDEPENDENT_SOURCE_AND_EXISTING_RAW_REVIEW",
+  "candidate": "b9a81aed8e8f8fe6763a4dfd3d051cacf10e0820",
+  "result": "QUALIFIED_LOCAL6_ONLY",
+  "counts": {
+    "Fatal": 0,
+    "Major": 0,
+    "Minor": 0
+  },
+  "effective_findings": [],
+  "closed_current_obligations": [
+    {
+      "id": "T07-M1",
+      "candidate": "b9a81aed8e8f8fe6763a4dfd3d051cacf10e0820",
+      "spec": "ADR16/docs36; OPT-B-09-MAIN-OWNER; targeted-plan-08",
+      "layer": "fixture owner observation",
+      "location": "T10:1216-1318,3765-3782,3969-3983,5099-5291,5456-5464,5545-5553",
+      "trigger": "Main-session pump can retire its mutable session slot during production cleanup.",
+      "expected": "Hold actual original pump before real start; independent identity/start/error/end/context/broker proof, pointer state separate and join phase honest.",
+      "actual": "Instance original start and join methods are transparently forwarded. Raw held pump alive before expiry and unfinished; at body finished/dead/noerror, SAME pointer, exact context/broker/background/observer STARTED matches. Later salvage real join returnsTrue and pointerABSENT.",
+      "oracle": "Require observed, finished, notalive, noerror, exact broker/context/background/start identity; OTHER/NOT_STARTED rejected. ABSENT at body additionally requires actual pre-salvage successful join.",
+      "negative": "Never equate absence or unstarted/errorful owner with success; no deadline extension/new pump replacement or later cleanup substituted for body proof.",
+      "terminal": "QUALIFIED_CURRENT_SELECTED_OBLIGATION; no Stage/N2/full194 clearance",
+      "cleanup": "Separate pre-salvage owner facts and successful salvage join recorded; batch CPU FD/thread cleanup independently checked.",
+      "evidence": [
+        "evidence/n10-r07-pump-zero-expiry.json",
+        "evidence/n10-r07-parent-salvage.json",
+        "recomputation.json"
+      ],
+      "historical_classification": "Major",
+      "current_classification": "CLOSED_FOR_CURRENT_OBLIGATION",
+      "uncertainty": "Current actual body is SAME, not ABSENT; body-ABSENT branch remains statically checked but not dynamically exercised. Historical targeted07 cause remains UNDECIDED; current PASS does not explain it."
+    },
+    {
+      "id": "T07-M2",
+      "candidate": "b9a81aed8e8f8fe6763a4dfd3d051cacf10e0820",
+      "spec": "ADR16/docs36; OPT-B-09-MAIN-OWNER; targeted-plan-08",
+      "layer": "append-only evidence truth",
+      "location": "implementation-native-custody-optimized-06/targeted01-execution-receipt.correction-01.json; /outcome_summary and /unresolved_limits/0",
+      "trigger": "Prior navigation receipt falsely attributed local6 rejection to required189 reporting group.",
+      "expected": "Append correction binds unchanged original, exact pointers, prior outer/hash/calls, correct cause and attribution.",
+      "actual": "Correction4fb94afa5c2979252883c2830ebaf7cdab1f29823770a93ccdeeec9588bdfd2a matches delivery10a7 Git blob and unchanged original4b4c04c\u2026; prior raw outerfc0547\u2026 and counts verify selectedR07FAIL/supp5PASS/188NOT_RUN.",
+      "oracle": "Cause is ACTUAL_CHECKS_NOT_ALL_PASSED for actual selected failure; group189 counts are reporting only.",
+      "negative": "No silent rewrite or attribution as cryptographic proof; correction supplies no rerun or product acceptance.",
+      "terminal": "QUALIFIED_CURRENT_SELECTED_OBLIGATION; no Stage/N2/full194 clearance",
+      "cleanup": "Separate pre-salvage owner facts and successful salvage join recorded; batch CPU FD/thread cleanup independently checked.",
+      "evidence": [
+        "delivery10a7 correction Git blob",
+        "prior targeted01 outer/runner",
+        "recomputation.json"
+      ],
+      "historical_classification": "Major",
+      "current_classification": "CLOSED_FOR_CURRENT_OBLIGATION",
+      "uncertainty": "Commit attribution is not cryptographic identity. Historical false text/failed run remain preserved; correction does not settle prior R07 physical cause."
+    }
+  ],
+  "remaining": {
+    "other_original188": "NOT_RUN",
+    "full189": "NOT_RUN_AS_FULL_CHECKPOINT",
+    "full194": "NOT_RUN",
+    "product29": "NOT_RUN",
+    "native9": "NOT_PROVEN",
+    "Stage": "NO_CLEARANCE",
+    "N2": "NO_CLEARANCE",
+    "runtimeACK": "NOT_ISSUED"
+  },
+  "root_next": "May prepare and independently seal a fresh full194 plan; this review authorizes no execution",
+  "emitter_disposition": "Suitable as hash-bound derived formatter behind pinned mandatory outer validator, not independent execution/preload/environment proof."
+}
