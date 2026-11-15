@@ -127,8 +127,12 @@ from tools.test_v0_s3_native_custody_regressions import (  # noqa: E402
 #: directory of the correction 18.  The real documents of the batch of the
 #: correction 17 stay in the directory of the correction 17: they are
 #: never overwritten, never deleted and never replaced by a summary.
+#: CORRECTION 19: the diagnostics of this module are written in the NEW
+#: directory of the correction 19.  The real documents of the batch of the
+#: correction 18 stay in the directory of the correction 18: they are
+#: never overwritten, never deleted and never replaced by a summary.
 EVIDENCE_DIR = (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'
-                / 'implementation-native-custody-correction-18' / 'evidence')
+                / 'implementation-native-custody-correction-19' / 'evidence')
 
 #: The nonce of the private channel of the probes of this module.  It
 #: is a closed form of 32 hexadecimal characters and it is the nonce of
@@ -623,6 +627,20 @@ def _note_interruption(interrupts, error):
     return False
 
 
+def _interruption_facts(interrupts):
+    """The **durable** diagnostics of the exact interruptions.
+
+    CORRECTION 19 (M3): the exact object of a cancellation never enters a
+    document - only its exact type and its exact detail do.  The
+    diagnostics of the cancellations of a cleanup are **kept** in the
+    document of the cleanup: they are never reduced to a type and a
+    detail of the last error and they are never discarded next to an
+    original failure.
+    """
+    return [{'type': type(item).__name__, 'detail': repr(item)}
+            for item in (interrupts or [])]
+
+
 def _assert_salvage_proved(facts, message):
     """The proof that the fixture released every owner that it started.
 
@@ -863,7 +881,8 @@ def _channel_owners(channel, prefix, hints=None):
     return owners
 
 
-def _registry_owners(registry, session=None, channel=None, prefix='round'):
+def _registry_owners(registry, session=None, channel=None, prefix='round',
+                      errors=None, interrupts=None):
     """Every owner of the round: the registered ones and the live ones.
 
     The registry of the fixture holds the owners that were registered
@@ -873,6 +892,15 @@ def _registry_owners(registry, session=None, channel=None, prefix='round'):
     thread that the product started after the registration is never
     forgotten.  One owner is never in the list twice: the identity of
     the thread decides and not its name.
+
+    CORRECTION 19 (M3): the traversal is **best effort**.  The query
+    of one container never aborts the traversal and it never replaces
+    the owners of the round with an empty list: every other owner is
+    still attempted.  The **exact** thread objects that the start
+    registry observed are retained **first** and they are an
+    independent fallback - a failure of the query of a container never
+    loses them.  Every failure is retained with its exact type and its
+    exact detail and the **exact** object of an interruption is kept.
     """
     owners = []
     hints = {}
@@ -888,30 +916,82 @@ def _registry_owners(registry, session=None, channel=None, prefix='round'):
             seen.add(key)
             owners.append((name, thread))
 
-    for entry in registry.entries():
-        name = entry['name']
-        owner = entry['owner']
-        kind = entry['kind']
-        kinds.add(kind)
-        if kind == 'channel':
-            add(_channel_owners(owner, name, hints))
-        elif kind == 'endpoint':
-            add(_endpoint_owners(name, owner, hints))
-        elif kind == 'session':
-            add(_session_owners(owner, name, hints))
-        else:
+    def note(kind, error):
+        """Retain one failure of the traversal, never swallow it."""
+        if errors is not None:
+            errors.append({'kind': kind, 'type': type(error).__name__,
+                           'detail': str(error)})
+        _note_interruption(interrupts, error)
+
+    try:
+        entries = registry.entries()
+    except BaseException as error:  # noqa: BLE001 - it stays visible
+        note('REGISTRY_ENTRIES', error)
+        entries = []
+    # CORRECTION 19 (M3): the **exact** thread objects that the start
+    # registry observed are retained **first** and they are an
+    # independent fallback: a failure of the query of a container never
+    # loses them and it never replaces the owners of the round with an
+    # empty list.  They are merged into the owners **after** the
+    # traversal, so that the name of an owner that a container really
+    # knows is never replaced by the name of the registry.
+    observed = [(item.get('name'), item.get('owner'))
+                for item in entries
+                if item.get('kind') == 'thread'
+                and item.get('owner') is not None]
+    for entry in entries:
+        name = entry.get('name')
+        owner = entry.get('owner')
+        kind = entry.get('kind')
+        if kind == 'thread':
             add([(name, owner)])
-    if session is not None and 'session' not in kinds:
-        add(_session_owners(session, '%s:session' % prefix, hints))
-    if channel is not None and 'channel' not in kinds:
-        add(_channel_owners(channel, '%s:channel' % prefix, hints))
+            continue
+        try:
+            if kind == 'channel':
+                items = _channel_owners(owner, name, hints)
+            elif kind == 'endpoint':
+                items = _endpoint_owners(name, owner, hints)
+            elif kind == 'session':
+                items = _session_owners(owner, name, hints)
+            else:
+                items = [(name, owner)]
+        except BaseException as error:  # noqa: BLE001 - it stays visible
+            # the traversal continues: the owners that follow this one
+            # are still attempted and the exact thread object of this
+            # entry is still an owner of the round.
+            note('OWNER_QUERY', error)
+            if isinstance(owner, threading.Thread):
+                add([(name, owner)])
+            continue
+        kinds.add(kind)
+        add(items)
+    try:
+        if session is not None and 'session' not in kinds:
+            add(_session_owners(session, '%s:session' % prefix, hints))
+    except BaseException as error:  # noqa: BLE001 - it stays visible
+        note('SESSION_QUERY', error)
+    try:
+        if channel is not None and 'channel' not in kinds:
+            add(_channel_owners(channel, '%s:channel' % prefix, hints))
+    except BaseException as error:  # noqa: BLE001 - it stays visible
+        note('CHANNEL_QUERY', error)
+    # CORRECTION 19 (M3): the fallback of the observed threads: every
+    # exact thread object that the start registry saw is an owner of the
+    # round.  The merge is **idempotent**: an owner that the traversal
+    # already named keeps its name and its hint.
+    for name, thread in observed:
+        add([(name, thread)])
     # CORRECTION 17 (M3): the provenance of the starts that the
     # observer of the fixture saw is the **proven** provenance of the
     # start of an owner.  It is keyed by the exact thread object and it
     # never replaces the hint of the production: a thread whose start
     # returned is ``STARTED`` and a thread whose start did not return is
     # ``UNKNOWN``.
-    provenance = registry.start_provenance() if registry is not None else {}
+    try:
+        provenance = registry.start_provenance() if registry is not None else {}
+    except BaseException as error:  # noqa: BLE001 - it stays visible
+        note('PROVENANCE', error)
+        provenance = {}
     for name, thread in owners:
         if thread is None:
             continue
@@ -956,6 +1036,14 @@ def _drain_owners(registry, session=None, channel=None, prefix='round', *,
     later iteration that really ended the threads.  A failure never
     aborts the iteration and it never skips the final result of the
     round.  The drain never renews a deadline of the product.
+
+    CORRECTION 19 (M3): every read of the drain - the generation, the
+    pending starts and the final resnapshot - is **best effort** and it
+    never skips the owners that follow it.  The release of the gates is
+    **one action per gate**: a failure of one gate never skips the gate
+    that follows it.  The traversal of the owners never replaces the
+    owners of the round with an empty list and the exact thread objects
+    that the start registry observed are always retained.
     """
     deadline = time.monotonic() + max(0.0, budget)
     attempts = []
@@ -965,36 +1053,74 @@ def _drain_owners(registry, session=None, channel=None, prefix='round', *,
     salvage = []
     all_salvage = []
     quiescent = False
+
+    def read_generation(label):
+        """Read the generation of the registry, guarded.
+
+        CORRECTION 19 (M3): the reading of the generation is **best
+        effort**: a failure of it is a fact of the cleanup and it never
+        skips the owners that follow it.
+        """
+        try:
+            return registry.generation()
+        except BaseException as error:  # noqa: BLE001 - it stays visible
+            errors.append({'kind': label, 'type': type(error).__name__,
+                           'detail': str(error)})
+            _note_interruption(interrupts, error)
+            return None
+
+    def read_pending(label):
+        """Read the pending starts of the registry, guarded."""
+        try:
+            return registry.pending_starts()
+        except BaseException as error:  # noqa: BLE001 - it stays visible
+            errors.append({'kind': label, 'type': type(error).__name__,
+                           'detail': str(error)})
+            _note_interruption(interrupts, error)
+            return None
+
     while True:
         # the generation of the registry is read **before** the exact
         # owners are enumerated
-        generation_before = registry.generation()
+        generation_before = read_generation('GENERATION_BEFORE')
         try:
             owners, hints = _registry_owners(registry, session=session,
-                                              channel=channel, prefix=prefix)
+                                              channel=channel, prefix=prefix,
+                                              errors=errors,
+                                              interrupts=interrupts)
         except BaseException as error:  # noqa: BLE001 - it stays visible
             errors.append({'kind': 'ENUMERATION',
                            'type': type(error).__name__,
                            'detail': str(error)})
-            owners, hints = [], {}
+            _note_interruption(interrupts, error)
+            # CORRECTION 19 (M3): the owners of the previous observation
+            # are **retained**: a failure of the enumeration never loses
+            # them and it never replaces them with an empty list.
         # ... and it is read **again** right after the enumeration: a
         # start that happened between the two readings is a change of
         # the generation and the enumeration is repeated.
-        generation_after = registry.generation()
+        generation_after = read_generation('GENERATION_AFTER')
         snapshot = {'generation_before': generation_before,
                     'generation_after': generation_after,
                     'generation': generation_after,
-                    'pending': registry.pending_starts(),
+                    'pending': read_pending('PENDING'),
                     'owners': [name for name, _ in owners],
                     'errors': list(errors)}
         attempts.append(snapshot)
         if release is not None:
-            try:
-                release()
-            except BaseException as error:  # noqa: BLE001 - it stays visible
-                errors.append({'kind': 'RELEASE',
-                               'type': type(error).__name__,
-                               'detail': str(error)})
+            # CORRECTION 19 (M3): the release of the gates is **best
+            # effort**: every gate is released on its own and a failure
+            # of one gate never skips the gate that follows it.
+            actions = (release if isinstance(release, (list, tuple))
+                       else [release])
+            for action in actions:
+                try:
+                    action()
+                except BaseException as error:  # noqa: BLE001
+                    errors.append({'kind': 'RELEASE',
+                                   'type': type(error).__name__,
+                                   'detail': str(error)})
+                    _note_interruption(interrupts, error)
         remaining = max(0.0, deadline - time.monotonic())
         salvage = _salvage_threads(owners, states=hints, seconds=seconds,
                                    total_seconds=remaining,
@@ -1006,25 +1132,27 @@ def _drain_owners(registry, session=None, channel=None, prefix='round', *,
         # The **final** exact-owner resnapshot: it is taken after the
         # joined producer threads of this iteration and it must agree
         # with the enumeration of this iteration.
-        final_generation = registry.generation()
+        final_generation = read_generation('FINAL_GENERATION')
         try:
             final_owners, _final_hints = _registry_owners(
-                registry, session=session, channel=channel, prefix=prefix)
+                registry, session=session, channel=channel, prefix=prefix,
+                errors=errors, interrupts=interrupts)
         except BaseException as error:  # noqa: BLE001 - it stays visible
             errors.append({'kind': 'FINAL_ENUMERATION',
                            'type': type(error).__name__,
                            'detail': str(error)})
+            _note_interruption(interrupts, error)
             final_owners = []
         # and the generation is read **again** after the final
         # resnapshot: a start that happened during it is a change of the
         # generation and the drain repeats.
-        final_generation_after = registry.generation()
+        final_generation_after = read_generation('FINAL_GENERATION_AFTER')
         final_names = [name for name, _ in final_owners]
         missing = [name for name in snapshot['owners']
                    if name not in final_names]
         late = [name for name in final_names
                 if name not in snapshot['owners']]
-        pending = registry.pending_starts()
+        pending = read_pending('FINAL_PENDING')
         stable = (generation_before == generation_after
                   and final_generation == generation_after
                   and final_generation_after == generation_after
@@ -1039,6 +1167,12 @@ def _drain_owners(registry, session=None, channel=None, prefix='round', *,
     proof = _prove_salvage(all_salvage, prefix)
     if proof is None and errors:
         proof = '%s: the drain met %s' % (prefix, errors)
+    # CORRECTION 19 (M2/M3): a round that is **not** quiescent is a
+    # failure of the cleanup even when every owner that the salvage saw
+    # was really joined: the final resnapshot of the drain found an
+    # owner that no join released, and the proof of the cleanup says so.
+    if proof is None and not quiescent:
+        proof = ('%s: the owners of the round were not quiescent' % prefix)
     return {'owners': owners, 'hints': hints, 'salvage': salvage,
             'all_salvage': all_salvage,
             'attempts': attempts, 'proof': proof, 'errors': errors,
@@ -3426,8 +3560,8 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                         zero_registry, session=zero_session,
                         channel=zero_channel,
                         prefix='zero',
-                        release=lambda: (zero_gate.set(),
-                                         zero_api.frames_ready.set()),
+                        release=(lambda: zero_gate.set(),
+                                 lambda: zero_api.frames_ready.set()),
                         interrupts=zero_interrupts)
                 except BaseException as error:  # noqa: BLE001
                     zero_cleanup_errors.append(
@@ -3445,6 +3579,13 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                 if zero_proof is None and zero_cleanup_errors:
                     zero_proof = ('the round of zero met %s'
                                   % (zero_cleanup_errors,))
+                # CORRECTION 19 (M3): the **quiescence** of the round of
+                # zero is part of its proof: an owner that the final
+                # resnapshot of the drain found and that no join
+                # released fails the round of zero and it fails the test
+                # with it.
+                if zero_proof is None and zero_drain['quiescent'] is not True:
+                    zero_proof = 'the round of zero was not quiescent'
                 facts = {'salvage': zero_salvage,
                          'all_salvage': zero_drain.get('all_salvage', []),
                          'stop': zero_stop,
@@ -3453,6 +3594,7 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                          'proof_failure': zero_proof,
                          'stop_proof_failure': zero_stop_proof,
                          'cleanup_errors': zero_cleanup_errors,
+                         'interrupts': _interruption_facts(zero_interrupts),
                          'registry': zero_registry.facts()}
                 # the state of the unwinding is read **before** the
                 # write: inside the handler of the write the state of the
@@ -3467,14 +3609,31 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                             {'kind': 'EVIDENCE',
                              'type': type(write_error).__name__,
                              'detail': str(write_error)})
-                        _note_interruption(zero_interrupts, write_error)
+                        interrupted = _note_interruption(zero_interrupts,
+                                                        write_error)
                         if not unwinding:
+                            if interrupted:
+                                # CORRECTION 19 (M3): an **exact**
+                                # cancellation of the write is re-raised
+                                # as **itself**.
+                                raise
+                            if zero_interrupts:
+                                # CORRECTION 19 (M3): a pending **exact**
+                                # cancellation of the cleanup wins over the
+                                # ordinary assertion of the evidence.
+                                raise zero_interrupts[0]
                             raise AssertionError(
                                 'the evidence of the cleanup of the round of '
                                 'zero could not be written: %s'
                                 % (write_error,))
                 finally:
                     zero_observer.disarm()
+                # CORRECTION 19 (M3): the priority of the failures is
+                # fixed: the failure that is already unwinding wins, then
+                # the **exact** interruption of the cleanup and only then
+                # the ordinary assertion of the proof.
+                if zero_interrupts and sys.exc_info()[0] is None:
+                    raise zero_interrupts[0]
                 if zero_proof is not None and sys.exc_info()[0] is None:
                     raise AssertionError(zero_proof)
                 # CORRECTION 17 (M1): the proof of the cleanup of the
@@ -3620,14 +3779,22 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
             # prevents the cleanup of the **other** endpoint: every
             # close of the fixture runs in its own ``finally`` and every
             # failure of a close is **recorded** and never discarded.
+            #
+            # CORRECTION 19 (M3): the close of the transport and the
+            # close of **each** endpoint are ``BaseException`` aware: a
+            # cancellation of the first close never skips the close of
+            # the second endpoint.  The **exact** object of the
+            # cancellation is retained and it is re-raised by the final
+            # salvage of the parent.
             if transport is not None:
                 try:
                     transport.close()
-                except Exception as error:  # noqa: BLE001 - it stays visible
+                except BaseException as error:  # noqa: BLE001
                     child_close_failures.append(
                         {'owner': 'child:transport',
                          'type': type(error).__name__,
                          'detail': str(error)})
+                    _note_interruption(parent_interrupts, error)
                 finally:
                     # A **partial** construction of the transport of the
                     # child still owns its two endpoints: they are closed
@@ -3637,11 +3804,12 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                             continue
                         try:
                             endpoint.close()
-                        except Exception as error:  # noqa: BLE001
+                        except BaseException as error:  # noqa: BLE001
                             child_close_failures.append(
                                 {'owner': getattr(endpoint, '_name', 'endpoint'),
                                  'type': type(error).__name__,
                                  'detail': str(error)})
+                            _note_interruption(parent_interrupts, error)
             else:
                 # A **partial** construction of the transport of the
                 # child still owns its two endpoints: they are closed
@@ -3651,11 +3819,12 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                         continue
                     try:
                         endpoint.close()
-                    except Exception as error:  # noqa: BLE001
+                    except BaseException as error:  # noqa: BLE001
                         child_close_failures.append(
                             {'owner': getattr(endpoint, '_name', 'endpoint'),
                              'type': type(error).__name__,
                              'detail': str(error)})
+                        _note_interruption(parent_interrupts, error)
     finally:
         # N1 correction 16 (M3): the fixture of the test releases
         # **every** gate of the test - the primitive of the round
@@ -3709,6 +3878,12 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         if parent_proof is None and parent_cleanup_errors:
             parent_proof = ('the round of the parent met %s'
                             % (parent_cleanup_errors,))
+        # CORRECTION 19 (M3): the **quiescence** of the round of the
+        # parent is part of its proof: an owner that the final
+        # resnapshot of the drain found and that no join released fails
+        # the round of the parent and it fails the test with it.
+        if parent_proof is None and parent_drain['quiescent'] is not True:
+            parent_proof = ('the round of the parent was not quiescent')
         # the state of the unwinding is read **before** the write: inside
         # the handler of the write the state of the frame is the write
         # error itself and the original failure would never be seen.
@@ -3726,20 +3901,39 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                              'stop_proof_failure': parent_stop_proof,
                              'cleanup_errors': parent_cleanup_errors,
                              'child_close_failures': child_close_failures,
+                             'interrupts': _interruption_facts(
+                                 parent_interrupts),
                              'registry': parent_registry.facts()})
             except BaseException as write_error:  # noqa: BLE001
                 parent_cleanup_errors.append(
                     {'kind': 'EVIDENCE',
                      'type': type(write_error).__name__,
                      'detail': str(write_error)})
-                _note_interruption(parent_interrupts, write_error)
+                interrupted = _note_interruption(parent_interrupts,
+                                                write_error)
                 if not unwinding:
+                    if interrupted:
+                        # CORRECTION 19 (M3): an **exact** cancellation
+                        # of the write is re-raised as **itself**: it is
+                        # never converted into an ordinary assertion.
+                        raise
+                    if parent_interrupts:
+                        # CORRECTION 19 (M3): a pending **exact**
+                        # cancellation of the cleanup wins over the
+                        # ordinary assertion of the evidence.
+                        raise parent_interrupts[0]
                     raise AssertionError(
                         'the evidence of the cleanup of the parent could not '
                         'be written: %s' % (write_error,))
         finally:
             parent_observer.disarm()
             parent_observer_patch.stop()
+        # CORRECTION 19 (M3): the priority of the failures is fixed: the
+        # failure that is already unwinding wins, then the **exact**
+        # interruption of the cleanup and only then the ordinary
+        # assertion of the proof.
+        if parent_interrupts and sys.exc_info()[0] is None:
+            raise parent_interrupts[0]
         if parent_proof is not None and sys.exc_info()[0] is None:
             raise AssertionError(parent_proof)
     # CORRECTION 17 (M3): no unrelated failure of a close of the child
@@ -4068,21 +4262,59 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                         # and it never touches a thread of the parent
                         # that carries the same name.
                         original_thread_start = threading.Thread.start
+                        # CORRECTION 19 (M3): the channel of the **parent**
+                        # is captured **before** the child is constructed:
+                        # the lookup of the child never returns it and the
+                        # identity of the child is proved against it.  The
+                        # parent is the channel that the launch of the
+                        # round already registered as ``launch:channel``.
+                        controlled_parent_channel = None
+                        for entry in controlled_registry.entries():
+                            if entry.get('kind') == 'channel' \
+                                    and entry.get('name') == 'launch:channel':
+                                controlled_parent_channel = entry.get('owner')
+                                break
+                        if controlled_parent_channel is None:
+                            controlled_parent_channel = getattr(
+                                getattr(controlled_session, 'broker', None),
+                                '_channel', None)
 
                         def controlled_custody_channel():
-                            """The exact channel of the custody of the
-                            fixture.
+                            """The **exact** child channel of the custody.
 
-                            CORRECTION 18 (M3): the ownership of the
-                            drain thread is proven by the **exact**
-                            object that the custody of the fixture
-                            really registered: a name that is similar
-                            never claims the ownership.
+                            CORRECTION 19 (M3): the lookup selects the
+                            channel that the **controlled** custody of the
+                            fixture really retained - the newly registered
+                            child - and **never** the channel of the
+                            parent that the launch already registered as
+                            ``launch:channel``.  The identity of the child
+                            is proved against the parent and a name that
+                            is similar never claims the ownership.
                             """
-                            for entry in controlled_registry.entries():
-                                if entry['kind'] == 'channel':
-                                    return entry['owner']
-                            return None
+                            children = [entry['owner']
+                                        for entry
+                                        in controlled_registry.entries()
+                                        if entry['kind'] == 'channel'
+                                        and entry['name'] == 'controlled:channel']
+                            if not children:
+                                # the fallback is the **newly retained**
+                                # owner: the channel of the parent that
+                                # the launch already registered is never
+                                # the child.
+                                children = [entry['owner']
+                                            for entry
+                                            in controlled_registry.entries()
+                                            if entry['kind'] == 'channel'
+                                            and entry['owner'] is not
+                                            controlled_parent_channel]
+                            assert len(children) == 1, \
+                                'the controlled custody did not retain ' \
+                                'exactly one child channel: %s' % (children,)
+                            child = children[0]
+                            assert child is not controlled_parent_channel, \
+                                'the child channel of the controlled ' \
+                                'custody is the channel of the parent'
+                            return child
 
                         def controlled_start_then_raise(thread, *args,
                                                          **kwargs):
@@ -4107,16 +4339,23 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                             # really registered is injected into and
                             # never a thread of the parent that carries
                             # the same name.
-                            if owner is not controlled_custody_channel():
+                            child = controlled_custody_channel()
+                            if owner is not child:
                                 return original_thread_start(thread, *args,
                                                             **kwargs)
                             injected_starts.append(
                                 {'id': id(thread), 'name': thread.name,
                                  'owner_id': id(owner),
+                                 'child_id': id(child),
                                  'target_name': getattr(target, '__name__',
                                                        None),
-                                 'target_owner_is_custody_channel': True})
-                            # the ORIGINAL start really takes effect
+                                 'target_owner_is_custody_channel': True,
+                                 'target_owner_is_parent':
+                                     owner is
+                                     controlled_parent_channel})
+                            # the ORIGINAL start really takes effect and
+                            # the exact failure of the fixture is raised
+                            # **inside** the constructor of the child.
                             original_thread_start(thread, *args, **kwargs)
                             raise _R07ConstructorFailure(checkpoint)
 
@@ -4240,8 +4479,8 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                             controlled_registry,
                             session=controlled_session,
                             channel=controlled_channel, prefix='controlled',
-                            release=lambda: (gate.set(),
-                                             controlled_api.frames_ready.set()),
+                            release=(lambda: gate.set(),
+                                     lambda: controlled_api.frames_ready.set()),
                             interrupts=controlled_interrupts)
                     except BaseException as error:  # noqa: BLE001
                         controlled_cleanup_errors.append(
@@ -4262,6 +4501,13 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                     if proof is None and controlled_cleanup_errors:
                         proof = ('the controlled failure of %s met %s'
                                  % (checkpoint, controlled_cleanup_errors))
+                    # CORRECTION 19 (M3): the **quiescence** of the round
+                    # of the controlled failure is part of its proof: an
+                    # owner that the final resnapshot of the drain found
+                    # and that no join released fails the subcase with it.
+                    if proof is None and drain['quiescent'] is not True:
+                        proof = ('the owners of the controlled failure of %s '
+                                 'were not quiescent' % checkpoint)
                     facts = {'checkpoint': checkpoint,
                              'failure': raised[0] if raised else None,
                              'gate_released': bool(gate.is_set()),
@@ -4277,6 +4523,8 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                              'quiescent': drain['quiescent'],
                              'proof_failure': proof,
                              'stop_proof_failure': stop_proof,
+                             'interrupts': _interruption_facts(
+                                 controlled_interrupts),
                              'injected_starts': list(injected_starts),
                              'registry': controlled_registry.facts()}
                     unwinding = sys.exc_info()[0] is not None
@@ -4287,20 +4535,33 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                             {'kind': 'EVIDENCE',
                              'type': type(write_error).__name__,
                              'detail': str(write_error)})
-                        _note_interruption(controlled_interrupts,
-                                           write_error)
+                        interrupted = _note_interruption(
+                            controlled_interrupts, write_error)
                         if not unwinding:
+                            if interrupted:
+                                # CORRECTION 19 (M3): an **exact**
+                                # cancellation of the write is re-raised
+                                # as **itself**.
+                                raise
+                            if controlled_interrupts:
+                                # CORRECTION 19 (M3): a pending **exact**
+                                # cancellation of the cleanup wins over the
+                                # ordinary assertion of the evidence.
+                                raise controlled_interrupts[0]
                             raise AssertionError(
                                 'the evidence of the controlled failure of %s '
                                 'could not be written: %s'
                                 % (checkpoint, write_error))
-                    if proof is not None and not unwinding:
-                        raise AssertionError(proof)
-                    # CORRECTION 18 (M3): the interruption of the
-                    # cleanup is re-raised only when no other failure is
-                    # unwinding: the original failure always wins.
+                    # CORRECTION 19 (M3): the priority of the failures is
+                    # fixed: the failure that is already unwinding wins,
+                    # then the **exact** interruption of the cleanup and
+                    # only then the ordinary assertion of the proof.  A
+                    # proof assertion never renders the rethrow of the
+                    # exact interruption unreachable.
                     if controlled_interrupts and not unwinding:
                         raise controlled_interrupts[0]
+                    if proof is not None and not unwinding:
+                        raise AssertionError(proof)
         except _R07Sentinel as error:
             raised.append({'class': _R07Sentinel,
                            'type': type(error).__name__,
@@ -4404,6 +4665,14 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                     == 'lvw-native-custody-channel', \
                     'the constructor failure of %s did not take effect on ' \
                     'the drain of the child: %s' \
+                    % (checkpoint, controlled['injected_starts'])
+                # CORRECTION 19 (M3): the injection really took effect on
+                # the **child** and never on the channel of the parent
+                # that the launch already registered.
+                assert controlled['injected_starts'][0][
+                    'target_owner_is_parent'] is False, \
+                    'the constructor failure of %s was injected into the ' \
+                    'channel of the parent: %s' \
                     % (checkpoint, controlled['injected_starts'])
             else:
                 assert failure['class'] is _R07Sentinel, \
@@ -4927,6 +5196,10 @@ class _M09TimeoutApi:
         # written **before** the completion is published and the fact of
         # that write is recorded.
         self.barrier_persisted = False
+        # CORRECTION 19 (M3): the **exact** objects of the interruptions
+        # that the seam of the round met: the owner of the phase re-raises
+        # the first one of them when no other failure is unwinding.
+        self.interrupts = []
 
     # -- the explicit outcomes of the reader ------------------------------
     def publish_read_fault(self):
@@ -5121,6 +5394,11 @@ class _M09TimeoutApi:
         except BaseException as error:  # noqa: BLE001 - it stays visible
             self.barrier_write_error = {'type': type(error).__name__,
                                         'detail': str(error)}
+            # CORRECTION 19 (M3): the **exact** object of a cancellation
+            # that the durable write met is retained: it is re-raised by
+            # the owner of the phase and it is never reduced to a type
+            # and a detail.
+            _note_interruption(getattr(self, 'interrupts', None), error)
             return None
         # CORRECTION 18 (M2): the fact of the durable write is recorded
         # and it is **consumed** by the phase: a barrier whose document
@@ -5270,6 +5548,11 @@ def _m09_timeout_phase(document, plan, tmp_path, *, phase, confirm_the_worker,
     # CORRECTION 18 (M3): the **exact** objects of the interruptions
     # that the cleanup of this phase met.
     interrupts = []
+    # CORRECTION 19 (M3): the seam of the round retains the **exact**
+    # object of an interruption that its durable write met: the
+    # cancellation of the cleanup of the phase is never reduced to a
+    # type and a detail.
+    api.interrupts = interrupts
     # CORRECTION 18 (M2): the **original** failure of this phase.
     original_failure = {'type': None, 'detail': None}
     names = (phase, phase + '-construction', phase + '-barrier',
@@ -5423,7 +5706,7 @@ def _m09_timeout_phase(document, plan, tmp_path, *, phase, confirm_the_worker,
                 ledger.attempt(phase + '-barrier')
             if expect_barrier in ('PASSED', 'REFUSED'):
                 if not api.barrier_completed.wait(15.0):
-                    record_guarded(phase + '-barrier', dict(
+                    written_result = record_guarded(phase + '-barrier', dict(
                         barrier_identity(),
                         status='FAIL',
                         executed=True,
@@ -5433,7 +5716,11 @@ def _m09_timeout_phase(document, plan, tmp_path, *, phase, confirm_the_worker,
                         barrier_expectation=expect_barrier,
                         barrier_probe=barrier_probe,
                         state=session.state))
-                    if ledger is not None:
+                    # CORRECTION 19 (M2): the terminal state of the ledger
+                    # follows the **successful** terminal write: a failed
+                    # write leaves the barrier ATTEMPTED and the outer
+                    # inventory recovers it, best effort and bounded.
+                    if ledger is not None and written_result is not None:
                         ledger.fail(phase + '-barrier', 'BARRIER_NOT_COMPLETED')
                     raise AssertionError(
                         'the publication barrier of the round never completed')
@@ -5443,17 +5730,20 @@ def _m09_timeout_phase(document, plan, tmp_path, *, phase, confirm_the_worker,
                 # and it never leaves the evidence of the phase as if it
                 # had passed.
                 if api.barrier_write_error is not None:
-                    record_guarded(phase + '-barrier', dict(
+                    written_result = record_guarded(phase + '-barrier', dict(
                         barrier_identity(),
                         status='FAIL',
                         executed=True,
                         premise='BARRIER_DOCUMENT_NOT_WRITTEN',
                         barrier_write_error=api.barrier_write_error,
+                        barrier_persisted=bool(api.barrier_persisted),
                         barrier_completed=True,
                         barrier_expectation=expect_barrier,
                         barrier_probe=barrier_probe,
                         state=session.state))
-                    if ledger is not None:
+                    # CORRECTION 19 (M2): the terminal state of the ledger
+                    # follows the **successful** terminal write.
+                    if ledger is not None and written_result is not None:
                         ledger.fail(phase + '-barrier',
                                     'BARRIER_DOCUMENT_NOT_WRITTEN')
                     raise AssertionError(
@@ -5672,12 +5962,25 @@ def _m09_timeout_phase(document, plan, tmp_path, *, phase, confirm_the_worker,
                         observed.setdefault('barrier',
                                             dict(api.barrier_snapshot))
                     observed.update(barrier_identity())
-                record_guarded(name, dict(observed,
-                                          status='FAIL',
-                                          executed=True,
-                                          reason=type(error).__name__,
-                                          detail=str(error)))
-                if ledger is not None:
+                    # CORRECTION 19 (M2): the rewrite of the barrier
+                    # document keeps the **durable** facts of the
+                    # barrier: the fact of its persistence and the error
+                    # of its persistence.  An assertion of the phase that
+                    # fails after the seam ran never loses the very
+                    # evidence fault that the contract requires.
+                    observed['barrier_persisted'] = bool(api.barrier_persisted)
+                    observed['barrier_write_error'] = api.barrier_write_error
+                written_result = record_guarded(
+                    name, dict(observed,
+                               status='FAIL',
+                               executed=True,
+                               reason=type(error).__name__,
+                               detail=str(error)))
+                # CORRECTION 19 (M2): the terminal state of the ledger
+                # follows the **successful** terminal write: a failed
+                # write leaves the phase ATTEMPTED and the outer
+                # inventory recovers it, best effort and bounded.
+                if ledger is not None and written_result is not None:
                     ledger.fail(name, type(error).__name__)
             raise
         finally:
@@ -5744,52 +6047,98 @@ def _m09_timeout_phase(document, plan, tmp_path, *, phase, confirm_the_worker,
             # quiescent and no unexpected cleanup or evidence error
             # happened.
             cleanup_detail = _cleanup_detail(cleanup_errors, write_errors)
-            if ledger is not None and ledger.state(phase) == 'ATTEMPTED':
-                clean = (original_failure['type'] is None
-                         and cleanup_detail is None
-                         and drain['proof'] is None
-                         and drain['quiescent'] is True)
-                if clean:
-                    written_result = record_guarded(
-                        phase, dict(raw.get(phase, {}), status='PASSED',
-                                    cleanup_errors=[],
-                                    evidence_write_errors=[],
-                                    proof_failure=None,
-                                    quiescent=True))
-                    if written_result is None:
-                        # the evidence of the phase could not be written:
-                        # the phase fails **closed** and it is never
-                        # reported as a success.
-                        ledger.fail(phase, 'EVIDENCE_WRITE_FAILED')
-                        if sys.exc_info()[0] is None:
-                            raise AssertionError(
-                                'the result document of the phase could not '
-                                'be written: %s' % (write_errors,))
-                    else:
-                        ledger.pass_(phase)
+            # CORRECTION 19 (M2): the result of the phase is decided
+            # **after** the cleanup and it is written **before** the
+            # terminal state of the ledger is advanced.
+            clean = (original_failure['type'] is None
+                     and cleanup_detail is None
+                     and drain['proof'] is None
+                     and drain['quiescent'] is True)
+            phase_failure_detail = None
+            # CORRECTION 19 (M2): the durable facts of the barrier are
+            # part of **every** final document of the phase: the
+            # snapshot, the rewrite and the final phase keep the fact of
+            # the persistence of the barrier, the error of its
+            # persistence and the identity of the original object.
+            barrier_facts = dict(barrier_identity())
+            barrier_facts['barrier_persisted'] = bool(api.barrier_persisted)
+            barrier_facts['barrier_write_error'] = api.barrier_write_error
+            if clean:
+                written_result = record_guarded(
+                    phase, dict(raw.get(phase, {}), status='PASSED',
+                                cleanup_errors=[],
+                                evidence_write_errors=[],
+                                proof_failure=None,
+                                quiescent=True,
+                                interrupts=_interruption_facts(interrupts),
+                                **barrier_facts))
+                if written_result is None:
+                    # the evidence of the phase could not be written:
+                    # the phase fails **closed** and it is never
+                    # reported as a success.  Its terminal state of the
+                    # ledger is **not** advanced: the outer inventory
+                    # recovers it, best effort and bounded.
+                    phase_failure_detail = (
+                        'the result document of the phase could not be '
+                        'written: %s' % (write_errors,))
+                elif ledger is not None:
+                    ledger.pass_(phase)
+            else:
+                reason = (original_failure['type'] or 'CleanupError')
+                detail = _join_details(original_failure['detail'],
+                                       cleanup_detail, drain['proof'])
+                if drain['quiescent'] is not True:
+                    detail = _join_details(
+                        detail, 'the owners of the phase were not quiescent')
+                    if original_failure['type'] is None:
+                        reason = 'NOT_QUIESCENT'
+                written_result = record_guarded(
+                    phase, dict(raw.get(phase, {}),
+                                status='FAIL',
+                                executed=True,
+                                reason=reason,
+                                detail=detail,
+                                original_failure=dict(original_failure),
+                                cleanup_errors=list(cleanup_errors),
+                                evidence_write_errors=list(write_errors),
+                                proof_failure=drain['proof'],
+                                quiescent=drain['quiescent'],
+                                interrupts=_interruption_facts(interrupts),
+                                **barrier_facts))
+                # CORRECTION 19 (M2): the terminal state of the ledger
+                # follows the **successful** terminal write: a failed
+                # write leaves the phase ATTEMPTED and the outer
+                # inventory recovers it, best effort and bounded.
+                if written_result is not None:
+                    if ledger is not None:
+                        ledger.fail(phase, reason)
                 else:
-                    reason = (original_failure['type'] or 'CleanupError')
-                    detail = _join_details(original_failure['detail'],
-                                           cleanup_detail, drain['proof'])
-                    record_guarded(phase, dict(raw.get(phase, {}),
-                                               status='FAIL',
-                                               executed=True,
-                                               reason=reason,
-                                               detail=detail,
-                                               original_failure=dict(
-                                                   original_failure),
-                                               cleanup_errors=list(
-                                                   cleanup_errors),
-                                               evidence_write_errors=list(
-                                                   write_errors),
-                                               proof_failure=drain['proof'],
-                                               quiescent=drain['quiescent']))
-                    ledger.fail(phase, reason)
-            # CORRECTION 18 (M3): the interruption of the cleanup is
-            # re-raised only when no other failure is unwinding: the
-            # original failure always wins and it is never replaced.
+                    phase_failure_detail = (
+                        'the durable FAIL of the phase was not written: %s'
+                        % (write_errors,))
+                    cleanup_detail = _join_details(cleanup_detail,
+                                                   phase_failure_detail)
+                if original_failure['type'] is None:
+                    # CORRECTION 19 (M2): the diagnostic of a failed
+                    # write is **joined** with the diagnostic of the
+                    # phase: neither of them replaces the other.
+                    phase_failure_detail = _join_details(
+                        phase_failure_detail,
+                        'the phase %s failed: %s' % (phase, detail))
+            # CORRECTION 19 (M2/M3): the priority of the failures is
+            # fixed: the failure that is already unwinding wins, then
+            # the **exact** interruption of the cleanup and only then the
+            # ordinary assertion of the proof or of the evidence.  An
+            # exact interruption is never replaced by a proof assertion
+            # and the rethrow of it is never unreachable.
             if interrupts and sys.exc_info()[0] is None:
                 raise interrupts[0]
+            # CORRECTION 19 (M2): a durable FAIL of the phase never
+            # returns a successful test: the phase fails **with** its
+            # own document.
+            if phase_failure_detail is not None \
+                    and sys.exc_info()[0] is None:
+                raise AssertionError(phase_failure_detail)
             if cleanup_detail is not None and sys.exc_info()[0] is None:
                 raise AssertionError(cleanup_detail)
             if drain['proof'] is not None and sys.exc_info()[0] is None:
@@ -5940,6 +6289,9 @@ def _m09_published_fault_phase(document, plan, tmp_path, *, phase,
     # CORRECTION 18 (M3): the **exact** objects of the interruptions
     # that the cleanup of this phase met.
     interrupts = []
+    # CORRECTION 19 (M3): the seam of the round retains the **exact**
+    # object of an interruption that its durable write met.
+    api.interrupts = interrupts
     # CORRECTION 18 (M2): the **original** failure of this phase.
     original_failure = {'type': None, 'detail': None}
     names = (phase, phase + '-construction', phase + '-first',
@@ -6161,15 +6513,20 @@ def _m09_published_fault_phase(document, plan, tmp_path, *, phase,
                     state = 'ATTEMPTED' if name in written else 'PLANNED'
                 if state != 'ATTEMPTED':
                     continue
-                record_guarded(name, dict(raw.get(name, {}),
-                                          status='FAIL',
-                                          executed=True,
-                                          reason=type(error).__name__,
-                                          detail=str(error),
-                                          trace=list(trace),
-                                          gate_calls=list(gate.calls),
-                                          cancel_calls=api.cancel_calls))
-                if ledger is not None:
+                written_result = record_guarded(
+                    name, dict(raw.get(name, {}),
+                               status='FAIL',
+                               executed=True,
+                               reason=type(error).__name__,
+                               detail=str(error),
+                               trace=list(trace),
+                               gate_calls=list(gate.calls),
+                               cancel_calls=api.cancel_calls))
+                # CORRECTION 19 (M2): the terminal state of the ledger
+                # follows the **successful** terminal write: a failed
+                # write leaves the phase ATTEMPTED and the outer
+                # inventory recovers it, best effort and bounded.
+                if ledger is not None and written_result is not None:
                     ledger.fail(name, type(error).__name__)
             raise
         finally:
@@ -6230,8 +6587,8 @@ def _m09_published_fault_phase(document, plan, tmp_path, *, phase,
                 drain = _drain_owners(
                     registry, session=session,
                     channel=(holder or {}).get('channel'), prefix=phase,
-                    release=lambda: (gate.release.set(),
-                                     api.release_the_worker.set()),
+                    release=(lambda: gate.release.set(),
+                             lambda: api.release_the_worker.set()),
                     interrupts=interrupts)
             except BaseException as error:  # noqa: BLE001 - it stays visible
                 cleanup_errors.append({'kind': 'DRAIN',
@@ -6245,50 +6602,88 @@ def _m09_published_fault_phase(document, plan, tmp_path, *, phase,
             # quiescent and no unexpected cleanup or evidence error
             # happened.
             cleanup_detail = _cleanup_detail(cleanup_errors, write_errors)
-            if ledger is not None and ledger.state(phase) == 'ATTEMPTED':
-                clean = (original_failure['type'] is None
-                         and cleanup_detail is None
-                         and drain['proof'] is None
-                         and drain['quiescent'] is True)
-                if clean:
-                    written_result = record_guarded(
-                        phase, dict(raw.get(phase, {}), status='PASSED',
-                                    cleanup_errors=[],
-                                    evidence_write_errors=[],
-                                    proof_failure=None,
-                                    quiescent=True))
-                    if written_result is None:
-                        # the evidence of the phase could not be written:
-                        # the phase fails **closed**.
-                        ledger.fail(phase, 'EVIDENCE_WRITE_FAILED')
-                        if sys.exc_info()[0] is None:
-                            raise AssertionError(
-                                'the result document of the phase could not '
-                                'be written: %s' % (write_errors,))
-                    else:
-                        ledger.pass_(phase)
+            # CORRECTION 19 (M2): the result of the phase is decided
+            # **after** the cleanup and it is written **before** the
+            # terminal state of the ledger is advanced.
+            clean = (original_failure['type'] is None
+                     and cleanup_detail is None
+                     and drain['proof'] is None
+                     and drain['quiescent'] is True)
+            phase_failure_detail = None
+            if clean:
+                written_result = record_guarded(
+                    phase, dict(raw.get(phase, {}), status='PASSED',
+                                cleanup_errors=[],
+                                evidence_write_errors=[],
+                                proof_failure=None,
+                                quiescent=True,
+                                interrupts=_interruption_facts(interrupts)))
+                if written_result is None:
+                    # the evidence of the phase could not be written:
+                    # the phase fails **closed** and it is never
+                    # reported as a success.  Its terminal state of the
+                    # ledger is **not** advanced: the outer inventory
+                    # recovers it, best effort and bounded.
+                    phase_failure_detail = (
+                        'the result document of the phase could not be '
+                        'written: %s' % (write_errors,))
+                elif ledger is not None:
+                    ledger.pass_(phase)
+            else:
+                reason = (original_failure['type'] or 'CleanupError')
+                detail = _join_details(original_failure['detail'],
+                                       cleanup_detail, drain['proof'])
+                if drain['quiescent'] is not True:
+                    detail = _join_details(
+                        detail, 'the owners of the phase were not quiescent')
+                    if original_failure['type'] is None:
+                        reason = 'NOT_QUIESCENT'
+                written_result = record_guarded(
+                    phase, dict(raw.get(phase, {}),
+                                status='FAIL',
+                                executed=True,
+                                reason=reason,
+                                detail=detail,
+                                original_failure=dict(original_failure),
+                                cleanup_errors=list(cleanup_errors),
+                                evidence_write_errors=list(write_errors),
+                                proof_failure=drain['proof'],
+                                quiescent=drain['quiescent'],
+                                interrupts=_interruption_facts(interrupts)))
+                # CORRECTION 19 (M2): the terminal state of the ledger
+                # follows the **successful** terminal write: a failed
+                # write leaves the phase ATTEMPTED and the outer
+                # inventory recovers it, best effort and bounded.
+                if written_result is not None:
+                    if ledger is not None:
+                        ledger.fail(phase, reason)
                 else:
-                    reason = (original_failure['type'] or 'CleanupError')
-                    detail = _join_details(original_failure['detail'],
-                                           cleanup_detail, drain['proof'])
-                    record_guarded(phase, dict(raw.get(phase, {}),
-                                               status='FAIL',
-                                               executed=True,
-                                               reason=reason,
-                                               detail=detail,
-                                               original_failure=dict(
-                                                   original_failure),
-                                               cleanup_errors=list(
-                                                   cleanup_errors),
-                                               evidence_write_errors=list(
-                                                   write_errors),
-                                               proof_failure=drain['proof'],
-                                               quiescent=drain['quiescent']))
-                    ledger.fail(phase, reason)
-            # CORRECTION 18 (M3): the interruption of the cleanup is
-            # re-raised only when no other failure is unwinding.
+                    phase_failure_detail = (
+                        'the durable FAIL of the phase was not written: %s'
+                        % (write_errors,))
+                    cleanup_detail = _join_details(cleanup_detail,
+                                                   phase_failure_detail)
+                if original_failure['type'] is None:
+                    # CORRECTION 19 (M2): the diagnostic of a failed
+                    # write is **joined** with the diagnostic of the
+                    # phase: neither of them replaces the other.
+                    phase_failure_detail = _join_details(
+                        phase_failure_detail,
+                        'the phase %s failed: %s' % (phase, detail))
+            # CORRECTION 19 (M2/M3): the priority of the failures is
+            # fixed: the failure that is already unwinding wins, then
+            # the **exact** interruption of the cleanup and only then the
+            # ordinary assertion of the proof or of the evidence.  An
+            # exact interruption is never replaced by a proof assertion
+            # and the rethrow of it is never unreachable.
             if interrupts and sys.exc_info()[0] is None:
                 raise interrupts[0]
+            # CORRECTION 19 (M2): a durable FAIL of the phase never
+            # returns a successful test: the phase fails **with** its
+            # own document.
+            if phase_failure_detail is not None \
+                    and sys.exc_info()[0] is None:
+                raise AssertionError(phase_failure_detail)
             if cleanup_detail is not None and sys.exc_info()[0] is None:
                 raise AssertionError(cleanup_detail)
             if drain['proof'] is not None and sys.exc_info()[0] is None:
@@ -6439,8 +6834,12 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
     #      instrumented like the construction of the other schedules;
     #    * the three documents of the earlier work of the group - the
     #      first stop, the second stop and the coordination;
+    #    * the final verdict of the earlier work of the group - the
+    #      salvage of that round - because its terminal document is
+    #      written **after** its cleanup, exactly like the terminal
+    #      document of every later schedule;
     #
-    #    that is 27 names, and every one of them is unique.
+    #    that is 28 names, and every one of them is unique.
     ledger = _PhaseLedger()
     r10_documents = []
     for r10_name in ('r10-timeout-confirmed', 'r10-timeout-failed',
@@ -6452,7 +6851,8 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
                            'r10-published-before-timeout-construction',
                            'r10-published-before-timeout-first',
                            'r10-published-before-timeout-second'])
-    r10_documents.extend(['r10-first', 'r10-second', 'r10-coordination'])
+    r10_documents.extend(['r10-first', 'r10-second', 'r10-coordination',
+                           'r10-early-salvage'])
     assert len(r10_documents) == len(set(r10_documents)), \
         'the inventory of the group names a document twice'
     for r10_name in r10_documents:
@@ -6460,6 +6860,9 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
     r10_inventory = set()
     r10_raw = {}
     first_failure = {'type': None}
+    # CORRECTION 19 (M3): the **exact** objects of the interruptions
+    # that the inventory of the group met.
+    outer_interrupts = []
     # CORRECTION 17 (M3): the observer of the starts of the round of the
     # earlier work of the group.
     early_registry = _OwnerRegistry()
@@ -6483,6 +6886,16 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
             channel_closes = None
             channel_facts = None
             early_cleanup_errors = []
+            # CORRECTION 19 (M3): the **exact** objects of the
+            # interruptions that the cleanup of the earlier work met.
+            early_interrupts = []
+            # CORRECTION 19 (M2): the **original** failure of the earlier
+            # work: it is durable and it never disappears behind a
+            # diagnostic of the cleanup.
+            early_original = {'type': None, 'detail': None}
+            # CORRECTION 19 (M2): the attempt of the final verdict of the
+            # earlier work is marked **before** the round is built.
+            ledger.attempt('r10-early-salvage')
             try:
                 session, holder, channel_closes, channel_facts = _chain(
                     api, document, plan, tmp_path)
@@ -6562,11 +6975,23 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
                 write_phase('r10-second', dict(r10_raw['r10-second'],
                                                status='PASSED'))
                 ledger.pass_('r10-second')
+            except BaseException as error:  # noqa: BLE001 - it stays visible
+                # CORRECTION 19 (M2): the **original** failure of the
+                # earlier work is retained and it is durable: the final
+                # verdict of the cleanup carries it next to the errors of
+                # the cleanup.
+                early_original['type'] = type(error).__name__
+                early_original['detail'] = str(error)
+                raise
             finally:
                 # CORRECTION 18 (M3): every step of the teardown is
                 # guarded and every error is **retained** in a list: one
                 # exception never skips the drain of the owners and it
                 # never skips the proof of the cleanup.
+                #
+                # CORRECTION 19 (M3): the **exact** object of a
+                # cancellation of the cleanup is retained and it is
+                # re-raised by the owner of the earlier work.
                 if session is not None:
                     try:
                         session.stop()
@@ -6575,6 +7000,7 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
                             {'kind': 'STOP',
                              'type': type(error).__name__,
                              'detail': str(error)})
+                        _note_interruption(early_interrupts, error)
                 # CORRECTION 17 (M3): the owners of the round of the earlier
                 # work are drained **boundedly** and the quiescence is
                 # asserted **after** the drain.
@@ -6585,25 +7011,69 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
                     early_drain = _drain_owners(
                         early_registry, session=session,
                         channel=(holder or {}).get('channel'),
-                        prefix='r10-early')
+                        prefix='r10-early',
+                        interrupts=early_interrupts)
                 except BaseException as error:  # noqa: BLE001
                     early_cleanup_errors.append(
                         {'kind': 'DRAIN',
                          'type': type(error).__name__,
                          'detail': str(error)})
-                if early_drain['proof'] is not None and sys.exc_info()[0] is None:
-                    raise AssertionError(
-                        'the cleanup of the earlier work of the group was not '
-                        'proved: %s' % (early_drain['proof'],))
-                if early_drain['quiescent'] is not True \
-                        and sys.exc_info()[0] is None:
-                    raise AssertionError(
-                        'the owners of the earlier work of the group were not '
-                        'quiescent')
-                if early_cleanup_errors and sys.exc_info()[0] is None:
-                    raise AssertionError(
-                        'the cleanup of the earlier work of the group met %s'
-                        % (early_cleanup_errors,))
+                    _note_interruption(early_interrupts, error)
+                # CORRECTION 19 (M2): the **final verdict** of the
+                # earlier work is computed **after** the cleanup and it
+                # is written **before** the terminal state of the ledger
+                # is advanced.  The passed subchecks keep their own
+                # documents and they are never rewritten by it.
+                early_failure = None
+                if early_drain['proof'] is not None:
+                    early_failure = early_drain['proof']
+                elif early_drain['quiescent'] is not True:
+                    early_failure = ('the owners of the earlier work of the '
+                                     'group were not quiescent')
+                elif early_cleanup_errors:
+                    early_failure = ('the cleanup of the earlier work of the '
+                                     'group met %s'
+                                     % (early_cleanup_errors,))
+                early_document = {
+                    'salvage': early_drain['salvage'],
+                    'all_salvage': early_drain.get('all_salvage', []),
+                    'drain': early_drain['attempts'],
+                    'quiescent': early_drain['quiescent'],
+                    'proof_failure': early_drain['proof'],
+                    'cleanup_errors': list(early_cleanup_errors),
+                    'original_failure': dict(early_original),
+                    'interrupts': _interruption_facts(early_interrupts),
+                    'status': ('PASSED' if early_failure is None else 'FAIL')}
+                if early_failure is not None:
+                    early_document['executed'] = True
+                    early_document['reason'] = (early_original['type']
+                                                or 'EarlyCleanup')
+                    early_document['detail'] = (early_failure
+                                                or early_original['detail'])
+                try:
+                    write_phase('r10-early-salvage', early_document)
+                except BaseException as write_error:  # noqa: BLE001
+                    early_cleanup_errors.append(
+                        {'kind': 'EVIDENCE',
+                         'type': type(write_error).__name__,
+                         'detail': str(write_error)})
+                    _note_interruption(early_interrupts, write_error)
+                else:
+                    r10_inventory.add('r10-early-salvage')
+                    # CORRECTION 19 (M2): the terminal state of the ledger
+                    # follows the **successful** terminal write.
+                    if early_failure is None:
+                        ledger.pass_('r10-early-salvage')
+                    else:
+                        ledger.fail('r10-early-salvage', 'EarlyCleanup')
+                # CORRECTION 19 (M3): the priority of the failures is
+                # fixed: the failure that is already unwinding wins, then
+                # the **exact** interruption of the cleanup and only then
+                # the ordinary assertion of the cleanup.
+                if early_interrupts and sys.exc_info()[0] is None:
+                    raise early_interrupts[0]
+                if early_failure is not None and sys.exc_info()[0] is None:
+                    raise AssertionError(early_failure)
         finally:
             early_observer.disarm()
             early_observer_patch.stop()
@@ -6655,36 +7125,49 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
         endpoint = None
         reader = None
         coord_cleanup_errors = []
+        coord_interrupts = []
+        coord_original = {'type': None, 'detail': None}
+        coord_passed = False
         try:
-            endpoint = _WindowsPipeEndpoint(
-                file_object=_FakeFile('coordination'),
-                name='coordination',
-                api=CoordinationApi(),
-                clock=time.monotonic, handle=706)
-            cancel = _ChannelCancel()
-            holder = {}
-
-            def run_read():
-                try:
-                    endpoint.read(None, cancel)
-                except BaseException as error:  # noqa: BLE001 - it stays visible
-                    holder['error'] = error
-
-            reader = threading.Thread(target=run_read)
-            reader.start()
+            # CORRECTION 19 (M3): the **cleanup owning** try starts
+            # **before** the endpoint is constructed and **before** the
+            # reader is started.  A start that took effect and that then
+            # raised still obtains the release of the gates, the close of
+            # the endpoint, the join of the observed threads and the
+            # proof of the round: a comment is not a boundary.
             try:
-                assert entered.wait(5.0), 'the read never entered the operation'
+                endpoint = _WindowsPipeEndpoint(
+                    file_object=_FakeFile('coordination'),
+                    name='coordination',
+                    api=CoordinationApi(),
+                    clock=time.monotonic, handle=706)
+                cancel = _ChannelCancel()
+                holder = {}
+
+                def run_read():
+                    try:
+                        endpoint.read(None, cancel)
+                    except BaseException as error:  # noqa: BLE001
+                        holder['error'] = error
+
+                reader = threading.Thread(target=run_read)
+                reader.start()
+                assert entered.wait(5.0), \
+                    'the read never entered the operation'
                 # The cancellation of the round is published while the read is
                 # really inside its operation.
                 cancel.set()
                 reader.join(10.0)
-                assert not reader.is_alive(), 'the read of the round was left behind'
+                assert not reader.is_alive(), \
+                    'the read of the round was left behind'
                 error = holder.get('error')
                 assert isinstance(error, RuntimeError), \
                     'the original error object of the generation was replaced'
                 assert str(error) == 'read_fault'
-                outcome = endpoint._reader.outcome(endpoint._reader._submitted)
-                assert outcome is not None, 'the outcome of the generation is gone'
+                outcome = endpoint._reader.outcome(
+                    endpoint._reader._submitted)
+                assert outcome is not None, \
+                    'the outcome of the generation is gone'
                 assert outcome['error'] == 'RuntimeError'
                 assert isinstance(outcome['error_object'], RuntimeError)
                 r10_raw['r10-coordination'] = {
@@ -6694,17 +7177,22 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
                     'parallel': getattr(
                         error, 'lvw_parallel_cancellation', None) is not None}
                 write_phase('r10-coordination',
-                            dict(r10_raw['r10-coordination'], status='EXECUTED'))
+                            dict(r10_raw['r10-coordination'],
+                                 status='EXECUTED'))
                 r10_inventory.add('r10-coordination')
-                # CORRECTION 18 (M2): the durable document is written
-                # **before** the terminal state of the ledger is updated.
-                write_phase('r10-coordination',
-                            dict(r10_raw['r10-coordination'], status='PASSED'))
-                ledger.pass_('r10-coordination')
+                coord_passed = True
+            except BaseException as error:  # noqa: BLE001 - it stays visible
+                coord_original['type'] = type(error).__name__
+                coord_original['detail'] = str(error)
+                raise
             finally:
                 # CORRECTION 18 (M3): every step of the cleanup is
                 # guarded: one exception never skips the close of the
                 # endpoint and it never skips the owners of the round.
+                #
+                # CORRECTION 19 (M3): the **exact** object of a
+                # cancellation of the cleanup is retained and it is
+                # re-raised by the owner of the coordination.
                 gate.set()
                 if reader is not None:
                     try:
@@ -6714,6 +7202,7 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
                             {'kind': 'READER_JOIN',
                              'type': type(error).__name__,
                              'detail': str(error)})
+                        _note_interruption(coord_interrupts, error)
                 if endpoint is not None:
                     try:
                         endpoint.close()
@@ -6722,26 +7211,83 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
                             {'kind': 'ENDPOINT_CLOSE',
                              'type': type(error).__name__,
                              'detail': str(error)})
+                        _note_interruption(coord_interrupts, error)
                 coord_drain = {'salvage': [], 'attempts': [], 'proof': None,
                                'quiescent': False, 'errors': [],
                                'all_salvage': []}
                 try:
                     coord_drain = _drain_owners(
-                        coord_registry, prefix='r10-coordination')
+                        coord_registry, prefix='r10-coordination',
+                        interrupts=coord_interrupts)
                 except BaseException as error:  # noqa: BLE001
                     coord_cleanup_errors.append(
                         {'kind': 'DRAIN',
                          'type': type(error).__name__,
                          'detail': str(error)})
-                if coord_drain['proof'] is not None \
-                        and sys.exc_info()[0] is None:
-                    raise AssertionError(
-                        'the cleanup of the coordination of the round was not '
-                        'proved: %s' % (coord_drain['proof'],))
-                if coord_cleanup_errors and sys.exc_info()[0] is None:
-                    raise AssertionError(
-                        'the cleanup of the coordination of the round met %s'
-                        % (coord_cleanup_errors,))
+                    _note_interruption(coord_interrupts, error)
+                # CORRECTION 19 (M2): the **final** result of the
+                # coordination is computed **after** the cleanup and it
+                # is written **before** the terminal state of the ledger
+                # is advanced.  There is no terminal PASS **before** the
+                # cleanup.
+                coord_failure = None
+                if coord_drain['proof'] is not None:
+                    coord_failure = coord_drain['proof']
+                elif coord_drain['quiescent'] is not True:
+                    coord_failure = ('the owners of the coordination of the '
+                                     'round were not quiescent')
+                elif coord_cleanup_errors:
+                    coord_failure = ('the cleanup of the coordination of the '
+                                     'round met %s'
+                                     % (coord_cleanup_errors,))
+                # the diagnostics of the cleanup are **durable** and they
+                # stay in the raw facts of the coordination: a retry of
+                # the outer inventory carries them too.
+                r10_raw.setdefault('r10-coordination', {})
+                r10_raw['r10-coordination']['cleanup_errors'] = \
+                    list(coord_cleanup_errors)
+                r10_raw['r10-coordination']['quiescent'] = \
+                    coord_drain['quiescent']
+                r10_raw['r10-coordination']['proof_failure'] = \
+                    coord_drain['proof']
+                document = dict(r10_raw['r10-coordination'],
+                                original_failure=dict(coord_original),
+                                interrupts=_interruption_facts(coord_interrupts),
+                                drain=coord_drain['attempts'])
+                if coord_failure is None and coord_passed \
+                        and coord_original['type'] is None:
+                    document['status'] = 'PASSED'
+                else:
+                    document['status'] = 'FAIL'
+                    document['executed'] = True
+                    document['reason'] = (coord_original['type']
+                                          or 'CoordinationCleanup')
+                    document['detail'] = (coord_failure
+                                          or coord_original['detail'])
+                try:
+                    write_phase('r10-coordination', document)
+                except BaseException as write_error:  # noqa: BLE001
+                    coord_cleanup_errors.append(
+                        {'kind': 'EVIDENCE',
+                         'type': type(write_error).__name__,
+                         'detail': str(write_error)})
+                    _note_interruption(coord_interrupts, write_error)
+                else:
+                    r10_inventory.add('r10-coordination')
+                    # CORRECTION 19 (M2): the terminal state of the ledger
+                    # follows the **successful** terminal write.
+                    if document['status'] == 'PASSED':
+                        ledger.pass_('r10-coordination')
+                    else:
+                        ledger.fail('r10-coordination', document['reason'])
+                # CORRECTION 19 (M3): the priority of the failures is
+                # fixed: the failure that is already unwinding wins, then
+                # the **exact** interruption of the cleanup and only then
+                # the ordinary assertion of the cleanup.
+                if coord_interrupts and sys.exc_info()[0] is None:
+                    raise coord_interrupts[0]
+                if coord_failure is not None and sys.exc_info()[0] is None:
+                    raise AssertionError(coord_failure)
         finally:
             coord_observer.disarm()
             coord_observer_patch.stop()
@@ -6816,6 +7362,12 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
         # CORRECTION 18 (M2): the writing of the evidence **never**
         # replaces the original failure: the error of the write is
         # retained and the original failure is the one that leaves.
+        #
+        # CORRECTION 19 (M2): the recovery of the terminal documents that
+        # a failed write left ATTEMPTED is **bounded and best effort**:
+        # one attempt per name, no retry, no success on a missing
+        # evidence and the terminal state of the ledger follows the
+        # **successful** terminal write.
         first_failure['type'] = type(error).__name__
         for r10_name in r10_documents:
             if ledger.state(r10_name) != 'ATTEMPTED':
@@ -6831,7 +7383,9 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
                     {'name': r10_name,
                      'type': type(write_error).__name__,
                      'detail': str(write_error)})
+                _note_interruption(outer_interrupts, write_error)
                 continue
+            r10_inventory.add(r10_name)
             ledger.fail(r10_name, type(error).__name__)
         raise
     finally:
@@ -6843,6 +7397,15 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
         # CORRECTION 18 (M2): a write that fails here never replaces the
         # original failure of the group: it is retained and it is
         # reported in the reason of the group.
+        #
+        # CORRECTION 19 (M2): a name is finalised as ``NOT_RUN`` **only
+        # after** its durable write succeeded and the terminal state of
+        # the ledger follows that write: a failed write leaves the name
+        # PLANNED and it is reported as a persistence diagnostic.
+        # the state of the unwinding is read **before** the writes: inside
+        # the handler of a write the state of the frame is the write
+        # error itself and the original failure would never be seen.
+        outer_unwinding = sys.exc_info()[0] is not None
         for r10_name in r10_documents:
             if ledger.state(r10_name) != 'PLANNED':
                 continue
@@ -6854,6 +7417,37 @@ def test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation(tmp_pa
                     {'name': r10_name,
                      'type': type(write_error).__name__,
                      'detail': str(write_error)})
+                interrupted = _note_interruption(outer_interrupts,
+                                                write_error)
+                if interrupted and not outer_unwinding:
+                    # CORRECTION 19 (M3): an **exact** cancellation of the
+                    # write of the inventory is re-raised as **itself**.
+                    raise
+                continue
+            r10_inventory.add(r10_name)
+            ledger.finish(r10_name, 'NOT_RUN', first_failure['type'])
+    # CORRECTION 19 (M3): the **exact** object of a cancellation that the
+    # inventory of the group met is re-raised by the owner of the group:
+    # the priority is the failure that is already unwinding, then the
+    # exact interruption and only then the ordinary assertion.
+    if outer_interrupts:
+        raise outer_interrupts[0]
+    # CORRECTION 19 (M2): the terminal accounting of the group is
+    # **complete** and it is checked **only** when the group really
+    # passed: every name of the inventory has a terminal state of the
+    # ledger and a document that was really written, and a passing test
+    # carries **no** persistence diagnostic at all.
+    assert first_failure['type'] is None, \
+        'the group of the M09 obligation failed: %s' % (first_failure,)
+    assert not first_failure.get('write_errors'), \
+        'the evidence of the group carried a persistence diagnostic: %s' \
+        % (first_failure.get('write_errors'),)
+    for r10_name in r10_documents:
+        assert ledger.state(r10_name) in ('PASSED', 'FAIL', 'NOT_RUN'), \
+            'the terminal state of %s is %s' \
+            % (r10_name, ledger.state(r10_name))
+        assert r10_name in r10_inventory, \
+            'the document of %s was never written' % (r10_name,)
 
 # -- N10-R11: the overflow of the channel is a named failure -------------
 

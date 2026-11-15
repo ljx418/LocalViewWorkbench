@@ -1,0 +1,823 @@
+{
+ "assertion_equivalence": {
+  "added": [
+   "child is not controlled_parent_channel",
+   "controlled['injected_starts'][0]['target_owner_is_parent'] is False",
+   "first_failure['type'] is None",
+   "ledger.state(r10_name) in ('PASSED', 'FAIL', 'NOT_RUN')",
+   "len(children) == 1",
+   "not first_failure.get('write_errors')",
+   "r10_name in r10_inventory"
+  ],
+  "baseline_total": 407,
+  "candidate_total": 414,
+  "note": "No predicate of the baseline is removed.  The added predicates are the checks of the residual defects of the independent review of the correction 18; they never replace an oracle of the baseline.",
+  "removed": []
+ },
+ "checks": [
+  {
+   "check": "pin:tools/test_v0_s3_native_custody.py",
+   "detail": "fe96d2ffd353d3f3f6df4da2b023dd6cfaf58fe730ab6655afbca723ed507d32",
+   "ok": true
+  },
+  {
+   "check": "pin:tools/test_v0_s3_native_custody_correction05.py",
+   "detail": "8563989f078fcd45d44c496a0bea16c1ecf5005513543f6f4e00792e4ed7e130",
+   "ok": true
+  },
+  {
+   "check": "pin:tools/test_v0_s3_native_custody_correction07.py",
+   "detail": "dc74cf7f92e8be6cc2b69c602b9fc0b3fdd765ec8b9b48c4f061dde7bdcd6cdf",
+   "ok": true
+  },
+  {
+   "check": "pin:tools/test_v0_s3_native_custody_regressions.py",
+   "detail": "03250ea0ac64519c57edfbe1be965eb2827b46fc7f2d80b47146e4a5e6e7cb93",
+   "ok": true
+  },
+  {
+   "check": "pin:tools/v0_s3_native_broker.py",
+   "detail": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
+   "ok": true
+  },
+  {
+   "check": "pin:tools/v0_s3_native_custody.py",
+   "detail": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581",
+   "ok": true
+  },
+  {
+   "check": "node-count:tools/test_v0_s3_native_custody.py",
+   "detail": "117 of 117",
+   "ok": true
+  },
+  {
+   "check": "node-count:tools/test_v0_s3_native_custody_regressions.py",
+   "detail": "16 of 16",
+   "ok": true
+  },
+  {
+   "check": "node-count:tools/test_v0_s3_native_custody_correction05.py",
+   "detail": "24 of 24",
+   "ok": true
+  },
+  {
+   "check": "node-count:tools/test_v0_s3_native_custody_correction07.py",
+   "detail": "18 of 18",
+   "ok": true
+  },
+  {
+   "check": "node-count:tools/test_v0_s3_native_custody_correction10.py",
+   "detail": "14 of 14",
+   "ok": true
+  },
+  {
+   "check": "denominator:189",
+   "detail": "189",
+   "ok": true
+  },
+  {
+   "check": "denominator:unique",
+   "detail": "189",
+   "ok": true
+  },
+  {
+   "check": "nodes:names-order-signatures",
+   "detail": "[[\"test_n10_r01_the_control_handle_is_closed_only_after_the_exit\", [\"tmp_path\"], []], [\"test_n10_r02_the_claim_of_the_recovery_and_the_handover_are_exclusive\", [], []], [\"test_n10_r03_every_confirmed_close_notifies_the_owner_of_the_handle\", [\"tmp_path\"], []], [\"test_n10_r04_the_launch_aggregate_finds_the_partial_channel\", [], []], [\"test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel\", [\"tmp_path\"], []], [\"test_n10_r06_an_expired_or_cancelled_call_performs_no_primitive_call\", [], []], [\"test_n10_r07_the_context_of_the_round_reaches_every_layer\", [\"tmp_path\"], []], [\"test_n10_r08_the_retry_of_a_cancellation_re_reads_the_context\", [], []], [\"test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread\", [\"tmp_path\"], []], [\"test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation\", [\"tmp_path\"], []], [\"test_n10_r11_the_overflow_of_the_channel_is_a_named_failure\", [\"tmp_path\"], []], [\"test_n10_r12_the_reader_publishes_its_wait_before_it_waits\", [\"tmp_path\"], []], [\"test_n10_r13_the_fault_is_unlocked_by_the_owner_and_observed_first\", [\"tmp_path\"], []], [\"test_n10_r14_the_closed_obligations_of_the_package_do_not_regress\", [\"tmp_path\"], []]]",
+   "ok": true
+  },
+  {
+   "check": "nodes:no-skip-no-xfail",
+   "detail": "[]",
+   "ok": true
+  },
+  {
+   "check": "module:compiles",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "assertions:none-removed",
+   "detail": "[]",
+   "ok": true
+  },
+  {
+   "check": "assertions:none-reduced",
+   "detail": "414 now, 407 in the baseline",
+   "ok": true
+  },
+  {
+   "check": "module:no-unbound-global",
+   "detail": "[]",
+   "ok": true
+  },
+  {
+   "check": "removed:controlled['sentinel'] == '_R07Sentinel'",
+   "detail": "the predicate is not present",
+   "ok": true
+  },
+  {
+   "check": "removed:zero_session.state == 'RUNNING'",
+   "detail": "the predicate is not present",
+   "ok": true
+  },
+  {
+   "check": "removed:zero_attached_pump is not None",
+   "detail": "the predicate is not present",
+   "ok": true
+  },
+  {
+   "check": "removed:zero_attached_pump.is_alive()",
+   "detail": "the predicate is not present",
+   "ok": true
+  },
+  {
+   "check": "removed:item['alive'] is False",
+   "detail": "the predicate is still present",
+   "ok": true
+  },
+  {
+   "check": "removed:zero_held.wait(15.0)",
+   "detail": "the predicate is not present",
+   "ok": true
+  },
+  {
+   "check": "removed:controlled['failure'] is not None",
+   "detail": "the predicate is not present",
+   "ok": true
+  },
+  {
+   "check": "replacement:failure['class'] is _R07Sentinel",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:failure['token'] == checkpoint",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:failure['class'] is _R07OrdinaryAssertion",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:failure['token'] == _R07OrdinaryAssertion.TOKEN",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:failure['class'] is _R07ConstructorFailure",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:failure['token'] == 'CONSTRUCTOR_FAILURE'",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:facts['zero_state'] == 'UNKNOWN_RETAINED'",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:'CUSTODY_CHANNEL_TIMEOUT' in facts['zero_failures']",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:facts['zero_broker_retained'] is True",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:zero_session.broker is zero_broker",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:zero_pump is zero_session._pump",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:facts['zero_pump_finished'] is True",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:zero_premise['pump_error_is_none'] is True",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:zero_gate_facts[0]['released'] is True",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:zero_reply_waits[-1] == 0.0",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:zero_queue_waits[-1] == 0.0",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:_assert_salvage_proved(zero_salvage",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:_assert_salvage_proved(controlled['salvage']",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:close_failures[0]['owner'] == 'controlled:transport'",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:close_failures[0]['type'] == 'RuntimeError'",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:close_failures[0]['detail'] == 'controlled_close_failure'",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:controlled['cleanup_ran_while_unwinding'] is True",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:controlled['cleanup_ran_while_unwinding'] is False",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:controlled['quiescent'] is True",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:controlled['close_failures'] == []",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:api.barrier_write_error",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:barrier_observed_object_is_original",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:child = controlled_custody_channel()",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:if owner is not child:",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:child is not controlled_parent_channel",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:entry['name'] == 'controlled:channel'",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:written_result is not None",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:phase_failure_detail",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:_interruption_facts(",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:early_failure",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:coord_failure",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "replacement:'r10-early-salvage'",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:unittest.mock.patch.object(broker_module, 'BrokerProcess',",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:repr(pump.error) if pump is not None else None",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:'broker_retained' in zero_returned",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:controlled['sentinel'] == '_R07Sentinel'",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:assert controlled['failure'] is not None",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:any(item['owner'] == 'controlled:transport'",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:'controlled_close_failure' in detail",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:add(_session_owners('%s:session' % prefix, session, hints))",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:add(_channel_owners('%s:channel' % prefix, channel, hints))",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:getattr(thread, 'target', None)",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:for entry in controlled_registry.entries():\n            if entry['kind'] == 'channel':\n                return entry['owner']",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "forbidden:ledger.fail(name, type(error).__name__)\n                raise",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:getattr(thread, '_target', None)",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:ledger.attempt(phase)",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:ledger.attempt(phase + '-construction')",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:ledger.attempt('r10-coordination')",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:ledger.attempt('r10-early-salvage')",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:self.barrier_ledger.attempt(self.barrier_name)",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:self._persist_barrier()",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:self.barrier_completed.set()",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:api.barrier_write_error is not None",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:_stop_proof_failure(",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:_note_interruption(",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:controlled_interrupts",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:early_interrupts",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:coord_interrupts",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:outer_interrupts",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:cleanup_errors.append(",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:all_salvage",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:release=(lambda: gate.set(),",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "required:release=(lambda: zero_gate.set(),",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "inventory:unique",
+   "detail": "28",
+   "ok": true
+  },
+  {
+   "check": "inventory:name:r10-timeout-confirmed",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "inventory:name:r10-timeout-failed",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "inventory:name:r10-barrier-absent",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "inventory:name:r10-barrier-wrong-generation",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "inventory:name:r10-published-before-timeout",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "inventory:name:r10-first",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "inventory:name:r10-second",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "inventory:name:r10-coordination",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "inventory:name:r10-early-salvage",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "module:no-new-import",
+   "detail": "[\"ast\", \"hashlib\", \"json\", \"os\", \"pathlib:0\", \"pytest\", \"queue\", \"subprocess\", \"sys\", \"threading\", \"time\", \"tools.test_v0_s3_native_custody_correction07:0\", \"tools.test_v0_s3_native_custody_regressions:0\", \"tools.v0_s3_native_broker\", \"tools.v0_s3_native_broker:0\", \"tools.v0_s3_native_custody\", \"tools.v0_s3_native_custody:0\", \"unittest.mock\"]",
+   "ok": true
+  },
+  {
+   "check": "m3-1:controlled-present",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-1:custody-channel-lookup",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-1:the-child-is-named",
+   "detail": "the name of the child is not used",
+   "ok": true
+  },
+  {
+   "check": "m3-1:the-parent-is-excluded",
+   "detail": "the parent channel is not excluded",
+   "ok": true
+  },
+  {
+   "check": "m3-1:not-the-first-channel",
+   "detail": "the lookup may still select the first channel",
+   "ok": true
+  },
+  {
+   "check": "m3-1:exact-owner-identity-check",
+   "detail": "[4343]",
+   "ok": true
+  },
+  {
+   "check": "m3-1:the-child-differs-from-the-parent",
+   "detail": "[4314]",
+   "ok": true
+  },
+  {
+   "check": "m3-1:the-parent-channel-is-captured",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-1:the-parent-is-captured-before-the-child",
+   "detail": "4271 < 4365",
+   "ok": true
+  },
+  {
+   "check": "m3-1:the-exact-constructor-failure",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m3-1:the-original-start-takes-effect",
+   "detail": "[4359, 4331, 4335, 4344]",
+   "ok": true
+  },
+  {
+   "check": "m2-1:the-terminal-transitions-exist",
+   "detail": "23",
+   "ok": true
+  },
+  {
+   "check": "m2-1:every-terminal-transition-is-write-guarded",
+   "detail": "[]",
+   "ok": true
+  },
+  {
+   "check": "m2-1:the-not-run-transition-exists",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-4:r10-test-present",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-4:the-coordination-endpoint-found",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m3-4:the-reader-thread-found",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m3-4:the-endpoint-is-inside-the-cleanup-try",
+   "detail": "the endpoint is in 7138 and the start in 7138",
+   "ok": true
+  },
+  {
+   "check": "m3-4:the-cleanup-try-closes-the-endpoint",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m3-4:the-cleanup-try-drains-the-owners",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m2-2:the-phase-present",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m2-2:the-final-document-carries-barrier_persisted",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m2-2:the-final-document-carries-barrier_write_error",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m2-2:the-final-document-carries-the-identity",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m2-2:the-barrier-facts-are-built-once",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m2-3:the-early-chain-found",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-3:the-early-verdict-is-written",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-3:the-early-verdict-is-after-the-cleanup",
+   "detail": "the try is 6899",
+   "ok": true
+  },
+  {
+   "check": "m2-3:the-coordination-documents-exist",
+   "detail": "2",
+   "ok": true
+  },
+  {
+   "check": "m2-4:the-drain-present",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m2-4:the-drain-fails-on-a-nonquiescent-round",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m2-4:test_n10_r07_the_context_of_the_round_reaches_every_layer-requires-the-quiescence",
+   "detail": "3",
+   "ok": true
+  },
+  {
+   "check": "m2-4:test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation-requires-the-quiescence",
+   "detail": "2",
+   "ok": true
+  },
+  {
+   "check": "m2-4:_m09_timeout_phase-requires-the-quiescence",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-4:_m09_published_fault_phase-requires-the-quiescence",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m2-4:the-quiescence-is-enforced-everywhere",
+   "detail": "7",
+   "ok": true
+  },
+  {
+   "check": "m3-2:the-registry-present",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-2:the-traversal-is-guarded-per-query",
+   "detail": "5",
+   "ok": true
+  },
+  {
+   "check": "m3-2:the-observed-threads-are-retained",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-2:the-owners-are-never-emptied",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-2:the-reads-of-the-drain-exist",
+   "detail": "2 reads, 6 guarded readers",
+   "ok": true
+  },
+  {
+   "check": "m3-2:the-reads-of-the-drain-are-guarded",
+   "detail": "[]",
+   "ok": true
+  },
+  {
+   "check": "m3-2:the-release-is-one-action-per-gate",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m3-3:test_n10_r07_the_context_of_the_round_reaches_every_layer-rethrows-the-exact-cancellation",
+   "detail": "6",
+   "ok": true
+  },
+  {
+   "check": "m3-3:test_n10_r07_the_context_of_the_round_reaches_every_layer-the-cancellation-wins",
+   "detail": "[]",
+   "ok": true
+  },
+  {
+   "check": "m3-3:test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation-rethrows-the-exact-cancellation",
+   "detail": "3",
+   "ok": true
+  },
+  {
+   "check": "m3-3:test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation-the-cancellation-wins",
+   "detail": "[]",
+   "ok": true
+  },
+  {
+   "check": "m3-3:_m09_timeout_phase-rethrows-the-exact-cancellation",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m3-3:_m09_timeout_phase-the-cancellation-wins",
+   "detail": "[]",
+   "ok": true
+  },
+  {
+   "check": "m3-3:_m09_published_fault_phase-rethrows-the-exact-cancellation",
+   "detail": "1",
+   "ok": true
+  },
+  {
+   "check": "m3-3:_m09_published_fault_phase-the-cancellation-wins",
+   "detail": "[]",
+   "ok": true
+  },
+  {
+   "check": "m3-5:the-r07-present",
+   "detail": "",
+   "ok": true
+  },
+  {
+   "check": "m3-5:the-closes-are-base-exception-aware",
+   "detail": "5",
+   "ok": true
+  },
+  {
+   "check": "m3-5:no-close-is-exception-only",
+   "detail": "0",
+   "ok": true
+  },
+  {
+   "check": "evidence:directory",
+   "detail": "",
+   "ok": true
+  }
+ ],
+ "failed": [],
+ "kind": "lvw.s3-native-custody-correction19-static-checks/1",
+ "ok": true,
+ "total": 160
+}
