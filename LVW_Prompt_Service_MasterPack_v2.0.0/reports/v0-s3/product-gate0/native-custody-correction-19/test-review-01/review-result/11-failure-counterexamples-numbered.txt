@@ -1,0 +1,715 @@
+T10 physical lines 920-1000
+  920         """Retain one failure of the traversal, never swallow it."""
+  921         if errors is not None:
+  922             errors.append({'kind': kind, 'type': type(error).__name__,
+  923                            'detail': str(error)})
+  924         _note_interruption(interrupts, error)
+  925 
+  926     try:
+  927         entries = registry.entries()
+  928     except BaseException as error:  # noqa: BLE001 - it stays visible
+  929         note('REGISTRY_ENTRIES', error)
+  930         entries = []
+  931     # CORRECTION 19 (M3): the **exact** thread objects that the start
+  932     # registry observed are retained **first** and they are an
+  933     # independent fallback: a failure of the query of a container never
+  934     # loses them and it never replaces the owners of the round with an
+  935     # empty list.  They are merged into the owners **after** the
+  936     # traversal, so that the name of an owner that a container really
+  937     # knows is never replaced by the name of the registry.
+  938     observed = [(item.get('name'), item.get('owner'))
+  939                 for item in entries
+  940                 if item.get('kind') == 'thread'
+  941                 and item.get('owner') is not None]
+  942     for entry in entries:
+  943         name = entry.get('name')
+  944         owner = entry.get('owner')
+  945         kind = entry.get('kind')
+  946         if kind == 'thread':
+  947             add([(name, owner)])
+  948             continue
+  949         try:
+  950             if kind == 'channel':
+  951                 items = _channel_owners(owner, name, hints)
+  952             elif kind == 'endpoint':
+  953                 items = _endpoint_owners(name, owner, hints)
+  954             elif kind == 'session':
+  955                 items = _session_owners(owner, name, hints)
+  956             else:
+  957                 items = [(name, owner)]
+  958         except BaseException as error:  # noqa: BLE001 - it stays visible
+  959             # the traversal continues: the owners that follow this one
+  960             # are still attempted and the exact thread object of this
+  961             # entry is still an owner of the round.
+  962             note('OWNER_QUERY', error)
+  963             if isinstance(owner, threading.Thread):
+  964                 add([(name, owner)])
+  965             continue
+  966         kinds.add(kind)
+  967         add(items)
+  968     try:
+  969         if session is not None and 'session' not in kinds:
+  970             add(_session_owners(session, '%s:session' % prefix, hints))
+  971     except BaseException as error:  # noqa: BLE001 - it stays visible
+  972         note('SESSION_QUERY', error)
+  973     try:
+  974         if channel is not None and 'channel' not in kinds:
+  975             add(_channel_owners(channel, '%s:channel' % prefix, hints))
+  976     except BaseException as error:  # noqa: BLE001 - it stays visible
+  977         note('CHANNEL_QUERY', error)
+  978     # CORRECTION 19 (M3): the fallback of the observed threads: every
+  979     # exact thread object that the start registry saw is an owner of the
+  980     # round.  The merge is **idempotent**: an owner that the traversal
+  981     # already named keeps its name and its hint.
+  982     for name, thread in observed:
+  983         add([(name, thread)])
+  984     # CORRECTION 17 (M3): the provenance of the starts that the
+  985     # observer of the fixture saw is the **proven** provenance of the
+  986     # start of an owner.  It is keyed by the exact thread object and it
+  987     # never replaces the hint of the production: a thread whose start
+  988     # returned is ``STARTED`` and a thread whose start did not return is
+  989     # ``UNKNOWN``.
+  990     try:
+  991         provenance = registry.start_provenance() if registry is not None else {}
+  992     except BaseException as error:  # noqa: BLE001 - it stays visible
+  993         note('PROVENANCE', error)
+  994         provenance = {}
+  995     for name, thread in owners:
+  996         if thread is None:
+  997             continue
+  998         state = provenance.get(id(thread))
+  999         if state == 'STARTED':
+ 1000             hints[name] = 'STARTED'
+
+T10 physical lines 3531-3639
+ 3531             finally:
+ 3532                 # The fixture of the zero round is released and the owners
+ 3533                 # that it really started are joined with a bounded wait.
+ 3534                 # The gate of the test and the primitive of the round are
+ 3535                 # released **unconditionally**.
+ 3536                 zero_gate.set()
+ 3537                 zero_api.frames_ready.set()
+ 3538                 # The **returned** state of the product is captured
+ 3539                 # **before** the salvage: the salvage of the test is
+ 3540                 # separate from it and it never discards it.
+ 3541                 zero_stop = _capture_stop(zero_session,
+ 3542                                            original_broker=zero_broker,
+ 3543                                            interrupts=zero_interrupts)
+ 3544                 # CORRECTION 17 (M3): the owners of the round are drained
+ 3545                 # **boundedly**: the drain repeats until the owners are
+ 3546                 # quiescent and really joined, the quiescence is
+ 3547                 # asserted **after** the drain and the budget of the
+ 3548                 # drain is one overall bound.
+ 3549                 #
+ 3550                 # CORRECTION 18 (M3): the drain and the writing of the
+ 3551                 # evidence are guarded: one exception never skips the
+ 3552                 # owners that follow it and it never certifies the
+ 3553                 # cleanup.
+ 3554                 zero_drain = {'salvage': [], 'attempts': [], 'proof': None,
+ 3555                               'quiescent': False, 'errors': [],
+ 3556                               'all_salvage': []}
+ 3557                 zero_cleanup_errors = []
+ 3558                 try:
+ 3559                     zero_drain = _drain_owners(
+ 3560                         zero_registry, session=zero_session,
+ 3561                         channel=zero_channel,
+ 3562                         prefix='zero',
+ 3563                         release=(lambda: zero_gate.set(),
+ 3564                                  lambda: zero_api.frames_ready.set()),
+ 3565                         interrupts=zero_interrupts)
+ 3566                 except BaseException as error:  # noqa: BLE001
+ 3567                     zero_cleanup_errors.append(
+ 3568                         {'kind': 'DRAIN', 'type': type(error).__name__,
+ 3569                          'detail': str(error)})
+ 3570                     _note_interruption(zero_interrupts, error)
+ 3571                 zero_salvage = zero_drain['salvage']
+ 3572                 zero_proof = zero_drain['proof']
+ 3573                 # CORRECTION 18 (M3): a stop that raised and a snapshot
+ 3574                 # of the evidence that failed are facts of the cleanup.
+ 3575                 zero_stop_proof = _stop_proof_failure(zero_stop,
+ 3576                                                       'the round of zero')
+ 3577                 if zero_proof is None and zero_stop_proof is not None:
+ 3578                     zero_proof = zero_stop_proof
+ 3579                 if zero_proof is None and zero_cleanup_errors:
+ 3580                     zero_proof = ('the round of zero met %s'
+ 3581                                   % (zero_cleanup_errors,))
+ 3582                 # CORRECTION 19 (M3): the **quiescence** of the round of
+ 3583                 # zero is part of its proof: an owner that the final
+ 3584                 # resnapshot of the drain found and that no join
+ 3585                 # released fails the round of zero and it fails the test
+ 3586                 # with it.
+ 3587                 if zero_proof is None and zero_drain['quiescent'] is not True:
+ 3588                     zero_proof = 'the round of zero was not quiescent'
+ 3589                 facts = {'salvage': zero_salvage,
+ 3590                          'all_salvage': zero_drain.get('all_salvage', []),
+ 3591                          'stop': zero_stop,
+ 3592                          'drain': zero_drain['attempts'],
+ 3593                          'quiescent': zero_drain['quiescent'],
+ 3594                          'proof_failure': zero_proof,
+ 3595                          'stop_proof_failure': zero_stop_proof,
+ 3596                          'cleanup_errors': zero_cleanup_errors,
+ 3597                          'interrupts': _interruption_facts(zero_interrupts),
+ 3598                          'registry': zero_registry.facts()}
+ 3599                 # the state of the unwinding is read **before** the
+ 3600                 # write: inside the handler of the write the state of the
+ 3601                 # frame is the write error itself and the original
+ 3602                 # failure would never be seen.
+ 3603                 unwinding = sys.exc_info()[0] is not None
+ 3604                 try:
+ 3605                     try:
+ 3606                         write_phase('r07-zero-salvage', facts)
+ 3607                     except BaseException as write_error:  # noqa: BLE001
+ 3608                         zero_cleanup_errors.append(
+ 3609                             {'kind': 'EVIDENCE',
+ 3610                              'type': type(write_error).__name__,
+ 3611                              'detail': str(write_error)})
+ 3612                         interrupted = _note_interruption(zero_interrupts,
+ 3613                                                         write_error)
+ 3614                         if not unwinding:
+ 3615                             if interrupted:
+ 3616                                 # CORRECTION 19 (M3): an **exact**
+ 3617                                 # cancellation of the write is re-raised
+ 3618                                 # as **itself**.
+ 3619                                 raise
+ 3620                             if zero_interrupts:
+ 3621                                 # CORRECTION 19 (M3): a pending **exact**
+ 3622                                 # cancellation of the cleanup wins over the
+ 3623                                 # ordinary assertion of the evidence.
+ 3624                                 raise zero_interrupts[0]
+ 3625                             raise AssertionError(
+ 3626                                 'the evidence of the cleanup of the round of '
+ 3627                                 'zero could not be written: %s'
+ 3628                                 % (write_error,))
+ 3629                 finally:
+ 3630                     zero_observer.disarm()
+ 3631                 # CORRECTION 19 (M3): the priority of the failures is
+ 3632                 # fixed: the failure that is already unwinding wins, then
+ 3633                 # the **exact** interruption of the cleanup and only then
+ 3634                 # the ordinary assertion of the proof.
+ 3635                 if zero_interrupts and sys.exc_info()[0] is None:
+ 3636                     raise zero_interrupts[0]
+ 3637                 if zero_proof is not None and sys.exc_info()[0] is None:
+ 3638                     raise AssertionError(zero_proof)
+ 3639                 # CORRECTION 17 (M1): the proof of the cleanup of the
+
+T10 physical lines 3888-3947
+ 3888         # the handler of the write the state of the frame is the write
+ 3889         # error itself and the original failure would never be seen.
+ 3890         unwinding = sys.exc_info()[0] is not None
+ 3891         try:
+ 3892             try:
+ 3893                 write_phase('r07-parent-salvage',
+ 3894                             {'salvage': parent_salvage,
+ 3895                              'all_salvage':
+ 3896                                  parent_drain.get('all_salvage', []),
+ 3897                              'stop': parent_stop,
+ 3898                              'drain': parent_drain['attempts'],
+ 3899                              'quiescent': parent_drain['quiescent'],
+ 3900                              'proof_failure': parent_proof,
+ 3901                              'stop_proof_failure': parent_stop_proof,
+ 3902                              'cleanup_errors': parent_cleanup_errors,
+ 3903                              'child_close_failures': child_close_failures,
+ 3904                              'interrupts': _interruption_facts(
+ 3905                                  parent_interrupts),
+ 3906                              'registry': parent_registry.facts()})
+ 3907             except BaseException as write_error:  # noqa: BLE001
+ 3908                 parent_cleanup_errors.append(
+ 3909                     {'kind': 'EVIDENCE',
+ 3910                      'type': type(write_error).__name__,
+ 3911                      'detail': str(write_error)})
+ 3912                 interrupted = _note_interruption(parent_interrupts,
+ 3913                                                 write_error)
+ 3914                 if not unwinding:
+ 3915                     if interrupted:
+ 3916                         # CORRECTION 19 (M3): an **exact** cancellation
+ 3917                         # of the write is re-raised as **itself**: it is
+ 3918                         # never converted into an ordinary assertion.
+ 3919                         raise
+ 3920                     if parent_interrupts:
+ 3921                         # CORRECTION 19 (M3): a pending **exact**
+ 3922                         # cancellation of the cleanup wins over the
+ 3923                         # ordinary assertion of the evidence.
+ 3924                         raise parent_interrupts[0]
+ 3925                     raise AssertionError(
+ 3926                         'the evidence of the cleanup of the parent could not '
+ 3927                         'be written: %s' % (write_error,))
+ 3928         finally:
+ 3929             parent_observer.disarm()
+ 3930             parent_observer_patch.stop()
+ 3931         # CORRECTION 19 (M3): the priority of the failures is fixed: the
+ 3932         # failure that is already unwinding wins, then the **exact**
+ 3933         # interruption of the cleanup and only then the ordinary
+ 3934         # assertion of the proof.
+ 3935         if parent_interrupts and sys.exc_info()[0] is None:
+ 3936             raise parent_interrupts[0]
+ 3937         if parent_proof is not None and sys.exc_info()[0] is None:
+ 3938             raise AssertionError(parent_proof)
+ 3939     # CORRECTION 17 (M3): no unrelated failure of a close of the child
+ 3940     # is tolerated next to the intended ones: every failure of a close
+ 3941     # of the child fails the round of the parent.
+ 3942     assert child_close_failures == [], \
+ 3943         'the close of the transport of the child met %s' \
+ 3944         % (child_close_failures,)
+ 3945 
+ 3946     # -- N1 correction 12 (M08-A): the admission of a generation is
+ 3947     #    decided at the **dispatch** of the worker and it consults the
+
+T10 physical lines 4460-4602
+ 4460                     # proof of the cleanup is **run** while the failure
+ 4461                     # of the subcase is already unwinding.
+ 4462                     controlled_stop = _capture_stop(
+ 4463                         controlled_session,
+ 4464                         original_broker=controlled_original_broker,
+ 4465                         interrupts=controlled_interrupts)
+ 4466                     controlled_api.frames_ready.set()
+ 4467                     controlled_broker = getattr(controlled_session,
+ 4468                                                 'broker', None)
+ 4469                     controlled_channel = getattr(controlled_broker,
+ 4470                                                  '_channel', None)
+ 4471                     # CORRECTION 17 (M3): the owners of the round are
+ 4472                     # drained **boundedly** and the quiescence is
+ 4473                     # asserted **after** the drain.
+ 4474                     drain = {'salvage': [], 'attempts': [], 'proof': None,
+ 4475                              'quiescent': False, 'errors': [],
+ 4476                              'all_salvage': []}
+ 4477                     try:
+ 4478                         drain = _drain_owners(
+ 4479                             controlled_registry,
+ 4480                             session=controlled_session,
+ 4481                             channel=controlled_channel, prefix='controlled',
+ 4482                             release=(lambda: gate.set(),
+ 4483                                      lambda: controlled_api.frames_ready.set()),
+ 4484                             interrupts=controlled_interrupts)
+ 4485                     except BaseException as error:  # noqa: BLE001
+ 4486                         controlled_cleanup_errors.append(
+ 4487                             {'kind': 'DRAIN',
+ 4488                              'type': type(error).__name__,
+ 4489                              'detail': str(error)})
+ 4490                         _note_interruption(controlled_interrupts, error)
+ 4491                     # CORRECTION 18 (M3): a stop that raised and a
+ 4492                     # snapshot of the evidence that failed are facts of
+ 4493                     # the cleanup: they never certify it.
+ 4494                     stop_proof = _stop_proof_failure(
+ 4495                         controlled_stop,
+ 4496                         'the controlled failure of %s' % checkpoint)
+ 4497                     salvage = drain['salvage']
+ 4498                     proof = drain['proof']
+ 4499                     if proof is None and stop_proof is not None:
+ 4500                         proof = stop_proof
+ 4501                     if proof is None and controlled_cleanup_errors:
+ 4502                         proof = ('the controlled failure of %s met %s'
+ 4503                                  % (checkpoint, controlled_cleanup_errors))
+ 4504                     # CORRECTION 19 (M3): the **quiescence** of the round
+ 4505                     # of the controlled failure is part of its proof: an
+ 4506                     # owner that the final resnapshot of the drain found
+ 4507                     # and that no join released fails the subcase with it.
+ 4508                     if proof is None and drain['quiescent'] is not True:
+ 4509                         proof = ('the owners of the controlled failure of %s '
+ 4510                                  'were not quiescent' % checkpoint)
+ 4511                     facts = {'checkpoint': checkpoint,
+ 4512                              'failure': raised[0] if raised else None,
+ 4513                              'gate_released': bool(gate.is_set()),
+ 4514                              'stop': controlled_stop,
+ 4515                              'close_failures': list(close_failures),
+ 4516                              'cleanup_errors':
+ 4517                                  list(controlled_cleanup_errors),
+ 4518                              'cleanup_ran_while_unwinding':
+ 4519                                  sys.exc_info()[0] is not None,
+ 4520                              'salvage': salvage,
+ 4521                              'all_salvage': drain.get('all_salvage', []),
+ 4522                              'drain': drain['attempts'],
+ 4523                              'quiescent': drain['quiescent'],
+ 4524                              'proof_failure': proof,
+ 4525                              'stop_proof_failure': stop_proof,
+ 4526                              'interrupts': _interruption_facts(
+ 4527                                  controlled_interrupts),
+ 4528                              'injected_starts': list(injected_starts),
+ 4529                              'registry': controlled_registry.facts()}
+ 4530                     unwinding = sys.exc_info()[0] is not None
+ 4531                     try:
+ 4532                         write_facts()
+ 4533                     except BaseException as write_error:  # noqa: BLE001
+ 4534                         controlled_cleanup_errors.append(
+ 4535                             {'kind': 'EVIDENCE',
+ 4536                              'type': type(write_error).__name__,
+ 4537                              'detail': str(write_error)})
+ 4538                         interrupted = _note_interruption(
+ 4539                             controlled_interrupts, write_error)
+ 4540                         if not unwinding:
+ 4541                             if interrupted:
+ 4542                                 # CORRECTION 19 (M3): an **exact**
+ 4543                                 # cancellation of the write is re-raised
+ 4544                                 # as **itself**.
+ 4545                                 raise
+ 4546                             if controlled_interrupts:
+ 4547                                 # CORRECTION 19 (M3): a pending **exact**
+ 4548                                 # cancellation of the cleanup wins over the
+ 4549                                 # ordinary assertion of the evidence.
+ 4550                                 raise controlled_interrupts[0]
+ 4551                             raise AssertionError(
+ 4552                                 'the evidence of the controlled failure of %s '
+ 4553                                 'could not be written: %s'
+ 4554                                 % (checkpoint, write_error))
+ 4555                     # CORRECTION 19 (M3): the priority of the failures is
+ 4556                     # fixed: the failure that is already unwinding wins,
+ 4557                     # then the **exact** interruption of the cleanup and
+ 4558                     # only then the ordinary assertion of the proof.  A
+ 4559                     # proof assertion never renders the rethrow of the
+ 4560                     # exact interruption unreachable.
+ 4561                     if controlled_interrupts and not unwinding:
+ 4562                         raise controlled_interrupts[0]
+ 4563                     if proof is not None and not unwinding:
+ 4564                         raise AssertionError(proof)
+ 4565         except _R07Sentinel as error:
+ 4566             raised.append({'class': _R07Sentinel,
+ 4567                            'type': type(error).__name__,
+ 4568                            'token': str(error),
+ 4569                            'detail': str(error)})
+ 4570             facts['failure'] = raised[0]
+ 4571             write_facts()
+ 4572         except _R07ConstructorFailure as error:
+ 4573             raised.append({'class': _R07ConstructorFailure,
+ 4574                            'type': type(error).__name__,
+ 4575                            'token': str(error),
+ 4576                            'detail': str(error)})
+ 4577             facts['failure'] = raised[0]
+ 4578             write_facts()
+ 4579         except _R07OrdinaryAssertion as error:
+ 4580             raised.append({'class': _R07OrdinaryAssertion,
+ 4581                            'type': type(error).__name__,
+ 4582                            'token': str(error),
+ 4583                            'detail': str(error),
+ 4584                            'is_assertion_error': isinstance(
+ 4585                                error, AssertionError)})
+ 4586             facts['failure'] = raised[0]
+ 4587             write_facts()
+ 4588         finally:
+ 4589             controlled_observer.disarm()
+ 4590             controlled_observer_patch.stop()
+ 4591             controlled_api.frames_ready.set()
+ 4592         return facts
+ 4593 
+ 4594     controlled_results = {}
+ 4595     for checkpoint in ('PARENT_ADMISSION', 'CHILD_TRANSPORT',
+ 4596                        'ORDINARY_ASSERTION', 'CLOSE_FAILURE',
+ 4597                        'CONSTRUCTOR_FAILURE'):
+ 4598         controlled = controlled_failure(checkpoint)
+ 4599         controlled_results[checkpoint] = controlled
+ 4600         if checkpoint == 'CLOSE_FAILURE':
+ 4601             # CORRECTION 17 (M3): this checkpoint is a **cleanup only**
+ 4602             # case: the deliberate failure is produced by the cleanup
+
+T10 physical lines 5380-5428
+ 5380                                                if observed is not None else None),
+ 5381             'barrier_expectation': self.barrier_expectation,
+ 5382             'barrier_probe': self.barrier_probe,
+ 5383             'confirm_the_worker': bool(self.confirm_the_worker),
+ 5384             'hold_the_worker': bool(self.hold_the_worker),
+ 5385             'cancel_calls': self.cancel_calls,
+ 5386             'expected_generation': self.worker_holder.get('generation'),
+ 5387             'published_outcome': bool(
+ 5388                 self.worker_holder.get('published_outcome')),
+ 5389             'barrier_persisted': True,
+ 5390             'state': None,
+ 5391         }
+ 5392         try:
+ 5393             path = write_phase(self.barrier_document, document)
+ 5394         except BaseException as error:  # noqa: BLE001 - it stays visible
+ 5395             self.barrier_write_error = {'type': type(error).__name__,
+ 5396                                         'detail': str(error)}
+ 5397             # CORRECTION 19 (M3): the **exact** object of a cancellation
+ 5398             # that the durable write met is retained: it is re-raised by
+ 5399             # the owner of the phase and it is never reduced to a type
+ 5400             # and a detail.
+ 5401             _note_interruption(getattr(self, 'interrupts', None), error)
+ 5402             return None
+ 5403         # CORRECTION 18 (M2): the fact of the durable write is recorded
+ 5404         # and it is **consumed** by the phase: a barrier whose document
+ 5405         # was not written never certifies the barrier.
+ 5406         self.barrier_persisted = True
+ 5407         return path
+ 5408 
+ 5409     def close_handle(self, handle):
+ 5410         with self.lock:
+ 5411             self.close_ledger.append(handle)
+ 5412             self.closed.append(handle)
+ 5413         if self.hold_the_worker:
+ 5414             # The worker is held inside its own release: it is really
+ 5415             # alive and the bounded join of the coordination fails.
+ 5416             self.release_the_worker.wait(20.0)
+ 5417 
+ 5418     def read_stream(self, handle, size):
+ 5419         with self.lock:
+ 5420             if self.frames:
+ 5421                 return self.frames.pop(0)
+ 5422         self.read_waiting.set()
+ 5423         try:
+ 5424             kind, payload = self._outcomes.get(timeout=30.0)
+ 5425         except queue.Empty:
+ 5426             self.eof_observed.set()
+ 5427             return b''
+ 5428         if kind == 'FRAME':
+
+T10 physical lines 5730-5755
+ 5730                 # and it never leaves the evidence of the phase as if it
+ 5731                 # had passed.
+ 5732                 if api.barrier_write_error is not None:
+ 5733                     written_result = record_guarded(phase + '-barrier', dict(
+ 5734                         barrier_identity(),
+ 5735                         status='FAIL',
+ 5736                         executed=True,
+ 5737                         premise='BARRIER_DOCUMENT_NOT_WRITTEN',
+ 5738                         barrier_write_error=api.barrier_write_error,
+ 5739                         barrier_persisted=bool(api.barrier_persisted),
+ 5740                         barrier_completed=True,
+ 5741                         barrier_expectation=expect_barrier,
+ 5742                         barrier_probe=barrier_probe,
+ 5743                         state=session.state))
+ 5744                     # CORRECTION 19 (M2): the terminal state of the ledger
+ 5745                     # follows the **successful** terminal write.
+ 5746                     if ledger is not None and written_result is not None:
+ 5747                         ledger.fail(phase + '-barrier',
+ 5748                                     'BARRIER_DOCUMENT_NOT_WRITTEN')
+ 5749                     raise AssertionError(
+ 5750                         'the durable barrier document of the round was not '
+ 5751                         'written: %s' % (api.barrier_write_error,))
+ 5752                 barrier = dict(api.barrier_snapshot or {})
+ 5753                 raw[phase + '-barrier'] = dict(
+ 5754                     barrier_identity(),
+ 5755                     barrier=barrier,
+
+T10 physical lines 6990-7078
+ 6990                 # never skips the proof of the cleanup.
+ 6991                 #
+ 6992                 # CORRECTION 19 (M3): the **exact** object of a
+ 6993                 # cancellation of the cleanup is retained and it is
+ 6994                 # re-raised by the owner of the earlier work.
+ 6995                 if session is not None:
+ 6996                     try:
+ 6997                         session.stop()
+ 6998                     except BaseException as error:  # noqa: BLE001
+ 6999                         early_cleanup_errors.append(
+ 7000                             {'kind': 'STOP',
+ 7001                              'type': type(error).__name__,
+ 7002                              'detail': str(error)})
+ 7003                         _note_interruption(early_interrupts, error)
+ 7004                 # CORRECTION 17 (M3): the owners of the round of the earlier
+ 7005                 # work are drained **boundedly** and the quiescence is
+ 7006                 # asserted **after** the drain.
+ 7007                 early_drain = {'salvage': [], 'attempts': [], 'proof': None,
+ 7008                                'quiescent': False, 'errors': [],
+ 7009                                'all_salvage': []}
+ 7010                 try:
+ 7011                     early_drain = _drain_owners(
+ 7012                         early_registry, session=session,
+ 7013                         channel=(holder or {}).get('channel'),
+ 7014                         prefix='r10-early',
+ 7015                         interrupts=early_interrupts)
+ 7016                 except BaseException as error:  # noqa: BLE001
+ 7017                     early_cleanup_errors.append(
+ 7018                         {'kind': 'DRAIN',
+ 7019                          'type': type(error).__name__,
+ 7020                          'detail': str(error)})
+ 7021                     _note_interruption(early_interrupts, error)
+ 7022                 # CORRECTION 19 (M2): the **final verdict** of the
+ 7023                 # earlier work is computed **after** the cleanup and it
+ 7024                 # is written **before** the terminal state of the ledger
+ 7025                 # is advanced.  The passed subchecks keep their own
+ 7026                 # documents and they are never rewritten by it.
+ 7027                 early_failure = None
+ 7028                 if early_drain['proof'] is not None:
+ 7029                     early_failure = early_drain['proof']
+ 7030                 elif early_drain['quiescent'] is not True:
+ 7031                     early_failure = ('the owners of the earlier work of the '
+ 7032                                      'group were not quiescent')
+ 7033                 elif early_cleanup_errors:
+ 7034                     early_failure = ('the cleanup of the earlier work of the '
+ 7035                                      'group met %s'
+ 7036                                      % (early_cleanup_errors,))
+ 7037                 early_document = {
+ 7038                     'salvage': early_drain['salvage'],
+ 7039                     'all_salvage': early_drain.get('all_salvage', []),
+ 7040                     'drain': early_drain['attempts'],
+ 7041                     'quiescent': early_drain['quiescent'],
+ 7042                     'proof_failure': early_drain['proof'],
+ 7043                     'cleanup_errors': list(early_cleanup_errors),
+ 7044                     'original_failure': dict(early_original),
+ 7045                     'interrupts': _interruption_facts(early_interrupts),
+ 7046                     'status': ('PASSED' if early_failure is None else 'FAIL')}
+ 7047                 if early_failure is not None:
+ 7048                     early_document['executed'] = True
+ 7049                     early_document['reason'] = (early_original['type']
+ 7050                                                 or 'EarlyCleanup')
+ 7051                     early_document['detail'] = (early_failure
+ 7052                                                 or early_original['detail'])
+ 7053                 try:
+ 7054                     write_phase('r10-early-salvage', early_document)
+ 7055                 except BaseException as write_error:  # noqa: BLE001
+ 7056                     early_cleanup_errors.append(
+ 7057                         {'kind': 'EVIDENCE',
+ 7058                          'type': type(write_error).__name__,
+ 7059                          'detail': str(write_error)})
+ 7060                     _note_interruption(early_interrupts, write_error)
+ 7061                 else:
+ 7062                     r10_inventory.add('r10-early-salvage')
+ 7063                     # CORRECTION 19 (M2): the terminal state of the ledger
+ 7064                     # follows the **successful** terminal write.
+ 7065                     if early_failure is None:
+ 7066                         ledger.pass_('r10-early-salvage')
+ 7067                     else:
+ 7068                         ledger.fail('r10-early-salvage', 'EarlyCleanup')
+ 7069                 # CORRECTION 19 (M3): the priority of the failures is
+ 7070                 # fixed: the failure that is already unwinding wins, then
+ 7071                 # the **exact** interruption of the cleanup and only then
+ 7072                 # the ordinary assertion of the cleanup.
+ 7073                 if early_interrupts and sys.exc_info()[0] is None:
+ 7074                     raise early_interrupts[0]
+ 7075                 if early_failure is not None and sys.exc_info()[0] is None:
+ 7076                     raise AssertionError(early_failure)
+ 7077         finally:
+ 7078             early_observer.disarm()
+
+T10 physical lines 7240-7296
+ 7240                     coord_failure = ('the cleanup of the coordination of the '
+ 7241                                      'round met %s'
+ 7242                                      % (coord_cleanup_errors,))
+ 7243                 # the diagnostics of the cleanup are **durable** and they
+ 7244                 # stay in the raw facts of the coordination: a retry of
+ 7245                 # the outer inventory carries them too.
+ 7246                 r10_raw.setdefault('r10-coordination', {})
+ 7247                 r10_raw['r10-coordination']['cleanup_errors'] = \
+ 7248                     list(coord_cleanup_errors)
+ 7249                 r10_raw['r10-coordination']['quiescent'] = \
+ 7250                     coord_drain['quiescent']
+ 7251                 r10_raw['r10-coordination']['proof_failure'] = \
+ 7252                     coord_drain['proof']
+ 7253                 document = dict(r10_raw['r10-coordination'],
+ 7254                                 original_failure=dict(coord_original),
+ 7255                                 interrupts=_interruption_facts(coord_interrupts),
+ 7256                                 drain=coord_drain['attempts'])
+ 7257                 if coord_failure is None and coord_passed \
+ 7258                         and coord_original['type'] is None:
+ 7259                     document['status'] = 'PASSED'
+ 7260                 else:
+ 7261                     document['status'] = 'FAIL'
+ 7262                     document['executed'] = True
+ 7263                     document['reason'] = (coord_original['type']
+ 7264                                           or 'CoordinationCleanup')
+ 7265                     document['detail'] = (coord_failure
+ 7266                                           or coord_original['detail'])
+ 7267                 try:
+ 7268                     write_phase('r10-coordination', document)
+ 7269                 except BaseException as write_error:  # noqa: BLE001
+ 7270                     coord_cleanup_errors.append(
+ 7271                         {'kind': 'EVIDENCE',
+ 7272                          'type': type(write_error).__name__,
+ 7273                          'detail': str(write_error)})
+ 7274                     _note_interruption(coord_interrupts, write_error)
+ 7275                 else:
+ 7276                     r10_inventory.add('r10-coordination')
+ 7277                     # CORRECTION 19 (M2): the terminal state of the ledger
+ 7278                     # follows the **successful** terminal write.
+ 7279                     if document['status'] == 'PASSED':
+ 7280                         ledger.pass_('r10-coordination')
+ 7281                     else:
+ 7282                         ledger.fail('r10-coordination', document['reason'])
+ 7283                 # CORRECTION 19 (M3): the priority of the failures is
+ 7284                 # fixed: the failure that is already unwinding wins, then
+ 7285                 # the **exact** interruption of the cleanup and only then
+ 7286                 # the ordinary assertion of the cleanup.
+ 7287                 if coord_interrupts and sys.exc_info()[0] is None:
+ 7288                     raise coord_interrupts[0]
+ 7289                 if coord_failure is not None and sys.exc_info()[0] is None:
+ 7290                     raise AssertionError(coord_failure)
+ 7291         finally:
+ 7292             coord_observer.disarm()
+ 7293             coord_observer_patch.stop()
+ 7294 
+ 7295         # -- THE DYNAMIC SCHEDULE OF THE M09 OBLIGATION (N1 correction 12):
+ 7296         #    a real ordinary fault is published for the current generation
+
+T10 physical lines 7368-7451
+ 7368         # one attempt per name, no retry, no success on a missing
+ 7369         # evidence and the terminal state of the ledger follows the
+ 7370         # **successful** terminal write.
+ 7371         first_failure['type'] = type(error).__name__
+ 7372         for r10_name in r10_documents:
+ 7373             if ledger.state(r10_name) != 'ATTEMPTED':
+ 7374                 continue
+ 7375             try:
+ 7376                 write_phase(r10_name, dict(r10_raw.get(r10_name, {}),
+ 7377                                            status='FAIL',
+ 7378                                            executed=True,
+ 7379                                            reason=type(error).__name__,
+ 7380                                            detail=str(error)))
+ 7381             except BaseException as write_error:  # noqa: BLE001
+ 7382                 first_failure.setdefault('write_errors', []).append(
+ 7383                     {'name': r10_name,
+ 7384                      'type': type(write_error).__name__,
+ 7385                      'detail': str(write_error)})
+ 7386                 _note_interruption(outer_interrupts, write_error)
+ 7387                 continue
+ 7388             r10_inventory.add(r10_name)
+ 7389             ledger.fail(r10_name, type(error).__name__)
+ 7390         raise
+ 7391     finally:
+ 7392         # The schedules that were **not** reached are ``NOT_RUN``: they
+ 7393         # carry no fact of a schedule that was not established and they
+ 7394         # are never ambiguous.  A document that a schedule really wrote
+ 7395         # is never overwritten here.
+ 7396         #
+ 7397         # CORRECTION 18 (M2): a write that fails here never replaces the
+ 7398         # original failure of the group: it is retained and it is
+ 7399         # reported in the reason of the group.
+ 7400         #
+ 7401         # CORRECTION 19 (M2): a name is finalised as ``NOT_RUN`` **only
+ 7402         # after** its durable write succeeded and the terminal state of
+ 7403         # the ledger follows that write: a failed write leaves the name
+ 7404         # PLANNED and it is reported as a persistence diagnostic.
+ 7405         # the state of the unwinding is read **before** the writes: inside
+ 7406         # the handler of a write the state of the frame is the write
+ 7407         # error itself and the original failure would never be seen.
+ 7408         outer_unwinding = sys.exc_info()[0] is not None
+ 7409         for r10_name in r10_documents:
+ 7410             if ledger.state(r10_name) != 'PLANNED':
+ 7411                 continue
+ 7412             try:
+ 7413                 write_phase(r10_name, {'status': 'NOT_RUN',
+ 7414                                        'reason': first_failure['type']})
+ 7415             except BaseException as write_error:  # noqa: BLE001
+ 7416                 first_failure.setdefault('write_errors', []).append(
+ 7417                     {'name': r10_name,
+ 7418                      'type': type(write_error).__name__,
+ 7419                      'detail': str(write_error)})
+ 7420                 interrupted = _note_interruption(outer_interrupts,
+ 7421                                                 write_error)
+ 7422                 if interrupted and not outer_unwinding:
+ 7423                     # CORRECTION 19 (M3): an **exact** cancellation of the
+ 7424                     # write of the inventory is re-raised as **itself**.
+ 7425                     raise
+ 7426                 continue
+ 7427             r10_inventory.add(r10_name)
+ 7428             ledger.finish(r10_name, 'NOT_RUN', first_failure['type'])
+ 7429     # CORRECTION 19 (M3): the **exact** object of a cancellation that the
+ 7430     # inventory of the group met is re-raised by the owner of the group:
+ 7431     # the priority is the failure that is already unwinding, then the
+ 7432     # exact interruption and only then the ordinary assertion.
+ 7433     if outer_interrupts:
+ 7434         raise outer_interrupts[0]
+ 7435     # CORRECTION 19 (M2): the terminal accounting of the group is
+ 7436     # **complete** and it is checked **only** when the group really
+ 7437     # passed: every name of the inventory has a terminal state of the
+ 7438     # ledger and a document that was really written, and a passing test
+ 7439     # carries **no** persistence diagnostic at all.
+ 7440     assert first_failure['type'] is None, \
+ 7441         'the group of the M09 obligation failed: %s' % (first_failure,)
+ 7442     assert not first_failure.get('write_errors'), \
+ 7443         'the evidence of the group carried a persistence diagnostic: %s' \
+ 7444         % (first_failure.get('write_errors'),)
+ 7445     for r10_name in r10_documents:
+ 7446         assert ledger.state(r10_name) in ('PASSED', 'FAIL', 'NOT_RUN'), \
+ 7447             'the terminal state of %s is %s' \
+ 7448             % (r10_name, ledger.state(r10_name))
+ 7449         assert r10_name in r10_inventory, \
+ 7450             'the document of %s was never written' % (r10_name,)
+ 7451 
