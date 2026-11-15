@@ -1,0 +1,434 @@
+Exact source tools/test_v0_s3_native_custody_correction10.py
+Candidate Git ed4afb50e3d6c12e8784d05dc40b9beb501a3668
+SHA256 be29abdbc776a04212f6e1173456504eba2c5a1171561845f9ade90f70a1adcf
+Physical one-based source lines; omissions are explicit range boundaries.
+
+## Full drain diagnostic transport
+--- T10:805-818 ---
+00805     drain = drain or {}
+00806     return {
+00807         'drain_salvage': list(drain.get('salvage') or []),
+00808         'drain_all_salvage': list(drain.get('all_salvage') or []),
+00809         'drain_owner_errors': list(drain.get('owner_errors') or []),
+00810         'drain_attempts': list(drain.get('attempts') or []),
+00811         'drain_errors': list(drain.get('errors') or []),
+00812         'drain_quiescent': bool(drain.get('quiescent')),
+00813         'drain_proof': drain.get('proof'),
+00814     }
+00815 
+00816 
+00817 def _registry_snapshot(registry, errors=None, interrupts=None,
+00818                        label='REGISTRY_FACTS'):
+--- T10:1332-1346 ---
+01332         all_salvage.extend(salvage)
+01333         # CORRECTION 21 (M2): the errors of the owners of **this**
+01334         # iteration are kept **one by one** and they are named with the
+01335         # iteration that really produced them: the error of a second
+01336         # owner of the same iteration is never lost behind the proof
+01337         # string of the first one.
+01338         for item in salvage:
+01339             for error in (item.get('errors') or []):
+01340                 owner_errors.append({
+01341                     'iteration': len(attempts) - 1,
+01342                     'name': item.get('name'),
+01343                     'kind': error.get('kind'),
+01344                     'type': error.get('type'),
+01345                     'detail': error.get('detail')})
+01346         # The **final** exact-owner resnapshot: it is taken after the
+--- T10:1384-1397 ---
+01384     proof = _prove_salvage(all_salvage, prefix)
+01385     if proof is None and errors:
+01386         proof = '%s: the drain met %s' % (prefix, errors)
+01387     # CORRECTION 19 (M2/M3): a round that is **not** quiescent is a
+01388     # failure of the cleanup even when every owner that the salvage saw
+01389     # was really joined: the final resnapshot of the drain found an
+01390     # owner that no join released, and the proof of the cleanup says so.
+01391     if proof is None and not quiescent:
+01392         proof = ('%s: the owners of the round were not quiescent' % prefix)
+01393     return {'owners': owners, 'hints': hints, 'salvage': salvage,
+01394             'all_salvage': all_salvage, 'owner_errors': owner_errors,
+01395             'attempts': attempts, 'proof': proof, 'errors': errors,
+01396             'quiescent': bool(quiescent)}
+01397 
+--- T10:6733-6753 ---
+06733             barrier_facts = dict(barrier_identity())
+06734             barrier_facts['barrier_persisted'] = bool(api.barrier_persisted)
+06735             barrier_facts['barrier_write_error'] = api.barrier_write_error
+06736             if clean:
+06737                 final_facts = dict(raw.get(phase, {}), status='PASSED',
+06738                                    cleanup_errors=[],
+06739                                    evidence_write_errors=[],
+06740                                    proof_failure=None,
+06741                                    quiescent=True,
+06742                                    drain=drain['attempts'],
+06743                                    stop=phase_stop,
+06744                                    original_failure=dict(original_failure),
+06745                                    interrupts=_interruption_facts(interrupts),
+06746                                    **barrier_facts,
+06747                                    **_drain_facts(drain))
+06748                 # CORRECTION 20 (M2): the **full intended** facts of the
+06749                 # phase are stored **before** the terminal persistence is
+06750                 # attempted: a write that fails leaves the phase
+06751                 # ATTEMPTED and the outer recovery reuses these facts.
+06752                 raw[phase] = dict(final_facts)
+06753                 written_result = record_guarded(phase, final_facts)
+--- T10:6785-6807 ---
+06785                 failed_phase_facts = dict(raw.get(phase, {}),
+06786                                           status='FAIL',
+06787                                           executed=True,
+06788                                           reason=reason,
+06789                                           detail=detail,
+06790                                           original_failure=dict(
+06791                                               original_failure),
+06792                                           cleanup_errors=list(cleanup_errors),
+06793                                           evidence_write_errors=list(
+06794                                               write_errors),
+06795                                           proof_failure=drain['proof'],
+06796                                           quiescent=drain['quiescent'],
+06797                                           drain=drain['attempts'],
+06798                                           stop=phase_stop,
+06799                                           interrupts=_interruption_facts(
+06800                                               interrupts),
+06801                                           **barrier_facts,
+06802                                           **_drain_facts(drain))
+06803                 # CORRECTION 20 (M2): the **full intended** facts of the
+06804                 # phase are stored **before** the terminal persistence is
+06805                 # attempted.
+06806                 raw[phase] = dict(failed_phase_facts)
+06807                 written_result = record_guarded(phase, failed_phase_facts)
+--- T10:7340-7355 ---
+07340             if clean:
+07341                 final_facts = dict(raw.get(phase, {}), status='PASSED',
+07342                                    cleanup_errors=[],
+07343                                    evidence_write_errors=[],
+07344                                    proof_failure=None,
+07345                                    quiescent=True,
+07346                                    drain=drain['attempts'],
+07347                                    stop=phase_stop,
+07348                                    original_failure=dict(original_failure),
+07349                                    interrupts=_interruption_facts(interrupts),
+07350                                    **_drain_facts(drain))
+07351                 # CORRECTION 20 (M2): the **full intended** facts of the
+07352                 # phase are stored **before** the terminal persistence is
+07353                 # attempted.
+07354                 raw[phase] = dict(final_facts)
+07355                 written_result = record_guarded(phase, final_facts)
+--- T10:7387-7408 ---
+07387                 failed_phase_facts = dict(raw.get(phase, {}),
+07388                                           status='FAIL',
+07389                                           executed=True,
+07390                                           reason=reason,
+07391                                           detail=detail,
+07392                                           original_failure=dict(
+07393                                               original_failure),
+07394                                           cleanup_errors=list(cleanup_errors),
+07395                                           evidence_write_errors=list(
+07396                                               write_errors),
+07397                                           proof_failure=drain['proof'],
+07398                                           quiescent=drain['quiescent'],
+07399                                           drain=drain['attempts'],
+07400                                           stop=phase_stop,
+07401                                           interrupts=_interruption_facts(
+07402                                               interrupts),
+07403                                           **_drain_facts(drain))
+07404                 # CORRECTION 20 (M2): the **full intended** facts of the
+07405                 # phase are stored **before** the terminal persistence is
+07406                 # attempted.
+07407                 raw[phase] = dict(failed_phase_facts)
+07408                 written_result = record_guarded(phase, failed_phase_facts)
+
+## Incomplete barrier now includes actual persistence/identity fields
+--- T10:6207-6216 ---
+06207         snapshot = api.barrier_snapshot or {}
+06208         observed = snapshot.get('observed_object')
+06209         return {
+06210             'barrier_observed_object_is_original':
+06211                 observed is api.fault_object,
+06212             'barrier_observed_object_type': (type(observed).__name__
+06213                                              if observed is not None else None),
+06214             'barrier_observed_object_detail': (repr(observed)
+06215                                                if observed is not None else None),
+06216         }
+--- T10:6324-6363 ---
+06324                     observed_barrier = dict(api.barrier_snapshot or {})
+06325                     barrier_failed_facts = dict(
+06326                         barrier_identity(),
+06327                         status='FAIL',
+06328                         executed=True,
+06329                         premise='BARRIER_NOT_COMPLETED',
+06330                         timeout_seconds=15.0,
+06331                         barrier_completed=False,
+06332                         barrier_expectation=expect_barrier,
+06333                         barrier_probe=barrier_probe,
+06334                         barrier_persisted=bool(api.barrier_persisted),
+06335                         barrier_write_error=api.barrier_write_error,
+06336                         barrier_snapshot_present=bool(api.barrier_snapshot),
+06337                         barrier_observed=observed_barrier.get('observed'),
+06338                         barrier_observed_generation=observed_barrier.get(
+06339                             'observed_generation'),
+06340                         barrier_observed_error=observed_barrier.get(
+06341                             'observed_error'),
+06342                         barrier_return_state=observed_barrier.get(
+06343                             'return_state'),
+06344                         state=session.state)
+06345                     # CORRECTION 20 (M2): the **full intended** facts of
+06346                     # the barrier are stored **before** the terminal write
+06347                     # is attempted: a write that fails never erases them.
+06348                     raw[phase + '-barrier'] = dict(barrier_failed_facts)
+06349                     written_result = record_guarded(phase + '-barrier',
+06350                                                     barrier_failed_facts)
+06351                     # CORRECTION 19 (M2): the terminal state of the ledger
+06352                     # follows the **successful** terminal write: a failed
+06353                     # write leaves the barrier ATTEMPTED and the outer
+06354                     # inventory recovers it, best effort and bounded.
+06355                     if ledger is not None and written_result is not None:
+06356                         ledger.fail(phase + '-barrier', 'BARRIER_NOT_COMPLETED')
+06357                     # CORRECTION 20 (M3): the **first** exact pending
+06358                     # interruption of the round wins over the ordinary
+06359                     # assertion of the evidence.
+06360                     if interrupts:
+06361                         raise interrupts[0]
+06362                     raise AssertionError(
+06363                         'the publication barrier of the round never completed')
+--- T10:6610-6644 ---
+06610                 observed = dict(raw.get(name, {}))
+06611                 if name == phase + '-construction':
+06612                     observed.setdefault('construction', 'FAILED')
+06613                 if name.endswith('-barrier'):
+06614                     if api.barrier_snapshot:
+06615                         observed.setdefault('barrier',
+06616                                             dict(api.barrier_snapshot))
+06617                     observed.update(barrier_identity())
+06618                     # CORRECTION 19 (M2): the rewrite of the barrier
+06619                     # document keeps the **durable** facts of the
+06620                     # barrier: the fact of its persistence and the error
+06621                     # of its persistence.  An assertion of the phase that
+06622                     # fails after the seam ran never loses the very
+06623                     # evidence fault that the contract requires.
+06624                     observed['barrier_persisted'] = bool(api.barrier_persisted)
+06625                     observed['barrier_write_error'] = api.barrier_write_error
+06626                 failed_facts = dict(observed,
+06627                                     status='FAIL',
+06628                                     executed=True,
+06629                                     reason=type(error).__name__,
+06630                                     detail=str(error))
+06631                 # CORRECTION 20 (M2): the **full intended** facts of the
+06632                 # document are stored **before** the terminal write is
+06633                 # attempted: a write that fails leaves the name
+06634                 # ATTEMPTED and the outer recovery reuses these facts
+06635                 # instead of a generic ``FAIL``.
+06636                 raw[name] = dict(failed_facts)
+06637                 written_result = record_guarded(name, failed_facts)
+06638                 # CORRECTION 19 (M2): the terminal state of the ledger
+06639                 # follows the **successful** terminal write: a failed
+06640                 # write leaves the phase ATTEMPTED and the outer
+06641                 # inventory recovers it, best effort and bounded.
+06642                 if ledger is not None and written_result is not None:
+06643                     ledger.fail(name, type(error).__name__)
+06644             raise
+
+## Independent exact thread references and guarded query
+--- T10:353-372 ---
+00353             return list(self._entries)
+00354 
+00355     def observed_threads(self):
+00356         """The **exact** thread objects that this registry observed.
+00357 
+00358         CORRECTION 20 (M3): this view is **independent** of the query
+00359         of ``entries``: a failure of that query never loses these
+00360         references and the fallback of the drain of a round never
+00361         starts from an empty list.
+00362         """
+00363         with self._lock:
+00364             return [(item['name'], item['owner'])
+00365                     for item in self._threads.values()]
+00366 
+00367     def facts(self):
+00368         """The facts of the registry: an owner is named and never guessed."""
+00369         return [{'name': item['name'], 'kind': item['kind'],
+00370                  'seam': item['seam'], 'order': item['order'],
+00371                  'start_state': item['start_state']}
+00372                 for item in self.entries()]
+--- T10:716-735 ---
+00716     except BaseException as error:  # noqa: BLE001 - it stays visible
+00717         if errors is not None:
+00718             errors.append({'kind': 'REGISTRY_OBSERVED',
+00719                            'type': type(error).__name__,
+00720                            'detail': str(error)})
+00721         _note_interruption(interrupts, error)
+00722         refs = []
+00723     if not refs:
+00724         # the **last** independent view of the registry: the exact
+00725         # objects that it holds are read without its own query.
+00726         try:
+00727             held = getattr(registry, '_threads', None)
+00728             if isinstance(held, dict):
+00729                 refs = [(item.get('name'), item.get('owner'))
+00730                         for item in held.values()
+00731                         if isinstance(item, dict)]
+00732         except BaseException as error:  # noqa: BLE001 - it stays visible
+00733             if errors is not None:
+00734                 errors.append({'kind': 'REGISTRY_THREADS',
+00735                                'type': type(error).__name__,
+--- T10:1120-1132 ---
+01120     observed = _observed_thread_refs(registry, errors, interrupts)
+01121     try:
+01122         entries = registry.entries()
+01123     except BaseException as error:  # noqa: BLE001 - it stays visible
+01124         note('REGISTRY_ENTRIES', error)
+01125         entries = []
+01126     # CORRECTION 19 (M3): the **exact** thread objects that the start
+01127     # registry observed are retained **first** and they are an
+01128     # independent fallback: a failure of the query of a container never
+01129     # loses them and it never replaces the owners of the round with an
+01130     # empty list.  They are merged into the owners **after** the
+01131     # traversal, so that the name of an owner that a container really
+01132     # knows is never replaced by the name of the registry.
+--- T10:4947-4954 ---
+04947                     controlled_registry_snapshot = _registry_snapshot(
+04948                         controlled_registry, controlled_cleanup_errors,
+04949                         controlled_interrupts,
+04950                         label='CONTROLLED_REGISTRY_FACTS')
+04951                     if proof is None and controlled_registry_snapshot is None:
+04952                         proof = ('the registry of the controlled failure of '
+04953                                  '%s could not be read: %s'
+04954                                  % (checkpoint, controlled_cleanup_errors))
+
+## Original launch binding, distinct coordination doc, five shared-store calls
+--- T10:7633-7636 ---
+07633     try:
+07634         document = _live_plan_document()
+07635         plan = validate_launch_plan(document, now=time.time())
+07636         api = _F5Api(read_fault=RuntimeError('read_fault'))
+--- T10:8064-8069 ---
+08064                 coord_document = dict(r10_raw['r10-coordination'],
+08065                                       original_failure=dict(coord_original),
+08066                                       interrupts=_interruption_facts(
+08067                                           coord_interrupts),
+08068                                       drain=coord_drain['attempts'],
+08069                                       **_drain_facts(coord_drain))
+--- T10:8152-8163 ---
+08152         _m09_timeout_phase(document, plan, tmp_path,
+08153                             phase='r10-timeout-confirmed',
+08154                             confirm_the_worker=True, hold_the_worker=False,
+08155                             expect_barrier='NOT_APPLICABLE',
+08156                             inventory=r10_inventory, ledger=ledger,
+08157                             store=r10_raw)
+08158         _m09_timeout_phase(document, plan, tmp_path,
+08159                             phase='r10-timeout-failed',
+08160                             confirm_the_worker=False, hold_the_worker=True,
+08161                             expect_barrier='PASSED',
+08162                             inventory=r10_inventory, ledger=ledger,
+08163                             store=r10_raw)
+--- T10:8173-8198 ---
+08173         _m09_timeout_phase(document, plan, tmp_path,
+08174                             phase='r10-barrier-absent',
+08175                             confirm_the_worker=False, hold_the_worker=True,
+08176                             barrier_probe='ABSENT', expect_barrier='REFUSED',
+08177                             inventory=r10_inventory, ledger=ledger,
+08178                             store=r10_raw)
+08179         _m09_timeout_phase(document, plan, tmp_path,
+08180                             phase='r10-barrier-wrong-generation',
+08181                             confirm_the_worker=False, hold_the_worker=True,
+08182                             barrier_probe='WRONG_GENERATION',
+08183                             expect_barrier='REFUSED',
+08184                             inventory=r10_inventory, ledger=ledger,
+08185                             store=r10_raw)
+08186 
+08187         # -- THE REQUIRED ORDER (N1 correction 12, root preflight
+08188         #    PF12-01): the ordinary failure of the read is published
+08189         #    **before** the effective timeout of the round arrives and
+08190         #    the endpoint consumes the outcome of its own generation
+08191         #    only **after** the timeout was decided.  The gate is a
+08192         #    transparent wrapper of the production wait of the worker:
+08193         #    it calls the original wait and it holds the endpoint
+08194         #    between that wait and the recheck of its generation.
+08195         _m09_published_fault_phase(document, plan, tmp_path,
+08196                                    phase='r10-published-before-timeout',
+08197                                    inventory=r10_inventory, ledger=ledger,
+08198                                    store=r10_raw)
+
+## Outer bounded recovery, final durable accounting
+--- T10:8214-8244 ---
+08214         first_failure['type'] = type(error).__name__
+08215         first_failure['detail'] = str(error)
+08216         for r10_name in r10_documents:
+08217             if ledger.state(r10_name) != 'ATTEMPTED':
+08218                 continue
+08219             # CORRECTION 20 (M2): the recovery reuses the **shared fact
+08220             # store** of the group: the retry carries the **full facts**
+08221             # that the phase really observed - the barrier identity, the
+08222             # persistence of the barrier, the error of its persistence,
+08223             # the original failure, every diagnostic of the cleanup, the
+08224             # quiescence and the attempts of the drain - and it is never
+08225             # a generic ``FAIL`` over an empty document.
+08226             recovered = dict(r10_raw.get(r10_name, {}))
+08227             recovered['status'] = 'FAIL'
+08228             recovered['executed'] = True
+08229             recovered['reason'] = type(error).__name__
+08230             recovered['detail'] = _join_details(recovered.get('detail'),
+08231                                                 str(error))
+08232             recovered['recovered_from'] = 'ATTEMPTED'
+08233             try:
+08234                 write_phase(r10_name, recovered)
+08235             except BaseException as write_error:  # noqa: BLE001
+08236                 first_failure.setdefault('write_errors', []).append(
+08237                     {'name': r10_name,
+08238                      'type': type(write_error).__name__,
+08239                      'detail': str(write_error)})
+08240                 _note_interruption(outer_interrupts, write_error)
+08241                 continue
+08242             r10_inventory.add(r10_name)
+08243             ledger.fail(r10_name, type(error).__name__)
+08244         raise
+--- T10:8291-8321 ---
+08291         summary_states = {name: ledger.state(name) for name in r10_documents}
+08292         summary_incomplete = [name for name in r10_documents
+08293                               if summary_states[name]
+08294                               not in ('PASSED', 'FAIL', 'NOT_RUN')
+08295                               or name not in r10_inventory]
+08296         summary = {
+08297             'status': ('FAIL' if (first_failure['type']
+08298                                   or first_failure.get('write_errors')
+08299                                   or summary_incomplete)
+08300                        else 'PASSED'),
+08301             'original_failure': dict(first_failure),
+08302             'write_errors': list(first_failure.get('write_errors', [])),
+08303             'states': summary_states,
+08304             'written': sorted(r10_inventory),
+08305             'not_persisted': [item['name']
+08306                               for item in first_failure.get('write_errors', [])
+08307                               if item.get('name') in r10_documents],
+08308             'incomplete': summary_incomplete,
+08309             'facts': {name: r10_raw.get(name, {}) for name in r10_documents},
+08310             'interrupts': _interruption_facts(outer_interrupts),
+08311             'inventory_size': len(r10_documents),
+08312             'unwinding': bool(outer_unwinding),
+08313         }
+08314         try:
+08315             write_phase('r10-final-summary', summary)
+08316         except BaseException as write_error:  # noqa: BLE001
+08317             first_failure.setdefault('write_errors', []).append(
+08318                 {'name': 'r10-final-summary',
+08319                  'type': type(write_error).__name__,
+08320                  'detail': str(write_error)})
+08321             _note_interruption(outer_interrupts, write_error)
+--- T10:8326-8343 ---
+08326     if outer_interrupts:
+08327         raise outer_interrupts[0]
+08328     # CORRECTION 19 (M2): the terminal accounting of the group is
+08329     # **complete** and it is checked **only** when the group really
+08330     # passed: every name of the inventory has a terminal state of the
+08331     # ledger and a document that was really written, and a passing test
+08332     # carries **no** persistence diagnostic at all.
+08333     assert first_failure['type'] is None, \
+08334         'the group of the M09 obligation failed: %s' % (first_failure,)
+08335     assert not first_failure.get('write_errors'), \
+08336         'the evidence of the group carried a persistence diagnostic: %s' \
+08337         % (first_failure.get('write_errors'),)
+08338     for r10_name in r10_documents:
+08339         assert ledger.state(r10_name) in ('PASSED', 'FAIL', 'NOT_RUN'), \
+08340             'the terminal state of %s is %s' \
+08341             % (r10_name, ledger.state(r10_name))
+08342         assert r10_name in r10_inventory, \
+08343             'the document of %s was never written' % (r10_name,)

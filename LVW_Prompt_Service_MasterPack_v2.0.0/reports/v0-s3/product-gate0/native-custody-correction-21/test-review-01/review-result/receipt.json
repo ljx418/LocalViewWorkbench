@@ -1,0 +1,673 @@
+{
+  "kind": "independent_static_test_evidence_design_review",
+  "decision": "CHANGES_REQUIRED",
+  "candidate_git_commit": "ed4afb50e3d6c12e8784d05dc40b9beb501a3668",
+  "report_delivery_commit": "08e2096ed67a3c0a158dfa2239bdbc549b6fba12",
+  "coordinate": "V1/R1/WP-R1-U3/S3_P4",
+  "Fatal": 0,
+  "Major": 2,
+  "Minor": 0,
+  "statuses": {
+    "M1": "CLOSED_STATIC",
+    "M2": "OPEN",
+    "M3": "OPEN"
+  },
+  "sources": {
+    "tools/v0_s3_native_broker.py": {
+      "sha256": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
+      "git_blob": "e24dc5e97fbd215cce8b7c71b5518bafb56af651",
+      "bytes": 386807,
+      "lines": 8174,
+      "candidate_delivery_equal": true,
+      "immutable_binding_verified": true,
+      "unchanged_from18": true,
+      "unchanged_from_production13": true
+    },
+    "tools/v0_s3_native_custody.py": {
+      "sha256": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581",
+      "git_blob": "883e7cb1feef6cbb933664565e2cf0a44a403dad",
+      "bytes": 114702,
+      "lines": 2470,
+      "candidate_delivery_equal": true,
+      "immutable_binding_verified": true,
+      "unchanged_from18": true,
+      "unchanged_from_production13": true
+    },
+    "tools/test_v0_s3_native_custody.py": {
+      "sha256": "fe96d2ffd353d3f3f6df4da2b023dd6cfaf58fe730ab6655afbca723ed507d32",
+      "git_blob": "0a7bfdd5d76cc8402b9a793073314f1ae5b5b691",
+      "bytes": 98978,
+      "lines": 2502,
+      "candidate_delivery_equal": true,
+      "immutable_binding_verified": null,
+      "unchanged_from18": true
+    },
+    "tools/test_v0_s3_native_custody_regressions.py": {
+      "sha256": "03250ea0ac64519c57edfbe1be965eb2827b46fc7f2d80b47146e4a5e6e7cb93",
+      "git_blob": "f832e044b625cf43ca62c9804cfcd065e4ad35bb",
+      "bytes": 87210,
+      "lines": 2105,
+      "candidate_delivery_equal": true,
+      "immutable_binding_verified": null,
+      "unchanged_from18": true
+    },
+    "tools/test_v0_s3_native_custody_correction05.py": {
+      "sha256": "8563989f078fcd45d44c496a0bea16c1ecf5005513543f6f4e00792e4ed7e130",
+      "git_blob": "7be8db82892fb4af9e8edf7ae5abb9e71c59cbb0",
+      "bytes": 114666,
+      "lines": 2531,
+      "candidate_delivery_equal": true,
+      "immutable_binding_verified": true,
+      "unchanged_from18": true
+    },
+    "tools/test_v0_s3_native_custody_correction07.py": {
+      "sha256": "dc74cf7f92e8be6cc2b69c602b9fc0b3fdd765ec8b9b48c4f061dde7bdcd6cdf",
+      "git_blob": "0d0baf51357a8cc0467e3b021cb18d8b06ee5ef9",
+      "bytes": 152715,
+      "lines": 3282,
+      "candidate_delivery_equal": true,
+      "immutable_binding_verified": true,
+      "unchanged_from18": true
+    },
+    "tools/test_v0_s3_native_custody_correction10.py": {
+      "sha256": "be29abdbc776a04212f6e1173456504eba2c5a1171561845f9ade90f70a1adcf",
+      "git_blob": "7c6999c008665d67cc0caa8b23ad6110ee5ab090",
+      "bytes": 453718,
+      "lines": 8765,
+      "candidate_delivery_equal": true,
+      "immutable_binding_verified": true,
+      "unchanged_from18": false
+    }
+  },
+  "authority_and_historical_artifacts": {
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-20/test-review-01/review-result/review.md": {
+      "sha256": "8214d9167dcacf0b94086b9f5791ae593486d91a686dbef2ff9c105a0ea43fa1",
+      "bytes": 23067,
+      "git_tree_entry_at_delivery21": null,
+      "source_candidate_context": "206a7fe7f21343d89ca83e03a0e4dc7e670cd381"
+    },
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-20/test-review-01/review-result/receipt.json": {
+      "sha256": "ce56e76eee153632105716881d262e370c03905098cd43a8e2f2c55edcc6111b",
+      "bytes": 16214,
+      "git_tree_entry_at_delivery21": null,
+      "source_candidate_context": "206a7fe7f21343d89ca83e03a0e4dc7e670cd381"
+    },
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-20/test-review-01/review-result/01-binding-denominator.txt": {
+      "sha256": "fc40bb67affb77c4f5ad94fa22ee7409ddf9848a437383fab55055932b47f188",
+      "bytes": 57436,
+      "git_tree_entry_at_delivery21": null,
+      "source_candidate_context": "206a7fe7f21343d89ca83e03a0e4dc7e670cd381"
+    },
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-20/test-review-01/review-result/02-full-candidate10-numbered.txt": {
+      "sha256": "e00bd22f6d060c0734753765731731a16c3f0bf36d946e91eeff357fcb852b42",
+      "bytes": 482150,
+      "git_tree_entry_at_delivery21": null,
+      "source_candidate_context": "206a7fe7f21343d89ca83e03a0e4dc7e670cd381"
+    },
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-20/test-review-01/review-result/03-prior15-19-assertions-full-diffs.txt": {
+      "sha256": "e8e246369cef290ea0c670440c919b135d774073e16cd99ed651c98fd3ebabdd",
+      "bytes": 1033524,
+      "git_tree_entry_at_delivery21": null,
+      "source_candidate_context": "206a7fe7f21343d89ca83e03a0e4dc7e670cd381"
+    },
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-20/test-review-01/review-result/04-full-prior19-evidence-and-authority-numbered.txt": {
+      "sha256": "ff8af1b8643bed90e5ee7a48a5c626046ff8eb961258cbf1991628f73f416a80",
+      "bytes": 3255691,
+      "git_tree_entry_at_delivery21": null,
+      "source_candidate_context": "206a7fe7f21343d89ca83e03a0e4dc7e670cd381"
+    },
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-20/test-review-01/review-result/05-other-bound-sources-numbered.txt": {
+      "sha256": "1ce38d5f83fef0f673df3c3ca7b7f61bef9bd6be8e2a6168853320b8c90249db",
+      "bytes": 867971,
+      "git_tree_entry_at_delivery21": null,
+      "source_candidate_context": "206a7fe7f21343d89ca83e03a0e4dc7e670cd381"
+    },
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-20/test-review-01/review-result/06-exception-boundaries-and-calls.txt": {
+      "sha256": "355ac7c0fe59fe24dd1a6b653fe3da09dd5b69bf0aa99bd091a519b951c428cb",
+      "bytes": 8507,
+      "git_tree_entry_at_delivery21": null,
+      "source_candidate_context": "206a7fe7f21343d89ca83e03a0e4dc7e670cd381"
+    },
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-20/test-review-01/review-result/07-counterexamples-and-preserved-driver-numbered.txt": {
+      "sha256": "6640344799b8e819dda6768711dad5684335abed188f9fe06d1c6c936ad78331",
+      "bytes": 78057,
+      "git_tree_entry_at_delivery21": null,
+      "source_candidate_context": "206a7fe7f21343d89ca83e03a0e4dc7e670cd381"
+    },
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-20/test-review-01/review-result/08-exact-scope-from-delivery19.txt": {
+      "sha256": "8c338331835cff3fb350832a906d06de5b068e51bc1e0aca1c055c87664c3dbd",
+      "bytes": 1061,
+      "git_tree_entry_at_delivery21": null,
+      "source_candidate_context": "206a7fe7f21343d89ca83e03a0e4dc7e670cd381"
+    },
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-17/design-review-02/design.input.md": {
+      "sha256": "c92f3408768abccff18fd619e2e7d1789d60b0af0adcaef020990ae9c5cd3fb7",
+      "bytes": 81001,
+      "git_tree_entry_at_delivery21": null,
+      "source_candidate_context": "058ee9ff0020a1485ee57ddafe23a1d390159c4a"
+    },
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-17/design-review-02/ack.md": {
+      "sha256": "f6a52fdb9323521c5bb75a7c01fe78527f651576c750ef9c9cf1ddd5b6ffd931",
+      "bytes": 5157,
+      "git_tree_entry_at_delivery21": null,
+      "source_candidate_context": "058ee9ff0020a1485ee57ddafe23a1d390159c4a"
+    },
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/AGENTS.md": {
+      "sha256": "80386dacbc34134f21021d0db12a11f646a66bcb2a96f841e32a8c911b1d5d11",
+      "bytes": 9465
+    },
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/.agent-governance/README.md": {
+      "sha256": "a31398c4ccaaff0fe6bf606357bf223418b95837a489867bb6645c04bcd89225",
+      "bytes": 2367
+    },
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/plans/execution-control.json": {
+      "sha256": "5b8b57c24d9603d3dabbf4cd44929cf7b3d714d60080c78b39d7ad5fcc4e8d27",
+      "bytes": 104507
+    },
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/docs/24_EXECUTION_MASTER_PLAN.md": {
+      "sha256": "6762b5526ce291a88460c50922154a64c0dd0cfab958af36d6828c9905799eea",
+      "bytes": 38383
+    },
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-21/test-review-01/source-binding.json": {
+      "sha256": "e4b6bbaf27c1aecdb4bac70cb827f9951e6863911175cbde68b7dbf43adda6a8",
+      "bytes": 2138
+    },
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-21/contract.md": {
+      "sha256": "7c41c3a84d3dd7dde071cfe641710a10c68a5529868f2e298f669ecc3a3aabfb",
+      "bytes": 5033
+    },
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-21/scope.json": {
+      "sha256": "559163186a7f98d03b686848fb827e5514bd1e95752b045e593fb1883d492fd3",
+      "bytes": 386
+    },
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-21/decision.json": {
+      "sha256": "4723aaaf204af24faa68db35c79b85d671ef330c436e73e412d90da3fed80781",
+      "bytes": 565
+    },
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-18/test-review-01/review-result/review.md": {
+      "sha256": "43bd1cc797ae4cd7681a252bc5b6bc1a2a7295ff941b361d66eb96b9f2b2ece9",
+      "bytes": 29723,
+      "source_candidate_context": "0f532a7d86e390dc093b7d78aa5fc36103bdff23",
+      "git_tree_entry_at_delivery21": null
+    },
+    "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-18/test-review-01/review-result/receipt.json": {
+      "sha256": "3940b465ca5dffd2675041d83e88ddef3950cba6ce17fee11bb60662482f56eb",
+      "bytes": 33800,
+      "source_candidate_context": "0f532a7d86e390dc093b7d78aa5fc36103bdff23",
+      "git_tree_entry_at_delivery21": null
+    }
+  },
+  "scope": {
+    "source21_from_delivery20": "M\tLVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py\n",
+    "delivery21_from_source21": "A\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-21/counterexample-mapping.md\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-21/execution-request.md\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-21/pins.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-21/preparation-checklist.md\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-21/report.md\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-21/static-checks/check_correction21.py\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-21/static-checks/static-checks-report.json\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-21/static-checks/static-checks-summary.md\nA\tLVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-correction-21/static-implementation-receipt.json\n"
+  },
+  "denominator": {
+    "count": 189,
+    "unique_count": 189,
+    "module_counts": [
+      117,
+      16,
+      24,
+      18,
+      14
+    ],
+    "identities_order_signatures_decorators_equal_actual": {
+      "15": true,
+      "16": true,
+      "17": true,
+      "18": true,
+      "20": true
+    },
+    "skip_calls": [],
+    "executed": false,
+    "full_order": "01-binding-denominator-numbered.txt"
+  },
+  "assertion_review": {
+    "removed_occurrences": {
+      "15": 10,
+      "16": 7,
+      "17": 0,
+      "18": 0,
+      "20": 0
+    },
+    "removed_predicates": {
+      "15": [
+        {
+          "line": 491,
+          "predicate": "not worker.is_alive()"
+        },
+        {
+          "line": 2788,
+          "predicate": "controlled['sentinel'] == '_R07Sentinel'"
+        },
+        {
+          "line": 2865,
+          "predicate": "not worker.is_alive()"
+        },
+        {
+          "line": 2225,
+          "predicate": "zero_session.state == 'RUNNING'"
+        },
+        {
+          "line": 2231,
+          "predicate": "zero_attached_pump is not None"
+        },
+        {
+          "line": 2233,
+          "predicate": "zero_attached_pump.is_alive()"
+        },
+        {
+          "line": 2495,
+          "predicate": "item['alive'] is False"
+        },
+        {
+          "line": 2708,
+          "predicate": "controlled_session.state == 'RUNNING'"
+        },
+        {
+          "line": 2273,
+          "predicate": "zero_held.wait(15.0)"
+        },
+        {
+          "line": 2349,
+          "predicate": "item['alive'] is False"
+        }
+      ],
+      "16": [
+        {
+          "line": 3411,
+          "predicate": "any((item['owner'] == 'controlled:transport' for item in controlled_results['CLOSE_FAILURE']['close_failures']))"
+        },
+        {
+          "line": 756,
+          "predicate": "not worker.is_alive()"
+        },
+        {
+          "line": 3398,
+          "predicate": "controlled['failure'] is not None"
+        },
+        {
+          "line": 3479,
+          "predicate": "not worker.is_alive()"
+        },
+        {
+          "line": 2733,
+          "predicate": "zero_premise['pump_error_at_admission'] is None"
+        },
+        {
+          "line": 2772,
+          "predicate": "'broker_retained' in zero_returned"
+        },
+        {
+          "line": 3223,
+          "predicate": "controlled_session.state == 'RUNNING'"
+        }
+      ],
+      "17": [],
+      "18": [],
+      "20": []
+    },
+    "equivalence_map": "review.md",
+    "universal_semantic_no_weakening_certified": false
+  },
+  "production13_preserved": {
+    "candidate_git_commit": "41df626f395172d75791892ba439df5f3924bbce",
+    "both_sources_byte_identical": true,
+    "Fatal": 0,
+    "Major": 0,
+    "Minor": 0,
+    "obligations": {
+      "CLOSED_STATIC": 63,
+      "OPEN": 0,
+      "UNCERTAIN": 9
+    },
+    "uncertainties": [
+      {
+        "id": "N03-R16",
+        "status": "UNCERTAIN",
+        "evidence": "UNCERTAIN: external pins, test compatibility and actual native lifecycle are outside two-production-blob authority.",
+        "dynamic": "NOT_RUN",
+        "native": "NOT_PROVEN"
+      },
+      {
+        "id": "N05-R06",
+        "status": "UNCERTAIN",
+        "evidence": "UNCERTAIN: B2880-2886,3038-3053 preregister reader, but ident-less interrupted late start needs actual lifecycle evidence.",
+        "dynamic": "NOT_RUN",
+        "native": "NOT_PROVEN"
+      },
+      {
+        "id": "N05-R07",
+        "status": "UNCERTAIN",
+        "evidence": "UNCERTAIN: C1419-1456,1612-1664 show background registration/barrier; actual late-start schedule remains unproved.",
+        "dynamic": "NOT_RUN",
+        "native": "NOT_PROVEN"
+      },
+      {
+        "id": "N05-R08",
+        "status": "UNCERTAIN",
+        "evidence": "UNCERTAIN: C1423-1450 preserve failed background record; ident-less physical start cannot be resolved statically.",
+        "dynamic": "NOT_RUN",
+        "native": "NOT_PROVEN"
+      },
+      {
+        "id": "N05-R24",
+        "status": "UNCERTAIN",
+        "evidence": "UNCERTAIN: exact189 node identity/order/assertions, external pins and actual results were deliberately excluded.",
+        "dynamic": "NOT_RUN",
+        "native": "NOT_PROVEN"
+      },
+      {
+        "id": "N07-R08",
+        "status": "UNCERTAIN",
+        "evidence": "UNCERTAIN: B4683-4702,4443-4448 preregister worker; ident-less interrupted physical scheduling remains unproved.",
+        "dynamic": "NOT_RUN",
+        "native": "NOT_PROVEN"
+      },
+      {
+        "id": "N10-R12",
+        "status": "UNCERTAIN",
+        "evidence": "UNCERTAIN: actual event schedules, primitive arguments, causal negatives, fixtures and before-salvage artifacts cannot be verified from these production blobs.",
+        "dynamic": "NOT_RUN",
+        "native": "NOT_PROVEN"
+      },
+      {
+        "id": "N10-R13",
+        "status": "UNCERTAIN",
+        "evidence": "UNCERTAIN: generation-specific fault/timeout/consumption, both coordination outcomes and two real Session.stop histories need excluded execution evidence.",
+        "dynamic": "NOT_RUN",
+        "native": "NOT_PROVEN"
+      },
+      {
+        "id": "N10-R14",
+        "status": "UNCERTAIN",
+        "evidence": "UNCERTAIN: original175+14 exact189 node ordering/pins/assertion changes and actual batch evidence were not read or executed.",
+        "dynamic": "NOT_RUN",
+        "native": "NOT_PROVEN"
+      }
+    ],
+    "limit": "Source-only prior conclusion; no test-design/running/native acceptance promotion"
+  },
+  "runtime_plan_acked": false,
+  "dynamic21": "NOT_RUN",
+  "dynamic15_20": "NOT_RUN",
+  "historical14": "HISTORICAL_ACTUAL189_GREEN_ONLY_NOT_REEXECUTED",
+  "native": "NOT_PROVEN",
+  "product_acceptance": false,
+  "stage_pass": false,
+  "human_signoff": false,
+  "budget_reset": false,
+  "execution_audit": {
+    "candidate_imported": false,
+    "candidate_compiled": false,
+    "candidate_collected": false,
+    "pytest_run": false,
+    "implementer_scripts_run": false,
+    "ctypes_runtime_native": false,
+    "os_business_processes": false,
+    "model_gpu": false,
+    "network_service": false,
+    "media_db": false,
+    "ledger_counter": false,
+    "extra_agents": false,
+    "methods": [
+      "Independent text/JSON/hash processing",
+      "ast.parse exact Git sources as data",
+      "Read-only Git blob/delta inspection",
+      "Focused new review artifact writes only",
+      "Required Orca completion"
+    ],
+    "first429_observed": false,
+    "approval_refusal_observed": false
+  },
+  "current_coordinate_from_root_control": {
+    "stage_id": "R1",
+    "workpack_id": "WP-R1-U3",
+    "gate": "S3_P4_OFFLINE_INTEGRATION_PREPARATION",
+    "state": "RUNNING"
+  },
+  "development_outline": [
+    {
+      "stage_id": "V0-S0",
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "implementation": "ARCHIVED",
+      "machine_acceptance": "NO_GO_HISTORICAL",
+      "independent_review": "COMPLETED_WITH_BLOCKERS",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "V0-S1",
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "R0",
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "implementation": "PARTIAL_REUSED",
+      "machine_acceptance": "SINGLE_IMAGE_SUBSET_ONLY",
+      "independent_review": "NO_SEPARATE_R0_VERDICT",
+      "human_signoff": "NO_SEPARATE_R0_SIGNOFF"
+    },
+    {
+      "stage_id": "R1a",
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "V0-S2",
+      "completed_substeps": 7,
+      "total_substeps": 8,
+      "implementation": "IMPLEMENTED",
+      "machine_acceptance": "COMPLETE_FIXED9_PASSED",
+      "independent_review": "COMPLETE_FATAL0_MAJOR0_MINOR0",
+      "human_signoff": "PENDING"
+    },
+    {
+      "stage_id": "V0-S3",
+      "completed_substeps": 0,
+      "total_substeps": 6,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R1",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "EARLY_SLICE_IMPLEMENTED_FULL_R1_PENDING",
+      "machine_acceptance": "EARLY_SLICE_UM10_ONLY",
+      "independent_review": "EARLY_SLICE_FATAL0_MAJOR0",
+      "human_signoff": "EARLY_SLICE_APPROVED_FULL_R1_PENDING"
+    },
+    {
+      "stage_id": "V1-M1",
+      "completed_substeps": 0,
+      "total_substeps": 3,
+      "implementation": "DESIGN_ONLY",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R2",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R3",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R4",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5a",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5b",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5c",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    }
+  ],
+  "write_scope": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-21/test-review-01/review-result",
+  "skill": "/home/administrator/.agents/skills/orchestration/SKILL.md; orca-ide skills get orchestration",
+  "remaining_work": "Resolve remaining evidence and cleanup/priority counterexamples together, independently review exact new candidate, then separately root-frozen finite runtime ACK and actual validation; no product/native acceptance inferred",
+  "findings": [
+    {
+      "id": "M2",
+      "severity": "Major",
+      "status": "OPEN",
+      "counterexamples": [
+        {
+          "id": "M2.a",
+          "locations": [
+            "T10:4955-4974",
+            "T10:5062-5086",
+            "T10:5195-5205"
+          ],
+          "trigger": "Controlled CLOSE_FAILURE otherwise meets exact failure/physical-cleanup oracle; only final write_facts raises ordinary OSError E, earlier writes succeeded",
+          "expected": "Retain E in last actual facts, reject success after cleanup, preserve original unwinding",
+          "actual": "E appended after copied facts, not persisted or proof-failed, old clean facts returned; caller can pass"
+        },
+        {
+          "id": "M2.b",
+          "locations": [
+            "T10:833-842",
+            "T10:3909-3926"
+          ],
+          "trigger": "Zero drain has proof failure D, then post-drain registry.facts/entries raises distinct E, evidence persistence succeeds",
+          "expected": "All additional query error type/detail diagnostics durable alongside original proof",
+          "actual": "E only in zero_registry_errors; proof kept D; no registry_errors field in final evidence"
+        }
+      ]
+    },
+    {
+      "id": "M3",
+      "severity": "Major",
+      "status": "OPEN",
+      "counterexamples": [
+        {
+          "id": "M3.a",
+          "locations": [
+            "T10:8594-8607"
+          ],
+          "trigger": "R12 cleanup join retains exact K with no original exception unwinding",
+          "expected": "Attempt session.stop then rethrow K before ordinary proof",
+          "actual": "Interruption priority8598 raises before session.stop8605, skipping remaining cleanup"
+        },
+        {
+          "id": "M3.b",
+          "locations": [
+            "T10:4507-4519"
+          ],
+          "trigger": "Await gate/join retains exact K1, endpoint.close raises K2; or original O already unwinds and close raises K2",
+          "expected": "Retain K2, preserve O else rethrow first K1 after cleanup",
+          "actual": "Unguarded endpoint.close replaces K1/O and bypasses priority check"
+        },
+        {
+          "id": "M3.c",
+          "locations": [
+            "T10:858-877",
+            "T10:5404-5441",
+            "T10:5585-5612"
+          ],
+          "trigger": "Startup guarded join/query records ordinary E then liveness false; or interrupted-start inflight() query raises before final join",
+          "expected": "All owners attempted; ordinary errors fail proof and persist; original or K1 priority maintained",
+          "actual": "Ordinary startup error list unconsumed and can pass; unguarded inflight() query can skip following join/priority"
+        },
+        {
+          "id": "M3.d",
+          "locations": [
+            "T10:5034-5086",
+            "T10:5195-5205"
+          ],
+          "trigger": "Late controlled frames_ready.set/disarm/patch-stop ordinary E after clean proof; final writer succeeds",
+          "expected": "Update final proof/verdict with every unexpected cleanup error; exact cancellation priority after all cleanup",
+          "actual": "Diagnostics written but proof_failure stays None, no cleanup_errors assertion; subcase can pass; late K also accepted when raised already contains expected caught failure"
+        }
+      ]
+    }
+  ],
+  "literal20_dispositions": {
+    "M2.a": "REPAIRED_FULL_DRAIN_EXPORTS",
+    "M2.b": "REPAIRED_INCOMPLETE_BARRIER_FIELDS",
+    "M3.a": "EXACT_CLOSE_ONLY_K_REPAIRED_ORDINARY_AND_CAUGHT_FAILURE_FINALIZATION_OPEN",
+    "M3.b": "FIRST_LOOP_K_REPAIRED_OTHER_ACTIONS_AND_ERROR_CONSUMPTION_OPEN",
+    "M3.c": "QUERY_PRIORITY_REPAIRED_ZERO_ADDITIONAL_DIAGNOSTIC_OPEN"
+  },
+  "prior18_counterexample_dispositions": "review.md complete12-row table",
+  "approved17_section10_and_six_ack": "review.md; authority path/hash bindings in01",
+  "agent_cleanup": "worker_done settles assignment only; physical lifecycle belongs to coordinator",
+  "artifacts": {
+    "01-binding-denominator-numbered.txt": {
+      "sha256": "69ab8e8ca95da0238f96da20485e43e3ea957e988cd7acbaaf35f43deacb2d89",
+      "bytes": 50738,
+      "candidate_git_commit": "ed4afb50e3d6c12e8784d05dc40b9beb501a3668"
+    },
+    "02-M2-current-counterexamples-numbered.txt": {
+      "sha256": "0dfa891b9c8ab70c4c9a5ec366e9b85bc47dd33dc1a74e7e9f1a3887e816dcc4",
+      "bytes": 14567,
+      "candidate_git_commit": "ed4afb50e3d6c12e8784d05dc40b9beb501a3668"
+    },
+    "03-M3-current-counterexamples-numbered.txt": {
+      "sha256": "1dfb2531f6b668451b036cb41728d00718d8d10c4330cab379bcb8a4e2592ad1",
+      "bytes": 12314,
+      "candidate_git_commit": "ed4afb50e3d6c12e8784d05dc40b9beb501a3668"
+    },
+    "04-closed-paths-numbered.txt": {
+      "sha256": "2e3a173d30835c3efe9ec5069c6561e77a113d2bb2dc50a35652bfd02c807085",
+      "bytes": 26031,
+      "candidate_git_commit": "ed4afb50e3d6c12e8784d05dc40b9beb501a3668"
+    },
+    "review.md": {
+      "sha256": "85f25280ac63d7de72cf359e13d63c4baa725a06edce1a4e30f14998e8835bce",
+      "bytes": 23632,
+      "candidate_git_commit": "ed4afb50e3d6c12e8784d05dc40b9beb501a3668"
+    }
+  }
+}

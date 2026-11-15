@@ -1,0 +1,237 @@
+Exact source tools/test_v0_s3_native_custody_correction10.py
+Candidate Git ed4afb50e3d6c12e8784d05dc40b9beb501a3668
+SHA256 be29abdbc776a04212f6e1173456504eba2c5a1171561845f9ade90f70a1adcf
+Physical one-based source lines; omissions are explicit range boundaries.
+
+## Last controlled write error is appended after snapshot and never tested
+--- T10:4607-4610 ---
+04607         def write_facts():
+04608             """Write the facts of the subcase of the group."""
+04609             write_phase('r07-controlled-failure-%s' % checkpoint.lower(),
+04610                         facts)
+--- T10:4955-5010 ---
+04955                     facts = {'checkpoint': checkpoint,
+04956                              'failure': raised[0] if raised else None,
+04957                              'gate_released': bool(gate.is_set()),
+04958                              'stop': controlled_stop,
+04959                              'close_failures': list(close_failures),
+04960                              'cleanup_errors':
+04961                                  list(controlled_cleanup_errors),
+04962                              'cleanup_ran_while_unwinding':
+04963                                  sys.exc_info()[0] is not None,
+04964                              'salvage': salvage,
+04965                              'all_salvage': drain.get('all_salvage', []),
+04966                              'drain': drain['attempts'],
+04967                              'quiescent': drain['quiescent'],
+04968                              'proof_failure': proof,
+04969                              'stop_proof_failure': stop_proof,
+04970                              'interrupts': _interruption_facts(
+04971                                  controlled_interrupts),
+04972                              'injected_starts': list(injected_starts),
+04973                              'registry': controlled_registry_snapshot,
+04974                              **_drain_facts(drain)}
+04975                     unwinding = sys.exc_info()[0] is not None
+04976                     try:
+04977                         write_facts()
+04978                     except BaseException as write_error:  # noqa: BLE001
+04979                         controlled_cleanup_errors.append(
+04980                             {'kind': 'EVIDENCE',
+04981                              'type': type(write_error).__name__,
+04982                              'detail': str(write_error)})
+04983                         interrupted = _note_interruption(
+04984                             controlled_interrupts, write_error)
+04985                         if not unwinding:
+04986                             if controlled_interrupts:
+04987                                 # CORRECTION 20 (M3): the **first** exact
+04988                                 # pending cancellation of the cleanup wins
+04989                                 # over the current one and over the
+04990                                 # ordinary assertion of the evidence.
+04991                                 raise controlled_interrupts[0]
+04992                             if interrupted:
+04993                                 # CORRECTION 19 (M3): an **exact**
+04994                                 # cancellation of the write is re-raised
+04995                                 # as **itself**.
+04996                                 raise
+04997                             raise AssertionError(
+04998                                 'the evidence of the controlled failure of %s '
+04999                                 'could not be written: %s'
+05000                                 % (checkpoint, write_error))
+05001                     # CORRECTION 19 (M3): the priority of the failures is
+05002                     # fixed: the failure that is already unwinding wins,
+05003                     # then the **exact** interruption of the cleanup and
+05004                     # only then the ordinary assertion of the proof.  A
+05005                     # proof assertion never renders the rethrow of the
+05006                     # exact interruption unreachable.
+05007                     if controlled_interrupts and not unwinding:
+05008                         raise controlled_interrupts[0]
+05009                     if proof is not None and not unwinding:
+05010                         raise AssertionError(proof)
+--- T10:5011-5033 ---
+05011         except _R07Sentinel as error:
+05012             raised.append({'class': _R07Sentinel,
+05013                            'type': type(error).__name__,
+05014                            'token': str(error),
+05015                            'detail': str(error)})
+05016             facts['failure'] = raised[0]
+05017             write_facts()
+05018         except _R07ConstructorFailure as error:
+05019             raised.append({'class': _R07ConstructorFailure,
+05020                            'type': type(error).__name__,
+05021                            'token': str(error),
+05022                            'detail': str(error)})
+05023             facts['failure'] = raised[0]
+05024             write_facts()
+05025         except _R07OrdinaryAssertion as error:
+05026             raised.append({'class': _R07OrdinaryAssertion,
+05027                            'type': type(error).__name__,
+05028                            'token': str(error),
+05029                            'detail': str(error),
+05030                            'is_assertion_error': isinstance(
+05031                                error, AssertionError)})
+05032             facts['failure'] = raised[0]
+05033             write_facts()
+--- T10:5060-5086 ---
+05060             _release_gate(controlled_api.frames_ready.set,
+05061                           controlled_cleanup_errors, controlled_interrupts)
+05062             if 'checkpoint' in facts:
+05063                 # the **complete** cleanup history is in the durable facts
+05064                 # and the evidence of the subcase is closed with it.
+05065                 facts['cleanup_errors'] = list(controlled_cleanup_errors)
+05066                 facts['interrupts'] = _interruption_facts(
+05067                     controlled_interrupts)
+05068                 try:
+05069                     write_facts()
+05070                 except BaseException as write_error:  # noqa: BLE001
+05071                     controlled_cleanup_errors.append(
+05072                         {'kind': 'EVIDENCE',
+05073                          'type': type(write_error).__name__,
+05074                          'detail': str(write_error)})
+05075                     _note_interruption(controlled_interrupts, write_error)
+05076             # CORRECTION 21 (M3): the priority of the failures is
+05077             # enforced **after** the last action of the cleanup: the
+05078             # failure that is already unwinding wins, then the **first**
+05079             # exact pending interruption of the cleanup and only then the
+05080             # ordinary proof of the subcase.  A subcase that has its
+05081             # **own** deliberate failure keeps it and the cancellation
+05082             # of the cleanup is an **additional** diagnostic of it.
+05083             if controlled_interrupts and not raised \
+05084                     and sys.exc_info()[0] is None:
+05085                 raise controlled_interrupts[0]
+05086         return facts
+--- T10:5195-5205 ---
+05195         assert controlled['gate_released'] is True, \
+05196             'the gate of the controlled failure of %s stayed blocked' \
+05197             % checkpoint
+05198         assert controlled['proof_failure'] is None, \
+05199             'the cleanup of the controlled failure of %s was not proved: %s' \
+05200             % (checkpoint, controlled['proof_failure'])
+05201         assert controlled['quiescent'] is True, \
+05202             'the owners of the controlled failure of %s were not quiescent' \
+05203             % checkpoint
+05204         _assert_salvage_proved(controlled['salvage'],
+05205                                'the controlled failure of %s' % checkpoint)
+
+## Zero post-drain query diagnostic omitted if another proof exists
+--- T10:833-842 ---
+00833     if registry is None:
+00834         return None
+00835     try:
+00836         return registry.facts()
+00837     except BaseException as error:  # noqa: BLE001 - it stays visible
+00838         if errors is not None:
+00839             errors.append({'kind': label, 'type': type(error).__name__,
+00840                            'detail': str(error)})
+00841         _note_interruption(interrupts, error)
+00842         return None
+
+--- T10:3885-3926 ---
+03885                 zero_salvage = zero_drain['salvage']
+03886                 zero_proof = zero_drain['proof']
+03887                 # CORRECTION 18 (M3): a stop that raised and a snapshot
+03888                 # of the evidence that failed are facts of the cleanup.
+03889                 zero_stop_proof = _stop_proof_failure(zero_stop,
+03890                                                       'the round of zero')
+03891                 if zero_proof is None and zero_stop_proof is not None:
+03892                     zero_proof = zero_stop_proof
+03893                 if zero_proof is None and zero_cleanup_errors:
+03894                     zero_proof = ('the round of zero met %s'
+03895                                   % (zero_cleanup_errors,))
+03896                 # CORRECTION 19 (M3): the **quiescence** of the round of
+03897                 # zero is part of its proof: an owner that the final
+03898                 # resnapshot of the drain found and that no join
+03899                 # released fails the round of zero and it fails the test
+03900                 # with it.
+03901                 if zero_proof is None and zero_drain['quiescent'] is not True:
+03902                     zero_proof = 'the round of zero was not quiescent'
+03903                 # CORRECTION 21 (M3): the query of the facts of the
+03904                 # registry that builds the **cleanup** evidence is
+03905                 # guarded as well: an unknown snapshot is an explicit
+03906                 # diagnostic and it fails the proof of the round - it is
+03907                 # never a fabricated empty registry that looks
+03908                 # successful.
+03909                 zero_registry_snapshot = _registry_snapshot(
+03910                     zero_registry, zero_registry_errors, zero_interrupts,
+03911                     label='ZERO_REGISTRY_FACTS')
+03912                 if zero_proof is None and zero_registry_errors:
+03913                     zero_proof = ('the registry of the round of zero could '
+03914                                   'not be read: %s'
+03915                                   % (zero_registry_errors,))
+03916                 facts = {'salvage': zero_salvage,
+03917                          'all_salvage': zero_drain.get('all_salvage', []),
+03918                          'stop': zero_stop,
+03919                          'drain': zero_drain['attempts'],
+03920                          'quiescent': zero_drain['quiescent'],
+03921                          'proof_failure': zero_proof,
+03922                          'stop_proof_failure': zero_stop_proof,
+03923                          'cleanup_errors': zero_cleanup_errors,
+03924                          'interrupts': _interruption_facts(zero_interrupts),
+03925                          'registry': zero_registry_snapshot,
+03926                          **_drain_facts(zero_drain)}
+--- T10:3931-3977 ---
+03931                 unwinding = sys.exc_info()[0] is not None
+03932                 try:
+03933                     try:
+03934                         write_phase('r07-zero-salvage', facts)
+03935                     except BaseException as write_error:  # noqa: BLE001
+03936                         zero_cleanup_errors.append(
+03937                             {'kind': 'EVIDENCE',
+03938                              'type': type(write_error).__name__,
+03939                              'detail': str(write_error)})
+03940                         interrupted = _note_interruption(zero_interrupts,
+03941                                                         write_error)
+03942                         if not unwinding:
+03943                             if zero_interrupts:
+03944                                 # CORRECTION 20 (M3): the **first** exact
+03945                                 # pending cancellation of the cleanup wins
+03946                                 # over the current one and over the
+03947                                 # ordinary assertion of the evidence: a
+03948                                 # cancellation of the write is never
+03949                                 # preferred to the cancellation that the
+03950                                 # cleanup met **before** it.
+03951                                 raise zero_interrupts[0]
+03952                             if interrupted:
+03953                                 # CORRECTION 19 (M3): an **exact**
+03954                                 # cancellation of the write is re-raised
+03955                                 # as **itself**.
+03956                                 raise
+03957                             raise AssertionError(
+03958                                 'the evidence of the cleanup of the round of '
+03959                                 'zero could not be written: %s'
+03960                                 % (write_error,))
+03961                 finally:
+03962                     zero_observer.disarm()
+03963                 # CORRECTION 19 (M3): the priority of the failures is
+03964                 # fixed: the failure that is already unwinding wins, then
+03965                 # the **exact** interruption of the cleanup and only then
+03966                 # the ordinary assertion of the proof.
+03967                 if zero_interrupts and sys.exc_info()[0] is None:
+03968                     raise zero_interrupts[0]
+03969                 if zero_proof is not None and sys.exc_info()[0] is None:
+03970                     raise AssertionError(zero_proof)
+03971                 # CORRECTION 17 (M1): the proof of the cleanup of the
+03972                 # round of the zero expiry is **hard**: no owner of the
+03973                 # round may have an unknown start state, no owner may
+03974                 # have met an error and every owner that really started
+03975                 # was really joined and is not alive any more.
+03976                 if sys.exc_info()[0] is None:
+03977                     _assert_salvage_proved(zero_salvage, 'the round of zero')
