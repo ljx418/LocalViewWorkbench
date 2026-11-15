@@ -1,0 +1,13 @@
+...............................................................................................................................................................................................F..
+=================================== FAILURES ===================================
+______________ test_n1_sup_03_inner_writer_error_rejects_success _______________
+tools/test_v0_s3_native_custody_cleanup_faults.py:431: in test_n1_sup_03_inner_writer_error_rejects_success
+    assert len(writer.injected) == 1, (
+E   AssertionError: the error of the inner writer was not injected exactly once: []
+E   assert 0 == 1
+E    +  where 0 = len([])
+E    +    where [] = <function _phase_writer.<locals>.writer at 0x76072ae091c0>.injected
+=========================== short test summary info ============================
+FAILED tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_03_inner_writer_error_rejects_success
+1 failed, 193 passed in 50.24s
+{"pytest_exit": 1, "call_count": 194, "pass_count": 193, "fail_count": 1, "skip_count": 0, "functional_pass_count": 191, "cleanup_proven_for_batch": true}
