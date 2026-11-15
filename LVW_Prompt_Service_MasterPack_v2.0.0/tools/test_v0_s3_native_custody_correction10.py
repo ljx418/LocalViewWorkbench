@@ -1213,6 +1213,109 @@ def _session_owners(session, prefix='session', hints=None):
     return owners
 
 
+def _install_main_pump_observer(session, phase):
+    """Observe the ACTUAL pump of the MAIN session of one round.
+
+    The seam is the production ``_start_background_thread`` of the
+    session: the pump of the round is the exact object that the
+    production really hands to it and the observer captures it
+    **before** the original start, so that the capture never depends on
+    the mutable reference ``session._pump`` that the production retires
+    once it confirmed the join of the pump.
+
+    The observer is **instance local**: it is installed on this one
+    session, so every call it forwards is by construction the call of
+    this MAIN session, and the kind of the call is kept as it is: only
+    the pump of the round is held and every other background thread of
+    the round is forwarded untouched.
+
+    The forwarder is **transparent**: the original method is called
+    with the original arguments, its result is returned unchanged and
+    its error is re-raised unchanged.  The observer never decides
+    anything, it never refuses a start and it never changes a deadline
+    of the round.
+
+    The **join** of the pump is observed by an instance local forwarder
+    of the original ``join_bounded`` of the pump: the real argument,
+    the real result and the real error of the join are recorded and
+    they are forwarded unchanged.  The phase of every join says whether
+    the join happened **before the body boundary** of the region of the
+    fixture or **during the salvage** of that region.
+    """
+    observed = {'pump': None, 'calls': [], 'joins': []}
+    original_start = session._start_background_thread
+
+    def install_join_recorder(pump):
+        """Observe the join of the pump on the pump itself."""
+        original_join = pump.join_bounded
+
+        def recording_join_bounded(seconds):
+            record = {'seconds': seconds, 'phase': phase(),
+                      'result': None, 'error': None,
+                      'at': time.monotonic(),
+                      'thread': threading.current_thread().name}
+            observed['joins'].append(record)
+            try:
+                result = original_join(seconds)
+            except BaseException as error:  # noqa: BLE001 - it stays visible
+                record['error'] = repr(error)
+                raise
+            record['result'] = result
+            return result
+
+        pump.join_bounded = recording_join_bounded
+
+    def observing_start_background_thread(kind, thread):
+        """Forward the start of one background thread of the round."""
+        record = {'kind': kind, 'thread_id': id(thread),
+                  'captured': False, 'start_result': None,
+                  'start_error': None, 'at': time.monotonic()}
+        observed['calls'].append(record)
+        if kind == 'pump' and observed['pump'] is None:
+            observed['pump'] = thread
+            record['captured'] = True
+            install_join_recorder(thread)
+        try:
+            result = original_start(kind, thread)
+        except BaseException as error:  # noqa: BLE001 - it stays visible
+            record['start_error'] = repr(error)
+            raise
+        record['start_result'] = result
+        return result
+
+    session._start_background_thread = observing_start_background_thread
+    return observed
+
+
+def _pump_pointer_state(session, held_pump):
+    """The state of the **mutable** reference of the pump of the round.
+
+    The reference of the session and the object that the fixture really
+    holds are two different things: the production retires the
+    reference of the session once it confirmed the join of the pump and
+    it never replaces it with another object.  The state of the
+    reference is therefore one of
+
+    * ``NOT_STARTED``  the fixture never observed a pump of the round,
+    * ``SAME``         the reference is the very object that the
+      fixture holds,
+    * ``ABSENT``       the reference is ``None`` and the production
+      retired it,
+    * ``OTHER``        the reference is another object.
+
+    The state is a fact of the fixture and it is never a proof: an
+    absent reference proves neither the start of a pump nor its end.
+    """
+    if held_pump is None:
+        return 'NOT_STARTED'
+    pointer = getattr(session, '_pump', None)
+    if pointer is None:
+        return 'ABSENT'
+    if pointer is held_pump:
+        return 'SAME'
+    return 'OTHER'
+
+
 def _endpoint_owners(prefix, endpoint, hints=None):
     """The owners that one endpoint of the round really started.
 
@@ -3659,6 +3762,24 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                                    parent_child_remaining_seconds=21600,
                                    launcher=None, clock=clock,
                                    wall=time.time, nonce=NONCE)
+    # OPT-B-09 (T07-M1): the pump of the **MAIN** session is observed at
+    # the seam where the production really starts it.  The observer is
+    # **instance local** and **transparent**: it is installed on this one
+    # session, it forwards every call to the original bound method of
+    # the class and it holds only the pump of the round.  The mutable
+    # reference ``session._pump`` is retired by the production once it
+    # confirmed the join of the pump, so the pump of the round is
+    # **held** from here on and it is never read through that reference
+    # again.
+    #
+    # The phase of the observation says where the round is: a join of
+    # the pump that happened **before the body boundary** of this region
+    # is a join of the production and a join that happened **during the
+    # salvage** of this region is a join of the fixture.
+    main_pump_phase = {'value': 'before-body-boundary', 'at': None}
+    main_pump_observed = _install_main_pump_observer(
+        session, lambda: main_pump_phase['value'])
+    main_pump = None
     parent_salvage = []
     child_transport = None
     # N1 correction 16 (M3): the registry of the owners that the
@@ -3691,6 +3812,13 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         #    replaced by the in-process fake -------------------------
         parent_start_return = start_round(session, api, clock,
                                           parent_registry)
+        # OPT-B-09 (T07-M1): the pump of the MAIN session that the
+        # production really started is **held** from here on: it is the
+        # exact object that the observer of the start really saw, it is
+        # the object that the production kept in its own table of the
+        # background threads of the round and it is the object that the
+        # facts of this region describe.
+        main_pump = main_pump_observed.get('pump')
         facts = {'context_at_popen':
                  observations['context_at_popen'] is session._context,
                  'command': observations.get('command'),
@@ -3838,10 +3966,20 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                      'reply_waits': list(reply_waits),
                      'cleanup': clock.value + 0.05,
                      'remaining_at_admission': remaining,
-                     'pump_alive': bool(session._pump is not None
-                                        and not session._pump.finished),
-                     'pump_error': (repr(session._pump.error)
-                                    if session._pump is not None else None),
+                     # OPT-B-09 (T07-M1): the **held** pump of the MAIN
+                     # session is read here and not the mutable reference
+                     # of the session: an absent reference used to be
+                     # reported as a pump that is not alive and that
+                     # carries no error, and that conflated a retired
+                     # reference with a pump that really ended.  The
+                     # state of the reference is a separate fact and it
+                     # is never a proof.
+                     'pump_alive': bool(main_pump is not None
+                                        and not main_pump.finished),
+                     'pump_error': (repr(main_pump.error)
+                                    if main_pump is not None else None),
+                     'pump_pointer_state': _pump_pointer_state(
+                         session, main_pump),
                      'session_state': session.state}
             write_phase('r07-pump-current-minimum', facts)
             assert queue_waits, \
@@ -4102,11 +4240,16 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                             detail=str(error))
                 raise
             zero_record('PUMP_READ_RETURNED', result=repr(result))
-            zero_channel_now = getattr(
-                getattr(zero_session, 'broker', None), '_channel', None)
+            # OPT-B-09 (T07-M1): the error of the channel is read from
+            # the **already held** reference of the real channel and not
+            # from a second private read of the broker of the session:
+            # an absent reference of the broker reported no error at all
+            # and that is not a proof of anything.  The field stays a
+            # diagnostic of the trace and it is never promoted into a
+            # proof of the absence of an error.
             zero_record('CHANNEL_ERROR_SEEN_BY_THE_PUMP',
-                        channel_error=getattr(zero_channel_now, '_error',
-                                             None))
+                        channel_error=getattr(zero_channel_ref['value'],
+                                             '_error', None))
             # OPT-B-07 (F06-M1): the producer is released only **after**
             # the real read of the pump really completed its empty queue
             # and error check: the real producer decides the order of the
@@ -4953,13 +5096,25 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         # wait of the **same** production chain - the BrokerProcess and
         # the channel of the round - is therefore observed through the
         # handle of the broker.
+        # OPT-B-09 (T07-M1): the state of the **held** pump of the MAIN
+        # session is read **before** the fallible sequence of the expiry:
+        # a round that is about to expire has to have a pump that is
+        # still alive, and the fact of the owner is recorded either way.
+        main_pump_alive_before_expiry = bool(main_pump is not None
+                                             and main_pump.alive)
+        main_pump_finished_before_expiry = bool(main_pump is not None
+                                                and main_pump.finished)
         session._context.bind_absolute_deadline(clock.value)
         queue_waits[:] = []
         reply_waits[:] = []
         session.broker.read(CHANNEL_POLL_SECONDS)
         deadline = time.monotonic() + 15.0
         while time.monotonic() < deadline:
-            if session._pump is not None and session._pump.finished:
+            # OPT-B-09 (T07-M1): the **held** pump of the MAIN session is
+            # polled here and not the mutable reference of the session.
+            # The bound of the region is unchanged: it is the same
+            # fifteen seconds and the same sleep.
+            if main_pump is not None and main_pump.finished:
                 break
             time.sleep(0.005)
         # The reply event of the parent is observed on a **fresh** pump
@@ -4975,10 +5130,101 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                     zero_pump.take(('READY',), clock.value + 0.05)
         finally:
             zero_pump.stop()
+        # OPT-B-09 (T07-M1): the **production** keeps the actual object of
+        # the pump in its own table of the background threads of the round
+        # and the observer of the starts keeps the actual objects that it
+        # really saw: the identity of the held pump is checked against
+        # both of them and against the record of the production itself.
+        main_background_pump = None
+        main_background_record = None
+        for owner_name, owner_thread in _session_owners(
+                session, 'parent:session'):
+            if owner_name.endswith(':background-pump'):
+                main_background_pump = owner_thread
+                break
+        for record_kind, record_value in (
+                getattr(session, '_background_threads', None) or {}).items():
+            if record_kind == 'pump':
+                main_background_record = record_value
+                break
+        main_observed_threads = [
+            owner_thread for _owner_name, owner_thread
+            in parent_registry.observed_threads()]
+        main_start_provenance = parent_registry.start_provenance()
+        # The **joins** of the held pump that were confirmed **before the
+        # salvage** of this region: only those prove that the production
+        # really ended the pump of the round and really retired its
+        # reference.
+        # The **joins** of the held pump that really happened **before the
+        # salvage** of this region began: the boundary is the exact
+        # moment at which the salvage of the fixture started and it does
+        # not depend on the thread that made the join, so a join of the
+        # production that races the boundary is still named correctly.
+        main_salvage_started_at = main_pump_phase.get('at')
+        main_joins_before_salvage = [
+            item for item in main_pump_observed['joins']
+            if main_salvage_started_at is None
+            or item.get('at', 0.0) < main_salvage_started_at]
+        main_pump_error = (main_pump.error
+                           if main_pump is not None else None)
         facts = {'queue_waits': list(queue_waits),
                  'reply_waits': list(reply_waits),
-                 'pump_finished': bool(session._pump is not None
-                                       and session._pump.finished)}
+                 'pump_finished': bool(main_pump is not None
+                                       and main_pump.finished),
+                 # OPT-B-09 (T07-M1): the facts of the **held** pump of
+                 # the MAIN session and the state of the **mutable**
+                 # reference of the session are two different things and
+                 # they are both named.
+                 'pump_observed': main_pump is not None,
+                 'pump_alive': bool(main_pump is not None
+                                    and main_pump.alive),
+                 'pump_error_is_none': (main_pump_error is None
+                                        if main_pump is not None
+                                        else None),
+                 'pump_error_type': (type(main_pump_error).__name__
+                                     if main_pump_error is not None
+                                     else None),
+                 'pump_error_repr': (repr(main_pump_error)
+                                     if main_pump_error is not None
+                                     else None),
+                 'pump_frames': (main_pump.frames
+                                 if main_pump is not None else None),
+                 'pump_context_is_the_session_context': (
+                     main_pump is not None
+                     and main_pump._context is session._context),
+                 'pump_broker_is_the_round_broker': (
+                     main_pump is not None
+                     and getattr(main_pump, '_broker', None)
+                     is getattr(session, 'broker', None)),
+                 'pump_is_the_production_background_pump': (
+                     main_pump is not None
+                     and main_background_pump is not None
+                     and main_pump is main_background_pump),
+                 'pump_background_record_state': (
+                     (main_background_record or {}).get('state')),
+                 'pump_background_record_started': (
+                     (main_background_record or {}).get('started')),
+                 'pump_background_record_error': repr(
+                     (main_background_record or {}).get('error')),
+                 'pump_is_an_observed_start': (
+                     main_pump is not None
+                     and any(main_pump is item
+                             for item in main_observed_threads)),
+                 'pump_start_provenance': (
+                     main_start_provenance.get(id(main_pump))
+                     if main_pump is not None else None),
+                 'pump_pointer_state': _pump_pointer_state(session, main_pump),
+                 'pump_joins': list(main_pump_observed['joins']),
+                 'pump_joins_before_salvage': main_joins_before_salvage,
+                 'pump_salvage_started_at': main_salvage_started_at,
+                 'pump_join_confirmed_before_salvage': bool(
+                     any(item.get('result') is True
+                         for item in main_joins_before_salvage)),
+                 'pump_start_calls': list(main_pump_observed['calls']),
+                 'pump_phase': main_pump_phase['value'],
+                 'pump_alive_before_expiry': main_pump_alive_before_expiry,
+                 'pump_finished_before_expiry':
+                     main_pump_finished_before_expiry}
         write_phase('r07-pump-zero-expiry', facts)
         assert queue_waits, \
             'the parent never waited for a frame of the round'
@@ -4990,6 +5236,59 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
             'the reply event of the parent asked for a wait after the expiry'
         assert facts['pump_finished'] is True, \
             'the pump of the round did not end after the bound arrived'
+        # OPT-B-09 (T07-M1) - ORACLE MAPPING: the **old** oracle read the
+        # pump of the round through the **mutable** reference of the
+        # session and it collapsed an absent reference and an unfinished
+        # pump into one single ``False``.  The production retires that
+        # reference on purpose once it confirmed the join of the pump
+        # ("a thread that really stopped is not kept any more"), so the
+        # old oracle could only report the state of a reference that the
+        # production had already released and it could never see the
+        # failure of a pump that really ended with an error.
+        #
+        # The **new** oracle keeps the identity obligation and it moves it
+        # to the object that the production really started: that object
+        # is the one that is read, it really finished, it is not alive any
+        # more, it carries no error, it carries the ORIGINAL context of
+        # the round and it really served the broker of the round, and its
+        # identity is confirmed against the production table of the
+        # background threads and against the actual objects that the
+        # observer of the starts saw.  The reference of the session is
+        # either that very object or it is absent, and its absence is
+        # only accepted on the **specific** path on which the production
+        # confirmed the join **before the salvage** of this region.
+        assert facts['pump_observed'] is True, \
+            'the round never started a pump that the fixture observed'
+        assert facts['pump_alive'] is False, \
+            'the pump of the round is still alive after the bound arrived'
+        assert facts['pump_error_is_none'] is True, \
+            'the pump of the round failed: %s' % (facts['pump_error_repr'],)
+        assert facts['pump_context_is_the_session_context'] is True, \
+            'the pump of the round has another context'
+        assert facts['pump_broker_is_the_round_broker'] is True, \
+            'the pump of the round did not serve the broker of the round'
+        assert facts['pump_is_the_production_background_pump'] is True, \
+            'the pump of the round is not the pump that the production ' \
+            'kept in its background table'
+        assert facts['pump_is_an_observed_start'] is True, \
+            'the observer of the starts never saw the pump of the round ' \
+            'start'
+        assert facts['pump_start_provenance'] == 'STARTED', \
+            'the start of the pump of the round was not proven: %s' \
+            % (facts['pump_start_provenance'],)
+        assert facts['pump_pointer_state'] in ('SAME', 'ABSENT'), \
+            'the session of the round kept a pump that the fixture never ' \
+            'observed: %s' % (facts['pump_pointer_state'],)
+        if facts['pump_pointer_state'] == 'ABSENT':
+            # The **specific** path on which the production retired the
+            # reference of the pump: the pump really started, it really
+            # ended and the production really joined it **before the
+            # salvage** of this region.  An absent reference is never a
+            # proof on its own.
+            assert facts['pump_join_confirmed_before_salvage'] is True, \
+                'the reference of the pump of the round was retired ' \
+                'without a confirmed join before the salvage: %s' \
+                % (facts['pump_joins'],)
 
         # -- the child: the core, the loop and the transport share one
         #    context and the cleanup deadline of the round -----------
@@ -5154,6 +5453,13 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         _release_gate(api.frames_ready.set, parent_cleanup_errors,
                       parent_interrupts)
         parent_broker = getattr(session, 'broker', None)
+        # OPT-B-09 (T07-M1): the salvage of this region begins here: a
+        # join of the pump of the MAIN session that is observed from now
+        # on is a join of the **fixture** and it is named as such.  A
+        # join that was observed before this point is a join of the
+        # **production**.
+        main_pump_phase['value'] = 'fixture-salvage'
+        main_pump_phase['at'] = time.monotonic()
         parent_stop = _capture_stop(session, original_broker=parent_broker,
                                     interrupts=parent_interrupts)
         parent_channel = getattr(parent_broker, '_channel', None)
@@ -5236,6 +5542,15 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
              'interrupts': _interruption_facts(parent_interrupts),
              'registry': parent_registry_snapshot,
              'registry_errors': list(parent_registry_errors),
+             # OPT-B-09 (T07-M1): the facts of the **held** pump of the
+             # MAIN session and the state of its **mutable** reference
+             # are recorded beside the facts of the salvage: they are two
+             # different things and neither of them replaces the other.
+             'main_pump_observed': main_pump is not None,
+             'main_pump_pointer_state': _pump_pointer_state(session,
+                                                            main_pump),
+             'main_pump_joins': list(main_pump_observed['joins']),
+             'main_pump_start_calls': list(main_pump_observed['calls']),
              **_drain_facts(parent_drain)})
         parent_cleanup_facts['alive'] = bool(parent_drain['quiescent'])
         # the state of the unwinding is read **before** the write: inside
