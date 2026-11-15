@@ -1,0 +1,82 @@
+{
+  "kind": "ROOT_ACTUAL_TARGETED6_RECOMPUTATION_NOT_FULL189_PASS",
+  "candidate_sha": "ab12b0a01f733403a4986744c77853dbeeee6f68",
+  "evidence_commit": "51f6fc2fc833e93778b0b35a5591df22b162e04f",
+  "plan_sha256": "2786c5a52237ab89d80dde36dbd9651d26bfd551017c4541259ce1d84e731607",
+  "selected": 6,
+  "called": 6,
+  "passed": 5,
+  "failed": 1,
+  "selected_original": 1,
+  "selected_original_pass": 0,
+  "selected_original_fail": 1,
+  "original_not_selected_NOT_RUN": 188,
+  "supplemental_required": 5,
+  "supplemental_pass": 5,
+  "calls": [
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r07_the_context_of_the_round_reaches_every_layer",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 15.414857411000412,
+      "longrepr": "tools/test_v0_s3_native_custody_correction10.py:4991: in test_n10_r07_the_context_of_the_round_reaches_every_layer\n    assert facts['pump_finished'] is True, \\\nE   AssertionError: the pump of the round did not end after the bound arrived\nE   assert False is True"
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_01_final_query_preserves_original",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.5137022259950754,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_02_final_query_preserves_first_interruption",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 0.5144583039946156,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_03_inner_writer_error_rejects_success",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 2.2886169319972396,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_04_recovered_final_write_has_failed_proof",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 2.185756604994822,
+      "longrepr": null
+    },
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_05_held_startup_owner_survives_query_faults",
+      "when": "call",
+      "outcome": "passed",
+      "duration": 4.2083327879954595,
+      "longrepr": null
+    }
+  ],
+  "guard_runtime_denials": [],
+  "allowed_pytest_aliases_count": 6,
+  "preload_state": "CLOSED",
+  "cleanup_proven": true,
+  "outer_errors": [
+    "ACTUAL_CHECKS_NOT_ALL_PASSED"
+  ],
+  "outer_accepted": false,
+  "producer_cause_misstatement": {
+    "actual_error": "ACTUAL_CHECKS_NOT_ALL_PASSED",
+    "wrong_summary": "the batch really ran: the five supplemental cases ALL PASSED and the one selected original R07 node FAILED, and the outer validator REJECTED the feedback because the group of the original 189 required 189 and passed 0 in a selection of six.  The guard ledger was EMPTY, the cleanup of the batch is proven and the zero schedule of the fixture really ran as designed.  A finite honest failure is the deliverable and it is not a Stage, an N2 or a Major closure.",
+    "correct_reading": "Outer code does not compare fixedgroup189.required withgroup.passed to decide local acceptance; it rejected the actual failed selectedR07 call.188unselected areNOT_RUN, not selectedfailures."
+  },
+  "hypothesis_not_fact": "Later direct-supplement mutable session._pump observation may conflate retired pointer and unfinished real owner; raw currently does not distinguish. Independent source+evidence review must classify; do not assume harmless or downgrade unknownresourceproof.",
+  "artifact_hashes": {
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/native-custody-correction-03.receipt.json": "16425c1d2525031a11e1a496ef2be8b963d7dab6d9fbc489c203056268498211",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/guard.json": "28c0021787a8009e61d4c90b452fe1024ccaa6c783ffc5a93ef83bb38f0851ba",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01/outer-decision.json": "fc0547ccc637efa1aa050d94c5fac8d9a5076a3472e2a04b72b372e34e4d93f2",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/targeted01-execution-receipt.json": "4b4c04c79d1fcd7025df1917598f80010db2ce329881ab57f58fcd9568b0fd04"
+  },
+  "current_disposition": "Local6 rejected; no Stage/N2/Majorclosure or automatic rerun.5negative PASScases are actual branch evidence, not full189 checkpoint.",
+  "recorded_utc": "2026-11-15T15:18:36.553837+00:00"
+}
