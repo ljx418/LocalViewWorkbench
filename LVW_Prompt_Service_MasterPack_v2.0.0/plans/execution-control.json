@@ -1,6 +1,6 @@
 {
   "schema_version": "lvw.execution-control/1",
-  "updated_at": "2026-11-15T18:01:11.522444+00:00",
+  "updated_at": "2026-11-15T18:16:41.951942+00:00",
   "project_id": "lvw-prompt-service",
   "design_version": "2.0.0",
   "target_version": "V1",
@@ -21,7 +21,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "S3_P4_SUPERVISED194_INDEPENDENT_INTEGRATION_REVIEW",
+  "current_blocking_gate": "S3_P4_NEXT_OFFLINE_CODING_GATE0_DEPENDENCY_AUDIT",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -34,9 +34,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "Isolated supervised integration reviewer; then root component gate adjudicator",
-  "next_action": "Review actual supervisor-owned guard194 (189original+5supp), all5 owned child/reap/control receipts outsidepayload, current source/runtime pins and CPUcleanup before component/N1 adjudication. Product29/native9/Stage remain pending.",
-  "required_authorization": "ParentCOMPLETE03 and root explicit NEW supervised11 ACK cover310s onebatch0retry; no new human authorization. No model/GPU/native/media/network actions.",
+  "next_owner": "VisibleClaude factual next-admission auditor; root architecture/gate owner",
+  "next_action": "N1CPUcomponent formallyPASS. AuditcurrentN2 factory/strictbinding/custody seams and R1-A/B design/coding/live/formalexit prerequisites, then rootfreeze fastestvalid nextimplementationpacket; no unchangedN1rerun.",
+  "required_authorization": "ParentCOMPLETE03 covers thisreadonlyofflineaudit; zero native/GPU/model/runtime actions. No new human permission; firstClaude429 stops.",
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -2387,26 +2387,16 @@
     "independent_review_sha": "14e65d935c55b25a65cc3b9f3746666b31aba5bb"
   },
   "current_component_checkpoint": {
-    "plan": "reports/workflow-rebaseline-2026-11-15/opt-b-12-envelope-correction/combined-plan-10/plan.json",
-    "plan_sha256": "fe0f03d14b5a57b7463f342507294e409a9ac7dc38f3ec0f233533f2510cf34f",
+    "component": "N1-OPTIMIZED-01",
+    "state": "PASS_CPU_COMPONENT_ONLY",
     "candidate_sha": "b9a81aed8e8f8fe6763a4dfd3d051cacf10e0820",
-    "state": "FUNCTIONAL194_SUPPORTED_HARD_STOP_NOT_ESTABLISHED",
-    "fixed_original": 189,
-    "supplemental": 5,
-    "total": 194,
-    "batches_max": 1,
-    "automatic_retries": 0,
-    "product29_native_claim": false,
-    "literal_bash_tool_input_sha256": "e3dc059b1cc394553ebe10add80a74c7f161721ffc71ac795ad314e277525db8",
-    "evidence_sha": "3160d9380b3810e6d9d3f8f57ed8773839954521",
-    "correction_sha": "768659217aa17f7baf30224c5c9b502bac8ce1ba",
-    "machine_receipt_sha256": "2f0e40687fc04fdaeed84cae6115afcae40cb71c78f4a7ac8b5f583548a54af0",
-    "actual_original_PASS": 189,
-    "actual_supplemental_PASS": 5,
-    "hard_stop_semantics_proven": false,
-    "extra_probe_frozen": false,
-    "independent_review_sha": "680b06f5d62dd3297f3b4d8701b93cdb5556b71c",
-    "blocking_finding": "CP10-M1"
+    "evidence_sha": "58881bd97e2602d70d8407df8b5fbf9e53aac4b3",
+    "independent_review_sha": "f33517eb80feb412cf19c19e2bab101e4fead397",
+    "root_decision": "reports/workflow-rebaseline-2026-11-15/opt-c-01-n1-exit-and-next-admission/n1-cpu-gate-decision.json",
+    "fixed_original_PASS": 189,
+    "supplemental_PASS": 5,
+    "supervised_control_proven": true,
+    "product_stage_or_native_PASS": false
   },
   "component_checkpoint_history": [
     {
@@ -2442,12 +2432,35 @@
         5000,
         5000
       ]
+    },
+    {
+      "plan": "reports/workflow-rebaseline-2026-11-15/opt-b-12-envelope-correction/combined-plan-10/plan.json",
+      "plan_sha256": "fe0f03d14b5a57b7463f342507294e409a9ac7dc38f3ec0f233533f2510cf34f",
+      "candidate_sha": "b9a81aed8e8f8fe6763a4dfd3d051cacf10e0820",
+      "state": "FUNCTIONAL194_SUPPORTED_HARD_STOP_NOT_ESTABLISHED",
+      "fixed_original": 189,
+      "supplemental": 5,
+      "total": 194,
+      "batches_max": 1,
+      "automatic_retries": 0,
+      "product29_native_claim": false,
+      "literal_bash_tool_input_sha256": "e3dc059b1cc394553ebe10add80a74c7f161721ffc71ac795ad314e277525db8",
+      "evidence_sha": "3160d9380b3810e6d9d3f8f57ed8773839954521",
+      "correction_sha": "768659217aa17f7baf30224c5c9b502bac8ce1ba",
+      "machine_receipt_sha256": "2f0e40687fc04fdaeed84cae6115afcae40cb71c78f4a7ac8b5f583548a54af0",
+      "actual_original_PASS": 189,
+      "actual_supplemental_PASS": 5,
+      "hard_stop_semantics_proven": false,
+      "extra_probe_frozen": false,
+      "independent_review_sha": "680b06f5d62dd3297f3b4d8701b93cdb5556b71c",
+      "blocking_finding": "CP10-M1",
+      "historical_disposition": "functional194supported_oldhardcontrolnotestablished_preserved"
     }
   ],
   "trusted_stop_preparation": {
     "source": "reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/bounded_exec.py",
     "selftest_plan": "reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/plan.json",
-    "state": "ACTUAL_FIVE_CASE_INDEPENDENTLY_QUALIFIED",
+    "state": "QUALIFIED_MECHANISM_AND_ACTUAL_GUARD_INTEGRATION",
     "cases": 5,
     "budget_seconds": 20,
     "retries": 0,
@@ -2465,13 +2478,14 @@
     "actual_PASS": 5,
     "actual_owned_children_reaped": 5,
     "run_receipt": "reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/control-selftest-02/run/summary.json",
-    "actual_review": "c4955c7cfa17ba6f85f7be5249688a6805cce29a"
+    "actual_review": "c4955c7cfa17ba6f85f7be5249688a6805cce29a",
+    "integration_review": "f33517eb80feb412cf19c19e2bab101e4fead397"
   },
   "current_supervised_integration": {
     "plan": "reports/workflow-rebaseline-2026-11-15/opt-b-15-supervised-integration/supervised-plan-11/plan.json",
     "plan_sha256": "40098ff3d63632bf7ae03e371119a971171ea9609a956a6a1455e8341ea4cdfc",
     "candidate_sha": "b9a81aed8e8f8fe6763a4dfd3d051cacf10e0820",
-    "state": "ACTUAL194_PASS_FIVE_CHILDREN_REAPED_INDEPENDENT_REVIEW_PENDING",
+    "state": "INDEPENDENTLY_QUALIFIED_ROOT_CPU_COMPONENT_PASS",
     "fixed_original": 189,
     "supplemental": 5,
     "supervisor_sha256": "e3b18a954084c5c89ff1cf7f35e719d4669c8e6df21e652b4d6d54014ff48ba1",
@@ -2481,6 +2495,7 @@
     "evidence_sha": "58881bd97e2602d70d8407df8b5fbf9e53aac4b3",
     "original_PASS": 189,
     "supplemental_PASS": 5,
-    "new_evidence_paths": 354
+    "new_evidence_paths": 354,
+    "independent_review_sha": "f33517eb80feb412cf19c19e2bab101e4fead397"
   }
 }
