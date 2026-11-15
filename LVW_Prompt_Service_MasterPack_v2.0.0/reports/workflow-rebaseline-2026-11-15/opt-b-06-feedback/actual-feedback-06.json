@@ -1,0 +1,50 @@
+{
+  "kind": "ROOT_RECOMPUTED_ACTUAL_FEEDBACK_NOT_EXIT_PASS",
+  "candidate_sha": "9b6d9d4b827587d132eaf20e2b838d449ed89bd3",
+  "evidence_commit": "bb071c1f33ddb80f9e56f4fb385f9e6fbcc85acd",
+  "plan_sha256": "1e370a2fdb74a3bda372100ac5323eb47d9b9ef22ce865dc85dd2738b1208271",
+  "groups": {
+    "original189": {
+      "required": 189,
+      "pass": 189,
+      "fail": 0
+    },
+    "supp5": {
+      "required": 5,
+      "pass": 4,
+      "fail": 1
+    }
+  },
+  "calls": 194,
+  "all_collected_and_called_in_frozen_order": true,
+  "runtime_denials": 106,
+  "denial_event_types": [
+    "os.symlink"
+  ],
+  "outer_accepted": false,
+  "cleanup_proven": true,
+  "preload_state": "CLOSED",
+  "failed_reports": [
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_03_inner_writer_error_rejects_success",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 0.512425748995156,
+      "longrepr": "tools/test_v0_s3_native_custody_cleanup_faults.py:431: in test_n1_sup_03_inner_writer_error_rejects_success\n    assert len(writer.injected) == 1, (\nE   AssertionError: the error of the inner writer was not injected exactly once: []\nE   assert 0 == 1\nE    +  where 0 = len([])\nE    +    where [] = <function _phase_writer.<locals>.writer at 0x76072ae091c0>.injected"
+    }
+  ],
+  "source_receipt_contradictions": [
+    {
+      "path": "/unresolved_limits/3",
+      "text": "the remaining 175 of the fixed 189 were NOT selected and NOT run by this batch; the 194 selection is not the fixed 189 checkpoint and never the product 29 cases."
+    }
+  ],
+  "disposition": "No accepted checkpoint, no Major/N2/Stage clearance. Keep all raw immutable, concentrated independent review before one correction scope.189PASS is raw numeric fact, not global product acceptance.",
+  "artifact_hashes": {
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-05/combined02/native-custody-correction-03.receipt.json": "09bb14012c19490fb4ed60614afedcdf9e4ac0e824e14bbcfad69a452cf2df25",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-05/combined02/guard.json": "1bfad3f917fb3f61c1ad6c4c61b758cfccec31d255629ddc343cf43769c95f00",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-05/combined02/outer-decision.json": "d3b395ef74039df6982c6951ff06561263dd7a5de8a9ed931ae1c9252639b242",
+    "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-05/combined02-execution-receipt.json": "295bbac758eed84c7006b719179260240fea3b42f20731d2de2ad4a6ecae80f8"
+  },
+  "recorded_utc": "2026-11-15T14:01:26.304975+00:00"
+}

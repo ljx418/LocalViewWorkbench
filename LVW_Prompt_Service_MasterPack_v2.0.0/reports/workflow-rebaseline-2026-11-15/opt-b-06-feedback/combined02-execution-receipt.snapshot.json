@@ -1,0 +1,457 @@
+{
+  "kind": "combined_execution_receipt",
+  "packet": "N1-OPTIMIZED-01",
+  "attempt": "combined02",
+  "scope": "OPT-B-06 one newly ACKed finite CPU feedback batch of the frozen 194 selection",
+  "outcome": "REJECTED_BY_OUTER_VALIDATION",
+  "outcome_summary": "the batch really ran: the original 189 nodes ALL PASSED and 4 of the 5 supplemental negative cases passed, while one supplemental case failed - but the outer validator REJECTED the whole feedback because the runtime denial ledger of the guard is nonempty (106 os.symlink denials of the pytest basetemp), so the feedback is not accepted.  The rejection is a veto of the run, not a failure of the candidate, and no Major is closed by it.",
+  "candidate_sha": "9b6d9d4b827587d132eaf20e2b838d449ed89bd3",
+  "candidate_source_sha256_t10": "c30b9bc5f585cc7f3295aba6cd8188421843affc6cb55df62727c0a96dccca77",
+  "plan_sha256": "1e370a2fdb74a3bda372100ac5323eb47d9b9ef22ce865dc85dd2738b1208271",
+  "plan_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-06-feedback/combined-plan-06/plan.json",
+  "root_ack": {
+    "decision": "ROOT_ACK_EXACT_ONE_COOPERATIVE_CPU_FEEDBACK",
+    "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-06-feedback/combined-plan-06/root-ack.json",
+    "readiness_commit": "1230d4d28288747709112eb7c05bd5eafc0b3d31",
+    "batches_max": 1,
+    "retries": 0,
+    "budget_reset": false,
+    "models_gpu_native_network_services_media_db_actions": 0,
+    "formal_Stage_or_N2_clearance": false,
+    "known5Major_and_incident": "remain open pending the concentrated independent review"
+  },
+  "preflight_read_only": {
+    "plan_sha256_matches_expected": true,
+    "root_ack_present": true,
+    "pins_verified_on_disk_before": {
+      "sourcepins": 61,
+      "toolpins": 4,
+      "dependency_pins": 223,
+      "stdlib_pins": 3
+    },
+    "pin_drift_before": 0,
+    "pin_drift_after": 0,
+    "protected_history_before": "10/10 match the baseline of the plan",
+    "protected_history_after": "10/10 match the baseline of the plan",
+    "fresh_report_root_absent_before": true,
+    "candidate_sha_matches_plan_and_ack": true,
+    "candidate_source_sha256_unchanged_after_the_run": true,
+    "source_modified": false,
+    "guard_oracle_threshold_or_approval_config_modified": false,
+    "note": "the preflight printed only counts and drift; no pin list was dumped into the working context"
+  },
+  "commands": [
+    {
+      "step": "before",
+      "kind": "outer counter observation (absence mode, metadata only)",
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "<plan 03>/outer_counter_observe.py",
+        "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+        "<combined02>/counter-absence-before.json"
+      ],
+      "redirections": [
+        "> <combined02>/before.stdout.log",
+        "2> <combined02>/before.stderr.log"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "started_utc": "2026-11-15T13:50:13.647Z",
+      "ended_utc": "2026-11-15T13:50:13.647Z",
+      "exit_code": 0,
+      "result": "accepted_absence=true; the counter parent and the counter itself are MISSING (errno 2); the content was never read and nothing was created, written, reset or refunded",
+      "gate_effect": "exit 0, so the guarded batch was allowed to run",
+      "tool_timeout_ms": 5000
+    },
+    {
+      "step": "guard",
+      "kind": "the hard guard of the boundary 02, then the frozen runner of the combined plan 06, then pytest on the 194 frozen node ids",
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "<boundary 02>/guard.py",
+        "<combined plan 06>/runner.py",
+        "<combined02>/guard.json",
+        "<combined02>"
+      ],
+      "redirections": [
+        "> <combined02>/guard.stdout.log",
+        "2> <combined02>/guard.stderr.log"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "started_utc": "2026-11-15T13:50:13.647Z",
+      "ended_utc": "2026-11-15T13:51:25.178Z",
+      "exit_code": 1,
+      "wall_seconds": 53.885,
+      "pytest_exit": 1,
+      "result": "193 passed, 1 failed, 0 skipped of the 194 selected node ids in 50.24s; the raw stdout, the raw stderr and the exit code are kept unchanged",
+      "guard_facts": {
+        "guard_precedes_candidate_and_pytest": true,
+        "runtime_denials": 106,
+        "runtime_denial_events": {
+          "os.symlink": 106
+        },
+        "runtime_denial_detail": "the pytest basetemp creates a 'current' link per test directory and the guard of the boundary 02 denies every new symlink; this is the documented capability limitation of the guard and it is a denial of the pytest scratch layout, not of the candidate",
+        "clean_runtime_denial_ledger": false,
+        "selftest_denials_present": 8,
+        "preload_events": [
+          "ctypes.dlopen"
+        ],
+        "preload_window_final_state": "CLOSED",
+        "preload_singleton_closed_before_the_candidate": true,
+        "write_root": "<combined02>",
+        "relative_dir_fd_open_write": "DENIED_UNSUPPORTED",
+        "new_symlinks": "DENIED_UNSUPPORTED",
+        "is_adversarial_os_sandbox": false
+      },
+      "tool_timeout_ms": 290000
+    },
+    {
+      "step": "after",
+      "kind": "outer counter observation (absence mode, metadata only)",
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "<plan 03>/outer_counter_observe.py",
+        "/tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json",
+        "<combined02>/counter-absence-after.json"
+      ],
+      "redirections": [
+        "> <combined02>/after.stdout.log",
+        "2> <combined02>/after.stderr.log"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "started_utc": "2026-11-15T13:51:58.909Z",
+      "ended_utc": "2026-11-15T13:51:58.909Z",
+      "exit_code": 0,
+      "result": "accepted_absence=true; the counter parent and the counter itself are still MISSING (errno 2); the content was never read and nothing was created, written, reset or refunded",
+      "tool_timeout_ms": 5000
+    },
+    {
+      "step": "outer",
+      "kind": "the outer validator with the hard veto",
+      "argv": [
+        "/usr/bin/python3.12",
+        "-I",
+        "-B",
+        "<boundary 01>/validate_feedback.py",
+        "<combined plan 06>/plan.json",
+        "<combined02>/guard.json",
+        "<combined02>/native-custody-correction-03.receipt.json",
+        "<combined02>/outer-decision.json"
+      ],
+      "redirections": [
+        "> <combined02>/outer.stdout.log",
+        "2> <combined02>/outer.stderr.log"
+      ],
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "started_utc": "2026-11-15T13:52:28.646Z",
+      "ended_utc": "2026-11-15T13:52:28.646Z",
+      "exit_code": 1,
+      "result": "the outer validator REJECTED the feedback: accepted_cpu_feedback=false, stage_pass_claim=false, errors=['GUARD_RUNTIME_DENIALS_NONEMPTY']",
+      "tool_timeout_ms": 5000
+    }
+  ],
+  "environment": {
+    "mode": "EXPLICIT REPLACE dictionary of seven variables, not an inherited overlay",
+    "variables": [
+      "PATH",
+      "HOME",
+      "LVW_N1_F5_EVIDENCE_DIR",
+      "LVW_N1_T10_EVIDENCE_DIR",
+      "LVW_N1_N05_EVIDENCE_DIR",
+      "TMPDIR",
+      "PYTHONDONTWRITEBYTECODE"
+    ],
+    "source": "the frozen direct-command-renderings.json of the plan; the renderings were executed as they are and no variable was added, removed or rewritten",
+    "all_four_routes_below_the_report_root": true
+  },
+  "budget": {
+    "total_wall_seconds_of_the_batch": 135,
+    "guard_wall_seconds": 53.885,
+    "max_wall_seconds_allowed": 305,
+    "guard_seconds_allowed": 290,
+    "outer_validation_seconds_allowed": 5,
+    "batches_used": 1,
+    "max_batches_allowed": 1,
+    "retries": 0,
+    "guard_rerun": false,
+    "pytest_rerun": false,
+    "second_full_batch": false,
+    "first_429_observed": false,
+    "approval_refusal_observed": false,
+    "model_gpu_native_network_db_media_service_actions": 0,
+    "note": "the elapsed wall time of the batch is the interval between the first and the last command; the only command that ran for a real duration is the guarded batch"
+  },
+  "results_from_the_raw_reports": {
+    "method": "the counts are recomputed from the per-node reports of the runner receipt, group by group; the selected 194 is not 194 executed and the summary is not used to hide a failure",
+    "selected": 194,
+    "collected": 194,
+    "calls": 194,
+    "skipped": 0,
+    "missing_selected_nodes": 0,
+    "pytest_exit": 1,
+    "original_189": {
+      "selected": 189,
+      "PASSED": 189,
+      "FAILED": 0,
+      "SKIPPED": 0,
+      "BLOCKED": 0,
+      "NOT_RUN": 0,
+      "integrity_only_nodes": 2,
+      "functional_nodes": 187
+    },
+    "supplemental_5": {
+      "selected": 5,
+      "PASSED": 4,
+      "FAILED": 1,
+      "SKIPPED": 0,
+      "BLOCKED": 0,
+      "NOT_RUN": 0
+    },
+    "the_five_supplemental_cases": {
+      "test_n1_sup_01_final_query_preserves_original": "PASS",
+      "test_n1_sup_02_final_query_preserves_first_interruption": "PASS",
+      "test_n1_sup_03_inner_writer_error_rejects_success": "FAIL",
+      "test_n1_sup_04_recovered_final_write_has_failed_proof": "PASS",
+      "test_n1_sup_05_held_startup_owner_survives_query_faults": "PASS"
+    },
+    "outer_accepted_cpu_feedback": false,
+    "outer_errors": [
+      "GUARD_RUNTIME_DENIALS_NONEMPTY"
+    ]
+  },
+  "the_one_failure": {
+    "nodeid": "tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_03_inner_writer_error_rejects_success",
+    "when": "call",
+    "duration_seconds": 14.9,
+    "assertion": "assert len(writer.injected) == 1",
+    "message": "the error of the inner writer was not injected exactly once: []",
+    "forensics": "the case drives the real R07 function and its injected inner writer error was never reached: the phase document of the controlled subcase 'r07-controlled-failure-child_transport' does not exist in the case's own child evidence root, and the zero region of that invocation raised first - its own durable document records the original 'the observed pump of the zero round failed: BrokerError(\"BROKER_CHANNEL_TIMEOUT\")'.  The plain R07 node of the same batch passed with zero_pump_error_is_none true, so the zero region of the candidate is SENSITIVE TO THE SCHEDULE: the pump of the round sometimes records a BROKER_CHANNEL_TIMEOUT and sometimes not.  The supplemental case SUP-03 is therefore not robust: it depends on the R07 call reaching the controlled subcases and it can be preempted by that earlier zero-region failure.",
+    "not_interpreted": "this receipt does not decide whether the zero-region sensitivity is a defect of the candidate, a bound of the fixture or a schedule observation; the classification belongs to the concentrated independent review",
+    "own_evidence": "attempt02/evidence/negative/sup-03/"
+  },
+  "cleanup_and_resource_facts": {
+    "cleanup_proven_for_batch": true,
+    "threads_before": [
+      "MainThread"
+    ],
+    "threads_after": [
+      "MainThread"
+    ],
+    "new_or_reused_fds": [],
+    "fd_rows_before": 3,
+    "fd_rows_after": 3,
+    "fd_unknown_before": [],
+    "fd_unknown_after": [],
+    "counter_observation_only": true,
+    "counter_created": false,
+    "counter_written": false,
+    "counter_reset": false,
+    "counter_refunded": false,
+    "historical_grant_revived": false,
+    "historical_counter_continuity": "UNAVAILABLE_NOT_PROVEN",
+    "note": "the batch left no thread and no file descriptor behind; the absence of the counter proves only the absence and never the continuity of a historical balance"
+  },
+  "singleton_and_history": {
+    "preload_singleton": "ctypes.dlopen(None) - the window closed BEFORE the candidate and pytest were imported",
+    "preload_window_final_state": "CLOSED",
+    "protected_history_baseline": "the ten historical documents of the incident are byte-identical before and after the run: 10/10 match the baseline of the plan",
+    "old_evidence_overwritten": false,
+    "prior_receipt_overwritten": false,
+    "spent05_replayed": false
+  },
+  "artifacts": {
+    "root": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-05/combined02",
+    "raw_file_count_excluding_pytest_temp": 182,
+    "phase_documents": 98,
+    "pytest_temp_directory": "combined02/pytest-temp - deliberately NOT committed (the temporary scratch of pytest, consistent with the convention of the prior receipt of this packet)",
+    "runner_result_rewritten_by_hand": false,
+    "runner_receipt_sha256": "09bb14012c19490fb4ed60614afedcdf9e4ac0e824e14bbcfad69a452cf2df25",
+    "note": "the sha256 of every raw artifact of the attempt is listed above; the phase documents of the evidence root are hashed by the review over the root of the attempt",
+    "sha256": {
+      "guard.json": "1bfad3f917fb3f61c1ad6c4c61b758cfccec31d255629ddc343cf43769c95f00",
+      "guard.stdout.log": "71471576a5dce506dee77af92a922236fcbd353b783037afd20cde501ac7a529",
+      "guard.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "native-custody-correction-03.receipt.json": "09bb14012c19490fb4ed60614afedcdf9e4ac0e824e14bbcfad69a452cf2df25",
+      "outer-decision.json": "d3b395ef74039df6982c6951ff06561263dd7a5de8a9ed931ae1c9252639b242",
+      "outer.stdout.log": "5a60b02c23779f486dff3caf680c5e72371c6324e873ae2e2f5c321a75c85a2b",
+      "outer.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "before.stdout.log": "410440f407966a80b4f054e49f8e99276a72a8b9a9149f6412c3f217424fdaff",
+      "before.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "after.stdout.log": "410440f407966a80b4f054e49f8e99276a72a8b9a9149f6412c3f217424fdaff",
+      "after.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "counter-absence-before.json": "bfe4e7b1a3f9d9d912e432a13d16313f40e3857e0895a556bd73e2f08bcffc23",
+      "counter-absence-after.json": "bfe4e7b1a3f9d9d912e432a13d16313f40e3857e0895a556bd73e2f08bcffc23"
+    }
+  },
+  "scope_of_this_result": {
+    "is_194_selected": true,
+    "is_194_executed": true,
+    "is_189_checkpoint": false,
+    "is_product_29": false,
+    "is_stage_acceptance": false,
+    "major_closed_by_this_run": 0,
+    "stage_pass_claimed": false,
+    "native_proven": false,
+    "product_acceptance": false,
+    "human_signoff": false,
+    "budget_reset": false,
+    "feedback_accepted_by_the_outer_validator": false,
+    "note": "the original 189 all passed in this batch, but the feedback was REJECTED by the outer validator on the nonempty denial ledger: a passing selection is not an accepted feedback and it is never a Stage, product or N2 clearance"
+  },
+  "unresolved_limits": [
+    "the feedback of this batch was REJECTED by the outer validator: the runtime denial ledger of the guard is nonempty (106 os.symlink denials of the pytest basetemp).  The batch result is raw evidence and it is not an accepted feedback.",
+    "one supplemental negative case failed: SUP-03 never reached its injected inner writer error because the zero region of that invocation raised first with a timing dependent pump BROKER_CHANNEL_TIMEOUT.  The zero region of the plain R07 node of the same batch passed.  The sensitivity of that region and the robustness of SUP-03 are open for the concentrated review.",
+    "the five concentrated Majors of the review 94cdd82d and the known Major of the review 86ab300 remain OPEN: a passing selection does not close any of them.",
+    "the remaining 175 of the fixed 189 were NOT selected and NOT run by this batch; the 194 selection is not the fixed 189 checkpoint and never the product 29 cases.",
+    "the historical counter continuity is NOT proven: the observation proves only the absence of the old counter.",
+    "the guard of the boundary 02 denies the new symlinks of the pytest scratch, which is a documented limitation of the guard and not a defect of the candidate; the next plan must either authorise that layout or use a basetemp without links.",
+    "this batch is spent: no guard rerun, no pytest rerun, no second batch and no automatic fix was made"
+  ],
+  "ten_fields": {
+    "coordinate": "V1/R1/WP-R1-U3/S3_P4",
+    "this_batch": "the frozen OPT-B-06 CPU feedback of the candidate 9b6d9d4 really ran: 193 of 194 passed, the original 189 all passed, and the outer validator rejected the feedback on the nonempty denial ledger",
+    "last_passed_gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
+    "current_blocker": "the feedback is rejected by the outer veto and one supplemental negative case failed; the five Majors and the known Major stay open",
+    "route": "OPT-B -> OPT-C",
+    "remaining": "the concentrated independent review of this raw, a corrected supplemental case and the guard/plan of the next finite batch, then the fixed 189 checkpoint, the admission of the real main chain and the product 29",
+    "next_owner": "coordinator and implementer",
+    "authorisation": "this batch ran under the single root ACK of the plan 06; no runtime ACK is extended by it and the trusted executor write boundary stays with root",
+    "evidence": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-05/combined02-execution-receipt.json bound to the candidate 9b6d9d4 and the plan 1e370a2f",
+    "stop": "a finite captured result that the outer validator REJECTED - no test PASS beyond the raw counts, no Major closure, no Stage, product29 or N2 clearance"
+  },
+  "development_outline": [
+    {
+      "stage_id": "V0-S0",
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "implementation": "ARCHIVED",
+      "machine_acceptance": "NO_GO_HISTORICAL",
+      "independent_review": "COMPLETED_WITH_BLOCKERS",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "V0-S1",
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "R0",
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "implementation": "PARTIAL_REUSED",
+      "machine_acceptance": "SINGLE_IMAGE_SUBSET_ONLY",
+      "independent_review": "NO_SEPARATE_R0_VERDICT",
+      "human_signoff": "NO_SEPARATE_R0_SIGNOFF"
+    },
+    {
+      "stage_id": "R1a",
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "V0-S2",
+      "completed_substeps": 7,
+      "total_substeps": 8,
+      "implementation": "IMPLEMENTED",
+      "machine_acceptance": "COMPLETE_FIXED9_PASSED",
+      "independent_review": "COMPLETE_FATAL0_MAJOR0_MINOR0",
+      "human_signoff": "PENDING"
+    },
+    {
+      "stage_id": "V0-S3",
+      "completed_substeps": 0,
+      "total_substeps": 6,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R1",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "EARLY_SLICE_IMPLEMENTED_FULL_R1_PENDING",
+      "machine_acceptance": "EARLY_SLICE_UM10_ONLY",
+      "independent_review": "EARLY_SLICE_FATAL0_MAJOR0",
+      "human_signoff": "EARLY_SLICE_APPROVED_FULL_R1_PENDING"
+    },
+    {
+      "stage_id": "V1-M1",
+      "completed_substeps": 0,
+      "total_substeps": 3,
+      "implementation": "DESIGN_ONLY",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R2",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R3",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R4",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5a",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5b",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5c",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    }
+  ],
+  "next_owner": "coordinator",
+  "next_action": "the concentrated independent review of this raw and of the one failed supplemental case, and a new frozen plan for the next finite batch; this delivery closes no Major, claims no test PASS and grants no Stage, product29 or N2 clearance"
+}
