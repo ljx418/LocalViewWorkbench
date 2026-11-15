@@ -1,0 +1,385 @@
+Source: transcript (provider=claude)
+Worker: ready
+Archived: false
+Terminal liveness: live
+Agent liveness: live
+Source exact: true
+Content complete: false
+Clipping: message_limit_or_scan_window, transcript_payload
+Continuation cursor (opaque; pass unchanged to --cursor): owr1_eyJ2IjoxLCJkIjoiY3R4XzIxMDU4NzE4MTI1MiIsInMiOiJ0cmFuc2NyaXB0IiwiaSI6Im1QMVcyb3Jyc2RDaUVzVExCVWNYbVZ0ZVNITDJ4YjlLIiwicCI6NDMxODU4OCwiYyI6IjJWeE5sLUFiYkx0ZVlQby1nWlNUc1ZXeEV3S1pSNVhaIn0
+Warning: Oversized transcript text was clipped.
+Warning: Oversized tool input was clipped.
+
+[reasoning] For R11: three finally blocks in the same test function, sharing `r11_cleanup_errors`/`r11_interrupts`. I'll add ONE cleanup facts dict before the first try, and publish it in each finally (unconditionally), each time with a distinct phase name? Hmm — three publishes to the same name would overwrite. 
+
+Options:
+- Publish the R11 cleanup document once, in the LAST finally (the outermost), covering all the actions. But the first finally's stop action happens before the later finallys.
+- Publish in EACH finally to distinct names: 'r11-round-cleanup', 'r11-exact-cleanup', 'r11-frames-cleanup'.
+
+Hmm, the contract says "a small new perregioncleanupphase is allowed INSIDEexisting189ID". For R11 there are 3 cleanup regions in one test. Distinct names per region is cleanest and satisfies "Keep names/runs distinct".
+
+But the review table lists "R11/R13/R14 cleanup8769–8856,9080–9137,9205–9219" as ONE row (the 15 regions). Hmm — the table has 15 rows; R11/R13/R14 is one row but spans three tests. So per-test cleanup regions.
+
+Let me do: one cleanup facts dict per test (R11, R13, R14) created before the body, published in EACH finally of that test to a distinct name. Since the same dict is pub
+… (truncated)
+
+[assistant] [tool Bash] {"command":"python3 - <<'EOF'\np='tools/test_v0_s3_native_custody_correction10.py'\nlines=open(p,encoding='utf-8').read().split('\\n')\nfor i in range(9378,9480):\n    print(i+1, repr(lines[i]))\nEOF","description":"Dump R12 region"}
+
+[tool] [tool result] 9379 '    api = _F5Api()'
+9380 '    session, holder, channel_closes, channel_facts = _chain('
+9381 '        api, document, plan, tmp_path)'
+9382 '    owner = _F5ExternalCancelOwner(api, holder)'
+9383 "    thread = threading.Thread(target=owner.run, name='lvw-n10-r12-owner')"
+9384 '    thread.start()'
+9385 '    r12_facts = {}'
+9386 '    try:'
+9387 '        session.start()'
+9388 '        # The confirmation of the external owner is published in every'
+9389 '        # case and the failure of the owner is the failure of the test.'
+9390 '        assert owner.published.wait(30.0), \\'
+9391 "            'the external owner never confirmed its cancellation'"
+9392 '        if owner.error is not None:'
+9393 '            raise owner.error'
+9394 "        channel = holder['channel']"
+9395 "        facts = {'read_waiting': bool(api.read_waiting.is_set()),"
+9396 "                 'flag_set': owner.flag_set,"
+9397 "                 'flag_owner': owner.flag_owner,"
+9398 "                 'frames': len(api.frames)}"
+9399 "        write_phase('r12-owner', facts)"
+9400 '        # The reader of the chain published its wait before it waited.'
+9401 '        assert api.read_waiting.is_set()'
+9402 '        
+… (truncated)
+
+[assistant] Now applying the R11/R12/R13/R14 region changes:
+
+[assistant] [tool Bash] {"command":"python3 - <<'PYEOF'\np='tools/test_v0_s3_native_custody_correction10.py'\nsrc=open(p,encoding='utf-8').read()\ndef rep(old,new,count=1):\n    global src\n    assert src.count(old)==count, (src.count(old), old[:90])\n    src=src.replace(old,new)\n\n# ---- R11 ----------------------------------------------------------------\nrep(\"\"\"    r11_cleanup_errors = []\n    r11_interrupts = []\n    api = _F5Api()\n    session, holder, channel_closes, channel_facts = _chain(\n        api, document, plan, tmp_path)\n    try:\n        session.start()\n\"\"\",\n\"\"\"    r11_cleanup_errors = []\n    r11_interrupts = []\n    # CORRECTION 23 (M3): the facts of the cleanup of this round exist\n    # **before** its body runs: a body that fails before its own happy\n    # facts exist never leaves the cleanup of the round without a\n    # durable document.\n    r11_cleanup_facts = _cleanup_facts('r11')\n    api = _F5Api()\n    session, holder, channel_closes, channel_facts = _chain(\n        api, document, plan, tmp_path)\n    try:\n        r11_cleanup_facts['executed'] = True\n        session.start()\n\"\"\")\n\nrep(\"\"\"    finally:\n        # CORRECTION 22 (M3): the **stop** of the round is guarded and it\n        # is never silently pas… (truncated)","…":"truncated"}
+
+[tool] [tool result] ok R11
+compile ok
+
+[assistant] [tool Bash] {"command":"python3 - <<'PYEOF'\np='tools/test_v0_s3_native_custody_correction10.py'\nsrc=open(p,encoding='utf-8').read()\ndef rep(old,new,count=1):\n    global src\n    assert src.count(old)==count, (src.count(old), old[:90])\n    src=src.replace(old,new)\n\n# ---- R12 ----------------------------------------------------------------\nrep(\"\"\"    r12_facts = {}\n    try:\n        session.start()\n\"\"\",\n\"\"\"    # CORRECTION 23 (M3): the facts of the cleanup of this round exist\n    # **before** its body runs: a body that fails before its own happy\n    # facts exist never leaves the cleanup of the round without a\n    # durable document.\n    r12_facts = _cleanup_facts('r12-stop')\n    r12_cleanup_errors = []\n    r12_interrupts = []\n    try:\n        r12_facts['executed'] = True\n        session.start()\n\"\"\")\n\nrep(\"\"\"        r12_facts = {'state': first['state'],\n                     'reader_error':\n                     close_facts.get('channel_reader_error'),\n                     'retained': first['broker_retained']}\n\"\"\",\n\"\"\"        r12_facts.update({'state': first['state'],\n                          'reader_error':\n                          close_facts.get('channel_reader_error'),\n                          'r… (truncated)","…":"truncated"}
+
+[tool] [tool result] Traceback (most recent call last):
+  File "<stdin>", line 104, in <module>
+  File "<stdin>", line 5, in rep
+AssertionError: (2, '    finally:\n        # CORRECTION 22 (M3): the **stop** of the round is guarded and it\n   ')
+compile ok
+
+[reasoning] The R13 first-finally replacement matched twice (both R13 finallys have identical text). Since the R11/R12 changes were already applied before the failure (the script wrote nothing since it failed before the write — wait, `open(p,'w')` is at the end, so NOTHING was written). Good, the file is unchanged.
+
+Let me redo with the R13 replacements handled positionally. I'll use a different approach: replace the R13 finallys by line numbers, or make the first replacement unique by including surrounding context.
+
+R13 phase one finally is preceded by:
+```
+        assert first['broker_retained'] is True
+        assert first['state'] == 'UNKNOWN_RETAINED'
+    finally:
+```
+and phase two by:
+```
+        assert first['broker_retained'] is True
+        assert first['state'] == 'UNKNOWN_RETAINED'
+    finally:
+```
+Hmm, both are the same! Let me look: phase one ends with `assert first['state'] == 'UNKNOWN_RETAINED'` and phase two also. Yes identical.
+
+Let me instead use the line-index approach for the R13 finallys. Or: replace BOTH occurrences at once with a marker, then differentiate.
+
+Simplest: do the replacement on the two occurrences in reverse document order using index-based splicing. Or: firs
+… (truncated)
+
+[assistant] [tool Bash] {"command":"python3 - <<'PYEOF'\np='tools/test_v0_s3_native_custody_correction10.py'\nsrc=open(p,encoding='utf-8').read()\n\ndef rep(old,new,count=1,which=None):\n    global src\n    n=src.count(old)\n    assert n==count, (n, old[:90])\n    if which is None:\n        src=src.replace(old,new)\n        return\n    # replace only the `which`-th (1-based) occurrence\n    idx=-1\n    for _ in range(which):\n        idx=src.index(old, idx+1)\n    src = src[:idx] + new + src[idx+len(old):]\n\n# ---- R12 ----------------------------------------------------------------\nrep(\"\"\"    r12_facts = {}\n    try:\n        session.start()\n\"\"\",\n\"\"\"    # CORRECTION 23 (M3): the facts of the cleanup of this round exist\n    # **before** its body runs: a body that fails before its own happy\n    # facts exist never leaves the cleanup of the round without a\n    # durable document.\n    r12_facts = _cleanup_facts('r12-stop')\n    r12_cleanup_errors = []\n    r12_interrupts = []\n    try:\n        r12_facts['executed'] = True\n        session.start()\n\"\"\")\n\nrep(\"\"\"        r12_facts = {'state': first['state'],\n                     'reader_error':\n                     close_facts.get('channel_reader_error'),\n                     'retained': … (truncated)","…":"truncated"}
+
+[tool] [tool result] Traceback (most recent call last):
+  File "<stdin>", line 164, in <module>
+  File "<stdin>", line 131, in r13_finally_new
+TypeError: not enough arguments for format string
+compile ok
+
+[reasoning] The `%s` inside the string conflicts with the `%` formatting. Let me use a placeholder replaceinstead.
+
+[assistant] [tool Bash] {"command":"python3 - <<'PYEOF'\np='tools/test_v0_s3_native_custody_correction10.py'\nsrc=open(p,encoding='utf-8').read()\n\ndef rep(old,new,count=1,which=None):\n    global src\n    n=src.count(old)\n    assert n==count, (n, old[:90])\n    if which is None:\n        src=src.replace(old,new)\n        return\n    idx=-1\n    for _ in range(which):\n        idx=src.index(old, idx+1)\n    src = src[:idx] + new + src[idx+len(old):]\n\n# ---- R12 ----------------------------------------------------------------\nrep(\"\"\"    r12_facts = {}\n    try:\n        session.start()\n\"\"\",\n\"\"\"    # CORRECTION 23 (M3): the facts of the cleanup of this round exist\n    # **before** its body runs: a body that fails before its own happy\n    # facts exist never leaves the cleanup of the round without a\n    # durable document.\n    r12_facts = _cleanup_facts('r12-stop')\n    r12_cleanup_errors = []\n    r12_interrupts = []\n    try:\n        r12_facts['executed'] = True\n        session.start()\n\"\"\")\n\nrep(\"\"\"        r12_facts = {'state': first['state'],\n                     'reader_error':\n                     close_facts.get('channel_reader_error'),\n                     'retained': first['broker_retained']}\n\"\"\",\n\"\"\"        r12_facts.upd… (truncated)","…":"truncated"}
+
+[tool] [tool result] Traceback (most recent call last):
+  File "<stdin>", line 162, in <module>
+  File "<stdin>", line 7, in rep
+AssertionError: (1, '    finally:\n        # CORRECTION 22 (M3): the **stop** of the round is guarded and it\n   ')
+compile ok
+
+[reasoning] The count is 1 for the R13 finally pattern — but I expected 2. Hmm: earlier the count was 2 when I included the R11-style text? No — earlier the failing one was the R13 pattern with count 2 and I got 2. Now it says 1.
+
+Ah — because the R12 replacement earlier changed the R12 finally? No, the R12 finally had a different body.
+
+Hmm, the R13 pattern: `raise AssertionError('the cleanup of the round of R13 met %s'` — that appears twice (phase one and phase two). Unless... the R11 one says 'the cleanup of the round of R11 met %s'. Right.
+
+Hmm, count==1. So one of the R13 finallys differs. Let me check: maybe the phase-one R13 finally is followed by something different, but the pattern I search ends at the `raise AssertionError(...)` line — both should match.
+
+Wait, the earlier error said count==2 for the R13 pattern. But that was BEFORE the R11 changes were applied? No — in the previous failed run, the R11 changes were in the same script but the script failed at the R13 step... and `open(p,'w')` was never reached, so the file was unchanged. Hmm, but in THAT run the R11 replacements DID happen in memory (src was modified) and then the R13 rep counted 2 against the MODIFIED src.
+
+Ah — I se
+… (truncated)
+
+[assistant] [tool Bash] {"command":"grep -n \"the cleanup of the round of R13 met\" tools/test_v0_s3_native_custody_correction10.py; echo \"---\"; python3 - <<'EOF'\np='tools/test_v0_s3_native_custody_correction10.py'\nsrc=open(p,encoding='utf-8').read()\npat = \"\"\"    finally:\n        # CORRECTION 22 (M3): the **stop** of the round is guarded and it\n        # is never silently passed: its failure is retained with its\n        # exact type and its exact detail and the priority of the\n        # failures of the cleanup is enforced **after** it.\n        try:\n            session.stop()\n        except BaseException as error:  # noqa: BLE001 - it stays visible\n            r13_cleanup_errors.append(\"\"\"\nprint(src.count(pat))\nEOF","description":"Count R13 finally blocks"}
+
+[tool] [tool result] 9602:            raise AssertionError('the cleanup of the round of R13 met %s'
+9645:            raise AssertionError('the cleanup of the round of R13 met %s'
+---
+2
+
+[reasoning] The prefix pattern appears twice. So the full pattern must differ in one of them. Let me dump both finallyblocks.
+
+[assistant] [tool Bash] {"command":"python3 - <<'EOF'\np='tools/test_v0_s3_native_custody_correction10.py'\nlines=open(p,encoding='utf-8').read().split('\\n')\nfor i in range(9586,9606):\n    print(i+1, repr(lines[i]))\nprint('=====')\nfor i in range(9629,9649):\n    print(i+1, repr(lines[i]))\nEOF","description":"Dump both R13 finally blocks"}
+
+[tool] [tool result] 9587 "        assert first['state'] == 'UNKNOWN_RETAINED'"
+9588 '    finally:'
+9589 '        # CORRECTION 22 (M3): the **stop** of the round is guarded and it'
+9590 '        # is never silently passed: its failure is retained with its'
+9591 '        # exact type and its exact detail and the priority of the'
+9592 '        # failures of the cleanup is enforced **after** it.'
+9593 '        try:'
+9594 '            session.stop()'
+9595 '        except BaseException as error:  # noqa: BLE001 - it stays visible'
+9596 '            r13_cleanup_errors.append('
+9597 "                {'kind': 'STOP', 'type': type(error).__name__,"
+9598 "                 'detail': str(error)})"
+9599 '            _note_interruption(r13_interrupts, error)'
+9600 '        _raise_first_interruption(r13_interrupts)'
+9601 '        if r13_cleanup_errors and sys.exc_info()[0] is None:'
+9602 "            raise AssertionError('the cleanup of the round of R13 met %s'"
+9603 '                                 % (r13_cleanup_errors,))'
+9604 ''
+9605 '    # -- PHASE TWO: the frame that never ends and the end of the stream --'
+9606 '    api = _F5Api(partial_frame=b\'{"schema": "lvw.s3-native-custody-channel/1"\')'
+=====
+9630 "   
+… (truncated)
+
+[reasoning] Both are identical. So the count should be 2 for my full pattern. But the assertion said 1.
+
+OH — I see: in the failing run, the R12 replacement #3 was:
+```
+rep("""        r12_cleanup_errors = []
+        r12_interrupts = []
+        r12_join = _join_owner('owner-of-the-round', thread,
+""", ...)
+```
+That's fine.
+
+Hmm, but the R12 replacement #4 pattern:
+```
+        # CORRECTION 22 (M3): the facts of the cleanup are **complete**
+        # and they are **durable** before the priority is applied.
+        if r12_facts:
+```
+Fine.
+
+Hmm — the failing rep was at "line 162" of the script. Let me count which rep that is. The script's line 162... The R13 finally rep is `rep(r13_finally_old, ...)` — the first of the two. Its assertion said count=1.
+
+But the prefix count is 2! So `r13_finally_old` (the full block) must differ from one of them.
+
+Ahh — I see it! In `r13_finally_old` I wrote:
+```
+            raise AssertionError('the cleanup of the round of R13 met %s'
+                                 % (r13_cleanup_errors,))
+```
+That matches. And the beginning... let me diff carefully.
+
+r13_finally_old:
+```
+    finally:
+        # CORRECTION 22 (M3): the **stop** of the round is guarded and it
+     
+… (truncated)
+
+[assistant] [tool Bash] {"command":"python3 - <<'PYEOF'\np='tools/test_v0_s3_native_custody_correction10.py'\nsrc=open(p,encoding='utf-8').read()\nr13_finally_old = \"\"\"    finally:\n        # CORRECTION 22 (M3): the **stop** of the round is guarded and it\n        # is never silently passed: its failure is retained with its\n        # exact type and its exact detail and the priority of the\n        # failures of the cleanup is enforced **after** it.\n        try:\n            session.stop()\n        except BaseException as error:  # noqa: BLE001 - it stays visible\n            r13_cleanup_errors.append(\n                {'kind': 'STOP', 'type': type(error).__name__,\n                 'detail': str(error)})\n            _note_interruption(r13_interrupts, error)\n        _raise_first_interruption(r13_interrupts)\n        if r13_cleanup_errors and sys.exc_info()[0] is None:\n            raise AssertionError('the cleanup of the round of R13 met %s'\n                                 % (r13_cleanup_errors,))\n\"\"\"\nprint('count', src.count(r13_finally_old))\nimport re\nfor m in re.finditer(re.escape(r13_finally_old), src):\n    print('at', m.start())\nPYEOF","description":"Debug R13 finally pattern count"}
+
+[tool] [tool result] count 2
+at 500625
+at 502774
+
+[reasoning] Count is 2! So the failure must have been in a LATER rep (the R14 one?) whose first-90-chars happen to look similar... no.
+
+Hmm — the R14 pattern starts with `    finally:\n        # CORRECTION 22 (M3): the **stop** of the round is guarded and it\n...` — SAME first 90 chars as the R13 pattern! Yes! The R14 pattern has the same prefix.
+
+So the failing rep was the R14 one, count=1 — because the R13 replacements had already been applied (both), so only the R14 one remains ✓. But I asserted count=1 for R14 and the error said count=1... wait the error said "(1, '...')" which means count==1 but I asserted count==1 → should pass!
+
+Hold on: `assert n==count` with count=1 and n=1 → passes. The error message was `AssertionError: (1, '    finally:...')`. The tuple is `(n, old[:90])`. So n=1 and I expected... the assert compares n==count where count defaults to 1. So n=1 == count=1 → should pass!
+
+Unless count was 2 for that rep. The R14 rep has count=1 default. Hmm.
+
+Wait — the message format is `(src.count(old), old[:90])`. So it printed n=1. And the assert is `assert n==count, (...)`. With count=1 and n=1, no error. So the error must be from a rep with count=2 → n=1.
+
+Which rep had count=2?
+… (truncated)
+
+[assistant] [tool Bash] {"command":"python3 - <<'PYEOF'\np='tools/test_v0_s3_native_custody_correction10.py'\nsrc=open(p,encoding='utf-8').read()\n\ndef rep(old,new,count=1,which=None):\n    global src\n    n=src.count(old)\n    assert n==count, (n, old[:90])\n    if which is None:\n        src=src.replace(old,new)\n        return\n    idx=-1\n    for _ in range(which):\n        idx=src.index(old, idx+1)\n    src = src[:idx] + new + src[idx+len(old):]\n\n# ---- R12 ----------------------------------------------------------------\nrep(\"\"\"    r12_facts = {}\n    try:\n        session.start()\n\"\"\",\n\"\"\"    # CORRECTION 23 (M3): the facts of the cleanup of this round exist\n    # **before** its body runs: a body that fails before its own happy\n    # facts exist never leaves the cleanup of the round without a\n    # durable document.\n    r12_facts = _cleanup_facts('r12-stop')\n    r12_cleanup_errors = []\n    r12_interrupts = []\n    try:\n        r12_facts['executed'] = True\n        session.start()\n\"\"\")\n\nrep(\"\"\"        r12_facts = {'state': first['state'],\n                     'reader_error':\n                     close_facts.get('channel_reader_error'),\n                     'retained': first['broker_retained']}\n\"\"\",\n\"\"\"        r12_facts.upd… (truncated)","…":"truncated"}
+
+[tool] [tool result] ok R12/R13/R14
+compile ok
+
+[reasoning] Now let me verify the complete set of changes and check for any remaining issues:
+
+1. The `late_start` slice is gone ✓.
+2. Every region has an unconditional publication inside the finally ✓.
+3. The `_publish_cleanup` recomputes the verdict ✓.
+
+Let me now run a comprehensive static audit:
+- Verify no remaining `late_start`.
+- Verify the exact189 AST IDs/order/signatures are unchanged (T10 has 14 tests).
+- Verify the helper `_publish_cleanup` call sites all pass a verdict where appropriate.
+- Check the `dispatch_facts.update(...)` — `dispatch_facts` is `_cleanup_facts('dispatch-%s' % mode)` — hmm, `_cleanup_facts(region, **extra)` — `'dispatch-%s' % mode` ✓.
+
+Let me run the AST checks:
+1. The 189 node IDs across the 5 modules.
+2. T10's 14 test functions: names, order, signatures, decorators.
+3. Compare with the correction-22 candidate (git blob e7506faf1575f2a05f5e913a07171f204fe36582).
+
+Let me write an audit script.
+
+Also I should double check the `_cleanup_facts` usage in `dispatch_facts.update({...})` — `dispatch_facts` initially has 'proof_failure': None etc.
+
+Let me also verify the `r12_facts.update(...)` — `r12_facts = _cleanup_facts('r12-stop')` then `.update({...})` ✓.
+
+Letme
+… (truncated)
+
+[assistant] Now let me run the static audit — exact 189 AST identities and the assertion-equivalence check:
+
+[assistant] [tool Bash] {"command":"cd /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement && python3 - <<'PYEOF'\nimport ast, subprocess, hashlib, json, os\n\nMODS = ['tools/test_v0_s3_native_custody.py',\n        'tools/test_v0_s3_native_custody_regressions.py',\n        'tools/test_v0_s3_native_custody_correction05.py',\n        'tools/test_v0_s3_native_custody_correction07.py',\n        'tools/test_v0_s3_native_custody_correction10.py']\nROOT='LVW_Prompt_Service_MasterPack_v2.0.0/'\n\ndef nodes(src):\n    tree=ast.parse(src)\n    out=[]\n    for n in tree.body:\n        if isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef)) and n.name.startswith('test_'):\n            args=[a.arg for a in n.args.args]\n            dec=[ast.unparse(d) for d in n.decorator_list]\n            out.append((n.name, tuple(args), tuple(dec), n.lineno))\n    return out\n\ndef blob(rev, path):\n    out=subprocess.run(['git','show',f'{rev}:{ROOT}{path}'],capture_output=True)\n    return out.stdout.decode('utf-8')\n\ncand='3c807ba483c5e6542430bc96ffefb2ea23e79db9'\nbase='03f8127dfd2511df3d388224025fa0a5ec9d696a'\ncur=open(ROOT+'tools/test_v0_s3_native_custody_correction10.py',encoding='utf-8').read()\n\nallcur=[]; allcand=[]; allbase=[]\nc… (truncated)","…":"truncated"}
+
+[tool] [tool result] tools/test_v0_s3_native_custody.py: nodes=117 unchanged_vs_candidate22=True cand==base:True
+tools/test_v0_s3_native_custody_regressions.py: nodes=16 unchanged_vs_candidate22=True cand==base:True
+tools/test_v0_s3_native_custody_correction05.py: nodes=24 unchanged_vs_candidate22=True cand==base:True
+tools/test_v0_s3_native_custody_correction07.py: nodes=18 unchanged_vs_candidate22=True cand==base:True
+tools/test_v0_s3_native_custody_correction10.py: nodes=14 unchanged_vs_candidate22=None cand==base:True
+TOTAL cur 189 cand 189 base 189
+unique ids cur 189
+identity+order+signatures+decorators equal candidate22: True
+identity+order+signatures+decorators equal delivery22: True
+names+order+signatures+decorators equal candidate22: True
+names+order+signatures+decorators equal delivery22: True
+T10 nodes:
+   test_n10_r01_the_control_handle_is_closed_only_after_the_exit ('tmp_path',) () line 1554
+   test_n10_r02_the_claim_of_the_recovery_and_the_handover_are_exclusive () () line 1670
+   test_n10_r03_every_confirmed_close_notifies_the_owner_of_the_handle ('tmp_path',) () line 1999
+   test_n10_r04_the_launch_aggregate_finds_the_partial_channel () () line 2073
+   test_n10_r05_an_incomplete_channel
+… (truncated)
+
+[reasoning] The exact 189 AST identities are preserved (117+16+24+18+14 = 189, unique, identical order/signatures/decorators to the correction-22 candidate and delivery).
+
+Now let me do a full diff review of my changes to double-check correctness, and verify:
+1. No remaining `late_start`.
+2. All `_publish_cleanup` call sites.
+3. No leftover issues (e.g. `facts` referenced before assignment).
+
+Let me look at the diff.
+
+[assistant] [tool Bash] {"command":"git diff --stat && echo \"=== late_start ===\" && grep -n \"late_start\" LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py || echo \"none\" && echo \"=== publish_cleanup sites ===\" && grep -n \"_publish_cleanup(\" LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py","description":"Review diff stats and publish sites"}
+
+[tool] [tool result]  .../implementation-integration-01/report.md        |   27 +-
+ .../test_v0_s3_native_custody_correction10.py      | 1097 +++++++++++++++-----
+ 2 files changed, 864 insertions(+), 260 deletions(-)
+=== late_start ===
+none
+=== publish_cleanup sites ===
+792:def _publish_cleanup(facts, writer, errors, interrupts, verdict=None):
+1806:        _publish_cleanup(
+1953:        _publish_cleanup(
+2371:        _publish_cleanup(
+3151:        _publish_cleanup(
+3837:            _publish_cleanup(
+4352:                    _publish_cleanup(
+4687:            _publish_cleanup(
+4855:            _publish_cleanup(
+4992:        _publish_cleanup(
+5508:                    _publish_cleanup(facts, write_facts,
+5529:            _publish_cleanup(facts, write_facts,
+5539:            _publish_cleanup(facts, write_facts,
+5551:            _publish_cleanup(facts, write_facts,
+5613:            _publish_cleanup(facts, write_facts,
+5857:        _publish_cleanup(
+6043:            _publish_cleanup(
+6052:        _publish_cleanup(
+6167:        _publish_cleanup(
+6380:        _publish_cleanup(
+9254:        _publish_cleanup(
+9305:        _publish_cleanup(
+9354:        _publish_cleanup(
+9524:        _publish_cleanup(
+9632:      
+… (truncated)
+
+[reasoning] Hmm — the `implementation-integration-01/report.md` is also modified. That was already modified before I started (from the initial git status: `M LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-01/report.md`). So that's pre-existing, not mine. Good.
+
+Now let me check line 4352 (the zero publish) and 4687 (the parent publish) and 5508/5529/5539/5551/5613 (the controlled ones).
+
+Wait — there are 5 controlled `_publish_cleanup(facts, write_facts, ...)` sites: 5508 (inner write), 5529/5539/5551 (the three except clauses), 5613 (outer finally). ✓ 5 total.
+
+Hmm, but 5508 vs 5529 — the inner write should be inside the inner finally and 5529+ the except clauses. Let me verify the structure by viewing.
+
+Let me review the full diff of T10 to sanity-check. It's ~1100 lines changed. Let me review it in chunks, focusing on correctness.
+
+Actually, let me do targeted checks:
+
+1. Verify the controlled region reads correctly.
+2. Verify there are no NameErrors (e.g. `facts` used before assignment).
+3. Verify `controlled_base_proof` closure semantics.
+
+Let me use a static analysis: compile and check for undefined names using a simple symtable/AST check for 
+… (truncated)
+
+[assistant] [tool Bash] {"command":"cd /home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0 && python3 - <<'EOF'\np='tools/test_v0_s3_native_custody_correction10.py'\nlines=open(p,encoding='utf-8').read().split('\\n')\nfor i in range(5155,5215):\n    print(i+1, lines[i])\nEOF","description":"View controlled region head"}
+
+[tool] [tool result] 5156                     'the parent of the controlled failure never reached its admission'
+5157                 if checkpoint in ('CHILD_TRANSPORT', 'CLOSE_FAILURE',
+5158                                   'CONSTRUCTOR_FAILURE'):
+5159                     controlled_kernel32 = SyntheticKernel32()
+5160                     controlled_windows = WindowsApi(
+5161                         table=synthetic_table(controlled_kernel32))
+5162                     controlled_core = BrokerCore(
+5163                         win32=controlled_windows, plan=sealed_plan(),
+5164                         run_root=tmp_path, clock=controlled_clock)
+5165                     controlled_core.bind_absolute_deadline(4000.0)
+5166                     read_endpoint = _WindowsPipeEndpoint(
+5167                         file_object=_FakeFile('controlled-read'),
+5168                         name='controlled-read', api=controlled_api,
+5169                         clock=controlled_clock, handle=930,
+5170                         context=controlled_core.context)
+5171                     controlled_registry.register(
+5172                         'controlled:read-endpoint', read_endpoint,
+5173                         kind='en
+… (truncated)
+
+[reasoning] Let me write a static verifier that checks the invariants structurally via AST, which is more reliable than eyeballing:
+
+1. For each of the 15 cleanup regions: there is an unconditional `_publish_cleanup(...)` inside a `finally` block, and it appears BEFORE the priority assertions (`_raise_first_interruption`, `assert`, `raise AssertionError`).
+2. `late_start` absent.
+3. Every `_publish_cleanup` call has a `verdict=` argument (except the startup_documents loop where the documents are body reports).
+
+Let me write an AST audit that:
+- finds all `Finally` nodes and, within them, the order of `_publish_cleanup` calls vs. priority calls.
+
+Let me dothat.
+
+[assistant] [tool Bash] {"command":"python3 - <<'PYEOF'\nimport ast\np='tools/test_v0_s3_native_custody_correction10.py'\nsrc=open(p,encoding='utf-8').read()\ntree=ast.parse(src)\n\ndef name_of(node):\n    if isinstance(node, ast.Name): return node.id\n    if isinstance(node, ast.Attribute): return node.attr\n    return None\n\nrows=[]\nfor fin in ast.walk(tree):\n    if not isinstance(fin, ast.Try):\n        continue\n    for f in fin.finalbody:\n        if not isinstance(f, ast.Try):   # finally body\n            pass\n    # the finally body of a Try is ast.finalbody\n    body = fin.finalbody\n    pubs=[]; prio=[]\n    for i, st in enumerate(body):\n        for n in ast.walk(st):\n            if isinstance(n, ast.Call):\n                nm = name_of(n.func)\n                if nm == '_publish_cleanup':\n                    pubs.append((i, n.lineno, 'verdict' in [k.arg for k in n.keywords]))\n                if nm in ('_raise_first_interruption',):\n                    prio.append((i, n.lineno, nm))\n                if nm == 'raise' :\n                    pass\n            if isinstance(n, ast.Raise) and n.exc is not None:\n                ce = n.exc\n                if isinstance(ce, ast.Call) and name_of(ce.func)=='AssertionError':\n       … (truncated)","…":"truncated"}
+
+[tool] [tool result] finally@1747: publishes=[(1806, True)] prio_first@10 pub_first@9 ORDER_OK=True
+finally@1921: publishes=[(1953, True)] prio_first@7 pub_first@6 ORDER_OK=True
+finally@2244: publishes=[(2371, True)] prio_first@10 pub_first@9 ORDER_OK=True
+finally@3009: publishes=[(3151, True)] prio_first@4 pub_first@3 ORDER_OK=True
+finally@3645: publishes=[(4687, True)] prio_first@23 pub_first@20 ORDER_OK=True
+finally@3763: publishes=[(3837, True)] prio_first@None pub_first@3 ORDER_OK=True
+finally@4042: publishes=[(4352, True)] prio_first@21 pub_first@18 ORDER_OK=True
+finally@4780: publishes=[(4855, True)] prio_first@10 pub_first@9 ORDER_OK=True
+finally@4935: publishes=[(4992, True)] prio_first@None pub_first@8 ORDER_OK=True
+finally@5131: publishes=[(5613, True)] prio_first@9 pub_first@6 ORDER_OK=True
+finally@5134: publishes=[(5508, True)] prio_first@2 pub_first@2 ORDER_OK=False
+finally@5370: publishes=[(5508, True)] prio_first@18 pub_first@15 ORDER_OK=True
+finally@5813: publishes=[(5857, True)] prio_first@9 pub_first@8 ORDER_OK=True
+finally@5942: publishes=[(6043, False), (6052, True)] prio_first@10 pub_first@8 ORDER_OK=True
+finally@6140: publishes=[(6167, True)] prio_first@6 pub_first@5 ORDER_OK=Tru
+… (truncated)
+
+[assistant] API Error: Request rejected (429) · 已达到 Token Plan 用量上限：请升级 Token Plan 套餐或购买积分补充用量。 (2056)
