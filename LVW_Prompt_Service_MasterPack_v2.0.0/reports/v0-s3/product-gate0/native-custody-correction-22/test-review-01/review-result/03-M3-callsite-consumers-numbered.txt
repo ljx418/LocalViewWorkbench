@@ -1,0 +1,702 @@
+Candidate Git 3c807ba483c5e6542430bc96ffefb2ea23e79db9
+Source tools/test_v0_s3_native_custody_correction10.py
+SHA256 f1f8fe1a4167000265e3490417205adb52bcbe84ef54131c3835bfc6a895e6ec
+Physical one-based candidate source lines; explicit range boundaries, no historical dumps.
+
+Exact ordinary diagnostics/liveness returned by shared join
+--- T10:918-950 ---
+00918 def _join_owner(label, thread, errors, interrupts, *, seconds=10.0,
+00919                 join=None):
+00920     """Join **one** owner of a round and read its liveness, guarded.
+00921 
+00922     CORRECTION 21 (M3): the join and the liveness query of an owner
+00923     are **guarded**: a failure of them is retained with its exact type
+00924     and its exact detail, the **exact** object of a cancellation is
+00925     retained and it never replaces the failure that is already
+00926     unwinding.  The caller attempts **every** owner of the round and it
+00927     enforces the priority of the failures - the failure that is already
+00928     unwinding, then the **first** exact pending interruption, then the
+00929     ordinary proof - **after** the whole traversal.
+00930     """
+00931     joined = None
+00932     alive = None
+00933     try:
+00934         if join is not None:
+00935             join()
+00936         else:
+00937             thread.join(seconds)
+00938         joined = True
+00939     except BaseException as error:  # noqa: BLE001 - it stays visible
+00940         errors.append({'kind': 'JOIN', 'owner': label,
+00941                        'type': type(error).__name__, 'detail': str(error)})
+00942         _note_interruption(interrupts, error)
+00943     try:
+00944         alive = bool(thread.is_alive())
+00945     except BaseException as error:  # noqa: BLE001 - it stays visible
+00946         errors.append({'kind': 'LIVENESS', 'owner': label,
+00947                        'type': type(error).__name__, 'detail': str(error)})
+00948         _note_interruption(interrupts, error)
+00949     return {'owner': label, 'joined': joined, 'alive': alive,
+00950             'thread': thread}
+
+Recovery applies priority before persistence, original unwind bypasses subsequent write
+--- T10:1687-1726 ---
+01687     finally:
+01688         # CORRECTION 20 (M3): the release of the gate is guarded and the
+01689         # exact object of a cancellation of it is retained.
+01690         _release_gate(release.set, recovery_cleanup_errors, recovery_interrupts)
+01691         # CORRECTION 21 (M3): the join of the recovery is **guarded**: a
+01692         # failure of it is retained with its exact type and its exact
+01693         # detail and it never replaces the failure that is already
+01694         # unwinding.
+01695         recovery_join = _join_owner('recovery', worker,
+01696                                     recovery_cleanup_errors,
+01697                                     recovery_interrupts, seconds=15.0)
+01698         # CORRECTION 22 (M3): the **actual** liveness of the owner is the
+01699         # fact that the guarded join returned: the query is never
+01700         # repeated outside its guard and an **unknown** liveness is
+01701         # never read as the end of the owner.
+01702         recovery_alive = _owner_alive(recovery_join)
+01703         # the **exact** cancellation wins over the ordinary assertion of
+01704         # the join that follows it.
+01705         _raise_first_interruption(recovery_interrupts)
+01706         # the ordinary proof of the round: it runs **after** the join and
+01707         # it never replaces the failure that is already unwinding.
+01708         if sys.exc_info()[0] is None:
+01709             assert not recovery_alive, 'the recovery was left behind'
+01710     report = report_holder.get('report') or []
+01711     # CORRECTION 22 (M3): the facts of the cleanup are **durable** before
+01712     # they are enforced: every actual error and every actual
+01713     # interruption of the cleanup is in the document of the phase.
+01714     write_phase('r02-report', {'report': [{'kind': item['kind'],
+01715                                             'released': item['released']}
+01716                                            for item in report],
+01717                                'closed': list(closed),
+01718                                'cleanup_errors': list(recovery_cleanup_errors),
+01719                                'interrupts': _interruption_facts(
+01720                                    recovery_interrupts),
+01721                                'recovery_alive': recovery_alive})
+01722     # the ordinary errors of the cleanup are **consumed**: they fail the
+01723     # round instead of being recorded and forgotten.
+01724     if recovery_cleanup_errors and sys.exc_info()[0] is None:
+01725         raise AssertionError('the cleanup of the recovery met %s'
+01726                              % (recovery_cleanup_errors,))
+
+Creation persistence outside finally also skipped on unwind or pending interruption
+--- T10:1810-1845 ---
+01810         report = api.release_retained()
+01811         assert report, 'the recovery of the façade found nothing to release'
+01812         resume.set()
+01813         creator.join(15.0)
+01814         assert not creator.is_alive(), 'the creation was left behind'
+01815     finally:
+01816         # CORRECTION 20 (M3): the release of the gate is guarded and the
+01817         # exact object of a cancellation of it is retained.
+01818         _release_gate(resume.set, creation_cleanup_errors, creation_interrupts)
+01819         # CORRECTION 21 (M3): the join of the creator is **guarded**: a
+01820         # failure of it is retained with its exact type and its exact
+01821         # detail and it never replaces the failure that is already
+01822         # unwinding.
+01823         creation_join = _join_owner('creator', creator,
+01824                                     creation_cleanup_errors,
+01825                                     creation_interrupts, seconds=15.0)
+01826     # the **exact** cancellation of the cleanup wins over an ordinary
+01827     # assertion and it is re-raised as **itself**.
+01828     _raise_first_interruption(creation_interrupts)
+01829     facts = {'error': getattr(outcome.get('error'), 'code', None),
+01830              'created': outcome.get('created') is not None,
+01831              'closed': list(closed_handles),
+01832              'report': [{'kind': item['kind'], 'released': item['released']}
+01833                         for item in report],
+01834              # CORRECTION 22 (M3): the facts of the cleanup of the
+01835              # creation are **durable**: every actual error and every
+01836              # actual interruption of it is in the document.
+01837              'cleanup_errors': list(creation_cleanup_errors),
+01838              'interrupts': _interruption_facts(creation_interrupts),
+01839              'creator_alive': _owner_alive(creation_join)}
+01840     write_phase('r02-creation', facts)
+01841     # the ordinary errors of the cleanup are **consumed**: they fail the
+01842     # round instead of being recorded and forgotten.
+01843     if creation_cleanup_errors and sys.exc_info()[0] is None:
+01844         raise AssertionError('the cleanup of the creation met %s'
+01845                              % (creation_cleanup_errors,))
+
+Launch records local diagnostics and fails on ordinary errors but never persists cleanup
+--- T10:2194-2236 ---
+02194         #
+02195         # CORRECTION 20 (M3): the release of the gate is guarded and the
+02196         # exact object of a cancellation of it is retained.
+02197         _release_gate(read_release.set, launch_cleanup_errors,
+02198                       launch_interrupts)
+02199         partial = aggregate.channel
+02200         # CORRECTION 22 (M3): the lookup of the thread of the owner is
+02201         # guarded: a failure of it is retained with its exact type and
+02202         # its exact detail and it never skips the priority that follows.
+02203         thread = None
+02204         try:
+02205             thread = getattr(partial, '_thread', None)
+02206         except BaseException as error:  # noqa: BLE001 - it stays visible
+02207             launch_cleanup_errors.append(
+02208                 {'kind': 'OWNER_THREAD', 'type': type(error).__name__,
+02209                  'detail': str(error)})
+02210             _note_interruption(launch_interrupts, error)
+02211         launch_join = None
+02212         if thread is not None:
+02213             # CORRECTION 21 (M3): the join of the reader is **guarded**
+02214             # and the priority of the failures is enforced **after** it:
+02215             # a failure of the join never replaces the failure that is
+02216             # already unwinding.
+02217             launch_join = _join_owner('launch-reader', thread,
+02218                                       launch_cleanup_errors,
+02219                                       launch_interrupts, seconds=10.0)
+02220         # CORRECTION 22 (M3): the priority of the failures is enforced
+02221         # **after** every action of the cleanup: a pending interruption
+02222         # is never raised while the owner of the round was left behind.
+02223         _raise_first_interruption(launch_interrupts)
+02224         # the ordinary proof of the round: it runs **after** the join and
+02225         # it never replaces the failure that is already unwinding.
+02226         if sys.exc_info()[0] is None:
+02227             assert not _owner_alive(launch_join), \
+02228                 'the reader thread of the channel was left behind'
+02229         # the ordinary errors of the cleanup are **consumed**: they fail
+02230         # the round instead of being recorded and forgotten.
+02231         if launch_cleanup_errors and sys.exc_info()[0] is None:
+02232             raise AssertionError('the cleanup of the launch met %s'
+02233                                  % (launch_cleanup_errors,))
+02234 
+02235 
+02236 # -- N10-R05: an incomplete channel keeps its owner ------------------------
+
+Dispatch actions completed before priority; persistence conditional on late body facts
+--- T10:4573-4628 ---
+04573                 'the outcome of another generation was read'
+04574         finally:
+04575             # CORRECTION 20 (M3): the release of the paused queue is
+04576             # guarded and the exact object of a cancellation of it is
+04577             # retained: it never replaces the failure that is already
+04578             # unwinding.
+04579             _release_gate(paused.release.set, dispatch_cleanup_errors,
+04580                           dispatch_interrupts)
+04581             # CORRECTION 21 (M3): the stop and the join of the worker are
+04582             # **guarded**: a failure of them is retained with its exact
+04583             # type and its exact detail, the **exact** object of a
+04584             # cancellation is retained and it never replaces the failure
+04585             # that is already unwinding.
+04586             try:
+04587                 worker.stop_accepting()
+04588             except BaseException as error:  # noqa: BLE001
+04589                 dispatch_cleanup_errors.append(
+04590                     {'kind': 'STOP_ACCEPTING',
+04591                      'type': type(error).__name__,
+04592                      'detail': str(error)})
+04593                 _note_interruption(dispatch_interrupts, error)
+04594             dispatch_join = _join_owner(
+04595                 'dispatch-worker', worker, dispatch_cleanup_errors,
+04596                 dispatch_interrupts, seconds=10.0,
+04597                 join=lambda: worker.join_bounded(10.0))
+04598             # CORRECTION 22 (M3): the **actual** liveness of the owner is
+04599             # the fact that the guarded join returned: the query is
+04600             # never repeated outside its guard.
+04601             dispatch_alive = _owner_alive(dispatch_join)
+04602             # CORRECTION 22 (M3): the facts of the cleanup are
+04603             # **complete** and they are **durable** before the priority
+04604             # is applied.
+04605             if dispatch_facts:
+04606                 dispatch_facts['worker_alive'] = dispatch_alive
+04607                 _publish_cleanup(
+04608                     dispatch_facts,
+04609                     lambda: write_phase('r07-dispatch-%s' % mode,
+04610                                         dispatch_facts),
+04611                     dispatch_cleanup_errors, dispatch_interrupts)
+04612             # the **exact** cancellation wins over the ordinary assertion
+04613             # of the join that follows it.
+04614             _raise_first_interruption(dispatch_interrupts)
+04615             # the ordinary proof of the round: it runs **after** the join
+04616             # and it never replaces the failure that is already
+04617             # unwinding.
+04618             if sys.exc_info()[0] is None:
+04619                 assert not dispatch_alive, 'the worker was left behind'
+04620             # the ordinary errors of the cleanup are **consumed**: they
+04621             # fail the round instead of being recorded and forgotten.
+04622             if dispatch_cleanup_errors and sys.exc_info()[0] is None:
+04623                 raise AssertionError('the cleanup of the dispatch met %s'
+04624                                      % (dispatch_cleanup_errors,))
+04625         # CORRECTION 20 (M3): the priority of the failures of this
+04626         # round is fixed: the failure that is already unwinding wins,
+04627         # then the **exact** interruption of the cleanup.
+04628         _raise_first_interruption(dispatch_interrupts)
+
+Await closes guarded and preserves original/first K; conditional persistence
+--- T10:4698-4740 ---
+04698             'the await of the endpoint did not notice the original context'
+04699     finally:
+04700         # CORRECTION 20 (M3): the release of the gate is guarded and the
+04701         # exact object of a cancellation of it is retained.
+04702         _release_gate(released.set, await_cleanup_errors, await_interrupts)
+04703         # CORRECTION 21 (M3): the join of the reader is **guarded**: a
+04704         # failure of it is retained with its exact type and its exact
+04705         # detail and it never skips the close of the endpoint that
+04706         # follows it.
+04707         await_join = _join_owner('await-reader', reader,
+04708                                   await_cleanup_errors, await_interrupts,
+04709                                   seconds=10.0)
+04710         # CORRECTION 22 (M3): the close of the endpoint is **guarded**:
+04711         # a failure of it is retained with its exact type and its exact
+04712         # detail, it never replaces the failure that is already
+04713         # unwinding and it never replaces the **first** exact pending
+04714         # interruption of the cleanup.
+04715         try:
+04716             endpoint.close()
+04717         except BaseException as error:  # noqa: BLE001 - it stays visible
+04718             await_cleanup_errors.append(
+04719                 {'kind': 'CLOSE', 'type': type(error).__name__,
+04720                  'detail': str(error)})
+04721             _note_interruption(await_interrupts, error)
+04722         # CORRECTION 22 (M3): the facts of the cleanup are **complete**
+04723         # and they are **durable** before the priority is applied.
+04724         if await_facts:
+04725             await_facts['reader_alive'] = _owner_alive(await_join)
+04726             _publish_cleanup(
+04727                 await_facts,
+04728                 lambda: write_phase('r07-await-context', await_facts),
+04729                 await_cleanup_errors, await_interrupts)
+04730     # the **exact** cancellation of the cleanup wins over an ordinary
+04731     # assertion and it is re-raised as **itself**.
+04732     _raise_first_interruption(await_interrupts)
+04733     # the ordinary errors of the cleanup are **consumed**: they fail the
+04734     # round instead of being recorded and forgotten.
+04735     if await_cleanup_errors and sys.exc_info()[0] is None:
+04736         raise AssertionError('the cleanup of the await met %s'
+04737                              % (await_cleanup_errors,))
+04738 
+04739     # -- N1 correction 15 (M3): the fixture of the group releases
+04740     # -- N1 correction 16 (M3): the fixture of the group releases
+
+Retry same conditional publication
+--- T10:5515-5552 ---
+05515             'the retry ignored the cleanup deadline of the round'
+05516         assert context.cleanup_deadline_value() is not None
+05517     finally:
+05518         # CORRECTION 20 (M3): the release of the gate is guarded and the
+05519         # exact object of a cancellation of it is retained.
+05520         _release_gate(release.set, retry_cleanup_errors, retry_interrupts)
+05521         # CORRECTION 21 (M3): the join of the worker is **guarded** and
+05522         # the priority of the failures is enforced **after** it.
+05523         retry_join = _join_owner('retry-worker', worker,
+05524                                  retry_cleanup_errors, retry_interrupts,
+05525                                  seconds=10.0)
+05526         # CORRECTION 22 (M3): the **actual** liveness of the owner is the
+05527         # fact that the guarded join returned: the query is never
+05528         # repeated outside its guard.
+05529         retry_alive = _owner_alive(retry_join)
+05530         # CORRECTION 22 (M3): the facts of the cleanup are **complete**
+05531         # and they are **durable** before the priority is applied.
+05532         if retry_facts:
+05533             retry_facts['worker_alive'] = retry_alive
+05534             _publish_cleanup(
+05535                 retry_facts, lambda: write_phase('r08-retry', retry_facts),
+05536                 retry_cleanup_errors, retry_interrupts)
+05537         # the **exact** cancellation wins over the ordinary assertion of
+05538         # the join that follows it.
+05539         _raise_first_interruption(retry_interrupts)
+05540         # the ordinary proof of the round: it runs **after** the join and
+05541         # it never replaces the failure that is already unwinding.
+05542         if sys.exc_info()[0] is None:
+05543             assert not retry_alive, 'the worker was left behind'
+05544         # the ordinary errors of the cleanup are **consumed**: they fail
+05545         # the round instead of being recorded and forgotten.
+05546         if retry_cleanup_errors and sys.exc_info()[0] is None:
+05547             raise AssertionError('the cleanup of the retry met %s'
+05548                                  % (retry_cleanup_errors,))
+05549 
+05550 
+05551 # -- N10-R09: every exit of the startup owner joins its thread ------------
+05552 
+
+Startup all joins attempted, records errors, persists extant documents then enforces guarded liveness
+--- T10:5663-5725 ---
+05663     finally:
+05664         # The salvage of the owner of the test: the threads that the
+05665         # product started are released and joined with a bounded wait.
+05666         # The join is **unconditional**: no phase leaves a thread of the
+05667         # round behind.
+05668         _release_gate(release.set, startup_cleanup_errors,
+05669                       startup_interrupts)
+05670         # CORRECTION 21 (M3): **every** owner of the round is attempted
+05671         # and **every** join and **every** liveness query of it is
+05672         # **guarded**: a failure of the join of the first owner never
+05673         # skips the owners that follow it, it never replaces the failure
+05674         # that is already unwinding and it never replaces the **first**
+05675         # exact pending interruption of the cleanup.
+05676         startup_joins = []
+05677         for owner in owners:
+05678             try:
+05679                 thread = owner._thread
+05680             except BaseException as error:  # noqa: BLE001
+05681                 startup_cleanup_errors.append(
+05682                     {'kind': 'OWNER_THREAD', 'type': type(error).__name__,
+05683                      'detail': str(error)})
+05684                 _note_interruption(startup_interrupts, error)
+05685                 continue
+05686             if thread is None:
+05687                 continue
+05688             startup_joins.append(
+05689                 _join_owner('startup-owner', thread, startup_cleanup_errors,
+05690                             startup_interrupts, seconds=10.0))
+05691         # CORRECTION 22 (M3): the facts of the cleanup are **complete**
+05692         # and they are **durable** before the priority is applied: every
+05693         # actual error and every actual interruption of the cleanup is in
+05694         # the document of the phase.
+05695         for phase, document in startup_documents:
+05696             _publish_cleanup(
+05697                 document,
+05698                 lambda p=phase, d=document: write_phase(p, d),
+05699                 startup_cleanup_errors, startup_interrupts)
+05700         # CORRECTION 21 (M3): the priority of the failures is enforced
+05701         # **after** the whole traversal of the owners: the failure that
+05702         # is already unwinding wins, then the **first** exact pending
+05703         # interruption of the cleanup and only then the ordinary proof
+05704         # of the round.
+05705         _raise_first_interruption(startup_interrupts)
+05706         # the ordinary proof of the round: it runs **after** the whole
+05707         # traversal, so a failure of it never skips an owner of the
+05708         # round, and it never replaces the failure that is already
+05709         # unwinding.  The **actual** liveness of every owner is the fact
+05710         # that the guarded join returned: the query is never repeated
+05711         # outside its guard and an **unknown** liveness is never read as
+05712         # the end of an owner.
+05713         if sys.exc_info()[0] is None:
+05714             for item in startup_joins:
+05715                 assert not _owner_alive(item), \
+05716                     'the thread of a startup step was left behind'
+05717         # the ordinary errors of the cleanup are **consumed**: they fail
+05718         # the round instead of being recorded and forgotten.
+05719         if startup_cleanup_errors and sys.exc_info()[0] is None:
+05720             raise AssertionError('the cleanup of the startup met %s'
+05721                                  % (startup_cleanup_errors,))
+05722 
+05723     # -- N1 correction 12 (M08-C): the wait of the owner of a startup
+05724     #    step is cropped to the time that is really left until the
+05725     #    **current** effective deadline of the round.  The owner holds
+
+Tightener priority/liveness before persistence
+--- T10:5773-5812 ---
+05773     try:
+05774         with pytest.raises(BrokerError) as info:
+05775             owner.await_result()
+05776     finally:
+05777         # CORRECTION 21 (M3): the join of the tightener is **guarded**:
+05778         # a failure of it is retained with its exact type and its exact
+05779         # detail and it never replaces the failure that is already
+05780         # unwinding.
+05781         tightener_errors = []
+05782         tightener_interrupts = []
+05783         tightener_join = _join_owner('tightener', tightener,
+05784                                      tightener_errors, tightener_interrupts,
+05785                                      seconds=10.0)
+05786         # CORRECTION 22 (M3): the **actual** liveness of the owner is the
+05787         # fact that the guarded join returned: the query is never
+05788         # repeated outside its guard.
+05789         tightener_alive = _owner_alive(tightener_join)
+05790         # the **exact** cancellation wins over the ordinary assertion of
+05791         # the join that follows it.
+05792         _raise_first_interruption(tightener_interrupts)
+05793         # the ordinary proof of the round: it runs **after** the join and
+05794         # it never replaces the failure that is already unwinding.
+05795         if sys.exc_info()[0] is None:
+05796             assert not tightener_alive, \
+05797                 'the thread that tightens the deadline was left behind'
+05798     facts = {'observed': list(observed), 'requested': list(requested),
+05799              'code': info.value.code,
+05800              # CORRECTION 22 (M3): the facts of the cleanup of the
+05801              # tightener are **durable**: every actual error and every
+05802              # actual interruption of it is in the document.
+05803              'cleanup_errors': list(tightener_errors),
+05804              'interrupts': _interruption_facts(tightener_interrupts),
+05805              'tightener_alive': tightener_alive}
+05806     write_phase('r09-await-wait', facts)
+05807     # the ordinary errors of the cleanup are **consumed**: they fail the
+05808     # round instead of being recorded and forgotten.
+05809     if tightener_errors and sys.exc_info()[0] is None:
+05810         raise AssertionError('the cleanup of the tightener met %s'
+05811                              % (tightener_errors,))
+05812     assert info.value.code == 'BROKER_STARTUP_DEADLINE_EXCEEDED', \
+
+Interrupted-start query guards, no independent observed owner fallback
+--- T10:5844-5866 ---
+05844     loop = BrokerLoop(core=core, transport=transport, plan=core.plan,
+05845                       nonce=NONCE, clock=clock, wall=time.time)
+05846     loop._deadline_mono = clock() + 30.0
+05847     # CORRECTION 20 (M3): the release of the gate of the interrupted
+05848     # start is guarded: a cancellation of it never skips the settle and
+05849     # the join that follow it and it never replaces the failure that is
+05850     # already unwinding.
+05851     interrupted_cleanup_errors = []
+05852     interrupted_interrupts = []
+05853     interrupted_facts = {}
+05854     try:
+05855         with unittest.mock.patch.object(threading.Thread, 'start',
+05856                                         failing_start):
+05857             with pytest.raises(KeyboardInterrupt):
+05858                 loop._run_startup('ARM', lambda: tail_release.wait(15.0))
+05859         owner = loop._startup_owner
+05860         assert owner is not None, 'the owner of the step was never built'
+05861         interrupted_facts = {'started': owner._started,
+05862                              'in_flight': owner.in_flight,
+05863                              'retained': loop._startup_in_flight is owner}
+05864         write_phase('r09-interrupted-start', interrupted_facts)
+05865         # The facts of the thread decided: the thread of the step really
+05866         # came up and the owner does not release it.
+--- T10:5878-5947 ---
+05878         assert owner.in_flight is False
+05879     finally:
+05880         # CORRECTION 20 (M3): the release of the gate is guarded and the
+05881         # exact object of a cancellation of it is retained.
+05882         _release_gate(tail_release.set, interrupted_cleanup_errors,
+05883                       interrupted_interrupts)
+05884         # CORRECTION 21 (M3): every owner that is still in flight is
+05885         # attempted and every settle of it is **guarded**: a failure of
+05886         # one settle never skips the owners that follow it and it never
+05887         # replaces the failure that is already unwinding.
+05888         # CORRECTION 22 (M3): the query of the owners that are in flight
+05889         # is guarded: a failure of it is retained with its exact type and
+05890         # its exact detail and it never skips the owner that is really
+05891         # known.
+05892         pending_owners = []
+05893         try:
+05894             pending_owners = list(loop.context.inflight())
+05895         except BaseException as error:  # noqa: BLE001 - it stays visible
+05896             interrupted_cleanup_errors.append(
+05897                 {'kind': 'INFLIGHT', 'type': type(error).__name__,
+05898                  'detail': str(error)})
+05899             _note_interruption(interrupted_interrupts, error)
+05900         for pending in pending_owners:
+05901             try:
+05902                 pending.settle(5.0)
+05903             except BaseException as error:  # noqa: BLE001
+05904                 interrupted_cleanup_errors.append(
+05905                     {'kind': 'SETTLE', 'type': type(error).__name__,
+05906                      'detail': str(error)})
+05907                 _note_interruption(interrupted_interrupts, error)
+05908         # CORRECTION 22 (M3): the lookup of the thread of the owner is
+05909         # guarded as well: a failure of it never skips the priority that
+05910         # follows it.
+05911         thread = None
+05912         try:
+05913             thread = getattr(loop._startup_owner, '_thread', None)
+05914         except BaseException as error:  # noqa: BLE001 - it stays visible
+05915             interrupted_cleanup_errors.append(
+05916                 {'kind': 'OWNER_THREAD', 'type': type(error).__name__,
+05917                  'detail': str(error)})
+05918             _note_interruption(interrupted_interrupts, error)
+05919         interrupted_join = None
+05920         if thread is not None:
+05921             interrupted_join = _join_owner(
+05922                 'interrupted-start', thread, interrupted_cleanup_errors,
+05923                 interrupted_interrupts, seconds=10.0)
+05924         # CORRECTION 22 (M3): the facts of the cleanup are **complete**
+05925         # and they are **durable** before the priority is applied.
+05926         if interrupted_facts:
+05927             interrupted_facts['owner_alive'] = _owner_alive(interrupted_join)
+05928             _publish_cleanup(
+05929                 interrupted_facts,
+05930                 lambda: write_phase('r09-interrupted-start',
+05931                                     interrupted_facts),
+05932                 interrupted_cleanup_errors, interrupted_interrupts)
+05933         # the **exact** cancellation wins over the ordinary assertion of
+05934         # the join that follows it - and it wins **after** every action
+05935         # of the cleanup was attempted.
+05936         _raise_first_interruption(interrupted_interrupts)
+05937         # the ordinary proof of the round: it runs **after** every action
+05938         # of the cleanup and it never replaces the failure that is already
+05939         # unwinding.
+05940         if sys.exc_info()[0] is None:
+05941             assert not _owner_alive(interrupted_join), \
+05942                 'the thread of a startup step was left behind'
+05943         # the ordinary errors of the cleanup are **consumed**: they fail
+05944         # the round instead of being recorded and forgotten.
+05945         if interrupted_cleanup_errors and sys.exc_info()[0] is None:
+05946             raise AssertionError('the cleanup of the interrupted start met %s'
+05947                                  % (interrupted_cleanup_errors,))
+
+R12 join then guarded stop then priority; publication only after body stop facts exist
+--- T10:8969-9016 ---
+08969     finally:
+08970         # The exact thread of the owner of the test is joined in every
+08971         # case and with a bounded wait.
+08972         #
+08973         # CORRECTION 21 (M3): the join is **guarded**: a failure of it
+08974         # never skips the stop of the round that follows it and it never
+08975         # replaces the failure that is already unwinding.
+08976         r12_cleanup_errors = []
+08977         r12_interrupts = []
+08978         r12_join = _join_owner('owner-of-the-round', thread,
+08979                                r12_cleanup_errors, r12_interrupts,
+08980                                seconds=30.0)
+08981         # CORRECTION 22 (M3): the **stop** of the round is a cleanup
+08982         # action of its own: it is attempted **before** the priority of
+08983         # the failures, a failure of it is retained with its exact type
+08984         # and its exact detail and it is never silently swallowed.
+08985         r12_stop = None
+08986         try:
+08987             r12_stop = session.stop()
+08988         except BaseException as error:  # noqa: BLE001 - it stays visible
+08989             r12_cleanup_errors.append(
+08990                 {'kind': 'STOP', 'type': type(error).__name__,
+08991                  'detail': str(error)})
+08992             _note_interruption(r12_interrupts, error)
+08993         # CORRECTION 22 (M3): the facts of the cleanup are **complete**
+08994         # and they are **durable** before the priority is applied.
+08995         if r12_facts:
+08996             r12_facts['owner_alive'] = _owner_alive(r12_join)
+08997             r12_facts['cleanup_stop_state'] = (
+08998                 r12_stop.get('state') if isinstance(r12_stop, dict) else None)
+08999             _publish_cleanup(
+09000                 r12_facts, lambda: write_phase('r12-stop', r12_facts),
+09001                 r12_cleanup_errors, r12_interrupts)
+09002         # the **exact** cancellation wins over the ordinary assertion of
+09003         # the join that follows it - and it wins **after** every action
+09004         # of the cleanup was attempted.
+09005         _raise_first_interruption(r12_interrupts)
+09006         # the ordinary proof of the round: it runs **after** every action
+09007         # of the cleanup and it never replaces the failure that is
+09008         # already unwinding.
+09009         if sys.exc_info()[0] is None:
+09010             assert not _owner_alive(r12_join), \
+09011                 'the owner of the round was left behind'
+09012         # the ordinary errors of the cleanup are **consumed**: they fail
+09013         # the round instead of being recorded and forgotten.
+09014         if r12_cleanup_errors and sys.exc_info()[0] is None:
+09015             raise AssertionError('the cleanup of the round of R12 met %s'
+09016                                  % (r12_cleanup_errors,))
+
+New same-class catchlists in R06,R11,R13,R14 remain local on genuine unwind
+--- T10:2954-2980 ---
+02954             try:
+02955                 endpoint3.close()
+02956             except BaseException as error:  # noqa: BLE001 - it stays visible
+02957                 r06_cleanup_errors.append(
+02958                     {'kind': 'CLOSE', 'owner': 'r06:endpoint3',
+02959                      'type': type(error).__name__,
+02960                      'detail': str(error)})
+02961                 _note_interruption(r06_interrupts, error)
+02962     finally:
+02963         # CORRECTION 22 (M3): the close of the last endpoint is
+02964         # **guarded** and the priority of the failures of the cleanup is
+02965         # enforced **after** it: the failure that is already unwinding
+02966         # wins, then the **first** exact pending interruption and only
+02967         # then the ordinary error of the cleanup.
+02968         try:
+02969             endpoint.close()
+02970         except BaseException as error:  # noqa: BLE001 - it stays visible
+02971             r06_cleanup_errors.append(
+02972                 {'kind': 'CLOSE', 'owner': 'r06:endpoint',
+02973                  'type': type(error).__name__,
+02974                  'detail': str(error)})
+02975             _note_interruption(r06_interrupts, error)
+02976         _raise_first_interruption(r06_interrupts)
+02977         if r06_cleanup_errors and sys.exc_info()[0] is None:
+02978             raise AssertionError('the cleanup of the endpoints met %s'
+02979                                  % (r06_cleanup_errors,))
+02980 
+--- T10:8767-8786 ---
+08767         assert second['broker_retained'] is True
+08768         assert second['state'] == 'UNKNOWN_RETAINED'
+08769     finally:
+08770         # CORRECTION 22 (M3): the **stop** of the round is guarded and it
+08771         # is never silently passed: its failure is retained with its
+08772         # exact type and its exact detail and the priority of the
+08773         # failures of the cleanup is enforced **after** it.
+08774         try:
+08775             session.stop()
+08776         except BaseException as error:  # noqa: BLE001 - it stays visible
+08777             r11_cleanup_errors.append(
+08778                 {'kind': 'STOP', 'type': type(error).__name__,
+08779                  'detail': str(error)})
+08780             _note_interruption(r11_interrupts, error)
+08781         _raise_first_interruption(r11_interrupts)
+08782         if r11_cleanup_errors and sys.exc_info()[0] is None:
+08783             raise AssertionError('the cleanup of the round of R11 met %s'
+08784                                  % (r11_cleanup_errors,))
+08785 
+08786     # The exact frame still fits: the limits of the package did not move.
+--- T10:8836-8857 ---
+08836         assert channel._overflow_facts.get('reason') == 'TOO_MANY_FRAMES'
+08837     finally:
+08838         # CORRECTION 22 (M3): the close of the channel is **guarded** and
+08839         # the priority of the failures of the cleanup is enforced
+08840         # **after** it: the failure that is already unwinding wins, then
+08841         # the **first** exact pending interruption and only then the
+08842         # ordinary error of the cleanup.
+08843         try:
+08844             channel.close()
+08845         except BaseException as error:  # noqa: BLE001 - it stays visible
+08846             r11_cleanup_errors.append(
+08847                 {'kind': 'CLOSE', 'owner': 'r11:frames',
+08848                  'type': type(error).__name__,
+08849                  'detail': str(error)})
+08850             _note_interruption(r11_interrupts, error)
+08851         _raise_first_interruption(r11_interrupts)
+08852         if r11_cleanup_errors and sys.exc_info()[0] is None:
+08853             raise AssertionError('the cleanup of the channels met %s'
+08854                                  % (r11_cleanup_errors,))
+08855 
+08856 
+08857 class _BlockReader:
+--- T10:9077-9095 ---
+09077         assert first['state'] == 'UNKNOWN_RETAINED'
+09078     finally:
+09079         # CORRECTION 22 (M3): the **stop** of the round is guarded and it
+09080         # is never silently passed: its failure is retained with its
+09081         # exact type and its exact detail and the priority of the
+09082         # failures of the cleanup is enforced **after** it.
+09083         try:
+09084             session.stop()
+09085         except BaseException as error:  # noqa: BLE001 - it stays visible
+09086             r13_cleanup_errors.append(
+09087                 {'kind': 'STOP', 'type': type(error).__name__,
+09088                  'detail': str(error)})
+09089             _note_interruption(r13_interrupts, error)
+09090         _raise_first_interruption(r13_interrupts)
+09091         if r13_cleanup_errors and sys.exc_info()[0] is None:
+09092             raise AssertionError('the cleanup of the round of R13 met %s'
+09093                                  % (r13_cleanup_errors,))
+09094 
+09095     # -- PHASE TWO: the frame that never ends and the end of the stream --
+--- T10:9120-9138 ---
+09120         assert first['state'] == 'UNKNOWN_RETAINED'
+09121     finally:
+09122         # CORRECTION 22 (M3): the **stop** of the round is guarded and it
+09123         # is never silently passed: its failure is retained with its
+09124         # exact type and its exact detail and the priority of the
+09125         # failures of the cleanup is enforced **after** it.
+09126         try:
+09127             session.stop()
+09128         except BaseException as error:  # noqa: BLE001 - it stays visible
+09129             r13_cleanup_errors.append(
+09130                 {'kind': 'STOP', 'type': type(error).__name__,
+09131                  'detail': str(error)})
+09132             _note_interruption(r13_interrupts, error)
+09133         _raise_first_interruption(r13_interrupts)
+09134         if r13_cleanup_errors and sys.exc_info()[0] is None:
+09135             raise AssertionError('the cleanup of the round of R13 met %s'
+09136                                  % (r13_cleanup_errors,))
+09137 
+09138 
+--- T10:9204-9219 ---
+09204     finally:
+09205         # CORRECTION 22 (M3): the **stop** of the round is guarded and it
+09206         # is never silently passed: its failure is retained with its
+09207         # exact type and its exact detail and the priority of the
+09208         # failures of the cleanup is enforced **after** it.
+09209         try:
+09210             session.stop()
+09211         except BaseException as error:  # noqa: BLE001 - it stays visible
+09212             r14_cleanup_errors.append(
+09213                 {'kind': 'STOP', 'type': type(error).__name__,
+09214                  'detail': str(error)})
+09215             _note_interruption(r14_interrupts, error)
+09216         _raise_first_interruption(r14_interrupts)
+09217         if r14_cleanup_errors and sys.exc_info()[0] is None:
+09218             raise AssertionError('the cleanup of the round of R14 met %s'
+09219                                  % (r14_cleanup_errors,))

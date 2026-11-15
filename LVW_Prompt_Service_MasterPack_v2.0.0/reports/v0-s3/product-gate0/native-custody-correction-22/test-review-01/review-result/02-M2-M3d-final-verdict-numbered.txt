@@ -1,0 +1,362 @@
+Candidate Git 3c807ba483c5e6542430bc96ffefb2ea23e79db9
+Source tools/test_v0_s3_native_custody_correction10.py
+SHA256 f1f8fe1a4167000265e3490417205adb52bcbe84ef54131c3835bfc6a895e6ec
+Physical one-based candidate source lines; explicit range boundaries, no historical dumps.
+
+Final cleanup helper only updates errors/interrupts, not final proof
+--- T10:699-769 ---
+00699 def _cleanup_verdict(errors, base_proof, detail):
+00700     """The **final** verdict of a cleanup region.
+00701 
+00702     CORRECTION 22 (M2/M3): the verdict of a cleanup is computed from
+00703     the **actual** errors of the cleanup **after** the last action of it
+00704     and it is never frozen before it.  The proof that was already found
+00705     is **preserved** and the errors of the cleanup are **added** to it:
+00706     an error of the cleanup never erases the error that was already
+00707     found and it never disappears because the proof already failed.
+00708 
+00709     The verdict is a **fact** and never an exception: the priority of
+00710     the failures - the failure that is unwinding, then the **first**
+00711     exact pending interruption, then the ordinary error - is enforced
+00712     by the caller.
+00713     """
+00714     if not errors:
+00715         return base_proof
+00716     text = '%s: %s' % (detail, errors)
+00717     if base_proof is None:
+00718         return text
+00719     return '%s; %s' % (base_proof, text)
+00720 
+00721 
+00722 def _owner_alive(join_fact):
+00723     """The **actual** liveness of an owner, from the guarded join.
+00724 
+00725     CORRECTION 22 (M3): the liveness of an owner is the fact that the
+00726     **guarded** join returned: the query is never repeated outside its
+00727     guard and an **unknown** liveness is never read as the end of the
+00728     owner.  An owner that never started has no thread and it is not
+00729     alive.
+00730     """
+00731     if join_fact is None:
+00732         return False
+00733     alive = join_fact.get('alive')
+00734     if alive is None:
+00735         return True
+00736     return bool(alive)
+00737 
+00738 
+00739 def _publish_cleanup(facts, writer, errors, interrupts):
+00740     """Write the **complete** facts of a cleanup region.
+00741 
+00742     CORRECTION 22 (M2/M3): the document of a cleanup carries **every**
+00743     actual error and **every** actual interruption of the cleanup and it
+00744     is written **before** the priority of the failures is applied.  A
+00745     write that failed is an **actual** error of the cleanup: it is
+00746     retained with its exact type and its exact detail, the facts are
+00747     updated **in memory** and the durability of the failure is a **best
+00748     effort**.
+00749     """
+00750     facts['cleanup_errors'] = list(errors)
+00751     facts['interrupts'] = _interruption_facts(interrupts)
+00752     try:
+00753         writer()
+00754     except BaseException as error:  # noqa: BLE001 - it stays visible
+00755         errors.append({'kind': 'EVIDENCE', 'type': type(error).__name__,
+00756                        'detail': str(error)})
+00757         _note_interruption(interrupts, error)
+00758         facts['cleanup_errors'] = list(errors)
+00759         facts['interrupts'] = _interruption_facts(interrupts)
+00760         try:
+00761             writer()
+00762         except BaseException as retry_error:  # noqa: BLE001
+00763             errors.append({'kind': 'EVIDENCE_RETRY',
+00764                            'type': type(retry_error).__name__,
+00765                            'detail': str(retry_error)})
+00766             _note_interruption(interrupts, retry_error)
+00767             facts['cleanup_errors'] = list(errors)
+00768             facts['interrupts'] = _interruption_facts(interrupts)
+00769     return facts
+
+Inner controlled writer records additional E after clean proof; deliberate catch follows
+--- T10:5137-5149 ---
+05137                     # CORRECTION 18 (M3): a stop that raised and a
+05138                     # snapshot of the evidence that failed are facts of
+05139                     # the cleanup: they never certify it.
+05140                     stop_proof = _stop_proof_failure(
+05141                         controlled_stop,
+05142                         'the controlled failure of %s' % checkpoint)
+05143                     salvage = drain['salvage']
+05144                     proof = drain['proof']
+05145                     if proof is None and stop_proof is not None:
+05146                         proof = stop_proof
+05147                     if proof is None and controlled_cleanup_errors:
+05148                         proof = ('the controlled failure of %s met %s'
+05149                                  % (checkpoint, controlled_cleanup_errors))
+--- T10:5165-5251 ---
+05165                     controlled_registry_snapshot = _registry_snapshot(
+05166                         controlled_registry, controlled_cleanup_errors,
+05167                         controlled_interrupts,
+05168                         label='CONTROLLED_REGISTRY_FACTS')
+05169                     if proof is None and controlled_registry_snapshot is None:
+05170                         proof = ('the registry of the controlled failure of '
+05171                                  '%s could not be read: %s'
+05172                                  % (checkpoint, controlled_cleanup_errors))
+05173                     facts = {'checkpoint': checkpoint,
+05174                              'failure': raised[0] if raised else None,
+05175                              'gate_released': bool(gate.is_set()),
+05176                              'stop': controlled_stop,
+05177                              'close_failures': list(close_failures),
+05178                              'cleanup_errors':
+05179                                  list(controlled_cleanup_errors),
+05180                              'cleanup_ran_while_unwinding':
+05181                                  sys.exc_info()[0] is not None,
+05182                              'salvage': salvage,
+05183                              'all_salvage': drain.get('all_salvage', []),
+05184                              'drain': drain['attempts'],
+05185                              'quiescent': drain['quiescent'],
+05186                              'proof_failure': proof,
+05187                              'stop_proof_failure': stop_proof,
+05188                              'interrupts': _interruption_facts(
+05189                                  controlled_interrupts),
+05190                              'injected_starts': list(injected_starts),
+05191                              'registry': controlled_registry_snapshot,
+05192                              **_drain_facts(drain)}
+05193                     unwinding = sys.exc_info()[0] is not None
+05194                     try:
+05195                         write_facts()
+05196                     except BaseException as write_error:  # noqa: BLE001
+05197                         controlled_cleanup_errors.append(
+05198                             {'kind': 'EVIDENCE',
+05199                              'type': type(write_error).__name__,
+05200                              'detail': str(write_error)})
+05201                         interrupted = _note_interruption(
+05202                             controlled_interrupts, write_error)
+05203                         if not unwinding:
+05204                             if controlled_interrupts:
+05205                                 # CORRECTION 20 (M3): the **first** exact
+05206                                 # pending cancellation of the cleanup wins
+05207                                 # over the current one and over the
+05208                                 # ordinary assertion of the evidence.
+05209                                 raise controlled_interrupts[0]
+05210                             if interrupted:
+05211                                 # CORRECTION 19 (M3): an **exact**
+05212                                 # cancellation of the write is re-raised
+05213                                 # as **itself**.
+05214                                 raise
+05215                             raise AssertionError(
+05216                                 'the evidence of the controlled failure of %s '
+05217                                 'could not be written: %s'
+05218                                 % (checkpoint, write_error))
+05219                     # CORRECTION 19 (M3): the priority of the failures is
+05220                     # fixed: the failure that is already unwinding wins,
+05221                     # then the **exact** interruption of the cleanup and
+05222                     # only then the ordinary assertion of the proof.  A
+05223                     # proof assertion never renders the rethrow of the
+05224                     # exact interruption unreachable.
+05225                     if controlled_interrupts and not unwinding:
+05226                         raise controlled_interrupts[0]
+05227                     if proof is not None and not unwinding:
+05228                         raise AssertionError(proof)
+05229         except _R07Sentinel as error:
+05230             raised.append({'class': _R07Sentinel,
+05231                            'type': type(error).__name__,
+05232                            'token': str(error),
+05233                            'detail': str(error)})
+05234             facts['failure'] = raised[0]
+05235             write_facts()
+05236         except _R07ConstructorFailure as error:
+05237             raised.append({'class': _R07ConstructorFailure,
+05238                            'type': type(error).__name__,
+05239                            'token': str(error),
+05240                            'detail': str(error)})
+05241             facts['failure'] = raised[0]
+05242             write_facts()
+05243         except _R07OrdinaryAssertion as error:
+05244             raised.append({'class': _R07OrdinaryAssertion,
+05245                            'type': type(error).__name__,
+05246                            'token': str(error),
+05247                            'detail': str(error),
+05248                            'is_assertion_error': isinstance(
+05249                                error, AssertionError)})
+05250             facts['failure'] = raised[0]
+05251             write_facts()
+
+Final verdict uses only slice starting after the already recorded inner writer E
+--- T10:5252-5329 ---
+05252         finally:
+05253             # CORRECTION 22 (M2/M3): the state of the unwinding is read
+05254             # **before** the last actions of the cleanup run: the failure
+05255             # that is already unwinding wins over every other failure of
+05256             # the cleanup and it is never replaced by one of them.
+05257             final_unwinding = sys.exc_info()[0] is not None
+05258             # the errors that the **inner** region of the subcase
+05259             # already proved are not counted twice: the verdict of the
+05260             # subcase is recomputed with the errors of the **last**
+05261             # actions of the cleanup.
+05262             late_start = len(controlled_cleanup_errors)
+05263             # CORRECTION 21 (M3): the observer of the starts and the patch
+05264             # of the round are restored **unconditionally** - they are
+05265             # never skipped - and a failure of them is **recorded** with
+05266             # its exact type and its exact detail: it never replaces the
+05267             # failure that is already unwinding.
+05268             try:
+05269                 controlled_observer.disarm()
+05270             except BaseException as error:  # noqa: BLE001
+05271                 controlled_cleanup_errors.append(
+05272                     {'kind': 'DISARM', 'type': type(error).__name__,
+05273                      'detail': str(error)})
+05274                 _note_interruption(controlled_interrupts, error)
+05275             try:
+05276                 controlled_observer_patch.stop()
+05277             except BaseException as error:  # noqa: BLE001
+05278                 controlled_cleanup_errors.append(
+05279                     {'kind': 'PATCH_STOP', 'type': type(error).__name__,
+05280                      'detail': str(error)})
+05281                 _note_interruption(controlled_interrupts, error)
+05282             # CORRECTION 21 (M3): the **last** release of the gate of the
+05283             # round is a cleanup side effect and it happens at the **end**
+05284             # of the cleanup: a cancellation of it is recorded in the
+05285             # durable facts and it is re-raised as **itself** when no
+05286             # original failure of the subcase is unwinding.  It is never
+05287             # added after the last check and ignored.
+05288             _release_gate(controlled_api.frames_ready.set,
+05289                           controlled_cleanup_errors, controlled_interrupts)
+05290             # CORRECTION 22 (M2/M3): the facts of the subcase are
+05291             # **complete** before the **last** write of the evidence:
+05292             # every actual error and every actual interruption of the
+05293             # cleanup is in them and the verdict of the subcase is
+05294             # recomputed with them.  A late ordinary error of the
+05295             # release, of the disarm or of the stop of the patch fails
+05296             # the subcase even when the physical salvage passed.
+05297             base_proof = facts.get('proof_failure')
+05298             detail = ('the cleanup of the controlled failure of %s met'
+05299                       % checkpoint)
+05300             if 'checkpoint' in facts:
+05301                 facts['proof_failure'] = _cleanup_verdict(
+05302                     controlled_cleanup_errors[late_start:], base_proof,
+05303                     detail)
+05304                 _publish_cleanup(facts, write_facts,
+05305                                  controlled_cleanup_errors,
+05306                                  controlled_interrupts)
+05307             # the write of the evidence is an action of the cleanup as
+05308             # well: a write that failed is an **actual** error of it, it
+05309             # updates the facts **in memory** and it rejects the success
+05310             # of the subcase.
+05311             verdict = _cleanup_verdict(
+05312                 controlled_cleanup_errors[late_start:], base_proof, detail)
+05313             if 'checkpoint' in facts:
+05314                 facts['proof_failure'] = verdict
+05315             # CORRECTION 22 (M3): the priority of the failures is
+05316             # enforced **after** the last action of the cleanup and
+05317             # **after** the last write of the evidence: the failure that
+05318             # is already unwinding wins, then the **first** exact
+05319             # pending interruption of the cleanup and only then the
+05320             # ordinary verdict of the subcase.  A deliberate failure
+05321             # that was already **caught** is not a failure that is
+05322             # unwinding: it never exempts a **new** unexpected error of
+05323             # the cleanup from failing the subcase.
+05324             if not final_unwinding:
+05325                 if controlled_interrupts:
+05326                     raise controlled_interrupts[0]
+05327                 if verdict is not None:
+05328                     raise AssertionError(verdict)
+05329         return facts
+
+Actual caller consumes proof/quiescence but not whole cleanup_errors
+--- T10:5331-5369 ---
+05331     controlled_results = {}
+05332     for checkpoint in ('PARENT_ADMISSION', 'CHILD_TRANSPORT',
+05333                        'ORDINARY_ASSERTION', 'CLOSE_FAILURE',
+05334                        'CONSTRUCTOR_FAILURE'):
+05335         controlled = controlled_failure(checkpoint)
+05336         controlled_results[checkpoint] = controlled
+05337         if checkpoint == 'CLOSE_FAILURE':
+05338             # CORRECTION 17 (M3): this checkpoint is a **cleanup only**
+05339             # case: the deliberate failure is produced by the cleanup
+05340             # itself, it is **recorded**, it never propagates and it is
+05341             # the **only** failure that may be recorded.  The physical
+05342             # cleanup of the round is proved by the joins and the
+05343             # liveness of the owners and not by the injected failure.
+05344             assert controlled['failure'] is None, \
+05345                 'the close failure of %s was not a cleanup-only failure' \
+05346                 % checkpoint
+05347             assert controlled['cleanup_ran_while_unwinding'] is False, \
+05348                 'the close failure of %s was claimed to unwind' % checkpoint
+05349             close_failures = controlled['close_failures']
+05350             assert len(close_failures) == 1, \
+05351                 'the close failure of %s was not the only failure: %s' \
+05352                 % (checkpoint, close_failures)
+05353             assert close_failures[0]['owner'] == 'controlled:transport', \
+05354                 'the close failure of %s was not the failure of the ' \
+05355                 'transport of the child: %s' % (checkpoint, close_failures)
+05356             assert close_failures[0]['type'] == 'RuntimeError', \
+05357                 'the close failure of %s was not the exact type: %s' \
+05358                 % (checkpoint, close_failures)
+05359             assert close_failures[0]['detail'] == 'controlled_close_failure', \
+05360                 'the close failure of %s was not the exact message: %s' \
+05361                 % (checkpoint, close_failures)
+05362             assert [item for item in close_failures
+05363                     if item['owner'] != 'controlled:transport'] == [], \
+05364                 'the close failure of %s was accompanied by another owner: %s' \
+05365                 % (checkpoint, close_failures)
+05366             assert [item for item in close_failures
+05367                     if item['type'] != 'RuntimeError'] == [], \
+05368                 'the close failure of %s was accompanied by another type: %s' \
+05369                 % (checkpoint, close_failures)
+--- T10:5430-5448 ---
+05430             assert controlled['close_failures'] == [], \
+05431                 'the controlled failure of %s met an unrelated close ' \
+05432                 'failure: %s' % (checkpoint, controlled['close_failures'])
+05433             # the cleanup really ran **while** the deliberate failure was
+05434             # unwinding: that is the proof of the negative path
+05435             assert controlled['cleanup_ran_while_unwinding'] is True, \
+05436                 'the cleanup of the controlled failure of %s did not run ' \
+05437                 'while the failure was unwinding' % checkpoint
+05438         assert controlled['gate_released'] is True, \
+05439             'the gate of the controlled failure of %s stayed blocked' \
+05440             % checkpoint
+05441         assert controlled['proof_failure'] is None, \
+05442             'the cleanup of the controlled failure of %s was not proved: %s' \
+05443             % (checkpoint, controlled['proof_failure'])
+05444         assert controlled['quiescent'] is True, \
+05445             'the owners of the controlled failure of %s were not quiescent' \
+05446             % checkpoint
+05447         _assert_salvage_proved(controlled['salvage'],
+05448                                'the controlled failure of %s' % checkpoint)
+
+Zero additional registry diagnostic now explicit even alongside prior proof D
+--- T10:4078-4100 ---
+04078                 zero_registry_snapshot = _registry_snapshot(
+04079                     zero_registry, zero_registry_errors, zero_interrupts,
+04080                     label='ZERO_REGISTRY_FACTS')
+04081                 # CORRECTION 22 (M2): the errors of the query of the
+04082                 # registry are an **explicit durable field** of the
+04083                 # evidence of the round: they survive next to a proof
+04084                 # that already failed and they never vanish because the
+04085                 # proof of the round names another failure.
+04086                 zero_proof = _cleanup_verdict(
+04087                     zero_registry_errors, zero_proof,
+04088                     'the registry of the round of zero could not be read')
+04089                 facts = {'salvage': zero_salvage,
+04090                          'all_salvage': zero_drain.get('all_salvage', []),
+04091                          'stop': zero_stop,
+04092                          'drain': zero_drain['attempts'],
+04093                          'quiescent': zero_drain['quiescent'],
+04094                          'proof_failure': zero_proof,
+04095                          'stop_proof_failure': zero_stop_proof,
+04096                          'cleanup_errors': zero_cleanup_errors,
+04097                          'interrupts': _interruption_facts(zero_interrupts),
+04098                          'registry': zero_registry_snapshot,
+04099                          'registry_errors': list(zero_registry_errors),
+04100                          **_drain_facts(zero_drain)}
+
+Actual writer serializes a snapshot and does not mutate proof_failure
+--- T10:170-177 ---
+00170     """Write the bounded facts of one phase of this module."""
+00171     EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
+00172     path = EVIDENCE_DIR / ('n10-%s.json' % phase)
+00173     path.write_text(json.dumps(document, indent=1, sort_keys=True,
+00174                                 default=repr), encoding='utf-8')
+00175     return str(path)
+00176 
+00177 

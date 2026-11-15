@@ -1,0 +1,487 @@
+Candidate Git 3c807ba483c5e6542430bc96ffefb2ea23e79db9
+Source tools/test_v0_s3_native_custody_correction10.py
+SHA256 f1f8fe1a4167000265e3490417205adb52bcbe84ef54131c3835bfc6a895e6ec
+Physical one-based candidate source lines; explicit range boundaries, no historical dumps.
+
+Structured drain exports and final iteration errors retained
+--- T10:863-888 ---
+00863 def _drain_facts(drain):
+00864     """The **complete** structured facts of the drain of one round.
+00865 
+00866     CORRECTION 21 (M2): the durable evidence of a round keeps the
+00867     **whole** history of its drain and not only its attempts: the final
+00868     salvage, the salvage of **every** iteration, the **per owner**
+00869     errors of every iteration, the attempts, the **complete** error
+00870     list of the drain - the errors of the enumeration, of the releases
+00871     and of the **final resnapshot** - the quiescence and the proof.
+00872 
+00873     The first proof of a salvage is **never** used as the error list of
+00874     the drain: a second owner error of the same iteration is never
+00875     reduced to the proof string of the first owner and it never leaves
+00876     the durable evidence of the round.
+00877     """
+00878     drain = drain or {}
+00879     return {
+00880         'drain_salvage': list(drain.get('salvage') or []),
+00881         'drain_all_salvage': list(drain.get('all_salvage') or []),
+00882         'drain_owner_errors': list(drain.get('owner_errors') or []),
+00883         'drain_attempts': list(drain.get('attempts') or []),
+00884         'drain_errors': list(drain.get('errors') or []),
+00885         'drain_quiescent': bool(drain.get('quiescent')),
+00886         'drain_proof': drain.get('proof'),
+00887     }
+00888 
+--- T10:1405-1419 ---
+01405         all_salvage.extend(salvage)
+01406         # CORRECTION 21 (M2): the errors of the owners of **this**
+01407         # iteration are kept **one by one** and they are named with the
+01408         # iteration that really produced them: the error of a second
+01409         # owner of the same iteration is never lost behind the proof
+01410         # string of the first one.
+01411         for item in salvage:
+01412             for error in (item.get('errors') or []):
+01413                 owner_errors.append({
+01414                     'iteration': len(attempts) - 1,
+01415                     'name': item.get('name'),
+01416                     'kind': error.get('kind'),
+01417                     'type': error.get('type'),
+01418                     'detail': error.get('detail')})
+01419         # The **final** exact-owner resnapshot: it is taken after the
+--- T10:1457-1469 ---
+01457     proof = _prove_salvage(all_salvage, prefix)
+01458     if proof is None and errors:
+01459         proof = '%s: the drain met %s' % (prefix, errors)
+01460     # CORRECTION 19 (M2/M3): a round that is **not** quiescent is a
+01461     # failure of the cleanup even when every owner that the salvage saw
+01462     # was really joined: the final resnapshot of the drain found an
+01463     # owner that no join released, and the proof of the cleanup says so.
+01464     if proof is None and not quiescent:
+01465         proof = ('%s: the owners of the round were not quiescent' % prefix)
+01466     return {'owners': owners, 'hints': hints, 'salvage': salvage,
+01467             'all_salvage': all_salvage, 'owner_errors': owner_errors,
+01468             'attempts': attempts, 'proof': proof, 'errors': errors,
+01469             'quiescent': bool(quiescent)}
+
+Current M1 actual public return and original retention hard predicates
+--- T10:3904-3915 ---
+03904                 # round was really inside its read and it was really held
+03905                 # there, and the end of its stream never preempted the
+03906                 # reply that the round owes.
+03907                 assert zero_premise['pump_at_admission'] is True, \
+03908                     'the attached pump of the zero round never reached its admission'
+03909                 assert zero_premise['pump_eof_at_admission'] is False, \
+03910                     'the attached pump of the zero round was at the end of its ' \
+03911                     'stream before the admission of the reply'
+03912                 assert zero_premise['pump_error_is_none'] is True, \
+03913                     'the attached pump of the zero round failed before the ' \
+03914                     'admission of the reply'
+03915                 assert zero_premise['pump_error_repr'] is None, \
+--- T10:3950-4002 ---
+03950                 # The **expected error cause** of the public start: the
+03951                 # admission of the reply of the round really timed out and
+03952                 # the round latched its unknown state.
+03953                 assert 'CUSTODY_CHANNEL_TIMEOUT' in facts['zero_failures'], \
+03954                     'the public start of the zero round did not name the ' \
+03955                     'timeout of the admission: %s' % (facts['zero_failures'],)
+03956                 assert 'CUSTODY_CHANNEL_EOF' not in facts['zero_failures'], \
+03957                     'the round of the zero expiry ended at the end of its ' \
+03958                     'stream instead of the timeout of the admission'
+03959                 assert facts['zero_state'] == 'UNKNOWN_RETAINED', \
+03960                     'the public start of the zero round did not latch its state'
+03961                 # CORRECTION 17 (M1): the **retention** of the round is
+03962                 # the returned fact of the product: the **value** of the
+03963                 # retention, the **identity** of the retained resource
+03964                 # and the source of the identity of the broker are the
+03965                 # oracle - the presence of a key is not.
+03966                 assert facts['zero_broker_retained'] is True, \
+03967                     'the public start of the zero round did not retain its broker'
+03968                 assert zero_broker is not None, \
+03969                     'the round of the zero expiry has no broker'
+03970                 assert zero_session.broker is zero_broker, \
+03971                     'the retained original resource is not the object of the round'
+03972                 assert facts['zero_broker_identity'] is not None, \
+03973                     'the returned state of the public start names no identity'
+03974                 assert facts['zero_broker_identity']['identity_source'] \
+03975                     == 'PARENT_ORIGINAL_HANDLE', \
+03976                     'the identity of the broker of the zero round is a claim ' \
+03977                     'and not the original handle'
+03978                 assert facts['zero_broker_identity']['pid'] == zero_broker.pid, \
+03979                     'the identity of the broker of the zero round names ' \
+03980                     'another process'
+03981                 assert zero_returned['pump_error'] is None, \
+03982                     'the pump of the zero round failed before the admission'
+03983                 # CORRECTION 17 (M1): the **order** of the start, of the
+03984                 # pump, of the reply, of the gate and of the queue is the
+03985                 # recorded order and it is the required one.
+03986                 def zero_index(event):
+03987                     for position, item in enumerate(zero_trace):
+03988                         if item['event'] == event:
+03989                             return position
+03990                     return None
+03991 
+03992                 order = [zero_index(name) for name in
+03993                          ('START_CALLED', 'PUMP_READ_ENTERED',
+03994                           'REPLY_WAIT_ENTERED', 'REPLY_WAIT_RETURNED',
+03995                           'GATE_RELEASED', 'QUEUE_GET_ENTERED', 'PUMP_ENDED')]
+03996                 assert all(item is not None for item in order), \
+03997                     'the order of the zero round was not completely observed: ' \
+03998                     '%s' % (zero_trace,)
+03999                 assert order == sorted(order), \
+04000                     'the order of the start, of the pump, of the reply, of ' \
+04001                     'the gate and of the queue of the zero round was not ' \
+04002                     'the required one: %s' % (zero_trace,)
+
+Distinct constructor target and original start then exact failure inside construction
+--- T10:4953-5005 ---
+04953                             # the stdlib thread is ``_target`` - a plain
+04954                             # ``threading.Thread`` has **no** ``target``
+04955                             # attribute at all and the bound method of
+04956                             # the target carries its owner in
+04957                             # ``__self__``.
+04958                             target = getattr(thread, '_target', None)
+04959                             owner = getattr(target, '__self__', None)
+04960                             if not isinstance(owner,
+04961                                               broker_module.StreamChannel):
+04962                                 return original_thread_start(thread, *args,
+04963                                                             **kwargs)
+04964                             if getattr(owner, '_context', None) \
+04965                                     is not controlled_core.context:
+04966                                 return original_thread_start(thread, *args,
+04967                                                             **kwargs)
+04968                             # the **exact** custody-owned child: only the
+04969                             # channel that the custody of the fixture
+04970                             # really registered is injected into and
+04971                             # never a thread of the parent that carries
+04972                             # the same name.
+04973                             child = controlled_custody_channel()
+04974                             if owner is not child:
+04975                                 return original_thread_start(thread, *args,
+04976                                                             **kwargs)
+04977                             injected_starts.append(
+04978                                 {'id': id(thread), 'name': thread.name,
+04979                                  'owner_id': id(owner),
+04980                                  'child_id': id(child),
+04981                                  'target_name': getattr(target, '__name__',
+04982                                                        None),
+04983                                  'target_owner_is_custody_channel': True,
+04984                                  'target_owner_is_parent':
+04985                                      owner is
+04986                                      controlled_parent_channel})
+04987                             # the ORIGINAL start really takes effect and
+04988                             # the exact failure of the fixture is raised
+04989                             # **inside** the constructor of the child.
+04990                             original_thread_start(thread, *args, **kwargs)
+04991                             raise _R07ConstructorFailure(checkpoint)
+04992 
+04993                         with unittest.mock.patch.object(
+04994                                 threading.Thread, 'start',
+04995                                 controlled_start_then_raise):
+04996                             transport = broker_module.StreamChannel(
+04997                                 None, None, read_endpoint=read_endpoint,
+04998                                 write_endpoint=write_endpoint,
+04999                                 clock=controlled_clock,
+05000                                 context=controlled_core.context,
+05001                                 custody=_RegistryCustody(
+05002                                     controlled_registry, 'controlled'))
+05003                     else:
+05004                         transport = StreamChannel(
+05005                             None, None, read_endpoint=read_endpoint,
+
+Barrier completion persists before signalling; incomplete barrier exposes actual diagnostics
+--- T10:6238-6278 ---
+06238                                              if outcome is not None else None)
+06239                 if outcome is None:
+06240                     failure = 'BARRIER_OUTCOME_MISSING'
+06241                 elif outcome.get('generation') != expected_generation:
+06242                     failure = 'BARRIER_GENERATION_MISMATCH'
+06243                 elif outcome.get('error') != 'RuntimeError':
+06244                     failure = 'BARRIER_ERROR_KIND'
+06245                 elif outcome.get('error_object') is not self.fault_object:
+06246                     failure = 'BARRIER_ERROR_OBJECT'
+06247                 barrier['failure'] = failure
+06248                 self.worker_holder['published_outcome'] = outcome
+06249                 if failure is not None:
+06250                     # The barrier **fails closed**: the primitive of the
+06251                     # round does not return and the premise of the test is
+06252                     # refused explicitly.
+06253                     barrier['refused'] = failure
+06254                     raise _BarrierRefusal(failure)
+06255                 barrier['passed'] = True
+06256                 barrier['returned'] = 'REQUESTED'
+06257             finally:
+06258                 # the facts of the barrier are finalised **always**: the
+06259                 # return state names the path that was taken, the
+06260                 # generation is the one that was demanded, the snapshot
+06261                 # is persisted as a real document and the completion is
+06262                 # published.
+06263                 barrier['left_at'] = time.monotonic()
+06264                 barrier['return_state'] = ('REFUSED' if failure is not None
+06265                                            else 'PASSED')
+06266                 barrier['generation'] = expected_generation
+06267                 self.barrier_snapshot = dict(self.barrier)
+06268                 # CORRECTION 18 (M2): the durable document of the
+06269                 # barrier is written **before** the completion is
+06270                 # published: a phase that waits for the completion and
+06271                 # that reads the persisted document never reads a
+06272                 # snapshot that was not written.
+06273                 self._persist_barrier()
+06274                 # CORRECTION 20 (M3): the publication of the completion is
+06275                 # guarded: a cancellation of it never replaces the
+06276                 # original failure and the **exact** object of the
+06277                 # cancellation is retained by the owner of the phase.
+06278                 _release_gate(self.barrier_completed.set, None, self.interrupts)
+--- T10:6659-6683 ---
+06659                     observed_barrier = dict(api.barrier_snapshot or {})
+06660                     barrier_failed_facts = dict(
+06661                         barrier_identity(),
+06662                         status='FAIL',
+06663                         executed=True,
+06664                         premise='BARRIER_NOT_COMPLETED',
+06665                         timeout_seconds=15.0,
+06666                         barrier_completed=False,
+06667                         barrier_expectation=expect_barrier,
+06668                         barrier_probe=barrier_probe,
+06669                         barrier_persisted=bool(api.barrier_persisted),
+06670                         barrier_write_error=api.barrier_write_error,
+06671                         barrier_snapshot_present=bool(api.barrier_snapshot),
+06672                         barrier_observed=observed_barrier.get('observed'),
+06673                         barrier_observed_generation=observed_barrier.get(
+06674                             'observed_generation'),
+06675                         barrier_observed_error=observed_barrier.get(
+06676                             'observed_error'),
+06677                         barrier_return_state=observed_barrier.get(
+06678                             'return_state'),
+06679                         state=session.state)
+06680                     # CORRECTION 20 (M2): the **full intended** facts of
+06681                     # the barrier are stored **before** the terminal write
+06682                     # is attempted: a write that fails never erases them.
+06683                     raw[phase + '-barrier'] = dict(barrier_failed_facts)
+
+Original launch binding and distinct coordination evidence document
+--- T10:7967-7972 ---
+07967     early_observer = _StartObserver(early_registry)
+07968     try:
+07969         document = _live_plan_document()
+07970         plan = validate_launch_plan(document, now=time.time())
+07971         api = _F5Api(read_fault=RuntimeError('read_fault'))
+07972         # the observation of the starts covers **only** the round of the
+--- T10:8397-8406 ---
+08397                 # real schedule unchanged.  The coordination never
+08398                 # replaces the plan of the round with its own evidence.
+08399                 coord_document = dict(r10_raw['r10-coordination'],
+08400                                       original_failure=dict(coord_original),
+08401                                       interrupts=_interruption_facts(
+08402                                           coord_interrupts),
+08403                                       drain=coord_drain['attempts'],
+08404                                       **_drain_facts(coord_drain))
+08405                 if coord_failure is None and coord_passed \
+08406                         and coord_original['type'] is None:
+
+All five original plan-bound schedules and shared LASTACTUAL store
+--- T10:8487-8533 ---
+08487         _m09_timeout_phase(document, plan, tmp_path,
+08488                             phase='r10-timeout-confirmed',
+08489                             confirm_the_worker=True, hold_the_worker=False,
+08490                             expect_barrier='NOT_APPLICABLE',
+08491                             inventory=r10_inventory, ledger=ledger,
+08492                             store=r10_raw)
+08493         _m09_timeout_phase(document, plan, tmp_path,
+08494                             phase='r10-timeout-failed',
+08495                             confirm_the_worker=False, hold_the_worker=True,
+08496                             expect_barrier='PASSED',
+08497                             inventory=r10_inventory, ledger=ledger,
+08498                             store=r10_raw)
+08499         # -- N1 correction 15 (M2): the barrier of the publication is
+08500         #    **checked** and it **fails closed**.  The two negative
+08501         #    subcases below drive the **same** failed coordination of the
+08502         #    round with a bounded transparent seam that forces an
+08503         #    **absent** outcome and an outcome of **another generation**.
+08504         #    The premise of the test is then **refused** explicitly and
+08505         #    the subcase is never counted as a successful failed
+08506         #    coordination: the cancel primitive of the round never
+08507         #    returns ``REQUESTED`` as if the barrier had passed.
+08508         _m09_timeout_phase(document, plan, tmp_path,
+08509                             phase='r10-barrier-absent',
+08510                             confirm_the_worker=False, hold_the_worker=True,
+08511                             barrier_probe='ABSENT', expect_barrier='REFUSED',
+08512                             inventory=r10_inventory, ledger=ledger,
+08513                             store=r10_raw)
+08514         _m09_timeout_phase(document, plan, tmp_path,
+08515                             phase='r10-barrier-wrong-generation',
+08516                             confirm_the_worker=False, hold_the_worker=True,
+08517                             barrier_probe='WRONG_GENERATION',
+08518                             expect_barrier='REFUSED',
+08519                             inventory=r10_inventory, ledger=ledger,
+08520                             store=r10_raw)
+08521 
+08522         # -- THE REQUIRED ORDER (N1 correction 12, root preflight
+08523         #    PF12-01): the ordinary failure of the read is published
+08524         #    **before** the effective timeout of the round arrives and
+08525         #    the endpoint consumes the outcome of its own generation
+08526         #    only **after** the timeout was decided.  The gate is a
+08527         #    transparent wrapper of the production wait of the worker:
+08528         #    it calls the original wait and it holds the endpoint
+08529         #    between that wait and the recheck of its generation.
+08530         _m09_published_fault_phase(document, plan, tmp_path,
+08531                                    phase='r10-published-before-timeout',
+08532                                    inventory=r10_inventory, ledger=ledger,
+08533                                    store=r10_raw)
+
+Durable group summary and terminal accounting
+--- T10:8626-8678 ---
+08626         summary_states = {name: ledger.state(name) for name in r10_documents}
+08627         summary_incomplete = [name for name in r10_documents
+08628                               if summary_states[name]
+08629                               not in ('PASSED', 'FAIL', 'NOT_RUN')
+08630                               or name not in r10_inventory]
+08631         summary = {
+08632             'status': ('FAIL' if (first_failure['type']
+08633                                   or first_failure.get('write_errors')
+08634                                   or summary_incomplete)
+08635                        else 'PASSED'),
+08636             'original_failure': dict(first_failure),
+08637             'write_errors': list(first_failure.get('write_errors', [])),
+08638             'states': summary_states,
+08639             'written': sorted(r10_inventory),
+08640             'not_persisted': [item['name']
+08641                               for item in first_failure.get('write_errors', [])
+08642                               if item.get('name') in r10_documents],
+08643             'incomplete': summary_incomplete,
+08644             'facts': {name: r10_raw.get(name, {}) for name in r10_documents},
+08645             'interrupts': _interruption_facts(outer_interrupts),
+08646             'inventory_size': len(r10_documents),
+08647             'unwinding': bool(outer_unwinding),
+08648         }
+08649         try:
+08650             write_phase('r10-final-summary', summary)
+08651         except BaseException as write_error:  # noqa: BLE001
+08652             first_failure.setdefault('write_errors', []).append(
+08653                 {'name': 'r10-final-summary',
+08654                  'type': type(write_error).__name__,
+08655                  'detail': str(write_error)})
+08656             _note_interruption(outer_interrupts, write_error)
+08657     # CORRECTION 19 (M3): the **exact** object of a cancellation that the
+08658     # inventory of the group met is re-raised by the owner of the group:
+08659     # the priority is the failure that is already unwinding, then the
+08660     # exact interruption and only then the ordinary assertion.
+08661     if outer_interrupts:
+08662         raise outer_interrupts[0]
+08663     # CORRECTION 19 (M2): the terminal accounting of the group is
+08664     # **complete** and it is checked **only** when the group really
+08665     # passed: every name of the inventory has a terminal state of the
+08666     # ledger and a document that was really written, and a passing test
+08667     # carries **no** persistence diagnostic at all.
+08668     assert first_failure['type'] is None, \
+08669         'the group of the M09 obligation failed: %s' % (first_failure,)
+08670     assert not first_failure.get('write_errors'), \
+08671         'the evidence of the group carried a persistence diagnostic: %s' \
+08672         % (first_failure.get('write_errors'),)
+08673     for r10_name in r10_documents:
+08674         assert ledger.state(r10_name) in ('PASSED', 'FAIL', 'NOT_RUN'), \
+08675             'the terminal state of %s is %s' \
+08676             % (r10_name, ledger.state(r10_name))
+08677         assert r10_name in r10_inventory, \
+08678             'the document of %s was never written' % (r10_name,)
+
+Whole unmodified source-region AST comparison (not runtime evidence):
+{
+  "_OwnerRegistry": {
+    "current_lines": [
+      250,
+      372
+    ],
+    "prior21_lines": [
+      250,
+      372
+    ],
+    "full_AST_equal21": true
+  },
+  "_StartObserver": {
+    "current_lines": [
+      375,
+      423
+    ],
+    "prior21_lines": [
+      375,
+      423
+    ],
+    "full_AST_equal21": true
+  },
+  "_salvage_threads": {
+    "current_lines": [
+      565,
+      631
+    ],
+    "prior21_lines": [
+      565,
+      631
+    ],
+    "full_AST_equal21": true
+  },
+  "_capture_stop": {
+    "current_lines": [
+      953,
+      1010
+    ],
+    "prior21_lines": [
+      880,
+      937
+    ],
+    "full_AST_equal21": true
+  },
+  "_registry_owners": {
+    "current_lines": [
+      1145,
+      1268
+    ],
+    "prior21_lines": [
+      1072,
+      1195
+    ],
+    "full_AST_equal21": true
+  },
+  "_drain_owners": {
+    "current_lines": [
+      1271,
+      1469
+    ],
+    "prior21_lines": [
+      1198,
+      1396
+    ],
+    "full_AST_equal21": true
+  },
+  "_m09_timeout_phase": {
+    "current_lines": [
+      6382,
+      7192
+    ],
+    "prior21_lines": [
+      6047,
+      6857
+    ],
+    "full_AST_equal21": true
+  },
+  "_m09_published_fault_phase": {
+    "current_lines": [
+      7275,
+      7793
+    ],
+    "prior21_lines": [
+      6940,
+      7458
+    ],
+    "full_AST_equal21": true
+  },
+  "test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation": {
+    "current_lines": [
+      7794,
+      8678
+    ],
+    "prior21_lines": [
+      7459,
+      8343
+    ],
+    "full_AST_equal21": true
+  }
+}
