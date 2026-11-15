@@ -1,0 +1,462 @@
+{
+  "kind": "independent_static_test_evidence_design_review",
+  "decision": "CHANGES_REQUIRED",
+  "candidate_git_commit": "206a7fe7f21343d89ca83e03a0e4dc7e670cd381",
+  "report_delivery_commit": "845b78615f50141fd1c9029501a382b52efa9f44",
+  "coordinate": "V1/R1/WP-R1-U3/S3_P4",
+  "Fatal": 0,
+  "Major": 2,
+  "Minor": 0,
+  "statuses": {
+    "M1": "CLOSED_STATIC",
+    "M2": "OPEN",
+    "M3": "OPEN"
+  },
+  "findings": [
+    {
+      "id": "M2",
+      "severity": "Major",
+      "status": "OPEN",
+      "counterexamples": [
+        {
+          "id": "M2.a",
+          "locations": [
+            "T10:561-627",
+            "T10:758-776",
+            "T10:1212-1285",
+            "T10:6380-6459",
+            "T10:6974-7050",
+            "T10:7694-7707"
+          ],
+          "trigger": "Distinct ordinary errors E1/E2 in two owner joins/liveness calls in one drain iteration; final writes succeed",
+          "expected": "All owner/type/detail diagnostics durably exported to shared facts and final/recovery documents",
+          "actual": "Only first proof error exported; all_salvage/errors remain local; later error omitted"
+        },
+        {
+          "id": "M2.b",
+          "locations": [
+            "T10:5980-6003",
+            "T10:6251-6291"
+          ],
+          "trigger": "Barrier completion times out; terminal FAIL write succeeds",
+          "expected": "Every terminal barrier rewrite retains barrier_persisted and barrier_write_error",
+          "actual": "Fields absent; terminal state prevents full exception rewrite"
+        }
+      ]
+    },
+    {
+      "id": "M3",
+      "severity": "Major",
+      "status": "OPEN",
+      "counterexamples": [
+        {
+          "id": "M3.a",
+          "locations": [
+            "T10:4781-4816",
+            "T10:673-678"
+          ],
+          "trigger": "Last controlled frames_ready.set raises exact K after prior proof/evidence/rethrow checks; CLOSE_FAILURE prior expected oracle holds",
+          "expected": "K recorded and rethrown after all cleanup, before success",
+          "actual": "K appended then facts returned; evidence stale and test can pass"
+        },
+        {
+          "id": "M3.b",
+          "locations": [
+            "T10:5073-5138"
+          ],
+          "trigger": "Startup release records K1 with multiple actual owners; first join returns or raises K2",
+          "expected": "Every owner attempted; original unwinding then K1 priority after full cleanup",
+          "actual": "Helper inside loop raises K1 after first owner, or direct join raises K2 and skips remaining owners"
+        },
+        {
+          "id": "M3.c",
+          "locations": [
+            "T10:363-368",
+            "T10:3762",
+            "T10:4748"
+          ],
+          "trigger": "Registry entries query repeatedly raises E after independent-ref drain while original or K1 is pending",
+          "expected": "Guard query, retain diagnostic, persist evidence and preserve original/K1",
+          "actual": "Unguarded facts query aborts construction before writer guard and priority checks"
+        }
+      ]
+    }
+  ],
+  "sources": {
+    "tools/v0_s3_native_broker.py": {
+      "sha256": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
+      "bytes": 386807,
+      "lines": 8174,
+      "candidate_equal": true,
+      "delivery_equal": true
+    },
+    "tools/v0_s3_native_custody.py": {
+      "sha256": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581",
+      "bytes": 114702,
+      "lines": 2470,
+      "candidate_equal": true,
+      "delivery_equal": true
+    },
+    "tools/test_v0_s3_native_custody_correction05.py": {
+      "sha256": "8563989f078fcd45d44c496a0bea16c1ecf5005513543f6f4e00792e4ed7e130",
+      "bytes": 114666,
+      "lines": 2531,
+      "candidate_equal": true,
+      "delivery_equal": true
+    },
+    "tools/test_v0_s3_native_custody_correction07.py": {
+      "sha256": "dc74cf7f92e8be6cc2b69c602b9fc0b3fdd765ec8b9b48c4f061dde7bdcd6cdf",
+      "bytes": 152715,
+      "lines": 3282,
+      "candidate_equal": true,
+      "delivery_equal": true
+    },
+    "tools/test_v0_s3_native_custody_correction10.py": {
+      "sha256": "662f6a2a0b1af5dd5b2baad737c2b6fc82edcab755beac49c67848f6fff6102a",
+      "bytes": 431788,
+      "lines": 8378,
+      "candidate_equal": true,
+      "delivery_equal": true
+    },
+    "tools/test_v0_s3_native_custody.py": {
+      "sha256": "fe96d2ffd353d3f3f6df4da2b023dd6cfaf58fe730ab6655afbca723ed507d32",
+      "bytes": 98978,
+      "lines": 2502,
+      "candidate_equal": true,
+      "delivery_equal": true
+    },
+    "tools/test_v0_s3_native_custody_regressions.py": {
+      "sha256": "03250ea0ac64519c57edfbe1be965eb2827b46fc7f2d80b47146e4a5e6e7cb93",
+      "bytes": 87210,
+      "lines": 2105,
+      "candidate_equal": true,
+      "delivery_equal": true
+    }
+  },
+  "denominator": {
+    "count": 189,
+    "counts": [
+      117,
+      16,
+      24,
+      18,
+      14
+    ],
+    "identities_order_signatures_decorators_equal_actual15_19": true,
+    "skip_calls": [],
+    "executed": false
+  },
+  "assertion_review": {
+    "removed_occurrences": {
+      "15": 10,
+      "16": 7,
+      "17": 0,
+      "18": 0,
+      "19": 0
+    },
+    "equivalence_map": "review.md;03-prior15-19-assertions-full-diffs.txt",
+    "universal_semantic_no_weakening_certified": false
+  },
+  "production13_preserved": {
+    "candidate_git_commit": "41df626f395172d75791892ba439df5f3924bbce",
+    "both_sources_byte_identical": true,
+    "Fatal": 0,
+    "Major": 0,
+    "Minor": 0,
+    "obligations": {
+      "CLOSED_STATIC": 63,
+      "OPEN": 0,
+      "UNCERTAIN": 9
+    },
+    "uncertainties": [
+      {
+        "id": "N03-R16",
+        "status": "UNCERTAIN",
+        "evidence": "UNCERTAIN: external pins, test compatibility and actual native lifecycle are outside two-production-blob authority.",
+        "dynamic": "NOT_RUN",
+        "native": "NOT_PROVEN"
+      },
+      {
+        "id": "N05-R06",
+        "status": "UNCERTAIN",
+        "evidence": "UNCERTAIN: B2880-2886,3038-3053 preregister reader, but ident-less interrupted late start needs actual lifecycle evidence.",
+        "dynamic": "NOT_RUN",
+        "native": "NOT_PROVEN"
+      },
+      {
+        "id": "N05-R07",
+        "status": "UNCERTAIN",
+        "evidence": "UNCERTAIN: C1419-1456,1612-1664 show background registration/barrier; actual late-start schedule remains unproved.",
+        "dynamic": "NOT_RUN",
+        "native": "NOT_PROVEN"
+      },
+      {
+        "id": "N05-R08",
+        "status": "UNCERTAIN",
+        "evidence": "UNCERTAIN: C1423-1450 preserve failed background record; ident-less physical start cannot be resolved statically.",
+        "dynamic": "NOT_RUN",
+        "native": "NOT_PROVEN"
+      },
+      {
+        "id": "N05-R24",
+        "status": "UNCERTAIN",
+        "evidence": "UNCERTAIN: exact189 node identity/order/assertions, external pins and actual results were deliberately excluded.",
+        "dynamic": "NOT_RUN",
+        "native": "NOT_PROVEN"
+      },
+      {
+        "id": "N07-R08",
+        "status": "UNCERTAIN",
+        "evidence": "UNCERTAIN: B4683-4702,4443-4448 preregister worker; ident-less interrupted physical scheduling remains unproved.",
+        "dynamic": "NOT_RUN",
+        "native": "NOT_PROVEN"
+      },
+      {
+        "id": "N10-R12",
+        "status": "UNCERTAIN",
+        "evidence": "UNCERTAIN: actual event schedules, primitive arguments, causal negatives, fixtures and before-salvage artifacts cannot be verified from these production blobs.",
+        "dynamic": "NOT_RUN",
+        "native": "NOT_PROVEN"
+      },
+      {
+        "id": "N10-R13",
+        "status": "UNCERTAIN",
+        "evidence": "UNCERTAIN: generation-specific fault/timeout/consumption, both coordination outcomes and two real Session.stop histories need excluded execution evidence.",
+        "dynamic": "NOT_RUN",
+        "native": "NOT_PROVEN"
+      },
+      {
+        "id": "N10-R14",
+        "status": "UNCERTAIN",
+        "evidence": "UNCERTAIN: original175+14 exact189 node ordering/pins/assertion changes and actual batch evidence were not read or executed.",
+        "dynamic": "NOT_RUN",
+        "native": "NOT_PROVEN"
+      }
+    ],
+    "limit": "Source-only prior conclusion; no test-design/running/native acceptance promotion"
+  },
+  "prior18_counterexample_dispositions": "review.md complete12-row table",
+  "prior19_counterexample_dispositions": "review.md complete7-row table",
+  "approved17_section10_and_six_ack": "review.md;04-full-prior19-evidence-and-authority-numbered.txt",
+  "runtime_plan_acked": false,
+  "dynamic20": "NOT_RUN",
+  "dynamic19": "NOT_RUN",
+  "dynamic18": "NOT_RUN",
+  "dynamic17": "NOT_RUN",
+  "dynamic16": "NOT_RUN",
+  "dynamic15": "NOT_RUN",
+  "historical14": "HISTORICAL_ACTUAL189_GREEN_ONLY_NOT_REEXECUTED",
+  "native": "NOT_PROVEN",
+  "product_acceptance": false,
+  "stage_pass": false,
+  "human_signoff": false,
+  "budget_reset": false,
+  "execution_audit": {
+    "candidate_imported": false,
+    "candidate_compiled": false,
+    "candidate_collected": false,
+    "pytest_run": false,
+    "implementer_scripts_run": false,
+    "ctypes_runtime_native": false,
+    "os_business_processes": false,
+    "model_gpu": false,
+    "network_service": false,
+    "media_db": false,
+    "ledger_counter": false,
+    "extra_agents": false,
+    "methods": [
+      "Independent text/JSON/hash processing",
+      "ast.parse source as data",
+      "Read-only Git blob/delta inspection",
+      "Review artifact writes only",
+      "Required Orca completion"
+    ],
+    "first429_observed": false,
+    "approval_refusal_observed": false
+  },
+  "current_coordinate_from_root_control": {
+    "stage_id": "R1",
+    "workpack_id": "WP-R1-U3",
+    "gate": "S3_P4_OFFLINE_INTEGRATION_PREPARATION",
+    "state": "RUNNING"
+  },
+  "development_outline": [
+    {
+      "stage_id": "V0-S0",
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "implementation": "ARCHIVED",
+      "machine_acceptance": "NO_GO_HISTORICAL",
+      "independent_review": "COMPLETED_WITH_BLOCKERS",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "V0-S1",
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "R0",
+      "completed_substeps": 1,
+      "total_substeps": 2,
+      "implementation": "PARTIAL_REUSED",
+      "machine_acceptance": "SINGLE_IMAGE_SUBSET_ONLY",
+      "independent_review": "NO_SEPARATE_R0_VERDICT",
+      "human_signoff": "NO_SEPARATE_R0_SIGNOFF"
+    },
+    {
+      "stage_id": "R1a",
+      "completed_substeps": 5,
+      "total_substeps": 5,
+      "implementation": "DELIVERED",
+      "machine_acceptance": "ACCEPTED_SCOPE_ONLY",
+      "independent_review": "COMPLETED",
+      "human_signoff": "APPROVED"
+    },
+    {
+      "stage_id": "V0-S2",
+      "completed_substeps": 7,
+      "total_substeps": 8,
+      "implementation": "IMPLEMENTED",
+      "machine_acceptance": "COMPLETE_FIXED9_PASSED",
+      "independent_review": "COMPLETE_FATAL0_MAJOR0_MINOR0",
+      "human_signoff": "PENDING"
+    },
+    {
+      "stage_id": "V0-S3",
+      "completed_substeps": 0,
+      "total_substeps": 6,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R1",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "EARLY_SLICE_IMPLEMENTED_FULL_R1_PENDING",
+      "machine_acceptance": "EARLY_SLICE_UM10_ONLY",
+      "independent_review": "EARLY_SLICE_FATAL0_MAJOR0",
+      "human_signoff": "EARLY_SLICE_APPROVED_FULL_R1_PENDING"
+    },
+    {
+      "stage_id": "V1-M1",
+      "completed_substeps": 0,
+      "total_substeps": 3,
+      "implementation": "DESIGN_ONLY",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R2",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R3",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R4",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5a",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5b",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    },
+    {
+      "stage_id": "R5c",
+      "completed_substeps": 0,
+      "total_substeps": 4,
+      "implementation": "NOT_DELIVERED",
+      "machine_acceptance": "NOT_RUN",
+      "independent_review": "NOT_RUN",
+      "human_signoff": "NOT_SIGNED"
+    }
+  ],
+  "write_scope": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/native-custody-correction-20/test-review-01/review-result",
+  "remaining_work": "Resolve M2/M3 together; independent static candidate review; separately root-frozen finite runtime ACK then actual evidence; product/native acceptance outstanding",
+  "skill": "/home/administrator/.agents/skills/orchestration/SKILL.md; orca-ide skills get orchestration",
+  "agent_cleanup": "worker_done settles assignment only; physical lifecycle belongs to coordinator",
+  "artifacts": {
+    "01-binding-denominator.txt": {
+      "sha256": "fc40bb67affb77c4f5ad94fa22ee7409ddf9848a437383fab55055932b47f188",
+      "bytes": 57436,
+      "candidate_git_commit": "206a7fe7f21343d89ca83e03a0e4dc7e670cd381"
+    },
+    "02-full-candidate10-numbered.txt": {
+      "sha256": "e00bd22f6d060c0734753765731731a16c3f0bf36d946e91eeff357fcb852b42",
+      "bytes": 482150,
+      "candidate_git_commit": "206a7fe7f21343d89ca83e03a0e4dc7e670cd381"
+    },
+    "03-prior15-19-assertions-full-diffs.txt": {
+      "sha256": "e8e246369cef290ea0c670440c919b135d774073e16cd99ed651c98fd3ebabdd",
+      "bytes": 1033524,
+      "candidate_git_commit": "206a7fe7f21343d89ca83e03a0e4dc7e670cd381"
+    },
+    "04-full-prior19-evidence-and-authority-numbered.txt": {
+      "sha256": "ff8af1b8643bed90e5ee7a48a5c626046ff8eb961258cbf1991628f73f416a80",
+      "bytes": 3255691,
+      "candidate_git_commit": "206a7fe7f21343d89ca83e03a0e4dc7e670cd381"
+    },
+    "05-other-bound-sources-numbered.txt": {
+      "sha256": "1ce38d5f83fef0f673df3c3ca7b7f61bef9bd6be8e2a6168853320b8c90249db",
+      "bytes": 867971,
+      "candidate_git_commit": "206a7fe7f21343d89ca83e03a0e4dc7e670cd381"
+    },
+    "06-exception-boundaries-and-calls.txt": {
+      "sha256": "355ac7c0fe59fe24dd1a6b653fe3da09dd5b69bf0aa99bd091a519b951c428cb",
+      "bytes": 8507,
+      "candidate_git_commit": "206a7fe7f21343d89ca83e03a0e4dc7e670cd381"
+    },
+    "07-counterexamples-and-preserved-driver-numbered.txt": {
+      "sha256": "6640344799b8e819dda6768711dad5684335abed188f9fe06d1c6c936ad78331",
+      "bytes": 78057,
+      "candidate_git_commit": "206a7fe7f21343d89ca83e03a0e4dc7e670cd381"
+    },
+    "08-exact-scope-from-delivery19.txt": {
+      "sha256": "8c338331835cff3fb350832a906d06de5b068e51bc1e0aca1c055c87664c3dbd",
+      "bytes": 1061,
+      "candidate_git_commit": "206a7fe7f21343d89ca83e03a0e4dc7e670cd381"
+    },
+    "review.md": {
+      "sha256": "8214d9167dcacf0b94086b9f5791ae593486d91a686dbef2ff9c105a0ea43fa1",
+      "bytes": 23067,
+      "candidate_git_commit": "206a7fe7f21343d89ca83e03a0e4dc7e670cd381"
+    }
+  }
+}
