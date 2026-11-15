@@ -1,0 +1,73 @@
+{
+  "id": "N1-CPU-OUTPUT-BOUNDARY-DESIGN-01",
+  "status": "DRAFT_PENDING_INDEPENDENT_DESIGN_REVIEW_NOT_EXECUTION_AUTHORIZATION",
+  "owner": "root trusted CI executor",
+  "problem": "Existing audit guard blocks native/network/DB but permits historical filesystem writes; environment routing alone is insufficient",
+  "minimal_scope": "Extend existing CPU guard; no new service, worker platform, product API, database or model action",
+  "invariants": [
+    "Guard active before candidate and pytest imports; existing eight denial classes and single bounded trusted ctypes preload unchanged",
+    "Only exact newly-created run root R is writable, with separate N05/F5/T10 evidence subroots and pytest/temp roots below R",
+    "Guard result and runner receipt must reside inside R; stdout/stderr are trusted outer pre-opened log descriptors",
+    "Outside-R mutation denied before side effect; denial recorded and whole run not accepted even when individual tests catch it",
+    "Audit path opens for write/append/create/truncate and directory creation, rename/replace, deletion, link/symlink, permission changes; no blanket /tmp allow",
+    "Resolve relative paths against actual cwd and existing ancestors; symlink escape fails closed. dir_fd relative write cannot be accepted by pretending cwd is its anchor",
+    "Do not weaken O_NOFOLLOW negative semantics or silently transform production syscall arguments. If supported fd-relative mutation cannot be proven correct in this batch, reject it and report limitation",
+    "No inherited arbitrary writable descriptors assumed safe. Explicit stdout/stderr handling, unknown paths/fds fail closed",
+    "No claim this Python guard is an adversarial OS sandbox or proves native Windows writes. Its audited operations and limitations are explicit"
+  ],
+  "admission_tests": [
+    {
+      "case": "owned positive",
+      "expected": "actual owned canary create/write/read and subdirectory mutation succeed"
+    },
+    {
+      "case": "historical absolute and relative paths",
+      "expected": "real attempted overwrite rejected; canary bytes unchanged"
+    },
+    {
+      "case": "rename/delete outside root",
+      "expected": "actual attempted mutation rejected; source/target unchanged"
+    },
+    {
+      "case": "symlink traversal",
+      "expected": "outside canary remains unchanged through inside-root link"
+    },
+    {
+      "case": "dir_fd alias",
+      "expected": "outside descriptor anchor cannot bypass boundary; unsupported operations explicitly denied"
+    },
+    {
+      "case": "old native/network denial classes",
+      "expected": "all eight still denied; preload window count/order intact"
+    },
+    {
+      "case": "runtime denial absorbed by caller",
+      "expected": "run acceptance remains false because denial ledger nonempty"
+    }
+  ],
+  "selftest_budget_design": {
+    "candidate_imports": 0,
+    "product_test_runs": 0,
+    "models": 0,
+    "services": 0,
+    "external_actions": 0,
+    "owned_canary_root": "new unique root only",
+    "max_seconds_proposed": 20,
+    "runs_max_proposed": 1,
+    "requires_frozen_code_command_and_root_ack": true
+  },
+  "prerequisite_for_next_candidate_run": [
+    "independent incident/ownership assessment",
+    "corrected source candidate sealed",
+    "static output-routing inventory includes all six modules and called writer owners",
+    "guard reviewed and finite own-canary selftests actually pass",
+    "new finite plan exact R/env/pins/argv/nodeids/budget/root ACK; spent child never reused"
+  ],
+  "not_claimed": [
+    "candidate pass",
+    "Stage gate pass",
+    "restoration ownership proven",
+    "full source filesystem mutation interception",
+    "hostile-code isolation"
+  ]
+}
