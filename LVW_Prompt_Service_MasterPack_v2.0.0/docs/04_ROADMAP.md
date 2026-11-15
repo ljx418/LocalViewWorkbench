@@ -47,3 +47,7 @@ V0-S0是探测不是产品验收，禁止用完整发布项卡住开工。V0-Min
 [ADR-15](adr/ADR-15-V2-LIBRARY-NAMING.md)采用R3-L1源素材库、R3-L2描述/命名预览、R4-L3文件操作恢复撤销、R4-L4批次/FTS/MCP/离线及质量回归，保留原R3/R4全部子项。当前可完成V2-D0设计，不激活V2业务，原S3→R1→M1→R2顺序与进度不变。L5监控/auto apply/文档/更多容器/跨卷另定。
 
 本章21/30/39为早期快照，ADR12后的canonical基线为29/38/47；本次候选为29/56/65，未激活前不能据旧范围签扩展V2/V3。工作包依赖与新增用例见[35](35_V2_LIBRARY_EXECUTION_AND_ACCEPTANCE.md)；任何指标/运行预算/真实目录仍待绑定，旧硬门限不降低。
+
+## 2026-11-15｜交付路线执行增量
+
+用户已批准[ADR-16](adr/ADR-16-DELIVERY-FLOW.md)与[docs36执行修订](36_DELIVERY_WORKFLOW_REBASELINE.md)。O1/O2/O6立即作用于新候选的执行规则，O3最小拆分、O4依赖审计及O5有限pilot逐包准入；本节覆盖此前把全部优化一概写成未批准的表述，但不追溯批准docs25的安装树校验次数或性能样本缩减方案。正式R1/M1/R2退出顺序、Stage完成数、189组件及29产品最终分母、真实质量/资源/授权/人签不变。实际开发前置按plans/v1-workpack-development-map.json逐项Gate0验证，不以路线表直接启动产品运行。当前优化组件packet的精确命令/候选/guard/预算仍待root封存ACK。

@@ -1,0 +1,99 @@
+{
+  "schema_version": "lvw.workpack-development-map/1",
+  "change_id": "CHANGE-V1-DELIVERY-FLOW-01",
+  "status": "DEPENDENCY_AUDIT_DESIGN_NOT_PRODUCT_ADMISSION",
+  "base_plan": "plans/v1-revised-plan.json",
+  "base_plan_sha256": "5677a11bbf5b61759bd1f98181bee3bd43211c402f39a7f514fda55a679bb3ef",
+  "formal_stage_dag_unchanged": true,
+  "one_active_implementation_stage": true,
+  "routes": [
+    {
+      "slice": "persistence-and-revisions",
+      "maps_to": [
+        "R1-A",
+        "R1-B"
+      ],
+      "coding_requires": [
+        "public DTO/schema/SQLite migration Gate0",
+        "single owner/file scope and offline test plan"
+      ],
+      "live_requires": [
+        "native safety admission if starting real services",
+        "finite child authorization"
+      ],
+      "formal_exit_requires": [
+        "existing R1 full contract including R1-C/D"
+      ],
+      "not_required_for_offline_preparation": [
+        "S3 release packaging already completed"
+      ]
+    },
+    {
+      "slice": "shot-boundaries-and-timeline",
+      "maps_to": [
+        "M1-A"
+      ],
+      "coding_requires": [
+        "R1-A/B interfaces frozen and necessary persistence verified",
+        "PTS/boundary contract and Stage packet admission",
+        "single active implementation Stage"
+      ],
+      "live_requires": [
+        "bounded actual decoder/runtime preflight",
+        "fixed candidate/sample/budget binding"
+      ],
+      "formal_exit_requires": [
+        "full R1 required formal dependency",
+        "MS01-MS08 at M1 exit"
+      ],
+      "status": "ROOT_GATE0_DEPENDENCY_AUDIT_PENDING"
+    },
+    {
+      "slice": "per-shot-observations",
+      "maps_to": [
+        "M1-B",
+        "R2-A minimal child-job subset"
+      ],
+      "coding_requires": [
+        "M1-A boundaries/evidence identity",
+        "serial child job/CAS contract frozen"
+      ],
+      "live_requires": [
+        "one GPU slot and native cleanup gates",
+        "finite representative pilot then full fixed matrix"
+      ],
+      "formal_exit_requires": [
+        "existing M1 full gate"
+      ],
+      "status": "ROOT_GATE0_DEPENDENCY_AUDIT_PENDING"
+    },
+    {
+      "slice": "draft-export-recovery-and-V1-exit",
+      "maps_to": [
+        "M1-C",
+        "R1-C",
+        "R2-A",
+        "R2-B",
+        "R2-C",
+        "R2-D"
+      ],
+      "coding_requires": [
+        "actual shared interfaces and ownership frozen"
+      ],
+      "formal_exit_requires": [
+        "all retained S3/R1/M1/R2 obligations",
+        "fixed29 and cumulative compatibility",
+        "independent F0/M0 and required human/release signatures"
+      ],
+      "status": "NOT_STARTED"
+    }
+  ],
+  "audit_requirements": [
+    "classify each dependency as design/coding/live/formal-exit",
+    "bind each satisfied prerequisite to exact candidate/evidence",
+    "do not waive required human signature",
+    "freeze permitted cross-Stage preparation before writing code",
+    "do not reuse historical S2 signoff for broader scope"
+  ],
+  "product_progress_not_incremented": true
+}

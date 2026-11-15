@@ -1,0 +1,49 @@
+{
+  "change_id": "CHANGE-V1-DELIVERY-FLOW-01",
+  "decision": "WORKFLOW_DOCUMENTS_READY_PRODUCT_NOT_ACCEPTED",
+  "checks": [
+    {
+      "name": "workflow",
+      "exit_code": 0,
+      "stdout": "reports/workflow-rebaseline-2026-11-15/checks/workflow.stdout.log",
+      "stderr": "reports/workflow-rebaseline-2026-11-15/checks/workflow.stderr.log"
+    },
+    {
+      "name": "governance",
+      "exit_code": 0,
+      "stdout": "reports/workflow-rebaseline-2026-11-15/checks/governance.stdout.log",
+      "stderr": "reports/workflow-rebaseline-2026-11-15/checks/governance.stderr.log"
+    },
+    {
+      "name": "full-spec",
+      "exit_code": 0,
+      "stdout": "reports/workflow-rebaseline-2026-11-15/checks/full-spec.stdout.log",
+      "stderr": "reports/workflow-rebaseline-2026-11-15/checks/full-spec.stderr.log"
+    },
+    {
+      "name": "v1-plan",
+      "exit_code": 1,
+      "stdout": "reports/workflow-rebaseline-2026-11-15/checks/v1-plan.stdout.log",
+      "stderr": "reports/workflow-rebaseline-2026-11-15/checks/v1-plan.stderr.log"
+    },
+    {
+      "name": "v1-plan-baseline",
+      "exit_code": 1,
+      "stdout": "reports/workflow-rebaseline-2026-11-15/checks/v1-plan-baseline.stdout.log",
+      "stderr": "reports/workflow-rebaseline-2026-11-15/checks/v1-plan-baseline.stderr.log"
+    }
+  ],
+  "workflow_check_count": 88,
+  "legacy_d0_validator": "FAIL10 on current and exact prior Git snapshot; same issue keys, retained not waived",
+  "immutable_product_files_and_old_packets_unchanged": true,
+  "product_progress_unchanged": true,
+  "interrupted_product_source_unchanged": true,
+  "product_or_candidate_executed": false,
+  "model_gpu_service_network_started": false,
+  "historical_major_closed": false,
+  "stage_pass": false,
+  "next_gate": "OPT-A independent obligation review and exact guarded targeted plan freeze/ACK, then approved scoped implementation",
+  "approval": "reports/workflow-rebaseline-2026-11-15/approval.json",
+  "diff_check_final_exit_code": 0,
+  "formatting_correction_log": "checks/diff-check-initial.log"
+}

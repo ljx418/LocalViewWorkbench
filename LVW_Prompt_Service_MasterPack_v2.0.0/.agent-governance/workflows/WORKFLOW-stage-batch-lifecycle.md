@@ -1,8 +1,8 @@
 # WORKFLOW: Stage Batch Lifecycle
 
-版本：1.0.0  
-日期：2026-10-27  
-状态：Review
+版本：1.1.0
+日期：2026-11-15
+状态：Approved governance only; product acceptance separate
 
 ## Actors and prerequisites
 
@@ -57,8 +57,12 @@
 | 缺外部授权 | WAIT_AUTH，不启动外部动作 |
 | 候选改变而沿用旧 evidence SHA | verifier FAIL |
 
-## Assumptions and reality status
+## 2026-10-27 历史假设（非当前坐标）
 
 - 当前仓库没有产品实现和首个 Git commit；并行 worktree 只定义规则，尚不可执行。
 - 当前只验证治理 packet 与负例拒绝能力，未连接 Windows/Comfy/Ollama/GPU。
 - 独立审查尚未发生，因此状态保持 Review，不能升级为 Approved。
+
+## 2026-11-15 当前执行增量
+
+按ADR-16/docs36在Implement内加入受控定向计划封存→真实定向反馈→实现收据→集中独审。辅助诊断按机器政策条件评估，不影响正式固定集合。当前已有产品与Git历史，以上“无首个commit/无产品实现”仅为初始历史记录；当前权威只读execution-control。

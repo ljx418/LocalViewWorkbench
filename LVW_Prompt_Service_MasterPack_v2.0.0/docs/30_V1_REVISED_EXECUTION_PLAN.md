@@ -44,3 +44,7 @@ Gate0按Stage冻结各自scope/合同/离线oracle/实际所需样本与预算�
 
 
 2026-11-12未来V2增量导航：[ADR-15](adr/ADR-15-V2-LIBRARY-NAMING.md)及[33–35](33_V2_PRODUCT_REBASELINE.md)新增候选命名整理目标；本章V1语义、29项与旧设计/收据保持，38/47是未激活增量前的基线，未来候选56/65不反写本章冻结历史。开头状态为当时设计快照，实际签署/在途坐标读取execution-control。
+
+## 2026-11-15｜Workpack开发准入与正式退出分离
+
+用户已批准[ADR-16](adr/ADR-16-DELIVERY-FLOW.md)与[docs36执行修订](36_DELIVERY_WORKFLOW_REBASELINE.md)。O1/O2/O6立即作用于新候选的执行规则，O3最小拆分、O4依赖审计及O5有限pilot逐包准入；本节覆盖此前把全部优化一概写成未批准的表述，但不追溯批准docs25的安装树校验次数或性能样本缩减方案。正式R1/M1/R2退出顺序、Stage完成数、189组件及29产品最终分母、真实质量/资源/授权/人签不变。实际开发前置按plans/v1-workpack-development-map.json逐项Gate0验证，不以路线表直接启动产品运行。当前优化组件packet的精确命令/候选/guard/预算仍待root封存ACK。

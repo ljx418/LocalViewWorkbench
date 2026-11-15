@@ -4,7 +4,7 @@
 
 | Workflow | Spec | Status | Trigger | Primary actor | Last reviewed |
 |---|---|---|---|---|---|
-| Stage batch lifecycle | `WORKFLOW-stage-batch-lifecycle.md` | Review | Frozen Stage Packet | Gate owner | 2026-10-27 |
+| Stage batch lifecycle | `WORKFLOW-stage-batch-lifecycle.md` | Approved governance (ADR-16) | Frozen Stage Packet | Gate owner | 2026-11-15 |
 | LVW V0 product runtime | `workflow_specs/*.spec.json` and `docs/13_V0_IMPLEMENTATION.md` | Draft | User media/manual input | LVW/Comfy/Ollama | 2026-10-27 |
 
 ## By component
@@ -37,3 +37,5 @@
 | PASS | gate owner after complete evidence | next Stage planning only |
 
 未实现产品代码不存在可扫描的生产路由；因此 V0 产品工作流保持 `Draft`，不能标记 `Approved`。
+
+2026-11-15说明：末尾“未实现产品代码”是2026-10-27初始快照，不作为当前结论。实际早期产品已实现并有范围签署，正式阶段进度读取execution-control；本次只激活治理修订。

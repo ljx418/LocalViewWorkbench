@@ -126,3 +126,7 @@ NM-1要求校验器保护全部11个字段映射以及迁移中每处lvw_scene_h
 
 
 2026-11-12未来V2增量导航：[ADR-15](adr/ADR-15-V2-LIBRARY-NAMING.md)及[33–35](33_V2_PRODUCT_REBASELINE.md)新增候选命名整理目标；本章V1语义、29项与旧设计/收据保持，38/47是未激活增量前的基线，未来候选56/65不反写本章冻结历史。开头状态为当时设计快照，实际签署/在途坐标读取execution-control。
+
+## 2026-11-15 流程与内部owner增量
+
+[ADR-16](adr/ADR-16-DELIVERY-FLOW.md)只调整验证反馈、辅助诊断分层与内部职责切分方式。native adapter/run lifecycle/evidence recorder/fixture cleanup职责见docs36；本章公共DTO/Schema/状态机/迁移不因本次流程调整静默变化。实现允许范围先做最小提取、保持外部接口并重新绑定导入pins；存储/修订→时间轴→逐镜头观察的开发准入映射另经Gate0，正式退出依赖与人签保留。

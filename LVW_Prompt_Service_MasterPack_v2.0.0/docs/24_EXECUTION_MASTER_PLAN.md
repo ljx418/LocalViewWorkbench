@@ -256,3 +256,7 @@ C2 读取哈希固定的1.0.4完整九样本清单，保留旧四样本前缀；
 本轮新增未来V2设计线，当前stage/target/WAIT_BUDGET与原outline计数不改。读取[33目标](33_V2_PRODUCT_REBASELINE.md)、[34架构与文件操作协议](34_V2_LIBRARY_ARCHITECTURE.md)、[35执行验收](35_V2_LIBRARY_EXECUTION_AND_ACCEPTANCE.md)及[候选激活状态](../plans/candidates/v2-library/activation.json)。R3-L1/L2、R4-L3/L4纳入原阶段，追加18项候选用例形成56/65，不把设计包或旧30/38门禁当新V2通过。
 
 本章早期表格21/30/39是历史快照；当前生效基线29/38/47及V1在途状态以canonical plans和execution-control为准。V2-D0文档只证明设计准备，不完成R3/R4产品子项；需最终V1复用审计、独审、pilot、具体文件授权和StageGate0后才可业务实施。
+
+## 2026-11-15｜执行索引增量
+
+用户已批准[ADR-16](adr/ADR-16-DELIVERY-FLOW.md)与[docs36执行修订](36_DELIVERY_WORKFLOW_REBASELINE.md)。O1/O2/O6立即作用于新候选的执行规则，O3最小拆分、O4依赖审计及O5有限pilot逐包准入；本节覆盖此前把全部优化一概写成未批准的表述，但不追溯批准docs25的安装树校验次数或性能样本缩减方案。正式R1/M1/R2退出顺序、Stage完成数、189组件及29产品最终分母、真实质量/资源/授权/人签不变。实际开发前置按plans/v1-workpack-development-map.json逐项Gate0验证，不以路线表直接启动产品运行。当前优化组件packet的精确命令/候选/guard/预算仍待root封存ACK。

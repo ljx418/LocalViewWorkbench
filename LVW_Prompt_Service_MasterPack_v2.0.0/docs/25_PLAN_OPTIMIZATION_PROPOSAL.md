@@ -49,3 +49,7 @@ P3 是供应链/同源验证策略变更，不能仅为快而采纳未证明的�
 这项是修正实施假设，不是放宽PRD的23GiB运行硬限。删除固定“已用<=4GiB”与异步读数差<=128MiB的误拦截，改为同设备合法读数的保守free/模型预算；处理本机425MiB未归类差额，贯穿冷基线/取消/卸载证据，避免仅改外层。已有历史原始证据的只读回放支持当前19619MiB free进入受监控尝试；仍不足以签署完整视频/性能。
 
 具体公式、profile、修改触点、边界/负例与可一并批准的一次准入/原未使用完整槽恢复见 `reports/v0-s2/change-request-gpu-admission-01.json`，原始复算见 `reports/v0-s2/gpu-policy-reassessment-01/receipt.json`。项目负责人随后明确批准具体纠偏与有限复验，依据批准决定实施；不复活旧scope，不要求用户按错误4GiB继续清理。实现绑定实际已有ctx2048/predict768，不提高原请求或误称设计4096为实测。
+
+## 2026-11-15｜本次批准与旧提案的区别
+
+用户已批准[ADR-16](adr/ADR-16-DELIVERY-FLOW.md)与[docs36执行修订](36_DELIVERY_WORKFLOW_REBASELINE.md)。O1/O2/O6立即作用于新候选的执行规则，O3最小拆分、O4依赖审计及O5有限pilot逐包准入；本节覆盖此前把全部优化一概写成未批准的表述，但不追溯批准docs25的安装树校验次数或性能样本缩减方案。正式R1/M1/R2退出顺序、Stage完成数、189组件及29产品最终分母、真实质量/资源/授权/人签不变。实际开发前置按plans/v1-workpack-development-map.json逐项Gate0验证，不以路线表直接启动产品运行。当前优化组件packet的精确命令/候选/guard/预算仍待root封存ACK。

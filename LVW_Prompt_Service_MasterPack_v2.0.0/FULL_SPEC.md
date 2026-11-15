@@ -43,6 +43,10 @@ LVW = Visual Prompt & Creative Asset Service。核心是“观察什么、想创
 
 用户已授权新增未来V2目标及详细设计，采用同一单体共享观察，增加源目录、事实描述修订、CPU命名、精确计划和唯一文件写owner。原件写入仅V2登记scope+有效确认例外；不扩大当前V1权限。详见[ADR-15](docs/adr/ADR-15-V2-LIBRARY-NAMING.md)、[目标](docs/33_V2_PRODUCT_REBASELINE.md)和[详细协议](docs/34_V2_LIBRARY_ARCHITECTURE.md)。候选18项追加到现有38/47得到56/65，设计未激活；原29项V1、旧收据/失败/人签不变。
 
+## ADR-16｜2026-11-15 开发反馈与辅助义务分层
+
+用户已批准[交付流程修订](docs/adr/ADR-16-DELIVERY-FLOW.md)。定向验证前置、辅助非关键诊断在严格条件下可独审列Minor、证据差异复用立即生效；最小职责拆分及垂直切片依赖逐包准入。最终189/产品29、硬安全、历史结论与必要人签不变。旧STATIC_ONLY组件约束由新版本packet逐候选替代，不修改旧冻结文件。
+
 ---
 
 <!-- source: docs/01_PRD.md -->
@@ -215,6 +219,10 @@ V1新增SceneRevisionOwner、FrameEvidenceOwner与有界持久化父子任务，
 
 analysis_key的template版本指**分析模板**；命名模板仅参与plan_hash，改命名模板不重推理。创作输出不升级事实；源文件业务ID、物理身份与内容hash分离。native no-replace、短事务intent/文件动作/event、恢复及反向计划完整规范在[34](docs/34_V2_LIBRARY_ARCHITECTURE.md)。候选设计未激活，原件写权限不从V1继承。
 
+## 2026-11-15 最小职责分离
+
+ADR-16/docs36将native平台原语、run生命周期、证据记录、测试夹具清理分清唯一owner。保持同一FastAPI/SQLite/Ollama单体；先逻辑隔离及最小夹具helper提取，允许文件范围由新packet冻结。不得把本设计当成生产broker重写或提前引入V2/V3平台的授权。
+
 ---
 
 <!-- source: docs/04_ROADMAP.md -->
@@ -268,6 +276,10 @@ V0-S0是探测不是产品验收，禁止用完整发布项卡住开工。V0-Min
 [ADR-15](docs/adr/ADR-15-V2-LIBRARY-NAMING.md)采用R3-L1源素材库、R3-L2描述/命名预览、R4-L3文件操作恢复撤销、R4-L4批次/FTS/MCP/离线及质量回归，保留原R3/R4全部子项。当前可完成V2-D0设计，不激活V2业务，原S3→R1→M1→R2顺序与进度不变。L5监控/auto apply/文档/更多容器/跨卷另定。
 
 本章21/30/39为早期快照，ADR12后的canonical基线为29/38/47；本次候选为29/56/65，未激活前不能据旧范围签扩展V2/V3。工作包依赖与新增用例见[35](docs/35_V2_LIBRARY_EXECUTION_AND_ACCEPTANCE.md)；任何指标/运行预算/真实目录仍待绑定，旧硬门限不降低。
+
+## 2026-11-15｜交付路线执行增量
+
+用户已批准[ADR-16](docs/adr/ADR-16-DELIVERY-FLOW.md)与[docs36执行修订](docs/36_DELIVERY_WORKFLOW_REBASELINE.md)。O1/O2/O6立即作用于新候选的执行规则，O3最小拆分、O4依赖审计及O5有限pilot逐包准入；本节覆盖此前把全部优化一概写成未批准的表述，但不追溯批准docs25的安装树校验次数或性能样本缩减方案。正式R1/M1/R2退出顺序、Stage完成数、189组件及29产品最终分母、真实质量/资源/授权/人签不变。实际开发前置按plans/v1-workpack-development-map.json逐项Gate0验证，不以路线表直接启动产品运行。当前优化组件packet的精确命令/候选/guard/预算仍待root封存ACK。
 
 ---
 
@@ -1446,6 +1458,10 @@ C2 读取哈希固定的1.0.4完整九样本清单，保留旧四样本前缀；
 
 本章早期表格21/30/39是历史快照；当前生效基线29/38/47及V1在途状态以canonical plans和execution-control为准。V2-D0文档只证明设计准备，不完成R3/R4产品子项；需最终V1复用审计、独审、pilot、具体文件授权和StageGate0后才可业务实施。
 
+## 2026-11-15｜执行索引增量
+
+用户已批准[ADR-16](docs/adr/ADR-16-DELIVERY-FLOW.md)与[docs36执行修订](docs/36_DELIVERY_WORKFLOW_REBASELINE.md)。O1/O2/O6立即作用于新候选的执行规则，O3最小拆分、O4依赖审计及O5有限pilot逐包准入；本节覆盖此前把全部优化一概写成未批准的表述，但不追溯批准docs25的安装树校验次数或性能样本缩减方案。正式R1/M1/R2退出顺序、Stage完成数、189组件及29产品最终分母、真实质量/资源/授权/人签不变。实际开发前置按plans/v1-workpack-development-map.json逐项Gate0验证，不以路线表直接启动产品运行。当前优化组件packet的精确命令/候选/guard/预算仍待root封存ACK。
+
 ---
 
 <!-- source: docs/25_PLAN_OPTIMIZATION_PROPOSAL.md -->
@@ -1501,6 +1517,10 @@ P3 是供应链/同源验证策略变更，不能仅为快而采纳未证明的�
 这项是修正实施假设，不是放宽PRD的23GiB运行硬限。删除固定“已用<=4GiB”与异步读数差<=128MiB的误拦截，改为同设备合法读数的保守free/模型预算；处理本机425MiB未归类差额，贯穿冷基线/取消/卸载证据，避免仅改外层。已有历史原始证据的只读回放支持当前19619MiB free进入受监控尝试；仍不足以签署完整视频/性能。
 
 具体公式、profile、修改触点、边界/负例与可一并批准的一次准入/原未使用完整槽恢复见 `reports/v0-s2/change-request-gpu-admission-01.json`，原始复算见 `reports/v0-s2/gpu-policy-reassessment-01/receipt.json`。项目负责人随后明确批准具体纠偏与有限复验，依据批准决定实施；不复活旧scope，不要求用户按错误4GiB继续清理。实现绑定实际已有ctx2048/predict768，不提高原请求或误称设计4096为实测。
+
+## 2026-11-15｜本次批准与旧提案的区别
+
+用户已批准[ADR-16](docs/adr/ADR-16-DELIVERY-FLOW.md)与[docs36执行修订](docs/36_DELIVERY_WORKFLOW_REBASELINE.md)。O1/O2/O6立即作用于新候选的执行规则，O3最小拆分、O4依赖审计及O5有限pilot逐包准入；本节覆盖此前把全部优化一概写成未批准的表述，但不追溯批准docs25的安装树校验次数或性能样本缩减方案。正式R1/M1/R2退出顺序、Stage完成数、189组件及29产品最终分母、真实质量/资源/授权/人签不变。实际开发前置按plans/v1-workpack-development-map.json逐项Gate0验证，不以路线表直接启动产品运行。当前优化组件packet的精确命令/候选/guard/预算仍待root封存ACK。
 
 ---
 
@@ -1830,6 +1850,10 @@ Gate0按Stage冻结各自scope/合同/离线oracle/实际所需样本与预算�
 
 2026-11-12未来V2增量导航：[ADR-15](docs/adr/ADR-15-V2-LIBRARY-NAMING.md)及[33–35](docs/33_V2_PRODUCT_REBASELINE.md)新增候选命名整理目标；本章V1语义、29项与旧设计/收据保持，38/47是未激活增量前的基线，未来候选56/65不反写本章冻结历史。开头状态为当时设计快照，实际签署/在途坐标读取execution-control。
 
+## 2026-11-15｜Workpack开发准入与正式退出分离
+
+用户已批准[ADR-16](docs/adr/ADR-16-DELIVERY-FLOW.md)与[docs36执行修订](docs/36_DELIVERY_WORKFLOW_REBASELINE.md)。O1/O2/O6立即作用于新候选的执行规则，O3最小拆分、O4依赖审计及O5有限pilot逐包准入；本节覆盖此前把全部优化一概写成未批准的表述，但不追溯批准docs25的安装树校验次数或性能样本缩减方案。正式R1/M1/R2退出顺序、Stage完成数、189组件及29产品最终分母、真实质量/资源/授权/人签不变。实际开发前置按plans/v1-workpack-development-map.json逐项Gate0验证，不以路线表直接启动产品运行。当前优化组件packet的精确命令/候选/guard/预算仍待root封存ACK。
+
 ---
 
 <!-- source: docs/31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md -->
@@ -1963,6 +1987,10 @@ NM-1要求校验器保护全部11个字段映射以及迁移中每处lvw_scene_h
 
 2026-11-12未来V2增量导航：[ADR-15](docs/adr/ADR-15-V2-LIBRARY-NAMING.md)及[33–35](docs/33_V2_PRODUCT_REBASELINE.md)新增候选命名整理目标；本章V1语义、29项与旧设计/收据保持，38/47是未激活增量前的基线，未来候选56/65不反写本章冻结历史。开头状态为当时设计快照，实际签署/在途坐标读取execution-control。
 
+## 2026-11-15 流程与内部owner增量
+
+[ADR-16](docs/adr/ADR-16-DELIVERY-FLOW.md)只调整验证反馈、辅助诊断分层与内部职责切分方式。native adapter/run lifecycle/evidence recorder/fixture cleanup职责见docs36；本章公共DTO/Schema/状态机/迁移不因本次流程调整静默变化。实现允许范围先做最小提取、保持外部接口并重新绑定导入pins；存储/修订→时间轴→逐镜头观察的开发准入映射另经Gate0，正式退出依赖与人签保留。
+
 ---
 
 <!-- source: docs/32_V1_ACCEPTANCE_AND_AGENT_WORKFLOW.md -->
@@ -2036,6 +2064,10 @@ Codex负责总体/详细架构、合同、验收/协调/审核；Claude实现窗
 
 
 2026-11-12未来V2增量导航：[ADR-15](docs/adr/ADR-15-V2-LIBRARY-NAMING.md)及[33–35](docs/33_V2_PRODUCT_REBASELINE.md)新增候选命名整理目标；本章V1语义、29项与旧设计/收据保持，38/47是未激活增量前的基线，未来候选56/65不反写本章冻结历史。开头状态为当时设计快照，实际签署/在途坐标读取execution-control。
+
+## 2026-11-15｜定向反馈及辅助诊断分层
+
+用户已批准[ADR-16](docs/adr/ADR-16-DELIVERY-FLOW.md)与[docs36执行修订](docs/36_DELIVERY_WORKFLOW_REBASELINE.md)。O1/O2/O6立即作用于新候选的执行规则，O3最小拆分、O4依赖审计及O5有限pilot逐包准入；本节覆盖此前把全部优化一概写成未批准的表述，但不追溯批准docs25的安装树校验次数或性能样本缩减方案。正式R1/M1/R2退出顺序、Stage完成数、189组件及29产品最终分母、真实质量/资源/授权/人签不变。实际开发前置按plans/v1-workpack-development-map.json逐项Gate0验证，不以路线表直接启动产品运行。当前优化组件packet的精确命令/候选/guard/预算仍待root封存ACK。
 
 ---
 
@@ -2305,6 +2337,65 @@ R3：同一正式React入口体验登记/缺失/重绑、描述来源与unknown/
 
 ---
 
+<!-- source: docs/36_DELIVERY_WORKFLOW_REBASELINE.md -->
+
+# 36｜面向用户交付的流程与实施计划修订
+
+2026-11-15生效，CHANGE-V1-DELIVERY-FLOW-01 / [ADR-16](docs/adr/ADR-16-DELIVERY-FLOW.md)。这是现有治理的增量，唯一坐标仍为execution-control；设计、实施、机器检查、独审、人工签署和发布分开。
+
+## 执行闭环
+
+冻结小而完整的owner/义务/允许文件 → 封存候选及受控定向运行计划 → 定向单测和合同负例 → 实现收据 → 集中独审与同根因纠偏 → 相关子树/固定集合checkpoint → 已准入单源真实pilot → 新鲜完整真实验收 → 必要人工签署及普通Git同步。
+
+静态检查用于提前发现形状问题，不作为无限推迟定向执行的前置。已知硬阻断不禁止在相同冻结范围内做隔离、受控的定向复现和修复验证；它继续禁止依赖该义务的真实动作、通过或发布。每次定向运行仍有精确命令/选中节点/guard先行/有限预算/候选与原始日志绑定；不能直接运行未封存pytest。定向结果不计为固定189或产品29通过；固定集合不删、不跳过、不以旧结果拼接。Stage仅在完整条件满足后通过。
+
+## 阻断与辅助技术债
+
+任何生产安全、隐私/授权、原件/人工稿、实际资源泄漏或未知清理、假绿、必要结果或身份缺失、公共入口绕过、固定集合/阈值漂移继续Fatal/Major阻断。
+
+辅助附加诊断仅在真实运行已经FAIL且原始错误、必要raw结果、身份/授权、实际清理事实均可靠时，才可由隔离审查按[机器政策](plans/v1-delivery-workflow.json)评估为Minor；未知信息、实现者自述、只有文件存在、没有执行证据均不能满足例外。Minor登记owner、风险和退出条件；不是忽略失败或补造PASS。旧审查与失败保留，新合同复核不得倒填旧结论。
+
+## 最小架构切分
+
+| 职责 | 必须负责 | 当前调整范围 |
+|---|---|---|
+| native platform adapter | Windows原HANDLE/Job/进程身份与平台原语 | 复用已有broker/custody，不因流程调整重写生产代码 |
+| run lifecycle owner | 原始截止时间、准入/取消/停止、真实资源归属 | 保持唯一owner及原合同，薄接线另冻范围 |
+| evidence recorder | 可信原始命令/结果/失败码、候选绑定、有限落盘与失败状态 | 原始结果和必需事实不可省；辅助重复诊断按政策分层 |
+| fixture-owned cleanup | 测试创建对象的独立有限收尾 | 优先从巨大测试文件最小提取共用辅助函数，新的helper必须进入源码/导入依赖pins |
+
+不引入新的调度平台、服务、消息队列或重复日志框架。单Workpack单实现owner；共享合同/迁移/状态机串行；当前每空间1、项目3个Agent限制不变。
+
+## 逐步落地与退出证据
+
+1. **OPT-A：当前接续准备。** 保存correction23 WIP，核对新义务分层，独立复核阻断与技术债，冻结第一个受控定向计划。当前[优化组件合同](reports/workflow-rebaseline-2026-11-15/optimized-n1-01/contract.json)仅DOC_READY，未允许导入候选或运行。
+2. **OPT-B：当前关键路径收口。** 在新packet下完成仍阻断的N1错误/清理修复，复用23有效改动；必要时最小夹具拆分；定向事实驱动修复而非只提交AST报告。
+3. **OPT-C：集中审查与接线。** 独审复核当前候选，固定189checkpoint、清理及原生准入实际闭合，再实施N2薄接线。Minor辅助细节不得无理由扩大成新平台工程；关键未知继续阻断。
+4. **OPT-D：垂直切片依赖审计。** R1-A/B最小存储/修订 → M1-A时间轴/边界 → M1-B逐镜头人物/场景/动作与最小串行任务 → M1-C草稿/导出及R2完整恢复/运行包。映射见[开发准入表](plans/v1-workpack-development-map.json)。这是目标开发优先级；每次实际写入先验证对应Gate0与前置，正式R1/M1/R2退出依赖不改。
+5. **OPT-E：真实主链。** 安全离线前置和子授权具备后，单个代表性输入跑父托管→服务→分析→取消/释放，再扩大固定质量/资源/故障矩阵。单源不代替最终分母，不扩母授权预算。
+
+S3原质量、兼容/安装回滚与最终交付义务保留。每条依赖分别标记设计/离线编码/本机运行/正式出门，不将包装完成一律作为无依赖代码设计的前置，也不以预备线绕过人签或同时启动两个产品Stage。公共接口未冻结时只允许只读准备。
+
+## 集中纠偏与证据成本
+
+审查台账逐项写生产/夹具/证据层、实际影响、所需oracle与退出条件；一次审完同根因。连续两轮门禁无推进先复核范围/架构/Oracle，再派发，不只增加correction编号。可在同Stage内继续低风险Workpack，集中执行正式checkpoint。遇到硬阻断立即停止依赖动作。
+
+未变生产源码用Git/blob/hash与已审范围/不确定性复用；改动夹具与共享路径必须新验。历史报告只引用路径/哈希，不递归复制。源码、证据交付、导航文档commit区分；文档只改不自动重跑模型。运行证据只有明确影响证明才可复用，不跨运行凑正例。
+
+度量：通过独审的Workpack总成本、真实定向反馈耗时、有效审查/修复轮数、等待队列和可体验链路，不以行数/提交数/静态检查数当产出。本轮不增加庞大指标平台。
+
+## 下一门槛
+
+近期目标是OPT-A的可执行受控定向计划与新合同义务复核，不是重跑旧23或宣布N1通过。原global预算、429首次停止、禁止隐式接手、隔离独审和必要人工签署不变。阶段/版本完成数保持历史原值，V2/V3业务未激活。
+
+## 确定性制度检查
+
+`python3 -B tools/verify_delivery_workflow.py --self-test`检查批准、固定集合/历史pins、Stage/完成数不变、前置顺序和Minor资格负例。它不执行产品、不判断真实证据、不宣布Minor或Stage通过。既有verify_governance和verify_v1_plan继续验证原治理/产品计划；FULL_SPEC仍用tools/build_full_spec.py生成。
+
+辅助义务改版不要求永久保留旧辅助断言形状：固定189个测试身份/顺序不变，仅允许将被新规范明确替代的辅助断言映射为“可靠FAIL、必要原始事实、实际清理和Minor资格”的新Oracle。逐条记录旧/新义务及独审，不删除安全断言、不跳过用例；旧规范运行和新规范运行分别绑定版本。
+
+---
+
 <!-- source: docs/adr/ADR-15-V2-LIBRARY-NAMING.md -->
 
 # ADR-15｜V2 视觉素材理解与可审核命名整理
@@ -2330,3 +2421,21 @@ Consequences：新增原生Windows身份/no-replace/句柄防替换、日志和�
 Tests：RN01–RN18明确生产入口/Oracle/负例/终态/清理，真实原生故障与授权30样本/独立留样、V1和原V2累计回归；当前仅确定性设计验证，未来native/model/UX尚未证明。
 
 Approval：用户产品意图与本次设计落盘指令为依据；设计候选需隔离审查、pilot及正式Gate0；新预算/路径/指标批准记录均null。当前V1 WAIT_BUDGET不受此新任务解除。
+
+---
+
+<!-- source: docs/adr/ADR-16-DELIVERY-FLOW.md -->
+
+# ADR-16｜有界验证反馈与开发准入分层
+
+2026-11-15，用户已批准 CHANGE-V1-DELIVERY-FLOW-01。批准依据：[审计](reports/optimization-audit-2026-11-15.md)，原话与边界：[批准记录](reports/workflow-rebaseline-2026-11-15/approval.json)。
+
+立即生效：O1受控定向验证前置、O2辅助诊断义务分层、O6固定问题台账与证据差异复用。O3职责拆分只做最小内部提取并重新冻结允许文件；O4先做逐Workpack依赖审计；O5只在关键安全和有限运行计划具备后执行代表性pilot。本次不新授运行次数或产品PASS。
+
+定向检查、固定189组件checkpoint、产品29项、人工签署是四个不同层次。运行候选前仍由root封存源码/guard/依赖/命令/预算并ACK；取消“辅助静态细节全部关闭才能启动任何受控定向检查”的循环前置。旧packet原样保留，新候选使用[优化组件合同](reports/workflow-rebaseline-2026-11-15/optimized-n1-01/contract.json)，其运行计划尚未冻结。
+
+产品数据/原件/权限/隐私、实际资源清理、假绿、固定集合或质量阈值、候选和证据身份、必要签署继续阻断。仅当运行已真实FAIL、必要原始结果/原始错误/候选绑定/授权和清理事实均可验证、缺失仅为辅助附加诊断且无产品/假绿风险时，可由隔离审查列Minor技术债，登记owner及退出条件。任何未知均不满足例外，不能由实现者自降级。
+
+旧M2/M3审查不改写，新版本按[义务复核表](reports/workflow-rebaseline-2026-11-15/optimized-n1-01/obligation-review.json)重新取证；当前没有任何Major因本ADR自动关闭。关键事实写入失败或未知清理仍不得PASS。
+
+正式Stage DAG与历史完成数不变；[Workpack开发准入映射](plans/v1-workpack-development-map.json)区分设计、离线编码、本机运行、正式出门。未经Gate0和实际前置验证的路线仍为待激活；单写入Stage、独立审查、人工门槛、429停止及原累计预算不变。不得用开发准入冒充正式验收或签署。

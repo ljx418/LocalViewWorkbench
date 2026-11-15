@@ -1,0 +1,152 @@
+{
+  "schema_version": "lvw.delivery-flow/1",
+  "change_id": "CHANGE-V1-DELIVERY-FLOW-01",
+  "adr": "docs/adr/ADR-16-DELIVERY-FLOW.md",
+  "approval": "reports/workflow-rebaseline-2026-11-15/approval.json",
+  "status": "ACTIVE_GOVERNANCE_EXECUTION_PREPARATION",
+  "immutable_pins": {
+    "plans/tasks.json": "d5f9b332b3af7c32a4c554a2f21fae2214be8d0027cb9ee193b779cf847bf42c",
+    "plans/requirements.json": "e2c1cc1f9a94e8caf29a6e25dec510dec1c790986e61bf2a6b0a58c373430941",
+    "plans/acceptance_cases.json": "44b3aee3f9418aa297b5b4a8756df3195ae3065dc5d5c2966b770b04b8f8ca94",
+    "plans/release_gates.json": "33f9565fc801e350e76ec7c16a836dec953b80746203a1aadf38e5695b05a24c",
+    "plans/v1-revised-plan.json": "5677a11bbf5b61759bd1f98181bee3bd43211c402f39a7f514fda55a679bb3ef",
+    "plans/v1-multishot-contract.json": "61338be990366d995e8b3814b2e49b136475b669378ead4c2f421c4c386070f8",
+    "contracts/openapi.json": "cd9df1bd94a3c4c27476608e4616e9d73e0b64da653973b1225efd902e0eef31",
+    "contracts/lvw.schema.json": "4c0e3383bfa8aa69dfabd323ecb0697ee4d4ddfa51c154eb15baf7107750f718",
+    ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256": "38ca0ae572cc74a412a411635e04f21bce3fdcd29d51456fde677f188dd9f307",
+    ".agent-governance/stages/V1-D0/PAYLOAD_MANIFEST.sha256": "181c08ee7290f5bef02e22b6f7fd3c874c2d404cc8b4ffff84d2148a71f47eb8",
+    "reports/v0-s3/product-gate0/native-custody-correction-23/contract.md": "1eab665ef172ba5c6c387c26e982491e0853e477a30ea5210f2c970971f7599d"
+  },
+  "scope": {
+    "target": "V1",
+    "product_runtime_authorized": false,
+    "historical_findings_rewritten": false,
+    "budget_reset": false,
+    "fixed_component_node_count": 189,
+    "fixed_v1_case_count": 29
+  },
+  "feedback_order": [
+    "freeze_scope_and_oracles",
+    "seal_candidate_and_guarded_targeted_plan",
+    "targeted_tests_and_negative_contracts",
+    "implementation_receipt",
+    "consolidated_independent_review",
+    "stage_checkpoint_fixed_sets",
+    "finite_representative_live_pilot_when_admitted",
+    "fresh_full_acceptance_and_independent_exit",
+    "required_actual_human_signoff_then_git_sync"
+  ],
+  "hard_blockers": [
+    "product_safety_or_privacy",
+    "resource_or_file_cleanup_unknown",
+    "false_green_or_missing_required_result",
+    "fixed_set_or_threshold_drift",
+    "candidate_or_evidence_identity_unverified",
+    "authorization_or_budget_boundary",
+    "production_entry_bypass",
+    "required_human_signature_absent"
+  ],
+  "auxiliary_minor_eligibility": {
+    "affected_layer": "auxiliary_diagnostic",
+    "run_state": "FAIL",
+    "required_true": [
+      "missing_detail_only",
+      "canonical_result_verified",
+      "cleanup_verified",
+      "binding_verified",
+      "authorization_verified",
+      "original_error_preserved",
+      "raw_results_preserved",
+      "does_not_change_product_contract",
+      "not_product_owner"
+    ],
+    "required_false": [
+      "false_green_risk",
+      "product_safety_impact",
+      "unknown_cleanup",
+      "missing_required_result",
+      "fixed_set_drift",
+      "authority_bypass",
+      "implementation_self_approval"
+    ],
+    "decision": "ELIGIBLE_FOR_INDEPENDENT_MINOR_REVIEW_ONLY",
+    "on_missing_or_unknown": "BLOCKING_UNTIL_PROVEN",
+    "historical_major_auto_close": false
+  },
+  "execution_boundaries": {
+    "root_ack_before_any_candidate_import": true,
+    "guard_before_candidate_and_plugins": true,
+    "targeted_results_never_count_as_full189": true,
+    "targeted_and_full_runs_separately_identified": true,
+    "future429": "STOP_WAIT_BUDGET_NO_RETRY_SWITCH_OR_TAKEOVER",
+    "agent_limits": {
+      "per_workspace": 1,
+      "per_project": 3
+    },
+    "same_stage_low_risk_batching": true,
+    "two_rounds_no_exit_movement": "ARCHITECTURE_SCOPE_OR_ORACLE_REVIEW_BEFORE_ANOTHER_REPAIR_LOOP"
+  },
+  "evidence_reuse": {
+    "unchanged_source": "exact Git/blob/hash plus prior review scope and uncertainties",
+    "changed_source": "new candidate and affected/shared path verification",
+    "runtime": "no reuse without explicit impact proof; no cross-run fixed-set stitching",
+    "storage": "append new decisions and reference immutable history; do not recursively duplicate reports"
+  },
+  "architecture": {
+    "stack_unchanged": [
+      "React+TS+Vite",
+      "FastAPI",
+      "SQLite",
+      "Ollama"
+    ],
+    "responsibilities": [
+      "native_platform_adapter",
+      "run_lifecycle_owner",
+      "evidence_recorder",
+      "fixture_owned_cleanup"
+    ],
+    "implementation": "logical separation first; minimal fixture extraction only in newly frozen allowed_paths; no broker rewrite"
+  },
+  "workpack_route": [
+    {
+      "id": "OPT-A",
+      "purpose": "preserve interrupted23, classify obligations, freeze targeted execution plan",
+      "state": "DOC_READY_RUN_PLAN_PENDING",
+      "depends_on": []
+    },
+    {
+      "id": "OPT-B",
+      "purpose": "complete critical N1 fixes with targeted evidence, minimal fixture extraction if needed",
+      "state": "NOT_STARTED",
+      "depends_on": [
+        "OPT-A"
+      ]
+    },
+    {
+      "id": "OPT-C",
+      "purpose": "consolidated independent review and fixed189 checkpoint; then N2 thin wiring",
+      "state": "NOT_STARTED",
+      "depends_on": [
+        "OPT-B"
+      ]
+    },
+    {
+      "id": "OPT-D",
+      "purpose": "minimum R1 persistence/revisions and multishot development dependency audit",
+      "state": "DESIGN_READY_ACTIVATION_PENDING",
+      "depends_on": [
+        "OPT-A"
+      ]
+    },
+    {
+      "id": "OPT-E",
+      "purpose": "single-source real chain then formal cumulative quality/package/human gate",
+      "state": "NOT_STARTED",
+      "depends_on": [
+        "OPT-C"
+      ]
+    }
+  ],
+  "formal_stage_dependencies_unchanged": true,
+  "next_packet": "reports/workflow-rebaseline-2026-11-15/optimized-n1-01/contract.json"
+}

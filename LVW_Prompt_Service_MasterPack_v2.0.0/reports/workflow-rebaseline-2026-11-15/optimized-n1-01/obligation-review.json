@@ -1,0 +1,46 @@
+{
+  "historical_review": "reports/v0-s3/product-gate0/native-custody-correction-22/test-review-01/review-result/review.md",
+  "historical_Fatal": 0,
+  "historical_Major": 2,
+  "historical_status_unchanged": true,
+  "rows": [
+    {
+      "id": "N1-OPT-01",
+      "historical": "M2.a controlled inner writer error may pass",
+      "disposition": "BLOCKING_FALSE_GREEN",
+      "required": "actual error/result consumers reject success; preserve real public oracle"
+    },
+    {
+      "id": "N1-OPT-02",
+      "historical": "M2.a2 recovered proof stale while run fails",
+      "disposition": "INDEPENDENT_RECLASSIFICATION_PENDING",
+      "required": "eligible only if canonical FAIL, identity/raw/core failure and actual cleanup are verified; otherwise blocking"
+    },
+    {
+      "id": "N1-OPT-03",
+      "historical": "M3.c secondary auxiliary failure publication",
+      "disposition": "INDEPENDENT_RECLASSIFICATION_PENDING",
+      "required": "separate missing required failure/cleanup facts from duplicate ancillary detail using active policy; no automatic downgrade"
+    },
+    {
+      "id": "N1-OPT-04",
+      "historical": "M3.c interrupted-start known owner fallback absent",
+      "disposition": "BLOCKING_RESOURCE_SAFETY",
+      "required": "known actual owner is still settled/joined under guarded query failure; no unknown cleanup accepted"
+    }
+  ],
+  "finding_record_required": [
+    "candidate_sha",
+    "spec_version",
+    "production_or_fixture_layer",
+    "trigger",
+    "raw_evidence_refs",
+    "canonical_result",
+    "cleanup_facts",
+    "binding",
+    "classification_reason",
+    "independent_reviewer",
+    "debt_owner_and_exit_condition"
+  ],
+  "no_major_closed_by_document": true
+}

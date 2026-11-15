@@ -36,3 +36,5 @@
 25. 2026-11-12用户明确提出并授权CHANGE-V2-LIBRARY-01未来V2目标与详细设计落盘：本地视觉素材理解/描述标签、可审核命名归档及恢复撤销，见docs/33–35与ADR-15。候选合同/需求/用例在contracts/candidates/v2-library及plans/candidates/v2-library；原R3/R4义务保留，候选V2/V3分母56/65尚未激活。当前V1坐标、已签范围和429停止规则不变；本次不授权V2业务实施、私有素材扫描或原件写入、模型/GPU运行及新增数值门限批准。不得据旧门禁签新增范围PASS。
 
 26. 2026-11-13用户要求清理废弃Agent并限制派生数量：本项目每工作区最多一个存活Agent、项目最多三个（主控/实现/独审各一）；身份未知和等待/空闲实例均占槽。派生前运行容量检查并核对Orca生命周期，先回收再替换。子阶段结束先归档再及时关闭废弃窗口，默认不keep-open；未知退出不释放槽、不批量清理代码/工件。规则见.agent-governance/parallel-execution.md与tools/verify_agent_capacity.py。
+
+27. 2026-11-15用户批准CHANGE-V1-DELIVERY-FLOW-01，见docs/36、ADR-16、plans/v1-delivery-workflow.json与reports/workflow-rebaseline-2026-11-15/approval.json。受控定向检查在集中独审前提供反馈；导入候选前仍先封存guard/命令/节点/预算并root ACK。产品硬安全、假绿、未知清理、关键证据、最终189/29和人签不降。仅已明确FAIL且必要结果/身份/清理可证、缺失纯辅助附加诊断时可独审列Minor，缺信息按阻断；不回改旧Major。按Workpack区分设计/编码/本机运行/正式出门准入，实际边尚须Gate0；单Stage写入、429首次停止、原累计预算保留。新policy覆盖旧组件对所有辅助细节的无条件阻断表述，仅对新冻结候选生效。

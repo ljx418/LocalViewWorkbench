@@ -62,3 +62,7 @@ LVW定位为**本地优先的视觉素材理解与整理工作台**：共享有�
 完整规范从docs生成：`python3 -B tools/build_full_spec.py`，一致性只读检查加`--check`；本轮候选校验：`python3 -B tools/verify_v2_library_design.py`。
 
 V2-D0文档调整已完成，设计独审及聚焦复审F0/M0/m0，Codex已作[文档就绪裁决](reports/v2-library-design-2026-11-12/decision.md)。这仅冻结可实施设计快照，原生能力/pilot/样本/预算及正式Stage准入仍待；未激活V2或恢复当前V1。
+
+## 2026-11-15｜交付流程调整已批准
+
+[新流程与逐步实施](docs/36_DELIVERY_WORKFLOW_REBASELINE.md) · [ADR-16](docs/adr/ADR-16-DELIVERY-FLOW.md) · [机器政策](plans/v1-delivery-workflow.json) · [开发准入映射](plans/v1-workpack-development-map.json)。定向反馈前置、辅助诊断分层和证据差异复用生效；最小职责提取与垂直切片仍逐包冻结，正式Stage依赖/最终分母/安全门槛/人工签署保留。docs25的旧P项按其历史状态，不等于整体获批；本次批准范围以ADR-16为准。

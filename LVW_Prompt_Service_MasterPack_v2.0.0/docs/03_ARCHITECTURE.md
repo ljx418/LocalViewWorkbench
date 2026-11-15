@@ -58,3 +58,7 @@ V1新增SceneRevisionOwner、FrameEvidenceOwner与有界持久化父子任务，
 同一FastAPI/SQLite增加SourceRegistry、AssetDescriptor、NamingCompiler、RenamePlanner、FileOperationService/Journal。最后一项是唯一原件写owner；Repository仍是唯一数据库写边界。浏览器/MCP只用ID与相对展示位置，无新桌面/数据库/微服务。最终V1持久任务与修订须以真实交付核验后复用；现有内存字典不当作库。
 
 analysis_key的template版本指**分析模板**；命名模板仅参与plan_hash，改命名模板不重推理。创作输出不升级事实；源文件业务ID、物理身份与内容hash分离。native no-replace、短事务intent/文件动作/event、恢复及反向计划完整规范在[34](34_V2_LIBRARY_ARCHITECTURE.md)。候选设计未激活，原件写权限不从V1继承。
+
+## 2026-11-15 最小职责分离
+
+ADR-16/docs36将native平台原语、run生命周期、证据记录、测试夹具清理分清唯一owner。保持同一FastAPI/SQLite/Ollama单体；先逻辑隔离及最小夹具helper提取，允许文件范围由新packet冻结。不得把本设计当成生产broker重写或提前引入V2/V3平台的授权。
