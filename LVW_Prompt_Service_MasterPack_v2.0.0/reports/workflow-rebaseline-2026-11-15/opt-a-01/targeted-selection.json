@@ -1,0 +1,59 @@
+{
+  "status": "SELECTION_FROZEN_EXECUTION_NOT_ACKED",
+  "candidate_sha": null,
+  "guard_sha256": "7c8dc5df073c3c8e7eac0899588aa6b24f2f65084bbc73cd33e7e85a2065d764",
+  "nodeids": [
+    "tools/test_v0_s3_native_custody_correction10.py::test_n10_r01_the_control_handle_is_closed_only_after_the_exit",
+    "tools/test_v0_s3_native_custody_correction10.py::test_n10_r02_the_claim_of_the_recovery_and_the_handover_are_exclusive",
+    "tools/test_v0_s3_native_custody_correction10.py::test_n10_r03_every_confirmed_close_notifies_the_owner_of_the_handle",
+    "tools/test_v0_s3_native_custody_correction10.py::test_n10_r04_the_launch_aggregate_finds_the_partial_channel",
+    "tools/test_v0_s3_native_custody_correction10.py::test_n10_r05_an_incomplete_channel_keeps_its_owner_and_the_cancel",
+    "tools/test_v0_s3_native_custody_correction10.py::test_n10_r06_an_expired_or_cancelled_call_performs_no_primitive_call",
+    "tools/test_v0_s3_native_custody_correction10.py::test_n10_r07_the_context_of_the_round_reaches_every_layer",
+    "tools/test_v0_s3_native_custody_correction10.py::test_n10_r08_the_retry_of_a_cancellation_re_reads_the_context",
+    "tools/test_v0_s3_native_custody_correction10.py::test_n10_r09_every_exit_of_the_startup_owner_joins_its_thread",
+    "tools/test_v0_s3_native_custody_correction10.py::test_n10_r10_the_outcome_of_the_generation_wins_over_the_cancellation",
+    "tools/test_v0_s3_native_custody_correction10.py::test_n10_r11_the_overflow_of_the_channel_is_a_named_failure",
+    "tools/test_v0_s3_native_custody_correction10.py::test_n10_r12_the_reader_publishes_its_wait_before_it_waits",
+    "tools/test_v0_s3_native_custody_correction10.py::test_n10_r13_the_fault_is_unlocked_by_the_owner_and_observed_first",
+    "tools/test_v0_s3_native_custody_correction10.py::test_n10_r14_the_closed_obligations_of_the_package_do_not_regress"
+  ],
+  "node_count": 14,
+  "full_checkpoint_node_count": 189,
+  "fixed_full_order_sha256": "583ecdd7cb87c6ea0bb9a8f35241da39bd4a86919ae19ba30c6d03a57acc8619",
+  "selection_rule": "All correction10 groups in inherited full189 order, no runtime selection or skip.",
+  "coverage": {
+    "N1-OPT-01": [
+      "R07 controlled failures, ordinary-vs-write error priority; a passing result alone does not prove every injected writer failure"
+    ],
+    "N1-OPT-02": [
+      "R07 cleanup publication and actual durable verdict; independent raw review needed"
+    ],
+    "N1-OPT-03": [
+      "R01-R14 affected cleanup and error-publication paths; uncovered fault-injection branches remain explicitly open"
+    ],
+    "N1-OPT-04": [
+      "R09 interrupted startup owner/thread cleanup; inspect known owner fallback under query failure"
+    ]
+  },
+  "max_seconds": 300,
+  "batches_max": 1,
+  "automatic_retries": 0,
+  "zero_model_actions": true,
+  "zero_services": true,
+  "zero_database_access": true,
+  "no_new_global_budget": true,
+  "cleanup": [
+    "guard runtime denials empty",
+    "FD identity set no new/reused descriptors",
+    "only MainThread remains",
+    "actual failure retained with raw pytest result",
+    "all output in newly bound attempt01 directory"
+  ],
+  "pending": [
+    "new output-routing Git candidate",
+    "per-file source/dependency pins revalidated",
+    "absolute argv/cwd/env and output paths",
+    "root execution ACK before candidate import"
+  ]
+}
