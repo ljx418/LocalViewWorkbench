@@ -1,0 +1,144 @@
+{
+  "kind": "implementation_completion_receipt",
+  "completion_id": "implementation-completion-01",
+  "scope_id": "OPT-B-07-OFFLINE-COMPLETION-01",
+  "packet": "N1-OPTIMIZED-01",
+  "state": "READY_FOR_REVIEW",
+  "runtime_authorized": false,
+  "base_candidate": "05fec68cb6b19a285e520e8474242b6a3d56d613",
+  "prior_delivery_preserved": {
+    "source_commit": "05fec68cb6b19a285e520e8474242b6a3d56d613",
+    "receipt_commit": "673b8f1",
+    "source_rewritten": false,
+    "prior_receipt_rewritten": false,
+    "append_only_correction_01_rewritten": false
+  },
+  "source_candidate_sha": "ab12b0a01f733403a4986744c77853dbeeee6f68",
+  "source_pins": {
+    "tools/test_v0_s3_native_custody_correction10.py": "dc5dd5644c2304111240763d9b8684f14779227c09915219f3ee4dc5dfe4f8f0",
+    "tools/test_v0_s3_native_custody_cleanup_faults.py": "3ced6b15bf4b9c21c747ba732b05d8720b4e08d04bc6eeeceff4606c4ead60e5"
+  },
+  "exact_diff_against_the_prior_delivery": {
+    "files": [
+      {"path": "LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py", "insertions": 72, "deletions": 19},
+      {"path": "LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_cleanup_faults.py", "insertions": 42, "deletions": 16}
+    ],
+    "other_source_files_changed": [],
+    "production_files_changed": [],
+    "guard_runner_validator_plan_or_config_changed": []
+  },
+  "static_facts": {
+    "method": "read-only git blob inspection, ast.parse and the Git diff only; NO compile, NO import, NO collection and NO run",
+    "exact_189_node_identities_order_signatures_decorators": "unchanged against the 9b6 base AND against the prior delivery 05fec68; 117+16+24+18+14, unique 189",
+    "T10_assert_occurrences_vs_the_9b6_base": {"before": 424, "after": 426, "removed": 0, "added": 2},
+    "supplement_assert_occurrences_vs_the_9b6_base": {"before": 64, "after": 81, "removed": 0, "added": 17},
+    "no_assertion_of_the_9b6_base_removed": true,
+    "other_four_test_modules": "byte-identical to the 9b6 base",
+    "production_sources": {
+      "tools/v0_s3_native_broker.py": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
+      "tools/v0_s3_native_custody.py": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581"
+    },
+    "supplemental_5_identities": "unchanged and a separate denominator"
+  },
+  "static_mapping_of_each_completed_obligation": {
+    "M1": {
+      "region": "tools/test_v0_s3_native_custody_correction10.py - the R07 zero expiry region",
+      "changes": [
+        "the producer seam is a scoped CLASS patch of broker_module.StreamChannel._check_wait, installed around the public start and therefore BEFORE the channel of the round is constructed and before its real reader can start; the instance replacement after the construction could not guarantee the first check",
+        "the class patch filters the EXACT zero context (getattr(self, '_context', None) is zero_session._context) and every other channel keeps the original method untouched",
+        "the original check of the channel runs FIRST and its result and its exception are forwarded unchanged",
+        "the deadline of the round is tightened only when the real producer AND the real pump are both really held, and that premise is now ASSERTED (two added assertions in T10): a round that did not reach both holds fails instead of tightening the deadline anyway",
+        "the ACTUAL publication is observed truthfully: the recorder of the queue wraps the real put and reports the real result or the real error of it, and the state of the channel is read AFTER the put really happened; the previous CHANNEL_STATE_AFTER_PUBLICATION was emitted before the publication and is now emitted inside the put recorder",
+        "the error that the channel really published is recorded as the pump saw it (CHANNEL_ERROR_SEEN_BY_THE_PUMP)",
+        "the producer is released only after the original broker read completed its empty queue and error check, and the cleanup of the region releases the gate of the round, the gate of the frames AND the gate of the producer on every failure path"
+      ],
+      "preserved": [
+        "the real public and default zero round path, the original context tightening and the exact 0 reply and queue waits",
+        "the original deadlines of the product and every original assertion of the 9b6 base",
+        "the real pump and worker identities and the cleanup of the round",
+        "no fake EOF, no timeout extension, no cleared error and no changed threshold"
+      ],
+      "note": "the fixture bound of the hold of the producer is a bound of the FIXTURE and never a deadline of the product"
+    },
+    "M3": {
+      "region": "tools/test_v0_s3_native_custody_cleanup_faults.py - the recorder of the drain of SUP-02",
+      "changes": [
+        "the compatibility counter k1 of the original case is now set at the ACTUAL one shot injection, together with the injection counter, so that the preserved assertion k1 == 1 means what it says and can be satisfied on the completed branch",
+        "the controlled repeat is counted RELATIVE to the number of the forwardings captured before the repeat and not against a fixed number, because the original drain may already repeat its release tuple",
+        "the original third callback of the drain is still really called on every invocation, its real result is still forwarded and recorded, the exact cancellation is still one precreated object and the later one is still distinct"
+      ],
+      "preserved": ["the first exact pending interruption still wins over the distinct later one", "every assertion of the 9b6 base"]
+    },
+    "M4": {
+      "region": "tools/test_v0_s3_native_custody_cleanup_faults.py - SUP-01, SUP-02 and SUP-05, and the observation seam of T10",
+      "changes": [
+        "SUP05 now READS the independently captured references of the interrupted start and asserts the settled owner, the settled thread AND the joined thread against those exact expected objects, and not merely against each other or against a nonnull check",
+        "the observation seam is TRULY inert: the map of the held references is inactive (None) by default and nothing at all is retained, so the ordinary rounds keep no global reference",
+        "every case installs its OWN FRESH map through the evidence context manager and the previous state of the module is restored in the finally of the context manager: no case can qualify with the reference of another one",
+        "the pipe worker of the read end and the reply pump of the custody stay DISTINCT resources: the faulted worker is compared with the observed pipe worker and the two are explicitly asserted to be different objects"
+      ],
+      "preserved": ["the exact O and the exact first K object identity assertions", "the transparent original setters, recorders and their real results"]
+    }
+  },
+  "not_executed": [
+    "candidate import",
+    "pytest collect",
+    "pytest run",
+    "any compile of the candidate or of the supplement",
+    "any execution of the candidate, of the supplement or of any test",
+    "model, GPU, native, service, network, media, database or counter actions",
+    "any change of the guard, the runner, the validator, the plans, the approvals or the configuration",
+    "any change of the production broker or custody",
+    "any read of the unrelated dirty report"
+  ],
+  "pending_dynamic_limits": [
+    "DYNAMIC NOT RUN: the candidate was never executed.  The scoped class seam of the producer, the one shot injection and the exact identity comparisons are DESIGNED against the sources and the raw of the attempt02 and they are UNVERIFIED until root freezes the next finite plan and the independent review reads the new raw.",
+    "the schedule decides the ORDER in which the real producer and the real pump meet the deadline.  The old interleaving is NOT inferred from the new schedule and the new schedule is NOT a proof of the old order; that evidence is exactly what is missing.",
+    "the read worker of the channel may still record a real error under another schedule: the schedule removes the race that the attempt02 hit, it does not remove the possibility of a real timeout, and a timeout that the production really publishes stays a failure.",
+    "the SUP03 prerequisite may still be preempted by the zero region if that region fails again: the case must reach the controlled subcase and the new run has to show it.",
+    "the controlled repeat of the third callback is a labelled repeat of the REAL callback on the ACTUAL fixture resource after the original drain returned; it proves the one shot injection on the repeated branch and it is not an observation of a natural repetition.",
+    "the two added premise assertions of T10 are a NEW qualification premise: they fail a round that did not reach both real holds, and they are not a weakening of any original assertion.",
+    "F06-M2, the pytest alias compatibility, belongs to root and the trusted guard: this delivery did not touch it and the attempt02 feedback stays rejected.",
+    "the five concentrated Majors of the review 94cdd82d and the known Major of the review 86ab300 stay OPEN: this delivery addresses the sources and it closes nothing.",
+    "the historical M2 and M3 of the correction 22 review are not rewritten and the nine native uncertainties of the production review stay unproved"
+  ],
+  "scope_of_this_result": {
+    "is_a_checkpoint": false,
+    "is_a_product_acceptance": false,
+    "is_a_stage_acceptance": false,
+    "major_closed_by_this_delivery": 0,
+    "test_pass_claimed": false,
+    "native_proven": false,
+    "result": "READY_FOR_REVIEW - the source is sealed and the runtime evidence of the change is still missing"
+  },
+  "ten_fields": {
+    "coordinate": "V1/R1/WP-R1-U3/S3_P4",
+    "last_passed_scope": "the unified media UM10 early slice, not the full R1",
+    "current_batch": "the consolidated offline COMPLETION of F06-M1, F06-M3 and F06-M4 is delivered as a sealed source candidate",
+    "blockers": "F06-M2 belongs to root; the dynamic evidence of the new schedule, of the one shot injection and of the exact identities is missing; the historical Majors stay open",
+    "route": "the completion, then the frozen targeted 6 of root, then the concentrated independent review",
+    "remaining": "the new finite plan of root, the new raw, the requalification of the affected negatives, the fixed 189 checkpoint, the admission of the real main chain and the product 29",
+    "next_owner": "root for the scope, the harness and the next plan; ClaudeCode for the frozen test corrections",
+    "authority": "offline implementation only; no runtime ACK, no Stage, no product 29 and no N2 clearance",
+    "evidence": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-06/implementation-completion-01.receipt.json bound to the source candidate ab12b0a",
+    "stop": "READY_FOR_REVIEW - the source is sealed, nothing was executed, no Major is closed and no acceptance is granted"
+  },
+  "development_outline": [
+    {"stage_id": "V0-S0", "completed_substeps": 1, "total_substeps": 2, "implementation": "ARCHIVED", "machine_acceptance": "NO_GO_HISTORICAL", "independent_review": "COMPLETED_WITH_BLOCKERS", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "V0-S1", "completed_substeps": 5, "total_substeps": 5, "implementation": "DELIVERED", "machine_acceptance": "ACCEPTED_SCOPE_ONLY", "independent_review": "COMPLETED", "human_signoff": "APPROVED"},
+    {"stage_id": "R0", "completed_substeps": 1, "total_substeps": 2, "implementation": "PARTIAL_REUSED", "machine_acceptance": "SINGLE_IMAGE_SUBSET_ONLY", "independent_review": "NO_SEPARATE_R0_VERDICT", "human_signoff": "NO_SEPARATE_R0_SIGNOFF"},
+    {"stage_id": "R1a", "completed_substeps": 5, "total_substeps": 5, "implementation": "DELIVERED", "machine_acceptance": "ACCEPTED_SCOPE_ONLY", "independent_review": "COMPLETED", "human_signoff": "APPROVED"},
+    {"stage_id": "V0-S2", "completed_substeps": 7, "total_substeps": 8, "implementation": "IMPLEMENTED", "machine_acceptance": "COMPLETE_FIXED9_PASSED", "independent_review": "COMPLETE_FATAL0_MAJOR0_MINOR0", "human_signoff": "PENDING"},
+    {"stage_id": "V0-S3", "completed_substeps": 0, "total_substeps": 6, "implementation": "NOT_DELIVERED", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "R1", "completed_substeps": 0, "total_substeps": 4, "implementation": "EARLY_SLICE_IMPLEMENTED_FULL_R1_PENDING", "machine_acceptance": "EARLY_SLICE_UM10_ONLY", "independent_review": "EARLY_SLICE_FATAL0_MAJOR0", "human_signoff": "EARLY_SLICE_APPROVED_FULL_R1_PENDING"},
+    {"stage_id": "V1-M1", "completed_substeps": 0, "total_substeps": 3, "implementation": "DESIGN_ONLY", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "R2", "completed_substeps": 0, "total_substeps": 4, "implementation": "NOT_DELIVERED", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "R3", "completed_substeps": 0, "total_substeps": 4, "implementation": "NOT_DELIVERED", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "R4", "completed_substeps": 0, "total_substeps": 4, "implementation": "NOT_DELIVERED", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "R5a", "completed_substeps": 0, "total_substeps": 4, "implementation": "NOT_DELIVERED", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "R5b", "completed_substeps": 0, "total_substeps": 4, "implementation": "NOT_DELIVERED", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "R5c", "completed_substeps": 0, "total_substeps": 4, "implementation": "NOT_DELIVERED", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"}
+  ],
+  "next_owner": "coordinator",
+  "next_action": "root freezes the targeted 6 for the new source candidate ab12b0a and the independent review reads the new raw; this delivery runs nothing, closes no Major and grants no acceptance"
+}
