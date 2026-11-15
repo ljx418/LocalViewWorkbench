@@ -1,0 +1,96 @@
+{
+  "kind": "LVW_OPT_B_02_DIFFERENTIAL_STATIC_REVIEW/1",
+  "candidate_sha": "a9a63cf7f7b5ec52e271639bb6278e54b457805a",
+  "baseline_sha": "62e0d429dd78418220235359d068ae28d7b37e6e",
+  "created_utc": "2026-11-15T08:06:13.328078+00:00",
+  "review_task": "task_cf150e171bf7 / ctx_59e00d3a2d85",
+  "spec": "ADR16 + OPT-B-R07-FIXTURE-SHUTDOWN-02",
+  "scope": {
+    "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-02/scope.json",
+    "sha256": "a96a60d559c5aa52d5ca51bf55a963819581f2e06c642d42c343083cd9893810"
+  },
+  "sources": {
+    "LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py": {
+      "sha256": "0aa352f2a0106e7ac700695b540b01e3a627ea5631e1d66aef80fa7122678dc1",
+      "bytes": 531295,
+      "lines": 10120,
+      "blob": "3a130e8d30fde70518512d43b475edca9fece408",
+      "unchanged_vs_baseline": false
+    },
+    "LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_native_broker.py": {
+      "sha256": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
+      "bytes": 386807,
+      "lines": 8174,
+      "blob": "e24dc5e97fbd215cce8b7c71b5518bafb56af651",
+      "unchanged_vs_baseline": true
+    },
+    "LVW_Prompt_Service_MasterPack_v2.0.0/tools/v0_s3_native_custody.py": {
+      "sha256": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581",
+      "bytes": 114702,
+      "lines": 2470,
+      "blob": "883e7cb1feef6cbb933664565e2cf0a44a403dad",
+      "unchanged_vs_baseline": true
+    }
+  },
+  "source_diff": {
+    "sha256": "fa4b0b98a84e1cdefc2ec1abddfcef7d35144e38f42d747e856e0edde291b460",
+    "added_lines": 189,
+    "deleted_lines": 6,
+    "changed_lines": 195,
+    "changed_source_files": [
+      "LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py"
+    ],
+    "other_module_AST_unchanged_except_R07_and_env_evidence_binding": true,
+    "removed_assert_predicates": 0
+  },
+  "fixed189": {
+    "counts": [
+      117,
+      16,
+      24,
+      18,
+      14
+    ],
+    "ordered_names_signatures_decorators_unchanged": true,
+    "other_four_test_modules_bytes_unchanged": true,
+    "method": "AST parse exact Git blobs as data; no candidate execution/collection"
+  },
+  "evidence_interface": {
+    "environment": "LVW_N1_T10_EVIDENCE_DIR",
+    "module_checks": "strip and reject empty; Path(...).expanduser() only",
+    "freshness_owner": "root frozen plan preflight; module does not verify freshness",
+    "not_runtime_authorization": true
+  },
+  "prior_runtime_review": {
+    "commit": "62dbb5d",
+    "artifact_sha256": {
+      "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-native-custody-optimized-02-runtime/review.md": "5d845ddc867efe25912e0780546b2bdab2e76d44fb537a1953fedaff4c7e718c",
+      "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-native-custody-optimized-02-runtime/findings.json": "8dccc476f3dc28ba73c5feaadc67b37768240fea915ea09d187e0af47041688b",
+      "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/independent-native-custody-optimized-02-runtime/source-binding.json": "516171c47f0f05f44785e4db89c31f5895af103e36abb588c70400ba0cfc142e"
+    },
+    "unchanged": true,
+    "reuse": "M2/M3 static scope, actual attempt02 FAIL and nine native unknowns only; no full rereview"
+  },
+  "runtime": {
+    "status": "NOT_RUN",
+    "new_results_read": false,
+    "candidate_imported": false,
+    "pytest_or_collection": false,
+    "native_model_gpu_service_db": false,
+    "polling": false,
+    "runtime_ack": false,
+    "stage_pass": false
+  },
+  "native_uncertainties": [
+    "N03-R16",
+    "N05-R06",
+    "N05-R07",
+    "N05-R08",
+    "N05-R24",
+    "N07-R08",
+    "N10-R12",
+    "N10-R13",
+    "N10-R14"
+  ],
+  "review_files_only": true
+}

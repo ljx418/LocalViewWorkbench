@@ -1,0 +1,51 @@
+{
+  "candidate_sha": "a9a63cf7f7b5ec52e271639bb6278e54b457805a",
+  "baseline_sha": "62e0d429dd78418220235359d068ae28d7b37e6e",
+  "decision": "CHANGES_REQUIRED_STATIC_PRIORITY_GAP",
+  "counts": {
+    "Fatal": 0,
+    "Major": 1,
+    "Minor": 0
+  },
+  "findings": [
+    {
+      "id": "OPT-R07-CLEANUP-03-PRIORITY",
+      "severity": "Major",
+      "candidate": "a9a63cf7f7b5ec52e271639bb6278e54b457805a",
+      "candidate_sha": "a9a63cf7f7b5ec52e271639bb6278e54b457805a",
+      "baseline": "62e0d429dd78418220235359d068ae28d7b37e6e",
+      "spec": "ADR16 + OPT-B-R07-FIXTURE-SHUTDOWN-02",
+      "layer": "zero fixture final cleanup verification / necessary evidence",
+      "location": "tools/test_v0_s3_native_custody_correction10.py:4546-4571 (especially4550); required publication4668-4674 and priority4679-4683",
+      "trigger": "Real zero body failure O is already unwinding, or stop/cancel earlier retained first interruption K1; shutdown/drain/final close finish, then final worker.is_alive() raises a distinct ordinary E or KeyboardInterrupt K2.",
+      "expected": "Guard the actual liveness/handle/retained verification, mark that owner unknown/error, attempt remaining known owners/verification and necessary publication, then preserve genuine original O > first exact K1 > ordinary proof; unknown cleanup cannot pass.",
+      "actual": "New final verification directly calls worker.is_alive() at4550 outside try/except. E/K2 escapes this finally immediately, skipping later worker/retained checks and the sole zero-salvage publication4668. Final priority4679 is unreachable; E/K2 replaces active O or earlier K1 as propagated primary. Outer parent cleanup may capture E/K2 but does not reconstruct skipped zero-shutdown/handle verification or restore the prior exception priority.",
+      "oracle": "A bounded fault negative at this new actual query must retain exact O or first K1, record E/K2 type/detail and unknown owner state, attempt remaining owners and necessary raw publication, and reject clean proof; do not mask query failure as false liveness.",
+      "negative": "No fault + actual stopped workers and released handles may finish. A query error or unknown liveness never certifies clean; if no O, first pending interruption must still beat later query interruption.",
+      "terminal": "CHANGES_REQUIRED; no new candidate runtime evidence; static normal-path shutdown repair does not close original cleanup Major.",
+      "cleanup": "Original physical shutdown and bounded drain may already have occurred, but final actual owner verification is unknown and required zero facts are not published on this branch. Test fails, so this is exception-priority/required-cleanup-evidence defect, not a claimed ordinary false-PASS.",
+      "evidence": [
+        "git show a9a63cf7f7b5ec52e271639bb6278e54b457805a:LVW_Prompt_Service_MasterPack_v2.0.0/tools/test_v0_s3_native_custody_correction10.py lines4381,4443-4454,4546-4571,4633-4683",
+        "source-binding.json",
+        "prior62dbb5d required cleanup and original exception priority; new diff introduces this unguarded query"
+      ],
+      "classification": "BLOCKING_STATIC_EXCEPTION_PRIORITY_AND_REQUIRED_CLEANUP_FACTS",
+      "classification_reason": "Active scope requires complete errors, first-exception priority and unknown cleanup blocking; not duplicate optional presentation. No actual FAIL/cleanup qualification exists for this candidate to permit Minor.",
+      "uncertainty": "Static reachable branch, not executed. No claim current worker.is_alive normally throws or new normal-path shutdown fails; no invented receipt or runtime result.",
+      "minimum_fix_scope": "Guard only the newly added final per-worker/retained fact collection in this zero finally, append exact errors/interruptions, mark unknown and continue, publish before existing priority. Use existing cleanup error/interruption/verdict mechanisms; no new framework or production edits.",
+      "owner_and_exit_condition": {
+        "owner": "Visible ClaudeCode T10 fixture implementer; root freeze/run owner and isolated reviewer",
+        "exit_condition": "Minimal new-block error handling correction, new exact candidate review, then separately frozen finite normal/fault verification preserving shared bounds and actual cleanup proof."
+      }
+    }
+  ],
+  "OPT-R07-CLEANUP-02": {
+    "explicit_stop_cancel_gap": "CLOSED_STATIC for normal-path actual worker shutdown mechanism",
+    "safe_read_end_order": "repeat production channel.close skips read endpoint while channel reader alive; after-drain repeat uses same production method",
+    "handle_and_retained_check": "normal path checks real worker alive/released and retained lists; results added to real zero proof",
+    "overall_status": "OPEN_STATIC because new final query bypasses required priority/publication; dynamic closure still pending"
+  },
+  "runtime_readiness": "No unconditional static clearance for repair completion; root may freeze bounded reproduction/negative verification under ADR16, but this report issues no runtime ACK and no dependent N2/Stage clearance.",
+  "unverified": "New normal/fault branches NOT_RUN; prior M2/M3 fault negatives and nine native uncertainties unchanged",
+  "stage_pass": false
+}
