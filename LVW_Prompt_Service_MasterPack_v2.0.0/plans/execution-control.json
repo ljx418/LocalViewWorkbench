@@ -1,6 +1,6 @@
 {
   "schema_version": "lvw.execution-control/1",
-  "updated_at": "2026-11-15T17:22:20.454730+00:00",
+  "updated_at": "2026-11-15T17:27:26.865168+00:00",
   "project_id": "lvw-prompt-service",
   "design_version": "2.0.0",
   "target_version": "V1",
@@ -34,8 +34,8 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "Root trusted-control owner; isolated source reviewer; Claude append-only receipt correction",
-  "next_action": "Correct combined02 provenance without runtime. Independently review minimal single-child supervisor and frozen4case conditional selftest; activate only after source readiness. Do not automatically rerun194 or claim old conformance.",
+  "next_owner": "Isolated trusted-stop source reviewer; then root canary activation owner",
+  "next_action": "Producer correction f820fd7 delivered and nine original JSONpointers/hash bindings verified; wait independent supervisor source readiness before any four-case canary. CP10-M1 control remains open; no194rerun.",
   "required_authorization": "ParentCOMPLETE03 covers trusted CPU harness repair and append-only correction. Fourcase runtime activation awaits independent source readiness/root activation ACK, not additional human approval. FirstClaude429 stops implementation worker.",
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
@@ -2451,6 +2451,12 @@
     "cases": 4,
     "budget_seconds": 20,
     "retries": 0,
-    "full194_rerun_authorized": false
+    "full194_rerun_authorized": false,
+    "producer_correction": {
+      "commit": "f820fd74a0e1ec364d18ea329c61470e0bdbf00a",
+      "sha256": "51d3264c94eb24daa9a9d14dd2782658cb09aa5d33cf5bcf62f21d3d6157443f",
+      "root_binding_check": "reports/workflow-rebaseline-2026-11-15/opt-b-13-trusted-stop/producer-correction-binding-check.json",
+      "state": "APPEND_DELIVERED_BINDING_VERIFIED_NOT_CONTROL_CLOSED"
+    }
   }
 }
