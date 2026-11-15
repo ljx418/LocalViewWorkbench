@@ -4466,11 +4466,18 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                 zero_shutdown = []
                 zero_shutdown_workers = []
                 zero_endpoints = []
-                for endpoint_label in ('read', 'write'):
+                # CORRECTION 23 / OPT-B-04 (M1): the endpoints of the
+                # channel of the production are its ``_reader`` and its
+                # ``_writer``: the names of the endpoints are the
+                # attributes of the **real** channel and nothing else.
+                # A missing endpoint is a missing owner and it is never
+                # read as an endpoint that does not exist.
+                for endpoint_label, endpoint_attribute in (
+                        ('read', '_reader'), ('write', '_writer')):
                     endpoint = zero_guarded_query(
                         'channel:%s-endpoint' % endpoint_label,
-                        lambda label=endpoint_label: getattr(
-                            zero_channel, '_' + label, None))
+                        lambda attribute=endpoint_attribute: getattr(
+                            zero_channel, attribute, None))
                     if endpoint is None:
                         continue
                     zero_endpoints.append((endpoint_label, endpoint))
@@ -4490,11 +4497,16 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                                      % (endpoint_label, label),
                                      lambda worker=worker: getattr(
                                          worker, 'name', None))}
+                        # CORRECTION 23 / OPT-B-04 (M1): the **real**
+                        # methods of the worker are really called: the
+                        # lambda calls them and it forwards their result.
+                        # The earlier form only took the bound method and
+                        # never asked the worker to end.
                         for action, call in (
                                 ('stop_accepting',
-                                 lambda worker=worker: worker.stop_accepting),
+                                 lambda worker=worker: worker.stop_accepting()),
                                 ('request_cancel',
-                                 lambda worker=worker: worker.request_cancel)):
+                                 lambda worker=worker: worker.request_cancel())):
                             try:
                                 entry[action] = repr(call())
                             except BaseException as error:  # noqa: BLE001

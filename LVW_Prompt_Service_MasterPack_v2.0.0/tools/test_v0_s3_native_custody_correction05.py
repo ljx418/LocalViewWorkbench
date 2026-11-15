@@ -88,8 +88,25 @@ from tools.test_v0_s3_native_custody_regressions import (  # noqa: E402
 #: batch of the correction 13 stay in the directory of the correction
 #: 13 and they are never overwritten, never deleted and never replaced
 #: by a summary.
-EVIDENCE_DIR = (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'
-                / 'implementation-native-custody-correction-14' / 'evidence')
+#: CORRECTION 23 / OPT-B-04: the evidence root of this module is
+#: **bound to the run**.  The module **requires** an absolute
+#: LVW_N1_N05_EVIDENCE_DIR and it never falls back to a historical root:
+#: the documents of the correction 14 are historical evidence of an
+#: earlier batch and a run of this module never overwrites them, never
+#: deletes them and never replaces them by a summary.
+_N05_EVIDENCE_DIR_ENV = 'LVW_N1_N05_EVIDENCE_DIR'
+_N05_EVIDENCE_DIR_VALUE = os.environ.get(_N05_EVIDENCE_DIR_ENV, '').strip()
+if not _N05_EVIDENCE_DIR_VALUE:
+    raise RuntimeError(
+        'the evidence root of this module is bound to the run: the '
+        'environment %s does not name a fresh evidence root'
+        % (_N05_EVIDENCE_DIR_ENV,))
+_N05_EVIDENCE_DIR_PATH = Path(_N05_EVIDENCE_DIR_VALUE).expanduser()
+if not _N05_EVIDENCE_DIR_PATH.is_absolute():
+    raise RuntimeError(
+        'the evidence root of this module must be an absolute path: %s'
+        % (_N05_EVIDENCE_DIR_VALUE,))
+EVIDENCE_DIR = _N05_EVIDENCE_DIR_PATH
 
 
 def write_phase(phase, document):

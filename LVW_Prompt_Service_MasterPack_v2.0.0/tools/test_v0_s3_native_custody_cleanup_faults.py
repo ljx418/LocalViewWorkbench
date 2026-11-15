@@ -75,8 +75,16 @@ def _final_query_code():
 FINAL_QUERY_CODE = _final_query_code()
 
 
-def _from_final_query(depth=2):
-    """True when the call really comes from the final query of R07."""
+def _from_final_query(depth=3):
+    """True when the call really comes from the final query of R07.
+
+    CORRECTION 23 / OPT-B-04 (M2): the frames between the recorder and
+    the guarded query of the fixture are three: the recorder of the
+    liveness query, the **helper** of the fixture that performs the
+    query, the lambda of the fixture and the guarded query itself.  The
+    helper is therefore at depth 3 and the earlier depth of 2 stopped at
+    the lambda of the fixture - the fault was then never injected.
+    """
     try:
         return sys._getframe(depth).f_code is FINAL_QUERY_CODE
     except ValueError:  # pragma: no cover - the stack is always deep enough
@@ -140,8 +148,10 @@ def _liveness_recorder(original, error, state):
     """
     def is_alive(self):
         state['calls'] += 1
-        if _from_final_query(2):
+        if _from_final_query(3):
             state['injected'] += 1
+            state['faulted'] = self
+            state['faulted_name'] = getattr(self, 'name', None)
             raise error
         return original(self)
 
@@ -169,9 +179,11 @@ def test_n1_sup_01_final_query_preserves_original(tmp_path):
     The callee is expected to FAIL: the success of this negative case is
     the failure of the callee with the exact original.
     """
+    injected_o = AssertionError(O_TOKEN)
+
     def plan(phase, document, index):
         if phase == 'r07-zero-public-chain' and index == 1:
-            return ('after', AssertionError(O_TOKEN))
+            return ('after', injected_o)
         return None
 
     with _case_evidence_root('sup-01') as root:
@@ -187,12 +199,16 @@ def test_n1_sup_01_final_query_preserves_original(tmp_path):
                 t10.test_n10_r07_the_context_of_the_round_reaches_every_layer(
                     tmp_path)
         # the **exact** original left the round and not the error of the
-        # query of the final state
+        # query of the final state: the identity of the object is checked
+        # and not only its type and its token
         assert type(info.value) is AssertionError, (
             'the round left with %s and not with the original failure'
             % (type(info.value).__name__,))
         assert str(info.value) == O_TOKEN, (
             'the round left with a different failure: %s' % (info.value,))
+        assert info.value is injected_o, (
+            'the round left with another failure of the same type and the '
+            'same token: %r' % (info.value,))
         # the fault of the final query really happened and it happened
         # exactly once
         assert state['injected'] == 1, (
@@ -216,22 +232,50 @@ def test_n1_sup_01_final_query_preserves_original(tmp_path):
                    for item in document['cleanup_errors']), (
             'the publication did not retain the error of the final query: %s'
             % (document.get('cleanup_errors'),))
-        # the real owners really ended and their handles were really
-        # released: the round is not a synthetic cleanup success
-        assert document['fixture_handle_proof'] is None, (
-            'the release of the handles failed: %s'
+        # the **unknown** of the failed final query is retained: the round
+        # failed closed, the unknown was never read as a fact and it was
+        # never overwritten by a false one.
+        assert document['fixture_unknown_queries'], (
+            'the unknown of the failed final query was not retained: %s'
+            % (document.get('fixture_unknown_queries'),))
+        assert document['fixture_handle_proof'], (
+            'the unknown of the final query did not fail the round: %s'
             % (document.get('fixture_handle_proof'),))
+        assert document['proof_failure'], (
+            'the failed proof of the cleanup was not retained: %s'
+            % (document.get('proof_failure'),))
         assert document['fixture_retained_workers'] == 0, (
             'the round retained a worker: %s'
             % (document.get('fixture_retained_workers'),))
         assert document['fixture_shutdown'], (
             'the fixture did not shut any worker down')
-        for entry in document['fixture_shutdown']:
-            assert entry['alive_after'] is False, (
-                'a worker of the round is still alive: %s' % (entry,))
-            assert entry['thread_handle_released'] is True, (
-                'the handle of a worker of the round was not released: %s'
-                % (entry,))
+        unknown_entries = [entry for entry in document['fixture_shutdown']
+                           if entry['alive_after'] is None]
+        assert unknown_entries, (
+            'the liveness of the worker of the failed query was not '
+            'unknown: %s' % (document['fixture_shutdown'],))
+        # the **physical** cleanup is proven **independently** of the
+        # unknown: the drain of the round really joined every owner and
+        # every owner is really dead.  That proof never overwrites the
+        # unknown of the final query and it never turns it into a false.
+        assert document['salvage'], (
+            'the drain of the round proved no owner at all')
+        for item in document['salvage']:
+            assert item.get('joined') is True, (
+                'an owner of the round was not joined: %s' % (item,))
+            assert item.get('alive') is False, (
+                'an owner of the round is still alive: %s' % (item,))
+        # the fault really landed on the worker that the fixture really
+        # held: the identity of the worker is checked with its name in
+        # the facts of the shutdown.
+        faulted = state.get('faulted_name')
+        assert faulted, (
+            'the fault of the final query did not name its worker: %s'
+            % (state,))
+        assert faulted in [entry.get('thread')
+                           for entry in document['fixture_shutdown']], (
+            'the fault of the final query did not land on a worker that the '
+            'fixture held: %s' % (state,))
 
 
 def test_n1_sup_02_final_query_preserves_first_interruption(tmp_path):
@@ -253,6 +297,12 @@ def test_n1_sup_02_final_query_preserves_first_interruption(tmp_path):
     def plan(phase, document, index):
         return None
 
+    # CORRECTION 23 / OPT-B-04 (M3/M5): the exact cancellation of the
+    # fixture is **pre-created**: it is one object and it is the object
+    # that the interruption mechanism of the cleanup records.
+    k1_error = KeyboardInterrupt(K1_TOKEN)
+    k2_error = KeyboardInterrupt(K2_TOKEN)
+
     with _case_evidence_root('sup-02') as root:
         state = {'calls': 0, 'injected': 0}
         original_is_alive = broker_module._WindowsPipeWorker.is_alive
@@ -266,13 +316,18 @@ def test_n1_sup_02_final_query_preserves_first_interruption(tmp_path):
             if release is not None and len(release) >= 3 \
                     and not drain_state['k1']:
                 drain_state['k1'] = 1
+                # the **original** third callback of the drain is kept and
+                # it is really called: the real close of the channel of
+                # the round is never omitted and the first gate is never
+                # executed twice.
+                original_third = release[2]
 
                 def k1_release():
-                    # the real release of the gate already happened; the
-                    # exact cancellation of the fixture follows it and the
-                    # interruption mechanism of the cleanup records it.
-                    release[0]()
-                    raise KeyboardInterrupt(K1_TOKEN)
+                    # the original callback is really called and its
+                    # result is forwarded; the exact cancellation of the
+                    # fixture follows it and it is injected **once**.
+                    original_third()
+                    raise k1_error
 
                 release = tuple(release[:2]) + (k1_release,) \
                     + tuple(release[3:])
@@ -287,19 +342,24 @@ def test_n1_sup_02_final_query_preserves_first_interruption(tmp_path):
                                            drain_owners), \
                 unittest.mock.patch.object(
                     broker_module._WindowsPipeWorker, 'is_alive',
-                    _liveness_recorder(original_is_alive,
-                                        KeyboardInterrupt(K2_TOKEN),
+                    _liveness_recorder(original_is_alive, k2_error,
                                         state)):
             with pytest.raises(KeyboardInterrupt) as info:
                 t10.test_n10_r07_the_context_of_the_round_reaches_every_layer(
                     tmp_path)
         # the **first** exact pending interruption left the round and not
-        # the later one
+        # the later one: the identity of the object is checked and not
+        # only its type and its token
         assert type(info.value) is KeyboardInterrupt, (
             'the round left with %s and not with the interruption'
             % (type(info.value).__name__,))
         assert str(info.value) == K1_TOKEN, (
             'the round left with another interruption: %s' % (info.value,))
+        assert info.value is k1_error, (
+            'the round left with another interruption of the same type and '
+            'the same token: %r' % (info.value,))
+        assert k2_error is not k1_error, (
+            'the two interruptions of the case are the same object')
         assert drain_state['k1'] == 1, (
             'the first interruption was never recorded by the mechanism of '
             'the cleanup')
@@ -314,15 +374,33 @@ def test_n1_sup_02_final_query_preserves_first_interruption(tmp_path):
             'the publication lost the first interruption: %s' % (details,))
         assert any(K2_TOKEN in detail for detail in details), (
             'the publication lost the later interruption: %s' % (details,))
-        # the real cleanup of the round is proven
+        # the **unknown** of the failed final query is retained: the round
+        # failed closed and the unknown was never read as a fact.
+        assert document['fixture_unknown_queries'], (
+            'the unknown of the failed final query was not retained: %s'
+            % (document.get('fixture_unknown_queries'),))
+        assert document['fixture_handle_proof'], (
+            'the unknown of the final query did not fail the round: %s'
+            % (document.get('fixture_handle_proof'),))
+        assert document['proof_failure'], (
+            'the failed proof of the cleanup was not retained: %s'
+            % (document.get('proof_failure'),))
+        # the **physical** cleanup is proven **independently** of the
+        # unknown: the drain of the round really joined every owner and
+        # every owner is really dead, and that proof never overwrites the
+        # unknown of the final query.
         assert document['quiescent'] is True, (
             'the round of zero was not quiescent: %s' % (document,))
+        assert document['salvage'], (
+            'the drain of the round proved no owner at all')
+        for item in document['salvage']:
+            assert item.get('joined') is True, (
+                'an owner of the round was not joined: %s' % (item,))
+            assert item.get('alive') is False, (
+                'an owner of the round is still alive: %s' % (item,))
         assert document['fixture_retained_workers'] == 0, (
             'the round retained a worker: %s'
             % (document.get('fixture_retained_workers'),))
-        assert document['fixture_handle_proof'] is None, (
-            'the release of the handles failed: %s'
-            % (document.get('fixture_handle_proof'),))
 
 
 def test_n1_sup_03_inner_writer_error_rejects_success(tmp_path):
@@ -462,11 +540,15 @@ def test_n1_sup_05_held_startup_owner_survives_query_faults(tmp_path):
             self._thread_value = value
 
     inflight_state = {'armed': 0, 'injected': 0, 'calls': 0}
+    # CORRECTION 23 / OPT-B-04 (M5): the exact original of the case is
+    # pre-created and the case compares the **object** that left the
+    # round with it.
+    injected_o = AssertionError(R09_O_TOKEN)
 
     def plan(phase, document, index):
         if phase == 'r09-interrupted-start' and index == 1:
             inflight_state['armed'] = 1
-            return ('after', AssertionError(R09_O_TOKEN))
+            return ('after', injected_o)
         return None
 
     with _case_evidence_root('sup-05') as root:
@@ -486,7 +568,11 @@ def test_n1_sup_05_held_startup_owner_survives_query_faults(tmp_path):
 
         def settle(self, seconds):
             result = original_settle(self, seconds)
-            settle_calls.append((self, seconds))
+            # the **exact** thread of the owner is read **before** the
+            # lookup of the thread starts to fail: the case compares the
+            # thread that the fixture really joined with it.
+            owner_thread = getattr(self, '_thread', None)
+            settle_calls.append((self, seconds, owner_thread))
             if seconds == 5.0:
                 # the settle of the held owner really happened: the
                 # lookup of the thread fails from now on
@@ -519,12 +605,17 @@ def test_n1_sup_05_held_startup_owner_survives_query_faults(tmp_path):
             % (type(info.value).__name__,))
         assert str(info.value) == R09_O_TOKEN, (
             'the round left with another failure: %s' % (info.value,))
+        assert info.value is injected_o, (
+            'the round left with another failure of the same type and the '
+            'same token: %r' % (info.value,))
         assert inflight_state['injected'] == 1, (
             'the error of the query of the owners in flight was not injected '
             'exactly once: %s' % (inflight_state,))
         assert lookup_state['armed'] == 1, (
             'the settle of the held owner never happened: %s' % (settle_calls,))
-        # the real settle of the held owner really happened
+        # the real settle of the held owner really happened: the query of
+        # the owners in flight really failed, so the owner that the
+        # fixture held is the only owner that it settled.
         held_settles = [item for item in settle_calls if item[1] == 5.0]
         assert held_settles, (
             'the fixture never settled the owner that it held: %s'
@@ -537,6 +628,17 @@ def test_n1_sup_05_held_startup_owner_survives_query_faults(tmp_path):
             % (join_calls,))
         assert held_joins[0][1] is not None, (
             'the join of the held thread had no thread: %s' % (held_joins,))
+        # the **identity** of the held owner and of its thread: the join
+        # really joined the thread of the owner that the fixture settled,
+        # and it is checked with ``is`` and not with a name or a token.
+        settled_owner, _settled_seconds, settled_thread = held_settles[0]
+        assert settled_thread is not None, (
+            'the held owner had no thread of its own: %s' % (held_settles,))
+        assert held_joins[0][1] is settled_thread, (
+            'the fixture joined another thread than the one of the owner '
+            'that it held: %s' % (held_joins,))
+        assert settled_owner is not None, (
+            'the settle of the held owner had no owner: %s' % (held_settles,))
         # the failure evidence of the cleanup survives and the known
         # liveness is dead
         document = _read_document(root, 'r09-interrupted-start')
