@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -92,6 +93,47 @@ class PromptSpec(StrictModel):
     negative: str
     template_id: str
     template_version: str
+
+
+class Shot(StrictModel):
+    """The canonical manual shot: a working draft and a head revision."""
+
+    id: str = Field(min_length=1, max_length=128)
+    title: str
+    media_ref_id: str | None
+    spec: PromptSpec
+    etag: str = Field(min_length=1, max_length=128)
+    head_revision_id: str | None
+
+
+class ShotCreate(StrictModel):
+    """The canonical body of a shot creation and of a draft update."""
+
+    title: str
+    media_ref_id: str | None
+    spec: PromptSpec
+
+
+class Revision(StrictModel):
+    """The canonical immutable revision of a shot."""
+
+    id: str = Field(min_length=1, max_length=128)
+    shot_id: str = Field(min_length=1, max_length=128)
+    parent_id: str | None
+    author: Literal["human", "model_adopted", "imported"]
+    spec_snapshot: PromptSpec
+    content_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    created_at: datetime
+    source_run_id: str | None
+
+
+class RevisionCreate(StrictModel):
+    """The canonical body of an appended revision."""
+
+    shot_id: str = Field(min_length=1, max_length=128)
+    parent_id: str | None
+    author: Literal["human", "model_adopted", "imported"]
+    spec_snapshot: PromptSpec
 
 
 class ModelRun(StrictModel):

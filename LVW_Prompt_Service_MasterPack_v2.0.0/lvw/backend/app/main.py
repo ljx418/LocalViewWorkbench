@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 import uuid
 
-from fastapi import BackgroundTasks, FastAPI, Header, Request, UploadFile
+from fastapi import BackgroundTasks, FastAPI, Header, Query, Request, Response, UploadFile
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -11,10 +11,13 @@ from .config import Settings
 from .build_info import build_id
 from .errors import AppError
 from .media import MediaStore
-from .models import AnalyzeRequest
+from .models import AnalyzeRequest, RevisionCreate, ShotCreate
 from .provider import OllamaProvider
+from .repositories import Repository
 from .runtime import OllamaRuntime
 from .service import AnalysisService
+from .shots import ShotService
+from .storage import Database
 from .body_limit import RequestBodyLimit, MAX_UPLOAD_REQUEST_BYTES, BodyLimitExceeded
 from urllib.parse import urlsplit
 
@@ -26,11 +29,15 @@ def envelope(data, request_id: str) -> dict:
     return {"data": value, "request_id": request_id, "schema_version": SCHEMA_VERSION}
 
 
-def create_app(settings: Settings | None = None, provider=None, runtime=None) -> FastAPI:
+def create_app(settings: Settings | None = None, provider=None, runtime=None,
+               database=None) -> FastAPI:
     identity = build_id()
     settings = settings or Settings.local()
     settings.data_root.mkdir(parents=True, exist_ok=True)
-    media = MediaStore(settings.data_root)
+    database = database or Database(settings.data_root / "lvw.sqlite3")
+    repository = Repository(database)
+    media = MediaStore(settings.data_root, repository)
+    shots = ShotService(database, repository)
     provider = provider or OllamaProvider(settings.ollama_endpoint, settings.model,
                                           settings.request_timeout_seconds)
     runtime = runtime or OllamaRuntime(provider, settings.ollama_executable, settings.data_root)
@@ -40,7 +47,9 @@ def create_app(settings: Settings | None = None, provider=None, runtime=None) ->
     app.state.media = media
     app.state.analysis = service
     app.state.runtime = runtime
-    app.state.upload_keys = {}
+    app.state.database = database
+    app.state.repository = repository
+    app.state.shots = shots
     app.router.add_event_handler("shutdown", service.close)
     app.router.add_event_handler("shutdown", runtime.close)
 
@@ -123,16 +132,47 @@ def create_app(settings: Settings | None = None, provider=None, runtime=None) ->
     @app.post("/api/v1/media", status_code=201)
     async def upload_media(request: Request, file: UploadFile,
                            idempotency_key: str = Header(min_length=1, max_length=128)):
-        ref = await media.ingest(file)
-        existing = app.state.upload_keys.get(idempotency_key)
-        if existing:
-            if existing.sha256 != ref.sha256:
-                media.discard(ref.id)
-                raise AppError("IDEMPOTENCY_CONFLICT", "幂等键已用于其他媒体", status_code=409)
-            media.discard(ref.id)
-            return envelope(existing, request.headers.get("X-Request-ID") or uuid.uuid4().hex)
-        app.state.upload_keys[idempotency_key] = ref
+        ref = await media.ingest(file, idempotency_key=idempotency_key)
         return envelope(ref, request.headers.get("X-Request-ID") or uuid.uuid4().hex)
+
+    @app.post("/api/v1/shots", status_code=201)
+    async def create_shot(body: ShotCreate, request: Request,
+                           idempotency_key: str = Header(min_length=1, max_length=128)):
+        shot = shots.create_shot(body, idempotency_key=idempotency_key)
+        return envelope(shot, request.headers.get("X-Request-ID") or uuid.uuid4().hex)
+
+    @app.get("/api/v1/shots/{id}")
+    async def get_shot(id: str, request: Request, response: Response):
+        shot = shots.get_shot(id)
+        response.headers["ETag"] = shot.etag
+        return envelope(shot, request.headers.get("X-Request-ID") or uuid.uuid4().hex)
+
+    @app.put("/api/v1/shots/{id}")
+    async def update_shot(id: str, body: ShotCreate, request: Request, response: Response,
+                          if_match: str | None = Header(default=None, alias="If-Match")):
+        shot = shots.update_shot(id, body, if_match=if_match)
+        response.headers["ETag"] = shot.etag
+        return envelope(shot, request.headers.get("X-Request-ID") or uuid.uuid4().hex)
+
+    @app.post("/api/v1/prompts/revisions", status_code=201)
+    async def create_revision(body: RevisionCreate, request: Request,
+                              idempotency_key: str = Header(min_length=1, max_length=128),
+                              if_match: str | None = Header(default=None, alias="If-Match")):
+        revision = shots.append_revision(body, idempotency_key=idempotency_key,
+                                         if_match=if_match)
+        return envelope(revision, request.headers.get("X-Request-ID") or uuid.uuid4().hex)
+
+    @app.get("/api/v1/prompts/revisions")
+    async def list_revisions(request: Request, shot_id: str = Query(...),
+                              limit: int | None = Query(default=None, ge=1, le=100),
+                              cursor: str | None = Query(default=None)):
+        page = shots.list_revisions(shot_id, limit=limit, cursor=cursor)
+        return envelope(page, request.headers.get("X-Request-ID") or uuid.uuid4().hex)
+
+    @app.get("/api/v1/prompts/revisions/{id}")
+    async def get_revision(id: str, request: Request):
+        revision = shots.get_revision(id)
+        return envelope(revision, request.headers.get("X-Request-ID") or uuid.uuid4().hex)
 
     @app.post("/api/v1/jobs/analyze", status_code=202)
     async def analyze(body: AnalyzeRequest, request: Request, background_tasks: BackgroundTasks,
