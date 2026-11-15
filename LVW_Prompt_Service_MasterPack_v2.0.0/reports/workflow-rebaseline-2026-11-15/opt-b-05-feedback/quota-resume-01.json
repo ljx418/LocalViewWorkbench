@@ -1,0 +1,37 @@
+{
+  "kind": "USER_CONFIRMED_QUOTA_RESUMED_RECEIPT_COMPLETION_ONLY",
+  "user_instruction": "ClaudeCode额度已恢复，继续原任务",
+  "recorded_utc": "2026-11-15T13:29:39.168064+00:00",
+  "original_dispatch": "ctx_9b7475dacdaf",
+  "original_task": "task_5f14411804fa",
+  "candidate_sha": "9b6d9d4b827587d132eaf20e2b838d449ed89bd3",
+  "prior_stop_record": "budget-stop-429.json",
+  "guard_already_spent": true,
+  "allowed": [
+    "One previously unexecuted exact outer_validation argv,5sec,only if still absent",
+    "Read-only source/history/post-status metadata validation",
+    "Write new terminal receipt and seal exact current-run artifacts"
+  ],
+  "forbidden": [
+    "repeat guarded batch or collect/pytest",
+    "modify source/oracle/guard/approval configuration",
+    "model/provider switch/root product implementation takeover",
+    "loop on approval refusal or429"
+  ],
+  "outer_validation": {
+    "argv": [
+      "/usr/bin/python3.12",
+      "-I",
+      "-B",
+      "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-01/validate_feedback.py",
+      "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-05-feedback/combined-plan-05/plan.json",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-05/combined01/guard.json",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-05/combined01/native-custody-correction-03.receipt.json",
+      "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-native-custody-optimized-05/combined01/outer-decision.json"
+    ],
+    "max_seconds": 5,
+    "hard_veto": "Any nonempty or missing guard denial ledger, required raw/selected node missing, failed checks or unknown cleanup rejects. Outer accepted_cpu_feedback never product PASS."
+  },
+  "remaining_full_batches_added": 0,
+  "approval_boundary": "Quota restored permits resuming the original task, never overriding automatic approval rejection. If rejected again stop immediately and report."
+}

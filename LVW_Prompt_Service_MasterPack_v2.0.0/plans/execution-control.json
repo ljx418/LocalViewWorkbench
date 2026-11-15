@@ -1,6 +1,6 @@
 {
   "schema_version": "lvw.execution-control/1",
-  "updated_at": "2026-11-15T09:13:10.496200+00:00",
+  "updated_at": "2026-11-15T13:29:39.168064+00:00",
   "project_id": "lvw-prompt-service",
   "design_version": "2.0.0",
   "target_version": "V1",
@@ -9,7 +9,7 @@
     "stage_id": "R1",
     "workpack_id": "WP-R1-U3",
     "gate": "S3_P4_OFFLINE_INTEGRATION_PREPARATION",
-    "state": "BLOCKED"
+    "state": "RUNNING"
   },
   "last_passed_gate": {
     "gate": "UNIFIED_MEDIA_FIXED_UM10_AND_INDEPENDENT_REVIEW",
@@ -21,7 +21,7 @@
     "passed_cases": 10,
     "human_signoff": "reports/unified-media/human-signoff-live15.json"
   },
-  "current_blocking_gate": "CLAUDECODE_FIRST429_WAIT_BUDGET",
+  "current_blocking_gate": "S3_P4_INTERRUPTED_RECEIPT_COMPLETION_THEN_GUARD_COMPATIBILITY",
   "stage_packet": ".agent-governance/stages/R1/stage-control.json",
   "stage_packet_manifest": ".agent-governance/stages/R1/PAYLOAD_MANIFEST.sha256",
   "product_status": "UNIFIED_MEDIA_EARLY_ACCEPTED_SCOPE_ONLY_FULL_R1_PENDING",
@@ -34,9 +34,9 @@
     "PRODUCTION_RELEASED",
     "TARGET_HARDWARE_TESTED"
   ],
-  "next_owner": "Human quota restoration notification, then original ClaudeCode worker; no root takeover",
-  "next_action": "STOP: no retry/provider switch/new implementation/review run. After explicit quota-restored notification resume original interrupted task for receipt/postchecks, preserve spent05 outcome, then pending minimal guard02 correction route.",
-  "required_authorization": "No duplicate V1 runtime approval requested. Wait for explicit ClaudeCode quota-restored notification, or explicit user authorization for root implementation takeover.",
+  "next_owner": "Original visible ClaudeCode executor, then isolated guard reviewer",
+  "next_action": "Resume existing dispatch for missing outer validation once plus postchecks/terminal receipt only; preserve failedguard05/call0. Then new guard02 readiness and fresh finite plan.",
+  "required_authorization": "User explicitly confirmed quota restored; original finite receipt/postcheck scope resumes, no new fullbatch/no root takeover. First new429 stops.",
   "authorization_request": "reports/authorization-program-v1-complete-03.request.json",
   "authorization_record": "reports/authorization-program-v1-complete-03.approval.json",
   "read_only_binding_authorization": "reports/v0-s2/authorization-binding-inventory-06.json",
@@ -87,7 +87,7 @@
   "historical_independent_review": "reports/r1a/independent-review-r1a-live-06.md",
   "live_terminal_receipt": "reports/unified-media/live-15/receipt.json",
   "independent_review": "reports/unified-media/independent-live-15/review.md",
-  "exact_stop_reason": "First ClaudeCode429 TokenPlan exhausted (2056), auto-mode classifier unavailable. Per user hard-stop rule stop all further development/validation. Actual combined05 call0, pytest setup /dev/null denied, CPU cleanuptrue; outer-denial receipt status captured in quota-stop artifact. No Stage or N2 release.",
+  "exact_stop_reason": "Quota restore notification received. Recovering original interrupted task without rerunning spent05 guard. Product Major and Stage hold remain.",
   "native_component_authorization": "reports/v0-s2/authorization-native-component-02.json",
   "native_component_terminal_receipt": "reports/v0-s2/native-component-02/receipt.json",
   "local_control_change_decision": "reports/v0-s2/change-decision-video-workbench-01.json",
@@ -2277,7 +2277,7 @@
     "change_id": "CHANGE-V1-DELIVERY-FLOW-01",
     "phase": "SCOPED_EXECUTION",
     "approval": "reports/workflow-rebaseline-2026-11-15/approval.json",
-    "next_workpack": "WAIT_BUDGET_CLAUDECODE_RESTORATION",
+    "next_workpack": "RESUME05_RECEIPT_ONLY_THEN_GUARD02",
     "progress_not_recounted": true,
     "targeted_plan": "reports/workflow-rebaseline-2026-11-15/opt-a-01/targeted-plan-01/plan.json",
     "targeted_ack": "reports/workflow-rebaseline-2026-11-15/opt-a-01/targeted-plan-01/root-ack.json",
@@ -2286,7 +2286,7 @@
       "task_id": "task_5f14411804fa",
       "terminal": "term_09456155f3da9a60df1a7fb94e1abe43",
       "scope": "one new source-frozen original189+supp5 guarded CPU feedback,305s maximum,0retry",
-      "result": "STOP_WAIT_BUDGET_FIRST429_GUARD_FEEDBACK_FAILED_CALL0",
+      "result": "USER_QUOTA_RESTORED_RESUME_RECEIPT_ONLY",
       "source_candidate_sha": "9b6d9d4b827587d132eaf20e2b838d449ed89bd3",
       "plan_sha256": "f5a24a3d7d976d765913ed7f43ae71d59e0c70024218a187b5d484fdd78fde2c",
       "single_guard_spent": true
@@ -2326,15 +2326,16 @@
     "guard_canary_status": "ACTUAL_OWN_CANARY10PASS_9EXPECTED_DENIALS_CLEANUP_TRUE_NOT_PRODUCT_ACCEPTANCE",
     "history_restoration": "reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/restoration-receipt.json",
     "guard_reviewer": {
-      "dispatch_id": "ctx_73d17d62d5ff",
-      "task_id": "task_c8a28469ea2b",
-      "terminal": "term_e40f6da96db0ae75ce93f9722228d772",
-      "scope": "source-only trusted guard/canary/launcher readiness",
-      "result": "FINITE_OWN_CANARY_READY_AFTER_ACK_NOT_PRODUCT_GATE",
-      "readiness_commit": "21559a5"
+      "dispatch_id": "ctx_2ec144669646",
+      "task_id": "task_ef7f8c27e0dd",
+      "terminal": "term_1cd181fcefe06c363df99f0be0f54409",
+      "scope": "Guard02 exact virtual-null sink compatibility source-only review, no runtime",
+      "result": "DISPATCHED"
     },
     "guard_canary_receipt": "reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-01/selftest-01/run/outer-receipt.json",
     "outer_denial_veto": "ACTUAL_NONEMPTY_LEDGER_REJECTED_EXIT1",
-    "quota_stop": "reports/workflow-rebaseline-2026-11-15/opt-b-05-feedback/budget-stop-429.json"
+    "quota_stop": "reports/workflow-rebaseline-2026-11-15/opt-b-05-feedback/budget-stop-429.json",
+    "quota_resume": "reports/workflow-rebaseline-2026-11-15/opt-b-05-feedback/quota-resume-01.json",
+    "guard02_canary_plan": "reports/workflow-rebaseline-2026-11-15/opt-b-04-history-routing-incident/guard-boundary-02/canary-plan.json"
   }
 }
