@@ -1,0 +1,320 @@
+{
+  "kind": "targeted_execution_receipt",
+  "packet": "N1-OPTIMIZED-01",
+  "scope": "OPT-B R07-only controlled targeted batch, one root-ACKed guarded CPU batch",
+  "outcome": "FAIL",
+  "outcome_summary": "the batch really ran and really failed: the R07 node still fails, but the failure moved.  The zero-expiry BODY of R07 now passes every oracle of the OPT-B fix with real values; the node fails later, in the cleanup of the zero region, because the drain could not release the read worker of the channel.",
+  "candidate_sha": "62e0d429dd78418220235359d068ae28d7b37e6e",
+  "candidate_source_sha256": "2a8e951b357068e835f6c7d276062395d83dc691ad5e51afde5c9e1da6cb64ac",
+  "candidate_blob": "7ecc7aae9df6b82e8d3d92e0718d42f076170867",
+  "delivery_commit": null,
+  "delivery_commit_note": "the commit that carries this receipt is reported in the worker_done summary; it is NOT the source candidate: the source candidate is candidate_sha above.  No self-referential pointer commit is created for it.",
+  "plan_sha256": "1fd5a31c2ff3917a331f6f7e83f054d2ec3c40653d5532dabf1e9e4c0339dc12",
+  "plan_path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-01/targeted-plan-02/plan.json",
+  "root_ack": {
+    "decision": "ACK_ONE_GUARDED_R07_ONLY_BATCH",
+    "path": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/workflow-rebaseline-2026-11-15/opt-b-01/targeted-plan-02/root-ack.json",
+    "selected_count": 1,
+    "max_batches": 1,
+    "max_wall_seconds": 300,
+    "no_prior_major_closed": true,
+    "original_budget_not_reset": true
+  },
+  "preflight_read_only": {
+    "plan_sha256_matches_expected": true,
+    "root_ack_present": true,
+    "pins_verified_on_disk": {
+      "sourcepins": 60,
+      "toolpins": 3,
+      "dependency_pins": 223,
+      "stdlib_pins": 3
+    },
+    "pin_drift": 0,
+    "candidate_source_sha256_matches_expected": true,
+    "candidate_sha_matches_plan_and_ack": true,
+    "attempt02_root_existed_before_the_run": false,
+    "attempt02_created_for": "the raw logs and the phase artifacts of this attempt only",
+    "note": "no import, no collect and no pytest was performed outside the single guarded batch; no source was modified"
+  },
+  "commands": [
+    {
+      "step": "before",
+      "kind": "outer counter observation (absence mode)",
+      "argv": "LVW_N1_F5_EVIDENCE_DIR=<attempt02>/f5-evidence PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3.12 -I -B <plan>/outer_counter_observe.py /tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json <attempt02>/counter-absence-before.json > <attempt02>/before.stdout.log 2> <attempt02>/before.stderr.log",
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "started_utc": "2026-11-15T07:43:27+00:00",
+      "ended_utc": "2026-11-15T07:43:27+00:00",
+      "exit_code": 0,
+      "result": "accepted_absence=true; the counter parent and the counter itself are MISSING (errno 2); the content was not read and nothing was created, written, reset or refunded",
+      "gate_effect": "exit 0, so the guard batch was allowed to run"
+    },
+    {
+      "step": "guard",
+      "kind": "single guarded targeted batch (hard guard, then the pinned runner, then pytest on the one frozen R07 node id)",
+      "argv": "LVW_N1_F5_EVIDENCE_DIR=<attempt02>/f5-evidence PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3.12 -I -B <plan>/guard.py <plan>/runner.py <attempt02>/guard.json > <attempt02>/guard.stdout.log 2> <attempt02>/guard.stderr.log",
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "started_utc": "2026-11-15T07:44:39+00:00",
+      "ended_utc": "2026-11-15T07:45:43+00:00",
+      "exit_code": 1,
+      "wall_seconds": 63.166,
+      "runner_duration_seconds": 63.032,
+      "pytest_exit": 1,
+      "result": "0 passed, 1 failed, 0 skipped of the 1 selected node; the raw stdout, the raw stderr and the exit code are kept unchanged",
+      "guard_facts": {
+        "guard_precedes_candidate_and_pytest": true,
+        "runtime_denials": 0,
+        "selftest_denials": [
+          "subprocess.Popen",
+          "socket.__new__",
+          "os.fork",
+          "os.exec",
+          "os.system",
+          "sqlite3.connect",
+          "ctypes.dlopen",
+          "ctypes.dlsym"
+        ],
+        "preload_events": [
+          "ctypes.dlopen"
+        ],
+        "preload_window_final_state": "CLOSED",
+        "note": "the exit code 1 is a real test failure, not an approval refusal and not a guard denial"
+      }
+    },
+    {
+      "step": "after",
+      "kind": "outer counter observation (absence mode)",
+      "argv": "LVW_N1_F5_EVIDENCE_DIR=<attempt02>/f5-evidence PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3.12 -I -B <plan>/outer_counter_observe.py /tmp/lvw-s3-p4-cpu-control-xn4cjn_s/shared-counter.json <attempt02>/counter-absence-after.json > <attempt02>/after.stdout.log 2> <attempt02>/after.stderr.log",
+      "cwd": "/home/administrator/orca/workspaces/LocalViewWorkbench/lvw-v1-d0-implement/LVW_Prompt_Service_MasterPack_v2.0.0",
+      "started_utc": "2026-11-15T07:45:56+00:00",
+      "ended_utc": "2026-11-15T07:45:56+00:00",
+      "exit_code": 0,
+      "result": "accepted_absence=true; the counter parent and the counter itself are still MISSING (errno 2) after the batch; the content was not read and nothing was created, written, reset or refunded"
+    }
+  ],
+  "budget": {
+    "elapsed_wall_seconds_first_command_to_last_command": 149,
+    "sum_of_command_wall_seconds": 63.2,
+    "max_wall_seconds_allowed": 300,
+    "max_guard_seconds_allowed": 290,
+    "batches_used": 1,
+    "max_batches_allowed": 1,
+    "retries": 0,
+    "automatic_retries_used": false,
+    "first_429_observed": false,
+    "approval_refusal_observed": false
+  },
+  "selected_node": {
+    "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r07_the_context_of_the_round_reaches_every_layer",
+    "count": 1,
+    "collected_order_equal_to_the_frozen_order": true,
+    "call_count": 1,
+    "pass_count": 0,
+    "fail_count": 1,
+    "skip_count": 0,
+    "duration_seconds": 60.4058
+  },
+  "failure": {
+    "location": "tools/test_v0_s3_native_custody_correction10.py:4500",
+    "statement": "raise AssertionError(zero_verdict)",
+    "message": "zero: the owner launch:channel:read:read-worker was left behind",
+    "where": "the final priority of the cleanup of the ZERO region of R07, after every action of that cleanup",
+    "not_where": "it is NOT the failure of attempt01 any more: the body assertion of attempt01 (T10:4158, 'the attached pump of the zero round did not end') was PASSED by this candidate",
+    "raw_longrepr": "tools/test_v0_s3_native_custody_correction10.py:4500: in test_n10_r07_the_context_of_the_round_reaches_every_layer\n    raise AssertionError(zero_verdict)\nE   AssertionError: zero: the owner launch:channel:read:read-worker was left behind"
+  },
+  "opt_b_body_oracle_result": {
+    "verdict": "the OPT-B fix of the observed pump is CONFIRMED by the durable facts that the candidate itself wrote",
+    "durable_evidence_ref": "attempt02/evidence/n10-r07-zero-public-chain.json",
+    "facts": {
+      "zero_pump_observed": true,
+      "zero_pump_is_the_observed_pump": true,
+      "zero_pump_alive": false,
+      "zero_pump_finished": true,
+      "zero_pump_error_is_none": true,
+      "zero_pump_error_type": null,
+      "zero_pump_frames": 1,
+      "zero_pump_broker_is_the_round_broker": true,
+      "zero_pump_is_the_production_background_pump": true,
+      "zero_pump_is_an_observed_start": true,
+      "zero_pump_start_provenance": "STARTED",
+      "zero_session_pump_state": "ABSENT_AFTER_CONFIRMED_JOIN",
+      "zero_pump_context_is_the_session_context": true,
+      "zero_channel_context_is_the_session_context": true,
+      "zero_state": "UNKNOWN_RETAINED",
+      "zero_broker_retained": true,
+      "zero_queue_waits": [
+        0.0
+      ],
+      "zero_reply_waits": [
+        0.0
+      ]
+    },
+    "premise": {
+      "pump_at_admission": true,
+      "pump_attached": true,
+      "pump_eof_at_admission": false,
+      "pump_error_is_none": true,
+      "pump_error_repr": null
+    },
+    "zero_failures": [
+      "CUSTODY_CHANNEL_TIMEOUT",
+      "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_finished",
+      "CUSTODY_BROKER_CLOSE_INCOMPLETE:read_end_closed",
+      "CUSTODY_BROKER_CLOSE_INCOMPLETE:worker_thread_handle_released",
+      "CUSTODY_BROKER_CLOSE_INCOMPLETE:channel_reader_finished",
+      "CUSTODY_BROKER_CLOSE_INCOMPLETE:reader_finished",
+      "CUSTODY_BROKER_CLOSE_INCOMPLETE:reader_finished"
+    ],
+    "retained_obligations_seen_in_the_run": [
+      "the real event and queue waits of the round are exactly 0",
+      "the expected cause CUSTODY_CHANNEL_TIMEOUT is named and CUSTODY_CHANNEL_EOF is not",
+      "the real returned state is UNKNOWN_RETAINED and the broker is retained",
+      "the admission premise of a real started, attached, not EOF, error free pump"
+    ],
+    "note": "the risk that the real pump carried an error did not materialise: the observed pump really finished, really died, carries no error and is confirmed by identity against the production background table and against the observer"
+  },
+  "cleanup_facts_of_the_failed_round": {
+    "durable_evidence_ref": "attempt02/evidence/n10-r07-zero-salvage.json",
+    "region": "zero-salvage",
+    "executed": true,
+    "actions": [
+      "release:gate",
+      "release:frames_ready"
+    ],
+    "original": null,
+    "cleanup_errors": [],
+    "interrupts": [],
+    "quiescent": false,
+    "drain_quiescent": false,
+    "drain_proof": "zero: the owner launch:channel:read:read-worker was left behind",
+    "registry_errors": [],
+    "drain_errors": [],
+    "drain_owner_errors": [],
+    "drain_iterations": 3,
+    "owners_per_iteration": [
+      "session:background-heartbeat",
+      "session:background-pump",
+      "launch:channel:drain",
+      "launch:channel:read:read-worker"
+    ],
+    "salvage_per_iteration": {
+      "session:background-heartbeat": "joined=true alive=false",
+      "session:background-pump": "joined=true alive=false",
+      "launch:channel:drain": "joined=true alive=false",
+      "launch:channel:read:read-worker": "joined=false alive=true"
+    },
+    "note": "the read worker of the channel was never joined and stayed alive through the whole drain budget; the other three owners of the round were really joined and are dead"
+  },
+  "comparison_with_attempt01": {
+    "attempt01": {
+      "evidence_commit": "946f587815964ab20edd5d69cb428224dcebac54",
+      "candidate": "1a34fbbe318fbe240823a2bf2f09517a98294744",
+      "result": "FAIL at T10:4158 in the BODY of the zero region",
+      "body_original": "AssertionError: the attached pump of the zero round did not end",
+      "zero_salvage_quiescent": true,
+      "zero_salvage_drain_proof": null,
+      "drain_iterations": 1,
+      "read_worker": "joined=true alive=false",
+      "phase_documents_written": 87
+    },
+    "attempt02": {
+      "candidate": "62e0d429dd78418220235359d068ae28d7b37e6e",
+      "result": "FAIL at T10:4500 in the CLEANUP of the zero region",
+      "body_original": null,
+      "zero_salvage_quiescent": false,
+      "zero_salvage_drain_proof": "zero: the owner launch:channel:read:read-worker was left behind",
+      "drain_iterations": 3,
+      "read_worker": "joined=false alive=true",
+      "phase_documents_written": 6
+    },
+    "observed_difference": "in attempt01 the body raised before the cleanup of the zero region, so that cleanup started later and its drain ran one iteration and joined every owner; in attempt02 the body completed, so that cleanup started immediately after the body and its drain ran three iterations of its budget and never joined the read worker",
+    "not_concluded": "this receipt does NOT decide the cause of the difference and does NOT classify the read-worker cleanup gap as a regression, a pre-existing defect or a scheduling observation; that classification belongs to the independent review"
+  },
+  "controlled_five_subscenarios": {
+    "reached": false,
+    "verified": false,
+    "evidence": "the attempt02 phase documents contain no r07-controlled-failure-* document and no r07-dispatch-* or r07-await-context document: the failure of the zero region stopped the body of R07 before the controlled subcases",
+    "note": "the five controlled subcases (PARENT_ADMISSION, CHILD_TRANSPORT, ORDINARY_ASSERTION, CLOSE_FAILURE, CONSTRUCTOR_FAILURE) and the writer fault negative are NOT verified by this run"
+  },
+  "cleanup_and_resource_facts": {
+    "cleanup_proven_for_batch": false,
+    "threads_before": [
+      "MainThread"
+    ],
+    "threads_after": [
+      "MainThread",
+      "lvw-native-custody-pipe-read"
+    ],
+    "fd_rows_before": 3,
+    "fd_rows_after": 3,
+    "new_or_reused_fds": [],
+    "fd_unknown_before": [],
+    "fd_unknown_after": [],
+    "note": "the read worker thread of the channel was still alive when the batch ended: the cleanup of the batch is NOT proven and it is reported as it is",
+    "counter_observation_only": true,
+    "counter_created": false,
+    "counter_written": false,
+    "counter_reset": false,
+    "counter_refunded": false,
+    "historical_grant_revived": false,
+    "historical_counter_continuity": "UNAVAILABLE_NOT_PROVEN"
+  },
+  "artifacts": {
+    "root": "reports/v0-s3/product-gate0/implementation-native-custody-optimized-01/attempt02",
+    "evidence_directory": "attempt02/evidence",
+    "evidence_document_count": 6,
+    "phase_documents": [
+      "n10-r07-admission-cleanup.json",
+      "n10-r07-launcher.json",
+      "n10-r07-parent-salvage.json",
+      "n10-r07-pump-current-minimum.json",
+      "n10-r07-zero-public-chain.json",
+      "n10-r07-zero-salvage.json"
+    ],
+    "pytest_temp_directory": "attempt02/pytest-temp - deliberately NOT committed (temporary directory and its links)",
+    "runner_result_rewritten_by_hand": false
+  },
+  "scope_of_this_result": {
+    "is_1_node_targeted_check": true,
+    "is_14_node_targeted_check": false,
+    "is_189_checkpoint": false,
+    "is_product_29": false,
+    "is_stage_acceptance": false,
+    "major_closed_by_this_run": 0,
+    "stage_pass_claimed": false,
+    "native_proven": false,
+    "product_acceptance": false,
+    "human_signoff": false,
+    "budget_reset": false,
+    "note": "the known prior failure does not grant any product acceptance; this is a single R07 node under one guarded CPU batch"
+  },
+  "obligations_not_run": [
+    "the controlled five subcases of R07 were not reached and are NOT verified",
+    "the writer fault negative of the controlled branch is not verified",
+    "the query-failure fallback of N1-OPT-04 is not verified by this run",
+    "the other 13 frozen nodes of T10 were NOT selected and NOT run",
+    "the remaining 175 frozen nodes of the 189 were NOT selected and NOT run",
+    "the product fixed 29 cases were NOT run",
+    "native, model, GPU, service, network, media, database, ledger and counter actions were NOT performed"
+  ],
+  "not_executed_or_not_performed": [
+    "any second guard batch",
+    "any rerun of the failed node",
+    "any source modification after the run",
+    "any other test module or any native API call",
+    "any counter creation, write, reset, refund or revival",
+    "any old budget revival",
+    "any import, collect or pytest outside the single guarded batch"
+  ],
+  "failures_are_reported_as_failures": {
+    "source_modified_after_the_failure": false,
+    "rerun_after_the_failure": false,
+    "guard_refusal_treated_as_pass": false,
+    "attempt01_evidence_overwritten": false,
+    "note": "the batch really failed; the failure is reported as it is and the classification is left to the independent review"
+  },
+  "unrelated_dirty_state_preserved": [
+    "LVW_Prompt_Service_MasterPack_v2.0.0/reports/v0-s3/product-gate0/implementation-integration-01/report.md"
+  ],
+  "next_owner": "coordinator",
+  "next_action": "independent review of the raw attempt02 artifacts and the classification of the read-worker cleanup gap; this delivery claims no test PASS and closes no Major"
+}

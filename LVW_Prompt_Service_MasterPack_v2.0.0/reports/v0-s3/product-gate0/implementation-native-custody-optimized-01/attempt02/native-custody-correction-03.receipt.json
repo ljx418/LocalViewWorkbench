@@ -1,0 +1,97 @@
+{
+  "stdlib_preload": {
+    "events": [
+      {
+        "event": "ctypes.dlopen",
+        "name": null
+      }
+    ],
+    "window_closed_before_candidate": true
+  },
+  "counter_evidence_policy": "LSTAT_ONLY_ABSENCE_MODE_OUTSIDE_THE_GUARDED_BATCH",
+  "historical_counter_continuity": "UNAVAILABLE_NOT_PROVEN",
+  "kind": "LVW_N1_ROOT_FROZEN_VALIDATION",
+  "pytest_exit": 1,
+  "duration_seconds": 63.032026290893555,
+  "selected": [
+    "tools/test_v0_s3_native_custody_correction10.py::test_n10_r07_the_context_of_the_round_reaches_every_layer"
+  ],
+  "collected": [
+    "tools/test_v0_s3_native_custody_correction10.py::test_n10_r07_the_context_of_the_round_reaches_every_layer"
+  ],
+  "call_count": 1,
+  "pass_count": 0,
+  "fail_count": 1,
+  "skip_count": 0,
+  "reports": [
+    {
+      "nodeid": "tools/test_v0_s3_native_custody_correction10.py::test_n10_r07_the_context_of_the_round_reaches_every_layer",
+      "when": "call",
+      "outcome": "failed",
+      "duration": 60.40580381700056,
+      "longrepr": "tools/test_v0_s3_native_custody_correction10.py:4500: in test_n10_r07_the_context_of_the_round_reaches_every_layer\n    raise AssertionError(zero_verdict)\nE   AssertionError: zero: the owner launch:channel:read:read-worker was left behind"
+    }
+  ],
+  "integrity_only_nodes": [],
+  "functional_pass_count": 0,
+  "fd_before": {
+    "available": true,
+    "rows": {
+      "0": [
+        6,
+        4,
+        8630
+      ],
+      "1": [
+        2096,
+        3119945,
+        33188
+      ],
+      "2": [
+        2096,
+        3119946,
+        33188
+      ]
+    },
+    "filtered": [
+      3
+    ],
+    "unknown": []
+  },
+  "fd_after": {
+    "available": true,
+    "rows": {
+      "0": [
+        6,
+        4,
+        8630
+      ],
+      "1": [
+        2096,
+        3119945,
+        33188
+      ],
+      "2": [
+        2096,
+        3119946,
+        33188
+      ]
+    },
+    "filtered": [
+      3
+    ],
+    "unknown": []
+  },
+  "new_or_reused_fds": [],
+  "threads_before": [
+    "MainThread"
+  ],
+  "threads_after": [
+    "MainThread",
+    "lvw-native-custody-pipe-read"
+  ],
+  "cleanup_proven_for_batch": false,
+  "stage_pass_claim": false,
+  "native_proven": false,
+  "dependency_scope": "Previously frozen named dependency files, not full environment distributions/transitive closure"
+}
