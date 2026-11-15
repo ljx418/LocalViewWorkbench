@@ -1,0 +1,65 @@
+{
+  "kind": "CONSOLIDATED_COMPONENT_CHECKPOINT_DESIGN_NOT_EXECUTION_PLAN",
+  "candidate_sha": null,
+  "fixed_original_set": {
+    "node_count": 189,
+    "ordered_nodeids_from": "reports/workflow-rebaseline-2026-11-15/opt-b-02/targeted-plan-03/plan.json#full189_nodeids",
+    "ordered_nodeids_sha256": "583ecdd7cb87c6ea0bb9a8f35241da39bd4a86919ae19ba30c6d03a57acc8619",
+    "identities_and_order_unchanged": true
+  },
+  "supplemental_set": {
+    "node_count": 5,
+    "ordered_nodeids": [
+      "tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_01_final_query_preserves_original",
+      "tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_02_final_query_preserves_first_interruption",
+      "tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_03_inner_writer_error_rejects_success",
+      "tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_04_recovered_final_write_has_failed_proof",
+      "tools/test_v0_s3_native_custody_cleanup_faults.py::test_n1_sup_05_held_startup_owner_survives_query_faults"
+    ],
+    "coverage": {
+      "N1-SUP-01": "Real R07 call must raise exact O; required zero/parent failure publication retains O and E, no unexpected success; actual owners end and handle facts remain truthful.",
+      "N1-SUP-02": "Real R07 call raises exact K1, not K2; both interruption facts preserved; real cleanup proven. Explicitly label any controlled pending-state injection, never call it a real user interrupt.",
+      "N1-SUP-03": "Actual R07 caller must fail with observed E in verdict, never return normally; original controlled sentinel remains recorded; real required raw and cleanup facts retained. Injection count exactly1.",
+      "N1-SUP-04": "Real caller fails; recovered exact phase document has E and non-null failed proof before durable write, not an in-memory-only late update; real cleanup verified; no unbounded retry.",
+      "N1-SUP-05": "Exact original O wins; transparent recorders prove real held owner.settle and held thread.join execute despite query errors; known liveness is dead, required failure evidence persists, no lost actual owner or synthetic cleanup."
+    }
+  },
+  "proposed_execution": {
+    "single_batch": true,
+    "ordered_selection": "original189 in frozen order followed by supplemental5 in frozen order",
+    "selected_total": 194,
+    "max_wall_seconds": 300,
+    "automatic_retry": false,
+    "model_actions": 0,
+    "native_business_processes": 0,
+    "full_product_checkpoint_consumed": false
+  },
+  "required_outputs": [
+    "exact actual collected vs selected194 identity/order",
+    "original189 results computed separately from raw reports",
+    "supplement5 actual results and injected/raised identity/evidence",
+    "all0 skip; no setup/teardown failure hidden",
+    "guard runtime denials empty, preload closed before candidate",
+    "before/after exact counter metadata only, no ledger read or resurrection",
+    "same FD identities, MainThread only, real fixture owner/thread/handle cleanup",
+    "per-fault case unique evidence subtree; no normal/historical raw overwritten"
+  ],
+  "decision_rules": {
+    "component_ready_for_independent_review": "original189 PASS AND supplement5 PASS AND trustworthy binding/guard/cleanup and no missing required result",
+    "not_permitted": [
+      "194 aggregate hides original fixed189 failure",
+      "extra negative results substituted for old nodes",
+      "1/1 R07 counted as189",
+      "pytest exit0 alone treated as cleanup proof",
+      "static fixes or supplemental PASS treated as product29/Stage PASS"
+    ]
+  },
+  "freeze_still_required": [
+    "sealed candidate and final exact file scope",
+    "all source/helper/new test module dependency/tool pins",
+    "exact argv/cwd/env and fresh output roots",
+    "root bounded ACK and raw command exits"
+  ],
+  "runtime_authorized": false,
+  "full_product_cases": 29
+}
