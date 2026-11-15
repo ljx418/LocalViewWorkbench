@@ -143,9 +143,10 @@ from tools.test_v0_s3_native_custody_regressions import (  # noqa: E402
 #: directory of the correction 23.  The real documents of the batch of the
 #: correction 22 stay in the directory of the correction 22: they are
 #: never overwritten, never deleted and never replaced by a summary.
-#: OPT-A: this fresh attempt01 routing supersedes the correction 23 root.
+#: OPT-B: this fresh attempt02 routing supersedes the attempt01 root and
+#: the correction 23 root; the attempt01 root keeps its own real failure.
 EVIDENCE_DIR = (PACK_ROOT / 'reports' / 'v0-s3' / 'product-gate0'
-                / 'implementation-native-custody-optimized-01' / 'attempt01'
+                / 'implementation-native-custody-optimized-01' / 'attempt02'
                 / 'evidence')
 
 #: The nonce of the private channel of the probes of this module.  It
@@ -3925,6 +3926,12 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
         zero_held = threading.Event()
         zero_gate_facts = []
         zero_premise = {}
+        # OPT-B (R07 observed owner): the **actual** attached pump of the
+        # round is held here, **independently** of the mutable reference
+        # of the session.  The production retires that reference once it
+        # confirmed the join of the pump, so the reference is **not** the
+        # evidence that the pump of the round really ended.
+        zero_observed = {}
         zero_salvage = []
         zero_returned = {}
         zero_channel = None
@@ -4001,6 +4008,13 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                     zero_held.wait(ZERO_ADMISSION_SECONDS))
                 pump = zero_session._pump
                 zero_premise['pump_attached'] = pump is not None
+                # OPT-B (R07 observed owner): the **exact** object of the
+                # attached pump is held **here**, at the public admission
+                # and **before** the deadline of the round is tightened.
+                # The public start may retire the reference of the session
+                # when it confirms the join of the pump; the object that
+                # this admission really saw is the evidence of the round.
+                zero_observed['pump'] = pump
                 zero_premise['pump_eof_at_admission'] = bool(
                     pump is not None and pump._eof)
                 # CORRECTION 17 (M1): the **actual** error of the pump
@@ -4064,8 +4078,30 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                 # is read before the salvage of the fixture and the
                 # salvage never replaces it.
                 zero_returned = zero_start_return
-                zero_pump = zero_session._pump
+                # OPT-B (R07 observed owner): the pump that the facts of
+                # the round describe is the **observed** object and never
+                # the mutable reference of the session: the production
+                # clears that reference once it confirmed the join of the
+                # pump, and a completion is never inferred from an absent
+                # reference.
+                zero_pump = zero_observed.get('pump')
+                zero_session_pump = getattr(zero_session, '_pump', None)
                 zero_broker = getattr(zero_session, 'broker', None)
+                # The **production** keeps the actual object of the pump in
+                # its own table of the background threads of the round and
+                # the **observer** of the starts keeps the actual objects
+                # that it really saw: the identity of the observed pump is
+                # checked against both of them.
+                zero_background_pump = None
+                for owner_name, owner_thread in _session_owners(
+                        zero_session, 'zero:session'):
+                    if owner_name.endswith(':background-pump'):
+                        zero_background_pump = owner_thread
+                        break
+                zero_observed_threads = [owner_thread for _owner_name,
+                                         owner_thread
+                                         in zero_registry.observed_threads()]
+                zero_start_provenance = zero_registry.start_provenance()
                 zero_channel = getattr(zero_broker, '_channel', None)
                 # The **attached** pump of the round really performed its
                 # read after the gate was released: the queue of the round
@@ -4102,6 +4138,37 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                              if zero_pump_error is not None else None),
                          'zero_pump_frames': zero_pump.frames
                          if zero_pump is not None else None,
+                         # OPT-B (R07 observed owner): the facts of the
+                         # **observed** pump of the round and of the
+                         # mutable reference of the session are two
+                         # different things and they are both named.
+                         'zero_pump_observed': zero_pump is not None,
+                         'zero_pump_is_the_observed_pump':
+                             zero_pump is not None
+                             and zero_pump is zero_observed.get('pump'),
+                         'zero_pump_alive': bool(zero_pump is not None
+                                                and zero_pump.alive),
+                         'zero_pump_broker_is_the_round_broker':
+                             zero_pump is not None
+                             and getattr(zero_pump, '_broker', None)
+                             is zero_broker,
+                         'zero_pump_is_the_production_background_pump':
+                             zero_pump is not None
+                             and zero_background_pump is not None
+                             and zero_pump is zero_background_pump,
+                         'zero_pump_is_an_observed_start':
+                             zero_pump is not None
+                             and any(zero_pump is item
+                                     for item in zero_observed_threads),
+                         'zero_pump_start_provenance':
+                             zero_start_provenance.get(id(zero_pump))
+                             if zero_pump is not None else None,
+                         'zero_session_pump_state': (
+                             'ABSENT_AFTER_CONFIRMED_JOIN'
+                             if zero_session_pump is None
+                             else ('THE_OBSERVED_PUMP'
+                                   if zero_session_pump is zero_pump
+                                   else 'ANOTHER_OBJECT')),
                          'zero_state': zero_returned.get('state'),
                          'zero_failures': list(zero_returned.get('failures')
                                                or []),
@@ -4161,11 +4228,75 @@ def test_n10_r07_the_context_of_the_round_reaches_every_layer(tmp_path):
                     'the attached pump of the zero round has another context'
                 assert facts['zero_channel_context_is_the_session_context'] is True, \
                     'the channel of the zero round has another context'
-                # CORRECTION 17 (M1): the attached pump is the pump of
-                # the **session** and it really ended: an identity and a
-                # completed lifecycle are stronger than a presence.
-                assert zero_pump is zero_session._pump, \
-                    'the attached pump of the zero round is not the pump of the session'
+                # ORACLE MAPPING (OPT-B-R07-OBSERVED-OWNER-01): the **old**
+                # oracle read the pump of the round **after** the public
+                # start returned and it demanded that a **finished** pump
+                # was still retained in the mutable reference of the
+                # session.  The production retires that reference **on
+                # purpose** once it confirmed the join of the pump ("a
+                # thread that really stopped is not kept any more"), so
+                # the old oracle could only fail a round that behaved
+                # correctly and it read the state of a reference that the
+                # production had already released.
+                #
+                # The **new** oracle keeps the identity obligation and it
+                # moves it to the object that the public admission really
+                # observed: that object is the one that is checked, it
+                # really finished, it is not alive any more, it carries no
+                # error, it carries the ORIGINAL context of the round and
+                # it really served the broker of the round, and its
+                # identity is confirmed against the production table of
+                # the background threads and against the actual objects
+                # that the observer of the starts saw.  The reference of
+                # the session is either that very object or it is absent,
+                # and its absence is only accepted on the **specific**
+                # path on which the production confirmed the join: an
+                # absent reference is never a proof and never a PASS.
+                assert facts['zero_pump_observed'] is True, \
+                    'the public admission of the zero round never observed ' \
+                    'an attached pump'
+                assert facts['zero_pump_is_the_observed_pump'] is True, \
+                    'the pump of the zero round is not the pump that its ' \
+                    'admission observed'
+                assert facts['zero_pump_alive'] is False, \
+                    'the observed pump of the zero round is still alive ' \
+                    'after the public start returned'
+                assert facts['zero_pump_error_is_none'] is True, \
+                    'the observed pump of the zero round failed: %s' \
+                    % (facts['zero_pump_error_repr'],)
+                assert facts['zero_pump_broker_is_the_round_broker'] is True, \
+                    'the observed pump of the zero round did not serve the ' \
+                    'broker of the round'
+                assert facts['zero_pump_is_the_production_background_pump'] \
+                    is True, \
+                    'the observed pump of the zero round is not the pump ' \
+                    'that the production kept in its background table'
+                assert facts['zero_pump_is_an_observed_start'] is True, \
+                    'the observer of the starts never saw the pump of the ' \
+                    'zero round start'
+                assert facts['zero_pump_start_provenance'] == 'STARTED', \
+                    'the start of the pump of the zero round was not ' \
+                    'proven: %s' % (facts['zero_pump_start_provenance'],)
+                assert facts['zero_session_pump_state'] in (
+                    'THE_OBSERVED_PUMP', 'ABSENT_AFTER_CONFIRMED_JOIN'), \
+                    'the session of the zero round kept a pump that its ' \
+                    'admission never observed: %s' \
+                    % (facts['zero_session_pump_state'],)
+                if facts['zero_session_pump_state'] == \
+                        'ABSENT_AFTER_CONFIRMED_JOIN':
+                    # the **specific** path on which the production
+                    # confirmed the join of the pump and cleared its
+                    # reference: the pump really started, it really ended
+                    # and the production named no failure for it.
+                    assert 'CUSTODY_PUMP_NOT_STOPPED' \
+                        not in facts['zero_failures'], \
+                        'the production did not confirm the join of the ' \
+                        'pump of the zero round: %s' \
+                        % (facts['zero_failures'],)
+                    assert 'CUSTODY_PUMP_NOT_STARTED' \
+                        not in facts['zero_failures'], \
+                        'the pump of the zero round never started: %s' \
+                        % (facts['zero_failures'],)
                 # The **expected error cause** of the public start: the
                 # admission of the reply of the round really timed out and
                 # the round latched its unknown state.
