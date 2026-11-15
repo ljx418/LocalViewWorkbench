@@ -1,0 +1,145 @@
+{
+  "kind": "OPT_C_MINIMAL_WORKPACK_PROPOSAL",
+  "scope_id": "OPT-C-NEXT-ADMISSION-01",
+  "status": "READY_FOR_ROOT_GATE0_REVIEW",
+  "the_candidate_sha": "b9a81aed8e8f8fe6763a4dfd3d051cacf10e0820",
+  "the_baseline_HEAD": "58881bd97e2602d70d8407df8b5fbf9e53aac4b3",
+  "the_role_of_this_document": "a proposal of the smallest viable workpacks, their allowed file scopes, the contract changes that would have to be REQUESTED or DRAFTED, and the minimum root decisions that the audit cannot make.  It is not an architecture decision, not a product intent change, and not an admission: the root freezes the interfaces, the owners, the acceptance and the admission.",
+  "the_rules_that_this_proposal_obeys": [
+    "one production path per workpack and meaningful machine oracles for it",
+    "the workpacks stay coarse enough to batch low risk items of the same Stage: no one-file-one-Stage pattern",
+    "no new parent budget and no new numerical threshold is proposed",
+    "the frozen contracts, the guard, the validator and the production sources are not edited by a proposal",
+    "the N1 CPU component is not rerun and reopened by any proposal here"
+  ],
+
+  "the_proposals": [
+    {
+      "id": "PROPOSAL-N2-A",
+      "title": "the real native execution path with one owner and one driver",
+      "thread": "N2",
+      "the_problem_that_the_current_source_shows": "the only real prepare lifecycle is StageRuntimeFactory._prepare (tools/v0_s2_stage_runtime.py:158) and it already owns the services, the profile and the sampler; the returned context carries the SAME driver; the public worker entry refuses with NATIVE_EXECUTION_BACKEND_NOT_READY before any construction (tools/v0_s3_quality_worker.py:594-596); verify_native_admission is a diagnostic whose report is never accepted (tools/v0_s3_production_controller.py:567-600); and build_native_driver (tools/v0_s3_quality_worker.py:615) would construct a SECOND driver with no product caller.",
+      "the_smallest_viable_shape": "keep ONE prepare lifecycle and ONE driver: the real path is the prepared context of the factory, and the worker entry receives the bound context of that prepared driver instead of building a driver of its own.  The seam between them is a bound capability (the context path plus its hash, the owner facts of the driver, the profile binding), never a second construction of the native runtime and never a second service owner.",
+      "the_allowed_file_scope": [
+        "tools/v0_s3_quality_worker.py (the entry and the capability it accepts)",
+        "tools/v0_s3_runtime_binding.py (the binding of the context)",
+        "tools/v0_s2_stage_runtime.py and tools/v0_s3_stage_runtime.py (the owner facts of the prepared driver)",
+        "tools/v0_s2_runtime.py and tools/v0_s2_driver.py (the listener birth facts)",
+        "tools/v0_s3_coordinator.py (the S3 budget hook and the owned root binding)"
+      ],
+      "the_files_that_are_READ_ONLY_in_this_proposal": [
+        "tools/v0_s3_native_custody.py and tools/v0_s3_native_broker.py: the N1 custody, the per round job object and the parent original handle are the current ownership facts of the broker round; they are inputs of the design, not targets of this workpack",
+        "tools/v0_s3_production_controller.py and the offline seam: the in-process seam is not a production path and must not be reused as one",
+        "the frozen contracts, the guard, the validator and the plans"
+      ],
+      "the_meaningful_oracles": [
+        "the worker entry accepts exactly ONE bound driver capability and refuses every other shape with a stable code",
+        "the identity of the owner that the consumer sees is the identity of the driver that started the service: the profile binding ollama_pid and ollama_start_ticks are re-proved from the owner at the phase boundary, and the existing StageSequence.context check is the oracle",
+        "the refusal of the public entry is preserved and its code stays NATIVE_EXECUTION_BACKEND_NOT_READY while no accepted backend exists",
+        "no second NativeRuntime is constructed anywhere in the path and the composition seam is never the production path"
+      ],
+      "the_owner_decision_that_the_audit_cannot_make": "which ownership model owns the long lived services: the legacy wrapper pid file with the WMI birth proof (tools/v0_s2_driver.py:118-145) or the N1 model of a parent original handle plus a per round job object (tools/v0_s3_native_broker.py:1309, :1754).  The two models differ in what can prove a listener and in what a kill or a lease means.  Until the root decides, the proposal stays at the shape of ONE owner and ONE driver and does not choose the mechanism.",
+      "the_explicitly_forbidden": [
+        "a forged or synthesised wrapper pid file",
+        "a second service owner or a second driver that prepares nothing",
+        "bypassing verify_native_admission or the authorize(...) admission chain",
+        "reusing the offline in-process composition seam as a real production path",
+        "claiming the N1 CPU checkpoint as evidence of a native service execution"
+      ],
+      "the_requested_contract_changes": "none: the worker entry keeps its existing refusal contract and the context capability keeps its existing shape.  Any change of the accepted context document would be a separate REQUEST and is not proposed here."
+    },
+    {
+      "id": "PROPOSAL-N2-B",
+      "title": "the five binding consumer and the two profiles stay as they are",
+      "thread": "N2",
+      "the_fact": "the native and the warm profiles are two different documents with different key sets (no baseline_gpu_mib in the native one, max_runs 19 against max_requests 20) and the strict consumers require the five identity bindings plus the run facts (video_evidence.py:16-31, benchmark.py:25-42).",
+      "the_smallest_viable_shape": "no change: the coding of the next packet must bind the profile that the factory already writes and must not merge the two profiles, must not add baseline_gpu_mib to the native profile and must not guess a baseline value.",
+      "the_allowed_file_scope": [],
+      "the_meaningful_oracles": [
+        "the native profile consumer accepts the profile that the factory writes and refuses a profile that carries a baseline_gpu_mib or a max_requests value",
+        "the warm consumer accepts the warm profile that the factory writes and refuses a native profile"
+      ],
+      "the_root_decision": "none; this proposal only records that the two profiles are distinct and that the baseline is the measured preflight value."
+    },
+    {
+      "id": "PROPOSAL-R1-AB",
+      "title": "the offline persistence coding slice of R1-A and R1-B",
+      "thread": "R1-A/B",
+      "the_goal": "the fastest qualified NEXT OFFLINE CODING slice: a real SQLite repository for the frozen media, shot and revision tables with the migrator, the ONE canonical hash function and the explicit adoption and lock owner, all offline, with the durable oracles of a restart, a rollback and an immutability.",
+      "the_coarse_batching": "the repository, the migrator, the canonical hash and the adoption owner are ONE workpack, because they are one production path (a persisted media and revision lifecycle) and they share one canonical hash function; splitting them into separate workpacks would create the near-approximate second algorithm that docs/31:50 forbids.",
+      "the_allowed_file_scope": [
+        "lvw/backend/app/repositories.py (new: the SQLite owner of media_ref, shot and prompt_revision)",
+        "lvw/backend/app/revisions.py (new: the canonical hash, the ETag derivation and the adoption and lock owner)",
+        "lvw/backend/app/shots.py (new: the shot owner named by docs/31:13)",
+        "lvw/backend/app/storage.py (new: the connection, the schema_version check and the migrator)",
+        "lvw/backend/app/media.py (the store becomes the repository client; the in memory dictionaries are replaced by the owner)",
+        "lvw/backend/app/service.py (the jobs and the idempotency records move to the repository)",
+        "lvw/backend/app/main.py (the lifespan opens and closes the owned database)",
+        "lvw/tests/ (the oracles below)"
+      ],
+      "the_files_that_are_READ_ONLY_in_this_proposal": [
+        "contracts/storage.sql, contracts/v1-multishot-migration.sql, contracts/v1-multishot.schema.json, contracts/revision.schema.json, contracts/scene.schema.json: the frozen contracts are used exactly as they are",
+        "contracts/v1-multishot.openapi-overlay.json: the HTTP surface is NOT touched by this slice (see the root decision C-2)",
+        "tools/ and LVW_V0_RuntimePatch/: no native, service, budget or bridge code is touched by this slice"
+      ],
+      "the_meaningful_oracles": [
+        "restart durability: a media ref, its shot and its revision are readable after the process restarts, and the idempotency key still refuses the second submission",
+        "migration safety: a database that is not at schema_version 1 is refused before any write, the backup exists before the transaction, and an injected bad row rolls the whole transaction back with the old rows intact",
+        "one canonical hash: the hash that the migrator writes and the hash that the implementation computes for the same eleven fields are equal, and the eleven argument order is fixed by one table",
+        "immutability: an update and a delete of a revision are both refused, and a head revision moves only on an explicit adoption",
+        "the human revision is never silently overwritten and the adoption is explicit"
+      ],
+      "the_requested_contract_changes": {
+        "REQUEST": [],
+        "DRAFT": [
+          "a DRAFT annex that freezes the exact eleven field to column alias mapping (media_ref_id, media_sha256, revision, start_pts, end_pts, origin_pts, time_base_num, time_base_den, editor, time_basis, verified) onto contracts/storage.sql scene_revision (version, tb_num, tb_den) and onto the scene_revision_meta columns of the design candidate migration, so that the implementation and the migration use one table and one function",
+          "a DRAFT annex that names the single canonical hash module of the product, mirroring the design verifier that already proves the rule offline"
+        ],
+        "the_note": "both annexes are DRAFT requests for the root.  The frozen contracts are not edited by this proposal and the alias mapping must not be realised by renaming a frozen column."
+      },
+      "the_root_decisions_that_this_proposal_needs": [
+        "C-1: may the R1 coding proceed while V0-S3 is open, or does the declared stage dependency keep R1 blocked",
+        "C-2: is the additive overlay (status DESIGN_REVIEW_NOT_ACTIVE) the frozen target of the HTTP part, or does the HTTP surface stay untouched until it is activated",
+        "C-3: the frozen eleven field to column alias mapping",
+        "C-4: the workpack development map that names this slice and its prerequisites"
+      ],
+      "the_slice_is_offline": "no model, no GPU, no native executable, no service, no network, no media asset and no product data are touched by this slice; the oracles run against a temporary local database of the fixture data."
+    }
+  ],
+
+  "the_minimum_root_decision_set": [
+    {
+      "id": "D-1",
+      "the_decision": "the per workpack decomposition of the R1 stage (C-4) and the question whether the R1-A and R1-B coding may proceed while V0-S3 is open (C-1)",
+      "the_why_the_audit_cannot_decide_it": "the plan declares the dependency at stage level and the file that would decompose it does not exist; a dependency is a root fact and the audit may not waive it"
+    },
+    {
+      "id": "D-2",
+      "the_decision": "whether the additive overlay is activated as the frozen target of the R1-B HTTP work, or the HTTP surface stays untouched (C-2)",
+      "the_why_the_audit_cannot_decide_it": "the overlay declares its own status DESIGN_REVIEW_NOT_ACTIVE and the base openapi is unchanged; the contract status is a root fact"
+    },
+    {
+      "id": "D-3",
+      "the_decision": "the eleven field to column alias mapping as one normative table (C-3)",
+      "the_why_the_audit_cannot_decide_it": "the frozen schema and the frozen hash rule use different names for the same facts and only the root may freeze which mapping is normative"
+    },
+    {
+      "id": "D-4",
+      "the_decision": "the ownership model of the long lived services in the N2 path: the legacy wrapper pid file with the WMI birth proof, or the N1 parent original handle with the per round job object",
+      "the_why_the_audit_cannot_decide_it": "the two models prove ownership differently and they have different lease and kill semantics; the audit proposes ONE owner and ONE driver and does not choose the mechanism"
+    },
+    {
+      "id": "D-5",
+      "the_decision": "the admission of the next packet itself: the finite, exact scope, the candidate, the files, the oracle set and the budget that the coding worker receives",
+      "the_why_the_audit_cannot_decide_it": "the admission is a root decision and the gate decision of this round is READONLY_GATE0_SOURCE_DEPENDENCY_AUDIT_ONLY"
+    }
+  ],
+
+  "what_is_explicitly_not_proposed": [
+    "no rerun and no reopening of the unchanged N1 CPU component",
+    "no change of the frozen contracts, the guard, the validator, the plans or the approvals",
+    "no new numerical threshold, no new parent budget and no new human authorisation request for what is already covered by AUTH-PROGRAM-V1-COMPLETE-03",
+    "no one-file-one-Stage workpack and no framework",
+    "no architecture decision, no product intent change and no acceptance claim"
+  ]
+}

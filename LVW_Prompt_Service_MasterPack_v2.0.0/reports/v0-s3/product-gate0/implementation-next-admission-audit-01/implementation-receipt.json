@@ -1,0 +1,181 @@
+{
+  "kind": "implementation_receipt",
+  "scope_id": "OPT-C-NEXT-ADMISSION-01",
+  "packet": "V1-R1 next admission",
+  "state": "READY_FOR_ROOT_GATE0_REVIEW",
+  "runtime_authorized": false,
+  "the_binding": {
+    "the_scope_file": "reports/workflow-rebaseline-2026-11-15/opt-c-01-n1-exit-and-next-admission/next-admission-audit-scope.json",
+    "the_scope_sha256": "abfb226400eb90f0902a534d16edee16ead6d65542ec1cfc0b8252ed4dfb476f",
+    "the_baseline_HEAD": "58881bd97e2602d70d8407df8b5fbf9e53aac4b3",
+    "the_product_source_candidate": "b9a81aed8e8f8fe6763a4dfd3d051cacf10e0820",
+    "the_N1_CPU_gate_decision": "reports/workflow-rebaseline-2026-11-15/opt-c-01-n1-exit-and-next-admission/n1-cpu-gate-decision.json (sha256 548ba0d8a8fbd868870d3bb1a7b90c4ad2ca38c057bd3e320fe2a009bcfd2c90)",
+    "the_N1_CPU_gate_decision_in_one_line": "PASS_CPU_COMPONENT_ONLY on b9a81ae / 58881bd9 / f33517eb: 189 original and 5 supplemental passed, F0/M0/m0, and the product 29, the nine native uncertainties and the formal Stage stay NOT_PROVEN",
+    "the_role": "a read only factual audit of the current sources for the next Gate0 admission; the root decides the architecture, the contracts, the owners, the acceptance and the admission"
+  },
+
+  "the_deliverables": {
+    "the_root": "reports/v0-s3/product-gate0/implementation-next-admission-audit-01/",
+    "the_files": [
+      "call-map.md",
+      "gate0-dependency-matrix.json",
+      "minimal-workpack-proposal.json",
+      "implementation-receipt.json"
+    ],
+    "the_exactly_four_new_documents": true,
+    "no_other_new_file": true
+  },
+
+  "the_audit_threads": {
+    "thread_1_N2": "call-map.md: the real current prepare lifecycle and its exact order, the inheritance chain, the returned driver identity, the separation of the unused build_native_driver from the public refusal, the strict five binding consumer, the two true profiles with the provenance of the baseline, the PID birth and the budget cap, the fail codes, and the N1 handle and job semantics against the legacy wrapper pid proof with the places where a thin adapter can reuse the original facts and the places where a new owner decision is needed.",
+    "thread_2_R1_AB": "gate0-dependency-matrix.json: every R1-A and R1-B prerequisite classified SIMPLEMENTED_WITH_EVIDENCE, DESIGN_ONLY or UNKNOWN with its exact path and hash, the design / coding / live / formal-exit layers separated, the S3 and native9 dependency question answered with the two facts that make it a root decision, and the four conflicts listed for the root."
+  },
+
+  "the_headline_findings": [
+    "the real prepare lifecycle exists exactly once, in StageRuntimeFactory._prepare (tools/v0_s2_stage_runtime.py:158), and the S3 factory inherits it unchanged (tools/v0_s3_stage_runtime.py:251) and adds only the S3 budget capability inside the FIRST exclusive profile write (tools/v0_s3_coordinator.py:324-330)",
+    "the order of the current source is: complete binding, owned root, driver, deployment, samples, PREFLIGHT and the measured baseline, OLLAMA, model and resource profile, COMFY, the user root and the owned listener proof, the public registry, the FIRST exclusive profile write, the SAMPLER, and the returned context; the profile write really is the first and the only one and it happens before the sampler",
+    "the returned context carries the SAME driver that started the services and wrote the profile, and the phase protocol re-proves that identity at every phase boundary (tools/v0_s2_stage_sequence.py:73-80); there is no second driver in the prepared path",
+    "build_native_driver (tools/v0_s3_quality_worker.py:615) has NO product caller and the public worker entry refuses with NATIVE_EXECUTION_BACKEND_NOT_READY before any driver is constructed (tools/v0_s3_quality_worker.py:594-596); the native admission is a diagnostic that is never accepted (tools/v0_s3_production_controller.py:567-600)",
+    "the native default profile has NO baseline_gpu_mib while the warm profile has it, and the baseline is the MEASURED max_used_mib of the preflight, not a constant (tools/v0_s2_runtime.py:131-165, tools/v0_s2_stage_runtime.py:186-191, resource_policy.py:20-59)",
+    "the ownership models differ and the audit does not bridge them: the N1 custody owns the parent original handle and one per round job object (tools/v0_s3_native_custody.py:963, tools/v0_s3_native_broker.py:1309, :1754), while the S2 services are proven through a wrapper pid file and WMI birth ticks (tools/v0_s2_driver.py:118-145)",
+    "for R1-A the public schema is frozen (contracts/storage.sql) and the 1.1 migration is a DESIGN CANDIDATE that was never applied (contracts/v1-multishot-migration.sql:1-4), and the product has NO repository, NO migrator and NO canonical lvw_scene_hash function: the media, job and idempotency records are process local dictionaries (lvw/backend/app/media.py:24-30, lvw/backend/app/service.py:22-30)",
+    "for R1-B the DTO contracts are frozen but the overlay that declares the strong ETag and the seven V1 profile paths has the status DESIGN_REVIEW_NOT_ACTIVE (contracts/v1-multishot.openapi-overlay.json), and the locked_fields field exists but is always empty and never enforced (lvw/backend/app/models.py:88, lvw/backend/app/provider.py:290)",
+    "the S3 dependency is declared at STAGE level (plans/v1-revised-plan.json: R1 depends_on R1a and V0-S3) while the coding prerequisites of R1-A and R1-B need no model, GPU, native service, network or product data; the file that would decompose this (plans/v1-workpack-development-map.json) DOES NOT EXIST, so the resolution is a root decision and the audit does not waive it"
+  ],
+
+  "the_classification_summary": {
+    "SIMPLEMENTED_WITH_EVIDENCE": [
+      "the public storage schema with the media, shot and revision tables (contracts/storage.sql)",
+      "the revision and scene DTO contracts (contracts/revision.schema.json, contracts/scene.schema.json)",
+      "the design verifier that proves the migration text against the frozen schema (reports/v1-redesign/verify-design11.py)",
+      "the stage level dependency declaration (plans/v1-revised-plan.json)"
+    ],
+    "DESIGN_ONLY": [
+      "the 1.1 migration with the immutability triggers and the backfill (contracts/v1-multishot-migration.sql)",
+      "the ONE canonical scene hash function (docs/31:50 plus the design verifier)",
+      "the SQLite repository and its owner modules shots.py, revisions.py, repositories.py",
+      "the migrator with the schema_version check, the backup, the single transaction and the ROLLBACK",
+      "the strong ETag header and the additive overlay merge policy (contracts/v1-multishot.openapi-overlay.json)",
+      "the locked fields, the explicit adoption and the head revision owner"
+    ],
+    "UNKNOWN": [
+      "plans/v1-workpack-development-map.json: the referenced per workpack decomposition does not exist in the tree"
+    ]
+  },
+
+  "the_conflicts_and_the_root_decisions": {
+    "the_conflicts": [
+      "C-1: the stage level dependency on V0-S3 against the proposal of a coding slice that is independent of the S3 packaging",
+      "C-2: the additive overlay is the target of the R1-B coding but its own status is DESIGN_REVIEW_NOT_ACTIVE",
+      "C-3: the canonical hash field names and the frozen schema column names differ and need one normative alias mapping",
+      "C-4: the referenced workpack development map does not exist"
+    ],
+    "the_root_decisions": [
+      "D-1: the workpack decomposition and whether the R1 coding may proceed while V0-S3 is open",
+      "D-2: whether the overlay is activated as the frozen target of the R1-B HTTP work",
+      "D-3: the eleven field to column alias mapping",
+      "D-4: the ownership model of the long lived services in the N2 path",
+      "D-5: the admission of the next finite coding packet"
+    ],
+    "no_conflict_is_waived": true
+  },
+
+  "the_static_method": {
+    "the_method": "read only exact named file reads, read only git blob reads of the baseline and the candidate, stdlib sha256 of the audited files and ast.parse of the modules that were outlined for the call map; NO product code edit, import, compile, collection, test, service, probe, model, GPU, native executable, media, network, database, migration execution, ledger content read or process scan",
+    "the_audited_sources": {
+      "tools/v0_s2_stage_runtime.py": "cf6ad01d66c0c7885475eedeae5ba66df9bec61bf7281ee511600f6224833e26",
+      "tools/v0_s3_stage_runtime.py": "c4815fdc2140961171af938ba5396763260314de2e938a1087ab6b21038b1aad",
+      "tools/v0_s3_coordinator.py": "14e8dd284971aeab00999f010679d5c95deb88ee3bff8f4ca0708d958b56f12c",
+      "tools/v0_s3_quality_worker.py": "e3648446f39d6e7a1c31f180248ccb59c36272ddc10c80edbe544f7d3c595592",
+      "tools/v0_s2_runtime.py": "a97ea20d02ed80ab4f99f133dd8162331ddba34662bfdcca637fcade40b4dbd2",
+      "tools/v0_s2_driver.py": "72883e2fa0c252aef7655708f40ada88a755978d71f632043c8203b53b42afed",
+      "tools/v0_s2_stage_sequence.py": "0b6be81e1cf9d0db88e7f5fe581f23686418d3a15634bd53f88ccb56f8718e20",
+      "tools/v0_s3_production_controller.py": "a452275a866b8b496175ecf3cba37d86fd0109be91020c09948f9bf9583a2b38",
+      "tools/v0_s3_native_custody.py": "7f26e9276a1c7507b0ad716fc31d8f5a4b17e5b670625a6982c52fbb93494581",
+      "tools/v0_s3_native_broker.py": "06cfc9518ccb782d456b930f627ca99e0774f82e81d214115277cef3be79bb83",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/program_budget.py": "7968f4682dfe272877a814f4b4b46dc50e5fb0775f03cc122f4c121d9dade765",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/resource_policy.py": "997021aeac31cd8ed814deebd4dbd0137f002468be5b0feccc238fdf1d82f708",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_evidence.py": "217de485ee626861241f6fd4f469f8cf5be380601e2b7272f3db892a57d8cff8",
+      "LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/benchmark.py": "bd6e167e6de8c8546a50e689d7958f02aee89d9e9ad2cd88ec180af18fca46ba",
+      "contracts/storage.sql": "a2204821fe77225dacb515e761bccfdcb42e42d3296ec8ba26354b60f17029f8",
+      "contracts/v1-multishot-migration.sql": "44f19c8b17b055ad71450e26dd45efe489ede3d0db368614f270921d548a6509",
+      "contracts/v1-multishot.openapi-overlay.json": "a95f7285e9353307ee2289ab894227ab70f694fbac13ddde32e180b0a144a583",
+      "contracts/v1-multishot.schema.json": "d968459745e0a1e0242645b8f02d97732b0c5121f00e5086055a089f5db15e59",
+      "contracts/revision.schema.json": "c12bbd3bc5565a79781fff7e5cd44fe5cf0b07f0bfc1ee0b6acc77f649df8fd6",
+      "contracts/scene.schema.json": "1c0560271691562cd35a78a4597b2216787c143a534cb94880a31435fedcef0f",
+      "docs/30_V1_REVISED_EXECUTION_PLAN.md": "902859b439ed0318c48360866a8a93237a57fb697266b78969cce7110c7417ec",
+      "docs/31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md": "dfec2c258af6d09cd2351e6408ba80b94fc3347712d59da7e8be33660a0395ac",
+      "plans/v1-revised-plan.json": "5677a11bbf5b61759bd1f98181bee3bd43211c402f39a7f514fda55a679bb3ef",
+      "lvw/backend/app/media.py": "7ab26a283b9faa45bfc361702e2106eb9c0e46094225f3f64212b9fbaedc4607",
+      "lvw/backend/app/service.py": "920938f173f783449e87a0aa6109867ee71ce81ec2306286c55380f0b6698e99",
+      "lvw/backend/app/models.py": "c822649d8de6cd37e0699ca16c5402d2c3221ea2e8a0f84cdece4ccc5f94c2bf",
+      "lvw/backend/app/main.py": "b76497f3f643a72810b98593b5efa5d60e4027f093907cd06122e6963289f430",
+      "lvw/pyproject.toml": "f85167b72d21ffe7a786caef80721844be083e7f77111365aa563ea76c5114bc"
+    },
+    "the_source_was_not_changed": "the diff of the whole tools/ and lvw/ trees between the candidate b9a81ae and the baseline HEAD 58881bd9 is empty for the audited files: their hashes are the pins of the candidate and of the frozen plans",
+    "the_unrelated_dirty_report": "reports/v0-s3/product-gate0/implementation-integration-01/report.md was not read, not mutated and not staged; the process note of this round records an earlier broad read only search that emitted no matching content from it"
+  },
+
+  "not_executed": [
+    "any import, compile, collection or test",
+    "any service, probe, model, GPU, native executable, media, network or database action",
+    "any migration execution and any ledger or counter content read",
+    "any process scan and any signal",
+    "any product code, contract, control, manifest, plan or approval edit",
+    "any rerun or reopening of the unchanged N1 CPU component",
+    "any read of the body of the unrelated dirty report"
+  ],
+
+  "unresolved_limits": [
+    "the audit is a FACTUAL source audit: it does not decide the architecture, the contracts, the owners, the acceptance or the admission of the next packet, and it waives no conflict",
+    "the stage level dependency of R1 on V0-S3 stands as the approved plan states it, and the file that would decompose the workpacks does not exist; the coding of R1-A and R1-B is therefore NOT admitted by this audit",
+    "the N2 ownership model of the long lived services is undecided: the legacy wrapper pid file with the WMI birth proof and the N1 parent original handle with the per round job object prove ownership differently and have different lease and kill semantics",
+    "the nine native uncertainties, the product 29 and the formal Stage exit stay NOT_PROVEN and this audit changes nothing of them",
+    "the historical S2 native human signature stays unsigned and the old slice human signoff stays scoped to the unified slice only",
+    "no new parent budget and no new numerical threshold is proposed or claimed by this audit"
+  ],
+
+  "scope_of_this_result": {
+    "is_a_checkpoint": false,
+    "is_a_product_acceptance": false,
+    "is_a_stage_acceptance": false,
+    "is_a_coding_admission": false,
+    "major_closed_by_this_delivery": 0,
+    "test_pass_claimed": false,
+    "native_proven": false,
+    "result": "READY_FOR_ROOT_GATE0_REVIEW - the facts of the current sources are mapped and the smallest proposals and the minimum root decisions are stated; no code was changed and nothing was executed"
+  },
+
+  "ten_fields": {
+    "coordinate": "V1/R1/WP-R1-U3/S3_P4 (plans/execution-control.json: stage R1, workpack WP-R1-U3, gate S3_P4_OFFLINE_INTEGRATION_PREPARATION, state READY)",
+    "last_passed_scope": "the unified media UM10 early slice with its own human signoff, and the N1 CPU COMPONENT gate PASS_CPU_COMPONENT_ONLY on b9a81ae / 58881bd9 / f33517eb; neither is a full R1, a product acceptance or a Stage exit",
+    "current_batch": "the read only next Gate0 dependency audit of the current N2 and R1-A/B sources is delivered as four new documents with the classification, the conflicts and the smallest proposals",
+    "blockers": "the four conflicts C-1 to C-4 and the five root decisions D-1 to D-5 are open; the stage dependency of R1 on V0-S3 stands; the ownership model of the N2 services is undecided; the native 9, the product 29 and the formal Stage stay unproved",
+    "route": "the root reviews this audit, decides D-1 to D-5, freezes the interfaces, the owners and the acceptance, and only then admits a finite coding packet",
+    "remaining": "the root decision set, the workpack development map, the activation of the additive overlay, the alias mapping and the next finite coding packet with its oracle set",
+    "next_owner": "coordinator and the root decision owner; the independent reviewer for the next packet, not for this audit",
+    "authority": "a read only factual audit; no runtime ACK, no coding admission, no Stage, no N2 clearance, no product acceptance and no human signoff",
+    "evidence": "reports/v0-s3/product-gate0/implementation-next-admission-audit-01/call-map.md, gate0-dependency-matrix.json, minimal-workpack-proposal.json and implementation-receipt.json, bound to the candidate b9a81ae and the baseline HEAD 58881bd9",
+    "stop": "the audit is delivered and it stops here: no code, no run, no admission, no acceptance and no follow-on coding until the root freezes the next packet"
+  },
+
+  "development_outline": [
+    {"stage_id": "V0-S0", "completed_substeps": 1, "total_substeps": 2, "implementation": "ARCHIVED", "machine_acceptance": "NO_GO_HISTORICAL", "independent_review": "COMPLETED_WITH_BLOCKERS", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "V0-S1", "completed_substeps": 5, "total_substeps": 5, "implementation": "DELIVERED", "machine_acceptance": "ACCEPTED_SCOPE_ONLY", "independent_review": "COMPLETED", "human_signoff": "APPROVED"},
+    {"stage_id": "R0", "completed_substeps": 1, "total_substeps": 2, "implementation": "PARTIAL_REUSED", "machine_acceptance": "SINGLE_IMAGE_SUBSET_ONLY", "independent_review": "NO_SEPARATE_R0_VERDICT", "human_signoff": "NO_SEPARATE_R0_SIGNOFF"},
+    {"stage_id": "R1a", "completed_substeps": 5, "total_substeps": 5, "implementation": "DELIVERED", "machine_acceptance": "ACCEPTED_SCOPE_ONLY", "independent_review": "COMPLETED", "human_signoff": "APPROVED"},
+    {"stage_id": "V0-S2", "completed_substeps": 7, "total_substeps": 8, "implementation": "IMPLEMENTED", "machine_acceptance": "COMPLETE_FIXED9_PASSED", "independent_review": "COMPLETE_FATAL0_MAJOR0_MINOR0", "human_signoff": "PENDING"},
+    {"stage_id": "V0-S3", "completed_substeps": 0, "total_substeps": 6, "implementation": "NOT_DELIVERED", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "R1", "completed_substeps": 0, "total_substeps": 4, "implementation": "EARLY_SLICE_IMPLEMENTED_FULL_R1_PENDING", "machine_acceptance": "EARLY_SLICE_UM10_ONLY", "independent_review": "EARLY_SLICE_FATAL0_MAJOR0", "human_signoff": "EARLY_SLICE_APPROVED_FULL_R1_PENDING"},
+    {"stage_id": "V1-M1", "completed_substeps": 0, "total_substeps": 3, "implementation": "DESIGN_ONLY", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "R2", "completed_substeps": 0, "total_substeps": 4, "implementation": "NOT_DELIVERED", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "R3", "completed_substeps": 0, "total_substeps": 4, "implementation": "NOT_DELIVERED", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "R4", "completed_substeps": 0, "total_substeps": 4, "implementation": "NOT_DELIVERED", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "R5a", "completed_substeps": 0, "total_substeps": 4, "implementation": "NOT_DELIVERED", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "R5b", "completed_substeps": 0, "total_substeps": 4, "implementation": "NOT_DELIVERED", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"},
+    {"stage_id": "R5c", "completed_substeps": 0, "total_substeps": 4, "implementation": "NOT_DELIVERED", "machine_acceptance": "NOT_RUN", "independent_review": "NOT_RUN", "human_signoff": "NOT_SIGNED"}
+  ],
+
+  "next_owner": "coordinator",
+  "next_action": "the root reviews this audit and decides D-1 to D-5, then freezes the next finite coding packet; this delivery changes no source, admits no coding, closes no Major and claims no acceptance"
+}

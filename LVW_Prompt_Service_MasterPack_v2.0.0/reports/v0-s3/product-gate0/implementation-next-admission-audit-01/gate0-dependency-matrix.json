@@ -1,0 +1,207 @@
+{
+  "kind": "OPT_C_NEXT_ADMISSION_GATE0_DEPENDENCY_MATRIX",
+  "scope_id": "OPT-C-NEXT-ADMISSION-01",
+  "audit_thread": "R1-A/B persistence and revisions: which Gate0 prerequisites are already frozen, which are missing, and which are design / coding / live / formal-exit prerequisites of the approved workflow",
+  "status": "READY_FOR_ROOT_GATE0_REVIEW",
+  "the_candidate_sha": "b9a81aed8e8f8fe6763a4dfd3d051cacf10e0820",
+  "the_baseline_HEAD": "58881bd97e2602d70d8407df8b5fbf9e53aac4b3",
+  "the_method": "read only exact file reads, git blob reads and stdlib hash of the named files; no product code edit, import, compile, collection, test, service, probe, model, GPU, native, media, network, database, migration execution, ledger content read or process scan",
+  "the_classification_vocabulary": {
+    "SIMPLEMENTED_WITH_EVIDENCE": "the artefact exists in the current tree and is cited with its exact path and hash",
+    "DESIGN_ONLY": "the artefact exists only as a frozen design, a design candidate or a documented rule; the product code that would realise it is absent",
+    "UNKNOWN": "the prerequisite cannot be classified from the current tree because the authoritative artefact is absent or unresolvable"
+  },
+  "the_authoritative_sources_read": {
+    "plans/v1-revised-plan.json": "5677a11bbf5b61759bd1f98181bee3bd43211c402f39a7f514fda55a679bb3ef",
+    "docs/30_V1_REVISED_EXECUTION_PLAN.md": "902859b439ed0318c48360866a8a93237a57fb697266b78969cce7110c7417ec",
+    "docs/31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md": "dfec2c258af6d09cd2351e6408ba80b94fc3347712d59da7e8be33660a0395ac",
+    "contracts/storage.sql": "a2204821fe77225dacb515e761bccfdcb42e42d3296ec8ba26354b60f17029f8",
+    "contracts/v1-multishot-migration.sql": "44f19c8b17b055ad71450e26dd45efe489ede3d0db368614f270921d548a6509",
+    "contracts/v1-multishot.openapi-overlay.json": "a95f7285e9353307ee2289ab894227ab70f694fbac13ddde32e180b0a144a583",
+    "contracts/v1-multishot.schema.json": "d968459745e0a1e0242645b8f02d97732b0c5121f00e5086055a089f5db15e59",
+    "contracts/revision.schema.json": "c12bbd3bc5565a79781fff7e5cd44fe5cf0b07f0bfc1ee0b6acc77f649df8fd6",
+    "contracts/scene.schema.json": "1c0560271691562cd35a78a4597b2216787c143a534cb94880a31435fedcef0f",
+    "lvw/backend/app/media.py": "7ab26a283b9faa45bfc361702e2106eb9c0e46094225f3f64212b9fbaedc4607",
+    "lvw/backend/app/service.py": "920938f173f783449e87a0aa6109867ee71ce81ec2306286c55380f0b6698e99",
+    "lvw/backend/app/models.py": "c822649d8de6cd37e0699ca16c5402d2c3221ea2e8a0f84cdece4ccc5f94c2bf",
+    "lvw/backend/app/main.py": "b76497f3f643a72810b98593b5efa5d60e4027f093907cd06122e6963289f430",
+    "lvw/pyproject.toml": "f85167b72d21ffe7a786caef80721844be083e7f77111365aa563ea76c5114bc",
+    "reports/v1-redesign/verify-design11.py": "design layer only, outside the product tree; used as the cited source of the canonical 11 argument hash"
+  },
+
+  "R1_A_the_sqlite_media_shot_repository_and_migrations": [
+    {
+      "id": "R1-A-01",
+      "prerequisite": "the public storage schema with the media, shot and revision tables",
+      "layer": "design (contract)",
+      "classification": "SIMPLEMENTED_WITH_EVIDENCE",
+      "evidence": "contracts/storage.sql:5 media_ref(id, sha256, kind CHECK IN('image','video'), metadata_json, source_root_id, relative_path, created_at) with ix_media_hash; :7 shot(id, title, media_ref_id REFERENCES media_ref(id), spec_json, etag, head_revision_id, updated_at); :8 prompt_revision(id, shot_id REFERENCES shot(id), parent_id REFERENCES prompt_revision(id), author, spec_json, content_sha256, created_at, idempotency_key UNIQUE); :10-12 job/attempt/model_run; :14 scene_revision; :23-27 evidence_ref, external_link, outbox, receipt, workflow_allowlist",
+      "note": "the base schema of the media/shot/revision repository is frozen and it already carries the etag column, the head_revision_id column, the parent revision chain and the idempotency key"
+    },
+    {
+      "id": "R1-A-02",
+      "prerequisite": "the design candidate 1.1 migration that adds scene_head, scene_revision_meta, the immutability triggers, shot_scene_binding, model_run_artifacts and shot_analysis_binding",
+      "layer": "design (contract)",
+      "classification": "DESIGN_ONLY",
+      "evidence": "contracts/v1-multishot-migration.sql:1-4 'DESIGN CANDIDATE 1.1 ONLY. R1 migrator must validate schema_version=1, backup first and register deterministic lvw_scene_hash(11args) before this transaction. No production DB was opened/applied during D0. On any failure ROLLBACK.'; the scene_revision_no_update / scene_revision_no_delete / scene_meta_no_update / scene_meta_no_delete triggers; the scene_meta_matches_base trigger; :11-12 the backfill that writes the strong ETag '\"scene:\"||s.id||':'||lvw_scene_hash(...)||'\"'",
+      "note": "the migration text is frozen, it has never been applied and it states its own precondition that the canonical hash function must exist before the transaction"
+    },
+    {
+      "id": "R1-A-03",
+      "prerequisite": "the ONE canonical scene revision hash function that the implementation and the migration must share",
+      "layer": "design (rule) / coding (function)",
+      "classification": "DESIGN_ONLY",
+      "evidence": "docs/31_V1_DETAILED_ARCHITECTURE_AND_CONTRACTS.md:50 fixes the field set and the serialisation: the fields are strictly media_ref_id, media_sha256, revision, start_pts, end_pts, origin_pts, time_base_num, time_base_den, editor, time_basis, verified, sort_keys=True, separators=(',',':'), ensure_ascii=False, allow_nan=False, verified is a JSON boolean, the random revision id and created_at and the clock are NOT in the hash, and the strong ETag is the quoted 'scene:<scene_revision_id>:<hash>'; the deterministic 11 argument implementation exists only in the design layer reports/v1-redesign/verify-design11.py:23-26 (hash_scene with keys ['media_ref_id','media_sha256','revision','start_pts','end_pts','origin_pts','time_base_num','time_base_den','editor','time_basis','verified'], editor restricted to ['algorithm','human'], registered as a deterministic SQLite function at :33)",
+      "note": "the product tree contains NO lvw_scene_hash implementation: the grep over the product sources returns only the design document, the candidate migration and the design verifier under reports/"
+    },
+    {
+      "id": "R1-A-04",
+      "prerequisite": "the repository code that persists and reads media_ref / shot / prompt_revision",
+      "layer": "coding",
+      "classification": "DESIGN_ONLY",
+      "evidence": "lvw/backend/app/media.py:24-30 MediaStore holds self.refs: dict[str, MediaRef] and self.paths: dict[str, Path] in memory; :85-86 and :109-110 store the ingested refs only in those dictionaries; lvw/backend/app/service.py:22-30 AnalysisService holds self.jobs, self.runs and self.idempotency as plain dictionaries",
+      "note": "the media ingest behaviour itself exists and is exercised, but every media, job, run and idempotency record is process local: nothing is persisted and nothing survives a restart"
+    },
+    {
+      "id": "R1-A-05",
+      "prerequisite": "the migrator: the schema_version=1 validation, the backup, the registration of the canonical hash function, the single transaction and the ROLLBACK on any failure",
+      "layer": "coding",
+      "classification": "DESIGN_ONLY",
+      "evidence": "docs/31:83 states the rule; contracts/v1-multishot-migration.sql:1-4 states the same precondition; no module of lvw/backend/app opens a database: the exact search for sqlite, CREATE TABLE and migration over lvw/backend/app/*.py, lvw/run_local.py and lvw/pyproject.toml returns nothing",
+      "note": "the standard library sqlite3 needs no third party driver and lvw/pyproject.toml declares none; the missing part is the code, not a dependency"
+    },
+    {
+      "id": "R1-A-06",
+      "prerequisite": "the backend owner modules named by the approved architecture",
+      "layer": "coding",
+      "classification": "DESIGN_ONLY",
+      "evidence": "docs/31:13 names the owner 'ShotRevisionOwner | shots.py/revisions.py/repositories.py'; the current lvw/backend/app/ tree contains models.py, media.py, service.py, provider.py, main.py, runtime.py, resources.py, models.py, config.py, errors.py, body_limit.py, build_info.py, video_appearance.py, video_kernel.py, video_temporal.py and native_runtime.py, but NO shots.py, NO revisions.py and NO repositories.py",
+      "note": "the owner of the persistence layer is named but not implemented"
+    },
+    {
+      "id": "R1-A-07",
+      "prerequisite": "the design verifier that proves the migration text against the frozen schema",
+      "layer": "design (evidence, outside the product)",
+      "classification": "SIMPLEMENTED_WITH_EVIDENCE",
+      "evidence": "reports/v1-redesign/verify-design11.py:27-40 executes contracts/storage.sql and then contracts/v1-multishot-migration.sql against an in-memory SQLite, registers lvw_scene_hash as a deterministic function, and checks the retained manual revision, the unforced shot binding, the retained scene id with verified=0 and time_basis='unverified', the exact hash derivation, the immutability trigger and the sealed plan constraints; :56 labels its own output 'ARCHITECTURE_PROBES_NOT_PRODUCT_ACCEPTANCE' with 'SQL probes only structural constraints, not unimplemented application handlers'",
+      "note": "this is design layer evidence about the contract text, not evidence about the product runtime"
+    }
+  ],
+
+  "R1_B_the_immutable_revisions_etag_adoption_and_locks": [
+    {
+      "id": "R1-B-01",
+      "prerequisite": "the revision and scene DTO contracts",
+      "layer": "design (contract)",
+      "classification": "SIMPLEMENTED_WITH_EVIDENCE",
+      "evidence": "contracts/revision.schema.json (title Revision, $defs including Evidence with source_type enum user/navia/media/reference) and contracts/scene.schema.json (title Scene) are frozen DTOs; contracts/v1-multishot.schema.json is the frozen component source of the overlay"
+    },
+    {
+      "id": "R1-B-02",
+      "prerequisite": "the strong ETag response header on the canonical Scene GET and the original Scene PUT",
+      "layer": "design (contract, NOT ACTIVE)",
+      "classification": "DESIGN_ONLY",
+      "evidence": "contracts/v1-multishot.openapi-overlay.json: kind 'LVW_ADDITIVE_OPENAPI_OVERLAY_DESIGN_1_1_1', status 'DESIGN_REVIEW_NOT_ACTIVE', add_response_headers '/api/v1/scenes/{id}'.put.'200'.ETag with pattern '^\"scene:[^\":]+:[0-9a-f]{64}\"$' and the statement 'Strong tag for the exact Scene revision in this response; never a weak tag.'",
+      "note": "the overlay is not active and contracts/openapi.json is untouched; the ETag is not emitted by any current route"
+    },
+    {
+      "id": "R1-B-03",
+      "prerequisite": "the additive merge policy and the seven metadata_only V1 profile paths",
+      "layer": "design (contract, NOT ACTIVE)",
+      "classification": "DESIGN_ONLY",
+      "evidence": "contracts/v1-multishot.openapi-overlay.json: merge_policy 'Copy base; add disjoint paths/methods and prefixed components; apply only declared additive response headers and x-v1-profile annotations. Never replace existing body schemas, parameters, response codes, x-product-version or V2 semantics. Abort on missing target, key collision or any other mutation'; component_prefix 'MultiShot_'; ref_rewrite '#/$defs/X -> #/components/schemas/MultiShot_X'; metadata_only declares x-v1-profile 'local-shot-v1' on /api/v1/scenes/detect.post, /api/v1/scenes.get, /api/v1/scenes/{id}.put, /api/v1/shots.post, /api/v1/shots/{id}.get, /api/v1/shots/{id}.put and /api/v1/jobs/{id}.get",
+      "note": "docs/31:108 requires the same merge order and the same failure behaviour"
+    },
+    {
+      "id": "R1-B-04",
+      "prerequisite": "the locked fields of a human revision and their owner",
+      "layer": "coding (field) / design (owner)",
+      "classification": "DESIGN_ONLY",
+      "evidence": "lvw/backend/app/models.py:88 declares locked_fields: list[str] on the prompt model and lvw/backend/app/provider.py:290 and lvw/backend/app/video_appearance.py:66 always set locked_fields=[]; there is no code that writes a lock, that reads a lock or that refuses an overwrite",
+      "note": "the field exists in the DTO but it is never populated and never enforced"
+    },
+    {
+      "id": "R1-B-05",
+      "prerequisite": "the explicit adoption of a human revision as the head and the immutable revision chain",
+      "layer": "coding",
+      "classification": "DESIGN_ONLY",
+      "evidence": "contracts/storage.sql:8 gives prompt_revision a parent_id chain, a content_sha256 and a UNIQUE idempotency_key and :7 gives shot a head_revision_id and an etag; the adoption write path, the head update and the immutability enforcement exist only as the design candidate triggers of contracts/v1-multishot-migration.sql (scene_revision_no_update / scene_revision_no_delete) and as the documented rule of docs/31:13",
+      "note": "the schema can express the chain, the code that writes it does not exist"
+    },
+    {
+      "id": "R1-B-06",
+      "prerequisite": "the rule that the implementation and the migration share ONE canonical hash function",
+      "layer": "design (rule) / coding (single owner)",
+      "classification": "DESIGN_ONLY",
+      "evidence": "docs/31:50 '实现/迁移共用一个规范函数，禁止两份近似算法'; contracts/v1-multishot-migration.sql:2 requires the deterministic lvw_scene_hash(11args) to be registered before the transaction; the only implementation of that function is the design verifier reports/v1-redesign/verify-design11.py:23-26, which is not product code",
+      "note": "this is a constraint on the coding slice, not a separate work item"
+    }
+  ],
+
+  "the_S3_and_native9_dependency_question": {
+    "the_question": "does the S3 packaging and the nine native uncertainties block the OFFLINE PERSISTENCE CODING of R1-A and R1-B, or only the later real and formal exit?",
+    "the_fact_at_stage_level": {
+      "classification": "SIMPLEMENTED_WITH_EVIDENCE",
+      "evidence": "plans/v1-revised-plan.json: the R1 stage declares depends_on ['R1a','V0-S3'] with the workpacks 'R1-A SQLite/media/shot repository + migrations', 'R1-B immutable revisions/ETag/adoption/locks', 'R1-C six modes/four targets + import/CLI shared service', 'R1-D regression/independent/human gate', completed 0 of 4",
+      "reading": "as the approved plan stands, the STAGE R1 depends on V0-S3, so the R1 workpacks are formally blocked while V0-S3 is NOT_DELIVERED (plans/execution-control.json: V0-S3 0 of 6, NOT_DELIVERED, NOT_RUN, NOT_RUN, NOT_SIGNED)"
+    },
+    "the_fact_at_coding_level": {
+      "classification": "SIMPLEMENTED_WITH_EVIDENCE",
+      "evidence": "the coding prerequisites of R1-A and R1-B are the repository, the migrator, the canonical hash function, the ETag header and the adoption/lock owner (R1-A-04, R1-A-05, R1-A-06, R1-B-02, R1-B-04, R1-B-05); none of them reads a model, a GPU, a native service, a network endpoint or a product media asset, and none of them is a consumer of the S3 packaging or of the nine native uncertainties",
+      "reading": "at the coding level the offline persistence slice does not need the S3 packaging or the native 9: it needs the frozen schema and the frozen design rules, which are already in the tree"
+    },
+    "the_fact_that_makes_this_a_root_decision": {
+      "classification": "UNKNOWN",
+      "evidence": "the frozen task brief and the design input known-next-design-gaps.md both refer to plans/v1-workpack-development-map.json as the place that decomposes the workpacks and separates the design, coding, live and formal-exit prerequisites; that file DOES NOT EXIST in the current tree: the plans/ directory contains acceptance_cases.json, candidates, execution-control.json, legacy_file_map.json, legacy_id_map.json, release_gates.json, requirement_coverage.json, requirements.json, tasks.json, topic_disposition.json, v1-multishot-contract.json, v1-multishot-sample-design.json, v1-revised-plan.json and no workpack development map",
+      "reading": "the per-workpack decomposition that would let the root separate a coding slice from the stage level dependency does not exist, so the audit cannot resolve the conflict and must not waive it"
+    },
+    "the_answer_of_the_audit": "the dependency is declared at STAGE level in the approved plan and is therefore binding as it stands; at the CODE level the R1-A and R1-B prerequisites are independent of the S3 packaging and of the nine native uncertainties; the resolution is a root decision and it needs either a frozen workpack development map that declares the coding slice independent of V0-S3, or an explicit decision that R1 stays blocked until V0-S3 is delivered.  The implementer may not waive the declared dependency.",
+    "the_native9_and_product29_state": "the N1 CPU gate decision (n1-cpu-gate-decision.json) records product_fixed29 'NOT_PROVEN', the nine native uncertainties as NOT_PROVEN, current_full_product_stage_pass false and next_admission 'READONLY_GATE0_SOURCE_DEPENDENCY_AUDIT_ONLY'; none of the R1-A/R1-B coding prerequisites changes that state"
+  },
+
+  "the_prerequisite_layers_of_the_approved_workflow": {
+    "design": "the frozen contracts and rules already present: contracts/storage.sql, contracts/v1-multishot-migration.sql (a design candidate, never applied), contracts/v1-multishot.openapi-overlay.json (status DESIGN_REVIEW_NOT_ACTIVE), contracts/v1-multishot.schema.json, contracts/revision.schema.json, contracts/scene.schema.json, the canonical hash rule of docs/31:50 and the migration rule of docs/31:83.  Every item above classified DESIGN_ONLY is missing exactly its PRODUCT IMPLEMENTATION of an already frozen design; no new design authority is required for the coding slice.",
+    "coding": "the missing product code: the SQLite repository and its owner modules (shots.py, revisions.py, repositories.py), the migrator with the schema_version=1 validation, the backup, the single transaction and the ROLLBACK, the ONE canonical lvw_scene_hash function, the ETag emission on the canonical Scene GET and the original Scene PUT, and the explicit adoption and lock owner.  None of it requires a service, a model, a GPU, a network call or a native process.",
+    "live": "the real run of the persistence slice on the real product data, which is outside the offline coding slice and stays with the later V0-S3 and R1-D gates; the audit does not claim any live prerequisite as satisfied.",
+    "formal_exit": "the Stage exit of R1, which needs the fixed denominators of plans/v1-revised-plan.json (the 36 required cases and the 8 supplemental MS cases), the independent review and the human signatures; the current state of the human signatures is unchanged by this audit and no exit is claimed."
+  },
+
+  "the_conflicts_for_the_root_to_decide": [
+    {
+      "id": "C-1",
+      "the_conflict": "plans/v1-revised-plan.json declares the stage R1 depends_on ['R1a','V0-S3'], while the design input of this round proposes a coding slice that is independent of the S3 packaging",
+      "the_evidence": "plans/v1-revised-plan.json (stage R1) against known-next-design-gaps.md",
+      "the_smallest_root_decision": "freeze a workpack development map that states, per workpack, the design / coding / live / formal-exit prerequisites and whether R1-A and R1-B coding may proceed while V0-S3 is open; or record that R1 stays blocked until V0-S3 is delivered",
+      "not_waived_by_the_audit": true
+    },
+    {
+      "id": "C-2",
+      "the_conflict": "the API contract that the R1-B coding must target is the additive overlay whose own status is DESIGN_REVIEW_NOT_ACTIVE, and the base contracts/openapi.json is unchanged",
+      "the_evidence": "contracts/v1-multishot.openapi-overlay.json (status) against contracts/openapi.json (base_file)",
+      "the_smallest_root_decision": "either activate the overlay as the frozen target of the R1-B coding, or restrict the coding slice to the persistence layer and leave the HTTP surface untouched until the overlay is activated",
+      "not_waived_by_the_audit": true
+    },
+    {
+      "id": "C-3",
+      "the_conflict": "the canonical hash field names do not all exist as columns of the frozen base schema: the 11 hash fields are media_ref_id, media_sha256, revision, start_pts, end_pts, origin_pts, time_base_num, time_base_den, editor, time_basis, verified, while contracts/storage.sql scene_revision carries version, tb_num and tb_den and no revision, time_basis, verified or source_sha256",
+      "the_evidence": "docs/31:50 against contracts/storage.sql:14 and contracts/v1-multishot-migration.sql (scene_revision_meta) against the explicit alias mapping of reports/v1-redesign/verify-design11.py:24",
+      "the_smallest_root_decision": "freeze the exact 11 field to column alias mapping as the single normative table that the canonical function and the migration both use; the frozen schema must not be renamed and the two layers must not grow a second near-approximate algorithm",
+      "not_waived_by_the_audit": true
+    },
+    {
+      "id": "C-4",
+      "the_conflict": "the plans/v1-workpack-development-map.json that the round brief and the design gaps both name as the decomposition of the prerequisites does not exist in the tree",
+      "the_evidence": "the plans/ directory listing",
+      "the_smallest_root_decision": "create and freeze it, or record the decomposition inside the next frozen packet instead",
+      "not_waived_by_the_audit": true
+    }
+  ],
+
+  "what_this_matrix_does_not_claim": [
+    "it does not claim that any Stage, workpack or product acceptance is satisfied",
+    "it does not claim that the R1 coding may start; the admission of a coding packet is a root decision",
+    "it does not claim that the native 9 or the product 29 are unblocked; they stay NOT_PROVEN",
+    "it does not decide the architecture, the contracts, the owners or the acceptance of the next packet",
+    "it did not execute the design verifier, the migration, any test or any service"
+  ]
+}
