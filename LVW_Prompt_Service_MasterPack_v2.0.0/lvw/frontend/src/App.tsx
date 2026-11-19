@@ -119,7 +119,9 @@ export function App() {
     try { setCleanupResult(await cleanupResources()); }
     catch (caught) {
       const value = caught as ApiError;
-      setCleanupError(`资源清理未完成：${value.message}${value.code ? `（${value.code}）` : ""}`);
+      setCleanupError(value.code === "REQUEST_FAILED"
+        ? "当前后端尚不支持资源清理。请关闭旧启动窗口，再双击启动 LVW。"
+        : `资源清理未完成：${value.message}${value.code ? `（${value.code}）` : ""}`);
     } finally { setRuntimeAction(""); runtimePending.current = false; }
     // Refresh is independent of the cleanup verdict; a status failure must not erase it.
     try { setRuntime(await getRuntimeStatus()); } catch { /* periodic checks continue */ }

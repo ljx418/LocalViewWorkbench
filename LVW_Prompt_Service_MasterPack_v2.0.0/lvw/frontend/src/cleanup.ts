@@ -10,5 +10,5 @@ export function cleanupMessage(result: CleanupResult): string {
 export function sampleMessage(sample: ResourceSample | null): string {
   if (!sample?.values) return "GPU / 内存数值暂不可用";
   const v = sample.values;
-  return `GPU 已用 ${v.gpu_used_mib} MiB / 可用 ${v.gpu_free_mib} MiB；系统可用内存 ${v.available_ram_mib} MiB`;
+  return `GPU 已用 ${v.gpu_used_mib} MiB / 可用 ${v.gpu_free_mib} MiB；运行环境可用内存 ${v.available_ram_mib} MiB`;
 }

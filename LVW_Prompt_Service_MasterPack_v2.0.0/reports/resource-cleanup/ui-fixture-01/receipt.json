@@ -1,0 +1,96 @@
+{
+  "fixture": true,
+  "candidate_sha": "f36bbcc2f20d16bf90d93f6f805c53d8055f8ee4",
+  "checks": [
+    {
+      "name": "isolated API started",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "button disabled during cleanup",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "public cleanup actually released retained lease",
+      "passed": true,
+      "detail": {
+        "operation_id": "cleanup_d84b624c7cdc4ffcae57e8d70fb63db9",
+        "status": "released",
+        "actions": [
+          "release_lvw_lease"
+        ],
+        "before": {
+          "values": null,
+          "error": "RESOURCE_TELEMETRY_UNAVAILABLE"
+        },
+        "after": {
+          "values": null,
+          "error": "RESOURCE_TELEMETRY_UNAVAILABLE"
+        },
+        "verified": true,
+        "reason": null
+      }
+    },
+    {
+      "name": "manual draft preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "lease actually cleared",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "real inventory target absent",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "repeat cleanup is noop",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "failure displayed and lease retained",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "external loaded model not touched",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "mobile control panel has no horizontal overflow",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "no JavaScript errors or external browser traffic",
+      "passed": true,
+      "detail": {
+        "errors": [],
+        "external": []
+      }
+    }
+  ],
+  "status": "PASS_FIXTURE_ONLY",
+  "actual_model_actions": 0,
+  "cleanup": {
+    "api_task_finished": true,
+    "browser_closed": true,
+    "lease_cleared": true,
+    "runtime_owned_process_remaining": false
+  },
+  "authorization_terminal": {
+    "run_id": "resource-cleanup-ui-fixture-01",
+    "actual_model_actions": 0,
+    "effective_full_checkpoint": false,
+    "zero_model_startup": true,
+    "elapsed_seconds": 5,
+    "program_still_active": true
+  }
+}

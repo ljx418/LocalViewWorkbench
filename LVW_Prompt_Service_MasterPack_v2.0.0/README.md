@@ -6,6 +6,8 @@
 
 ## 当前执行坐标与多 Agent 治理
 
+前端“本地后端服务”控制面板增加了“资源清理”：释放可确认属于 LVW 的闲置模型资源并显示核对结果、GPU 与运行环境可用内存。人工稿、媒体和模型文件保持不变。升级后须关闭旧启动窗口，再双击原启动图标打开；清理结果与真实验证边界见 [资源清理记录](reports/resource-cleanup/README.md)。该按钮不会结束其他软件，也不保证释放整机全部显存。
+
 产品规格仍由本README、`docs/`、`contracts/`和`plans/`定义；[Agent Governance](.agent-governance/README.md)在其上增加角色隔离、Stage Packet、Workpack、候选/证据绑定、预算等待和反假绿门禁。唯一当前坐标为[execution-control.json](plans/execution-control.json)。
 
 当前 Stage、门限、暂停原因和子阶段完成度只读取 [execution-control.json](plans/execution-control.json)，不在 README 保存第二份坐标。完整开发大纲、V0 十二项覆盖与下一个人工门限见 [执行总纲](docs/24_EXECUTION_MASTER_PLAN.md)；提速/门限调整见 [待批准提案](docs/25_PLAN_OPTIMIZATION_PROPOSAL.md)。

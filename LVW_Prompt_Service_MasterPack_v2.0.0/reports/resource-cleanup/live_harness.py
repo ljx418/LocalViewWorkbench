@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import socket
+import shutil
 import sys
 import time
 
@@ -56,6 +57,7 @@ async def main(child_path: Path):
     child = json.loads(child_path.read_text())
     out = child_path.parent
     fixture = child["fixture"]
+    noop_only = child.get("verification_mode") == "real_noop"
     data = Path(child["data_root"])
     checks, errors, external = [], [], []
     result = {"fixture": fixture, "candidate_sha": child["candidate_sha"], "checks": checks,
@@ -81,6 +83,7 @@ async def main(child_path: Path):
                 if ready["reason"] == "OLLAMA_UNAVAILABLE":
                     await runtime.start()
                 check("installed real model ready", (await provider.readiness())["ready"])
+            if not fixture and not noop_only:
                 # Empty inventory is mandatory before creating our own retained lease.
                 await provider.acquire("cleanup_live_retained")
                 authority.model_action(child_path)
@@ -127,8 +130,8 @@ async def main(child_path: Path):
                 response = await pending.value
                 release = (await response.json())["data"]
                 save(out / "cleanup-response.json", release)
-                check("public cleanup actually released retained lease", release["status"] == "released" and release["verified"], release)
-                await page.get_by_test_id("cleanup-result").get_by_text("已确认释放", exact=False).wait_for()
+                check("public cleanup verified verdict", release["status"] == ("noop" if noop_only else "released") and release["verified"], release)
+                await page.get_by_test_id("cleanup-result").get_by_text("无需清理" if noop_only else "已确认释放", exact=False).wait_for()
                 check("manual draft preserved", await draft.input_value() == sentinel)
                 check("lease actually cleared", provider._lease is None)
                 check("real inventory target absent", not any(provider.model in {r.get("name"), r.get("model")} for r in await provider._inventory()))
@@ -140,6 +143,11 @@ async def main(child_path: Path):
                 await page.get_by_role("button", name="再次检查服务").click()
 
                 if fixture:
+                    app.state.analysis._controller_busy = True
+                    await button.click()
+                    await page.get_by_test_id("cleanup-result").get_by_text("RESOURCE_BUSY", exact=False).wait_for()
+                    check("HTTP busy error visible without draft loss", await draft.input_value() == sentinel)
+                    app.state.analysis._controller_busy = False
                     provider._lease = ("fixture_failed_lease", {})
                     provider.rows = [{"name": provider.model}]
                     provider.fail = True
@@ -150,7 +158,7 @@ async def main(child_path: Path):
                     await button.click()
                     await page.get_by_test_id("cleanup-result").get_by_text("未执行清理", exact=False).wait_for()
                     check("external loaded model not touched", bool(provider.rows))
-                else:
+                elif not noop_only:
                     # Exactly one real fixed non-private image analysis after cleanup.
                     sample = ROOT / child["samples"][0]["path"]
                     await page.get_by_test_id("image-input").set_input_files(str(sample))
@@ -173,7 +181,7 @@ async def main(child_path: Path):
                 check("no JavaScript errors or external browser traffic", not errors and not external, {"errors": errors, "external": external})
                 await context.close(); context = None
                 await browser.close(); browser = None
-            result["status"] = "PASS_FIXTURE_ONLY" if fixture else "PASS_REAL_LOCAL_CLEANUP_AND_IMAGE_REGRESSION"
+            result["status"] = "PASS_FIXTURE_ONLY" if fixture else "PASS_REAL_LOCAL_NOOP_AND_SAFETY_ONLY" if noop_only else "PASS_REAL_LOCAL_CLEANUP_AND_IMAGE_REGRESSION"
     except Exception as error:
         result.update(status="FAIL_OR_BLOCKED", error_type=type(error).__name__, error=str(error))
     finally:
@@ -194,6 +202,12 @@ async def main(child_path: Path):
                                   runtime_owned_process_remaining=runtime._owned())
         terminal_known = all(result["cleanup"].get(k) is True for k in ["api_task_finished", "browser_closed", "lease_cleared"]) and not runtime._owned()
         if terminal_known:
+            if (data / "runtime").is_dir():
+                shutil.copytree(data / "runtime", out / "native-runtime")
+            # The authorization binds this freshly created private root, never the user's data root.
+            if data.parent.name.startswith("lvw-cleanup-") and not data.parent.is_symlink():
+                shutil.rmtree(data.parent)
+                result["cleanup"]["private_temp_removed"] = True
             result["authorization_terminal"] = authority.settle(child["run_id"], result["actual_model_actions"])
         else:
             authority.close_retaining_reservation(child["run_id"])
