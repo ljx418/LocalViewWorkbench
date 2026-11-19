@@ -425,3 +425,22 @@ def test_already_queued_job_does_not_acquire_after_pending_cleanup(setup, png_by
     terminal = app.state.analysis.get_job(job.id)
     assert terminal.status == 'failed' and terminal.error_code == 'RESOURCE_RELEASE_PENDING'
     assert terminal.result_ref is None and provider._lease is None and not app.state.analysis.runs
+
+
+@pytest.mark.parametrize('after_used,accepted', [(1024, True), (1025, False)])
+def test_release_resource_bound_exact_and_one_over(setup, monkeypatch, after_used, accepted):
+    provider, runtime, _, client = setup
+    provider._lease = ('owned_job', {'gpu_used_mib': 0})
+    provider._lease_generation = runtime.current_generation()
+    count = 0
+    async def snapshot():
+        nonlocal count
+        count += 1
+        used = 400 if count == 1 else after_used
+        return dict(gpu_used_mib=used, gpu_free_mib=24400-used, gpu_total_mib=24400, available_ram_mib=8000)
+    monkeypatch.setattr(owner.resources, 'snapshot', snapshot)
+    result = post(client).json()['data']
+    assert result['verified'] is accepted
+    assert result['status'] == ('released' if accepted else 'unknown')
+    assert (provider._lease is None) is accepted
+    assert (runtime._cleanup_pending is None) is accepted

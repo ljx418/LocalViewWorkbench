@@ -30,7 +30,7 @@
     "lvw/tests/test_provider.py": "c9df9ebe25bbade3dc0c56d984ef09b353c5b3d0e366b2738a9c78909fc7d829",
     "lvw/tests/test_r1a_live_harness_contract.py": "40bb21e01f814c4fdd81f87924e5e7a1db44c97f000cf764853f906bb4467b60",
     "lvw/tests/test_r1a_runtime_guard.py": "028a7c5e85050f67308cd8aeae775bfca2e220f9da400698ec590ffe06e51ed5",
-    "lvw/tests/test_resource_cleanup.py": "05ffe8d3d05e41efbd7fe537518113f2fe280881f1bf341ffd8fe5dde1cf9bd4",
+    "lvw/tests/test_resource_cleanup.py": "741595a477b28fc82bb87a6cc584b2a488a7d234260da4aea84c3168ae02843f",
     "lvw/tests/test_run_local.py": "74558ecbc4ca8018012f0db9ce94731fe3e041058e325d30da7ee54d121e7d37",
     "lvw/tests/test_runtime.py": "0e5a3557594ff148ce61fa594fd501065fd5684c8832c360c79d5b6860adef2f",
     "lvw/tests/test_unified_video.py": "93e5be7c702b07fa36564882b3e9f5fa7084908c7f2b0b5059472f6b9908f3c8",
@@ -112,5 +112,16 @@
       "cpu/check-03"
     ]
   },
-  "live_oracle": "managed real empty service must return verified released; external real service must return blocked; unknown never yields success"
+  "live_oracle": "managed real empty service must return verified released; external real service must return blocked; unknown never yields success",
+  "boundary_supplement": {
+    "cases": [
+      "GPU bound exact1024MiB",
+      "one-over1025MiB"
+    ],
+    "production_and_live_harness_unchanged": "312e3a96214e1bf79cef977f195ed301ce80411f",
+    "latest_commands": [
+      "cpu/request-08.json",
+      "cpu/request-09.json"
+    ]
+  }
 }
