@@ -462,18 +462,22 @@ def test_authorization_and_reconciliation_use_one_native_proof(setup, monkeypatc
     provider._lease_generation = runtime.current_generation()
     original_proof = native_runtime.proof
     calls = []
+    stopping = False
     def changing_proof(native):
         value = original_proof(native)
+        if stopping:
+            return value
         calls.append(dict(value))
         # A second pre-stop read would be a different authorization identity.
         return value if len(calls) == 1 else {**value, 'pid': value['pid'] + 1}
     monkeypatch.setattr(native_runtime, 'proof', changing_proof)
     stop = runtime._stop_owned
     async def check_then_stop():
+        nonlocal stopping
         assert len(calls) == 1
         assert runtime._cleanup_pending['identity'] == calls[0]
         assert runtime._cleanup_pending['lease_generation'] == provider._lease_generation
-        monkeypatch.setattr(native_runtime, 'proof', original_proof)
+        stopping = True
         await stop()
     monkeypatch.setattr(runtime, '_stop_owned', check_then_stop)
     result = post(client).json()['data']

@@ -8,3 +8,5 @@ Review04 remains historical CHANGES_REQUIRED (1 Major,3 Minor). No Stage PASS.
 - 04-4: frontend result declares inventory and listener evidence.
 
 v4 and its completed live children remain historical; v5 is a new zero-model profile, not permission for a loaded run. Loaded release/restart/image remains NOT_RUN until qualified separate finite profile. Main persistence remains paused.
+
+Initial check01/02 failed and preserved. New proof test now limits its synthetic identity change to the pre-stop phase. Root also mistakenly overlapped Vite rebuild with backend build_id reads: CSS disappeared briefly and a video regression failed. No product failure hidden; build completed and new CPU checks05/06 run sequentially against static dist. No acceptance denominator or threshold change.

@@ -1,0 +1,39 @@
+.................................................F...................... [ 80%]
+..................                                                       [100%]
+=================================== FAILURES ===================================
+__________ test_authorization_and_reconciliation_use_one_native_proof __________
+
+setup = (<test_resource_cleanup.Provider object at 0x767a6ddaf920>, <app.runtime.OllamaRuntime object at 0x767a6ddafb00>, <fastapi.applications.FastAPI object at 0x767a6ddaeb40>, <starlette.testclient.TestClient object at 0x767a6ddaf7d0>)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x767a6ddaf8c0>
+
+    def test_authorization_and_reconciliation_use_one_native_proof(setup, monkeypatch):
+        from app import native_runtime
+        provider, runtime, _, client = setup
+        provider._lease = ('bound', {'gpu_used_mib': 400})
+        provider._lease_generation = runtime.current_generation()
+        original_proof = native_runtime.proof
+        calls = []
+        def changing_proof(native):
+            value = original_proof(native)
+            calls.append(dict(value))
+            # A second pre-stop read would be a different authorization identity.
+            return value if len(calls) == 1 else {**value, 'pid': value['pid'] + 1}
+        monkeypatch.setattr(native_runtime, 'proof', changing_proof)
+        stop = runtime._stop_owned
+        async def check_then_stop():
+            assert len(calls) == 1
+            assert runtime._cleanup_pending['identity'] == calls[0]
+            assert runtime._cleanup_pending['lease_generation'] == provider._lease_generation
+            monkeypatch.setattr(native_runtime, 'proof', original_proof)
+            await stop()
+        monkeypatch.setattr(runtime, '_stop_owned', check_then_stop)
+        result = post(client).json()['data']
+>       assert result['status'] == 'released' and result['verified']
+E       AssertionError: assert ('unknown' == 'released'
+E         
+E         - released
+E         + unknown)
+
+lvw/tests/test_resource_cleanup.py:480: AssertionError
+=========================== short test summary info ============================
+FAILED lvw/tests/test_resource_cleanup.py::test_authorization_and_reconciliation_use_one_native_proof

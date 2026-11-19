@@ -1,0 +1,111 @@
+........................................................................ [ 29%]
+........................................................................ [ 59%]
+.....................................F............................F..... [ 88%]
+............................                                             [100%]
+=================================== FAILURES ===================================
+__________ test_authorization_and_reconciliation_use_one_native_proof __________
+
+setup = (<test_resource_cleanup.Provider object at 0x744655547200>, <app.runtime.OllamaRuntime object at 0x744655544c20>, <fastapi.applications.FastAPI object at 0x744655546810>, <starlette.testclient.TestClient object at 0x744655547bf0>)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x744655546570>
+
+    def test_authorization_and_reconciliation_use_one_native_proof(setup, monkeypatch):
+        from app import native_runtime
+        provider, runtime, _, client = setup
+        provider._lease = ('bound', {'gpu_used_mib': 400})
+        provider._lease_generation = runtime.current_generation()
+        original_proof = native_runtime.proof
+        calls = []
+        def changing_proof(native):
+            value = original_proof(native)
+            calls.append(dict(value))
+            # A second pre-stop read would be a different authorization identity.
+            return value if len(calls) == 1 else {**value, 'pid': value['pid'] + 1}
+        monkeypatch.setattr(native_runtime, 'proof', changing_proof)
+        stop = runtime._stop_owned
+        async def check_then_stop():
+            assert len(calls) == 1
+            assert runtime._cleanup_pending['identity'] == calls[0]
+            assert runtime._cleanup_pending['lease_generation'] == provider._lease_generation
+            monkeypatch.setattr(native_runtime, 'proof', original_proof)
+            await stop()
+        monkeypatch.setattr(runtime, '_stop_owned', check_then_stop)
+        result = post(client).json()['data']
+>       assert result['status'] == 'released' and result['verified']
+E       AssertionError: assert ('unknown' == 'released'
+E         
+E         - released
+E         + unknown)
+
+lvw/tests/test_resource_cleanup.py:480: AssertionError
+_ test_production_public_owner_composes_true_measurements_without_rewriting_raw[model_extra_motion] _
+
+tmp_path = PosixPath('/tmp/lvw-cleanup-c4-cpu-2mcu1kop/2/pytest-of-administrator/pytest-0/test_production_public_owner_c1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x74465433f560>
+failure_kind = 'model_extra_motion'
+
+    @pytest.mark.parametrize('failure_kind',['none','model_extra_motion','composition_policy'])
+    def test_production_public_owner_composes_true_measurements_without_rewriting_raw(tmp_path,monkeypatch,failure_kind):
+        import json,hashlib
+        from app.provider import OllamaProvider,VIDEO_APPEARANCE_TEMPLATE_SHA256
+        from test_video_appearance import appearance_envelope
+        from app.models import AnalyzeRequest
+        envelope=appearance_envelope()
+        if failure_kind=='composition_policy':
+            from app.video_temporal import measure_video_evidence
+            def invalid_policy(images,cancel):
+                value=measure_video_evidence(images,cancel);value['policy_version']='invalid-test-only';return value
+            monkeypatch.setattr('app.service.measure_video_evidence',invalid_policy)
+        if failure_kind=='model_extra_motion':
+            body=json.loads(envelope['message']['content']);body['camera_motion']='none'
+            envelope['message']['content']=json.dumps(body)
+        wire=json.dumps(envelope,ensure_ascii=False,indent=2);real=httpx.AsyncClient;sent=[]
+        async def handler(request):
+            if request.url.path=='/api/tags':return httpx.Response(200,json={'models':[{'name':'gemma4:26b'}]})
+            if request.url.path=='/api/ps':return httpx.Response(200,json={'models':[]})
+            if request.url.path=='/api/generate':return httpx.Response(200,json={'done':True})
+            assert request.url.path=='/api/chat';sent.append(json.loads(request.content));return httpx.Response(200,text=wire)
+        monkeypatch.setattr('app.provider.httpx.AsyncClient',lambda **kw:real(**kw,transport=httpx.MockTransport(handler)))
+        async def telemetry():return {'gpu_used_mib':1000,'gpu_free_mib':23000,'gpu_total_mib':24564,'available_ram_mib':10000}
+        monkeypatch.setattr('app.resources.snapshot',telemetry)
+        ledger=tmp_path/'provider.jsonl';provider=OllamaProvider('http://127.0.0.1:11434/api/chat','gemma4:26b',30,ledger_path=ledger)
+>       app=create_app(Settings.local(data_root=tmp_path),provider=provider,runtime=FakeRuntime())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+lvw/tests/test_unified_video.py:187: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+lvw/backend/app/main.py:30: in create_app
+    identity = build_id()
+               ^^^^^^^^^^
+lvw/backend/app/build_info.py:13: in build_id
+    digest.update(str(p.relative_to(root)).encode()+b'\0'+p.read_bytes()+b'\0')
+                                                          ^^^^^^^^^^^^^^
+/usr/lib/python3.12/pathlib.py:1021: in read_bytes
+    with self.open(mode='rb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/frontend/dist/assets/index-CwySFDTd.css')
+mode = 'rb', buffering = -1, encoding = None, errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/frontend/dist/assets/index-CwySFDTd.css'
+
+/usr/lib/python3.12/pathlib.py:1015: FileNotFoundError
+=============================== warnings summary ===============================
+tests/test_provider.py::test_colour_registration_recovers_equal_luma_motion_and_static_negative
+  /mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py:437: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+    assert len(set(source.convert('L').getdata()))==1
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED lvw/tests/test_resource_cleanup.py::test_authorization_and_reconciliation_use_one_native_proof
+FAILED lvw/tests/test_unified_video.py::test_production_public_owner_composes_true_measurements_without_rewriting_raw[model_extra_motion]

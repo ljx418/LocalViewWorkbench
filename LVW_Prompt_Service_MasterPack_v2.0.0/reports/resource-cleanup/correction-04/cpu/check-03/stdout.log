@@ -1,0 +1,86 @@
+
+> lvw-r1a-frontend@0.1.0 test
+> tsx --test src/*.test.ts
+
+TAP version 13
+# Subtest: readiness uses the public same-origin endpoint
+ok 1 - readiness uses the public same-origin endpoint
+  ---
+  duration_ms: 13.904311
+  type: 'test'
+  ...
+# Subtest: runtime controls use only fixed actions and the local control header
+ok 2 - runtime controls use only fixed actions and the local control header
+  ---
+  duration_ms: 0.316755
+  type: 'test'
+  ...
+# Subtest: analysis sends visual mode, bounded content profile, and custom guidance
+ok 3 - analysis sends visual mode, bounded content profile, and custom guidance
+  ---
+  duration_ms: 0.486171
+  type: 'test'
+  ...
+# Subtest: cleanup verdict requires proof; missing telemetry is never zero
+ok 4 - cleanup verdict requires proof; missing telemetry is never zero
+  ---
+  duration_ms: 0.436239
+  type: 'test'
+  ...
+# Subtest: cleanup uses fixed POST endpoint, control header, no arbitrary parameters
+ok 5 - cleanup uses fixed POST endpoint, control header, no arbitrary parameters
+  ---
+  duration_ms: 10.782142
+  type: 'test'
+  ...
+# Subtest: only HTTP404 means a missing backend endpoint
+ok 6 - only HTTP404 means a missing backend endpoint
+  ---
+  duration_ms: 0.979341
+  type: 'test'
+  ...
+# Subtest: adopt is explicit and creates a new draft
+ok 7 - adopt is explicit and creates a new draft
+  ---
+  duration_ms: 0.424512
+  type: 'test'
+  ...
+# Subtest: manual export remains valid without a model run
+ok 8 - manual export remains valid without a model run
+  ---
+  duration_ms: 0.176565
+  type: 'test'
+  ...
+# Subtest: tags are normalized only at export
+ok 9 - tags are normalized only at export
+  ---
+  duration_ms: 0.342219
+  type: 'test'
+  ...
+# Subtest: analysis is gated by file, idle phase, and model readiness
+ok 10 - analysis is gated by file, idle phase, and model readiness
+  ---
+  duration_ms: 0.055734
+  type: 'test'
+  ...
+# Subtest: video target compiles observed joint motion without another analysis
+ok 11 - video target compiles observed joint motion without another analysis
+  ---
+  duration_ms: 0.113269
+  type: 'test'
+  ...
+# Subtest: cancel wait cannot start overlapping inference
+ok 12 - cancel wait cannot start overlapping inference
+  ---
+  duration_ms: 0.041935
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 379.551767
