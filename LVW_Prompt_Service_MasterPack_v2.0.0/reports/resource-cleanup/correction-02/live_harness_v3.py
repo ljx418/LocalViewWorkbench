@@ -299,7 +299,8 @@ async def run(child_path):
             verdict = body['data']
             check('public response explicitly scoped', verdict['verification_scope'] == 'original_service_exit_and_resource_bound')
             check('fixture original-handle cleanup' if fixture else 'real local maintenance verdict recorded',
-                  verdict['status'] == 'released' if fixture else verdict['status'] in {'noop', 'released', 'blocked', 'unknown'})
+                  verdict['status'] == 'released' and verdict['verified'] if fixture or native is not None
+                  else verdict['status'] == 'blocked' and not verdict['verified'])
             await page.get_by_test_id('cleanup-result').get_by_text('清理前：', exact=False).wait_for()
             check('manual draft retained', await draft.input_value() == '人工稿必须保留：清理不自动改稿。')
             if fixture:
@@ -320,7 +321,7 @@ async def run(child_path):
             check('mobile layout contained', await page.evaluate('document.documentElement.scrollWidth <= innerWidth'))
             write_bytes(out / 'mobile.png', await page.screenshot(full_page=True))
             check('no JS errors or outside browser requests', not js_errors and not external)
-            result['status'] = 'PASS_FIXTURE_ONLY' if fixture else 'REAL_ZERO_MODEL_OBSERVATION_ONLY'
+            result['status'] = 'PASS_FIXTURE_ONLY' if fixture else 'PASS_REAL_ZERO_MODEL_SERVICE_CLOSE_ONLY' if native is not None else 'PASS_REAL_EXTERNAL_REFUSAL_ONLY'
     except BaseException as error:
         result.update(status='FAIL_OR_BLOCKED', error_type=type(error).__name__, error=str(error))
     finally:
@@ -353,7 +354,7 @@ async def run(child_path):
             print(json.dumps({'status': 'TERMINAL_RECEIPT_WRITE_FAILED', 'error': type(error).__name__}))
             return 1
         print(json.dumps({'status': result['status'], 'checks': len(checks), 'known_terminal': known, 'model_actions': result['model_actions']}))
-    return 0 if known and result['status'] in {'PASS_FIXTURE_ONLY', 'REAL_ZERO_MODEL_OBSERVATION_ONLY'} else 1
+    return 0 if known and result['status'] in {'PASS_FIXTURE_ONLY', 'PASS_REAL_ZERO_MODEL_SERVICE_CLOSE_ONLY', 'PASS_REAL_EXTERNAL_REFUSAL_ONLY'} else 1
 
 
 if __name__ == '__main__':
