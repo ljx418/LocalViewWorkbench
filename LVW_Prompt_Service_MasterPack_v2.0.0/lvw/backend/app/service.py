@@ -17,8 +17,9 @@ ANALYSIS_SECONDS = 420
 
 class AnalysisService:
     """One serialized inference owner, explicit cancellation and terminal publication."""
-    def __init__(self, media: MediaStore, provider: OllamaProvider):
+    def __init__(self, media: MediaStore, provider: OllamaProvider, runtime=None):
         self.media, self.provider = media, provider
+        self.runtime = runtime
         self.jobs: dict[str, Job] = {}
         self.runs: dict[str, ModelRun] = {}
         self.idempotency: dict[str, tuple[str, str]] = {}
@@ -29,7 +30,14 @@ class AnalysisService:
         self._controller_busy = False
         self._tasks: set[asyncio.Task] = set()
 
+    def ensure_resource_admission(self):
+        lease = getattr(self.provider, "_lease", None)
+        retained = lease is not None and (not isinstance(lease, tuple) or not lease or lease[0] != self._active)
+        if retained or self.runtime is not None and getattr(self.runtime, "_cleanup_pending", None) is not None:
+            raise AppError("RESOURCE_RELEASE_PENDING", "请先完成资源清理终态核对", status_code=409)
+
     def submit(self, request: AnalyzeRequest, key: str) -> Job:
+        self.ensure_resource_admission()
         if self._controller_busy:
             raise AppError("RESOURCE_BUSY", "模型服务正在切换，请稍后重试", status_code=409)
         payload_hash = hashlib.sha256(request.model_dump_json().encode()).hexdigest()
@@ -91,6 +99,9 @@ class AnalysisService:
         try:
             async with self._worker:
                 if self._cancels[job_id].is_set() or self.jobs[job_id].status != "queued":
+                    return
+                if self.runtime is not None and getattr(self.runtime, "_cleanup_pending", None) is not None:
+                    self.update(job_id, status="failed", resource_state="unknown", error_code="RESOURCE_RELEASE_PENDING")
                     return
                 self._active = job_id
                 attempt_id = "att_" + uuid.uuid4().hex
@@ -228,11 +239,11 @@ class AnalysisService:
     async def runtime_control(self, operation, *, release_remaining=True):
         if self._active or any(x.status == "queued" for x in self.jobs.values()) or self._controller_busy:
             raise AppError("RESOURCE_BUSY", "请先取消分析并等待释放，再切换模型服务", status_code=409)
+        if release_remaining and getattr(self.provider, "_lease", None) is not None:
+            raise AppError("RESOURCE_RELEASE_PENDING", "遗留资源须先通过资源清理核对，未切换服务", status_code=409)
         self._controller_busy = True
         try:
             result = await operation()
-            if release_remaining and getattr(self.provider, "_lease", None) is not None:
-                await self.provider.release(self.provider._lease[0])
             return result
         finally:
             self._controller_busy = False

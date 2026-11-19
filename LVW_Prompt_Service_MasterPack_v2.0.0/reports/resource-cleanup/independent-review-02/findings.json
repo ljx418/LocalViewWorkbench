@@ -1,0 +1,145 @@
+[
+  {
+    "prior_id": 1,
+    "severity": "Major",
+    "disposition": "PARTIAL",
+    "file_line": "lvw/backend/app/provider.py:375–391; runtime.py:65; resource_cleanup.py:118–130",
+    "trigger": "Replacement returns HTTP 500, malformed JSON or times out on GET /api/tags after the original exits.",
+    "expected": "An inconclusive observation retains pending and the lease.",
+    "actual": "Readiness folds all three outcomes into OLLAMA_UNAVAILABLE. Status then reports reachable=false, so cleanup can commit verified released. Original nonce stop itself never posts to the replacement.",
+    "evidence": "test_resource_cleanup.py:146 models only a healthy replacement. The archived native stdout even contains a real GET /api/tags 500 during startup, demonstrating that HTTP 500 can come from a live listener, not that this run falsely released.",
+    "proposed_correction": "Give cleanup a dedicated observation with distinct confirmed absent, responding and indeterminate outcomes. Exercise HTTP errors through the production readiness/transport seam."
+  },
+  {
+    "prior_id": 2,
+    "severity": "Major",
+    "disposition": "PARTIAL",
+    "file_line": "lvw/backend/app/provider.py:317–333; resource_cleanup.py:66–95,122–128; main.py:105–108; service.py:233–235",
+    "trigger": "A sent lease survives a daemon generation change, or a retained lease has no native owner and an external ready service is present when Start is requested.",
+    "expected": "Reject an unbound retained lease and keep lifecycle operations from authorizing release on another generation.",
+    "actual": "A tuple of job ID and telemetry carries no original nonce/PID/birth. Any currently managed native handle plus a usable baseline qualifies to stop it and clear that tuple. Without a handle the cleanup endpoint blocks a loaded target, but runtime.start can return a ready external status and the default runtime_control tail can call provider.release, which can POST keep_alive=0. This latter mutation is on Start, not on the cleanup POST.",
+    "evidence": "test_resource_cleanup.py:107 removes native entirely; :132 gives an arbitrary tuple to the current native and expects success. runtime.py:107–113; provider.py:350–354.",
+    "proposed_correction": "Bind leases at acquisition to the original generation or refuse reconciliation. Guard all lifecycle entry points before any release or spawn, including retained leases with no proven owner."
+  },
+  {
+    "prior_id": 3,
+    "severity": "Major",
+    "disposition": "PARTIAL",
+    "file_line": "lvw/backend/app/resource_cleanup.py:25–35,67–95",
+    "trigger": "One row contains the exact name, digest and integer size_vram but omits model.",
+    "expected": "Require the complete identity specified in correction-01/decision.md before stopping.",
+    "actual": "row.get('model', row['name']) synthesizes agreement. Whitespace, conflicting fields, duplicates, invalid digest and malformed sizes are otherwise rejected.",
+    "evidence": "test_resource_cleanup.py:94–103 covers conflicts and malformed rows but omits this single-field omission.",
+    "proposed_correction": "Require model to exist and equal name; add a missing-model case with the remaining fields valid."
+  },
+  {
+    "prior_id": 4,
+    "severity": "Major",
+    "disposition": "PARTIAL",
+    "file_line": "lvw/backend/app/resource_cleanup.py:91–130; runtime.py:105–108,166–169,185–188",
+    "trigger": "Final status fails or a pending cleanup began with no lease and a healthy replacement can run jobs.",
+    "expected": "After a mutation keep recovery and prevent new model work until all evidence is known.",
+    "actual": "A thrown status error, failed GPU bound and mismatched native exit preserve pending. The synchronous commit follows the three samples and snapshot. A disguised observation failure can still clear it (1). Pending guards start/reset/stop, but /jobs/analyze checks provider readiness only. With no lease, an empty replacement inventory and admissible telemetry can allow acquire/inference while reconciliation is pending. can_start can also advertise true during pending.",
+    "evidence": "test_resource_cleanup.py:132,146,171,245,275; main.py:145–155; service.py:32–35,117–125; provider.py:317–333; runtime.py:75.",
+    "proposed_correction": "Carry pending into readiness/actions and job admission; reject before scheduling/acquiring a new lease and test a pending cleanup without a lease."
+  },
+  {
+    "prior_id": 5,
+    "severity": "Major",
+    "disposition": "PARTIAL",
+    "file_line": "reports/resource-cleanup/correction-01/live_harness_v2.py:34–77,109–128,146–172; lvw/backend/app/main.py:32",
+    "trigger": "The correct 0700 root and marker exist but its data child already resolves outside it. Alternatively the launched executable and hashed executable differ.",
+    "expected": "Before product import or start, bind actual destinations and executables and claim the run once.",
+    "actual": "Authority, grant hash, active DB row, expiry, frozen hashes and exclusive claim are checked. data_root is compared lexically; an existing symlink inside the right root is accepted and data/media or runtime writes can follow it. Tool hashes validate the binding file entries; actual sys.executable, child.chromium_executable, hardcoded Ollama and PATH-resolved telemetry are not compared by the validator. No recursive removal in v2. The real sealed child allows one maintenance click and at most one original-service stop.",
+    "evidence": "test_cleanup_validation_harness.py validates replacement of the private root, not its data child. Audited historical tool paths and hashes agree. No out-of-root write observed.",
+    "proposed_correction": "Create/validate a fresh owned nonsymlink data directory and perform safe relative opens for outputs; compare resolved tools actually used to the sealed bindings. Include authority/helper and runtime dependencies in the trusted launch manifest."
+  },
+  {
+    "prior_id": 6,
+    "severity": "Major",
+    "disposition": "PARTIAL",
+    "file_line": "reports/resource-cleanup/correction-01/live_harness_v2.py:150–155,220–260; lvw/backend/app/native_runtime.py:25–31",
+    "trigger": "runtime.start raises after creating a native owner, or native-final.json cannot be written after cleanup.",
+    "expected": "Preserve the original identity and write terminal evidence for every claimed run, even if ancillary proof archival fails.",
+    "actual": "Separate bounded cleanup steps are an improvement. native is assigned only after start returns; native=None is treated as exited, so a failed start followed by close can settle without harness PID/birth/nonce evidence. proof(native) and native-final writes sit outside the budget and receipt protection. A per-file OSError can skip both even when receipt.json remains writable. Non-object owner JSON can raise AttributeError in proof.",
+    "evidence": "Both archived run receipts and native-final agree on normal completion. The sealed test files do not exercise these finally paths.",
+    "proposed_correction": "Capture identity as soon as the handle exists, distinguish never spawned from identity unknown, and isolate proof collection/archival from an outer terminal receipt and reservation finalizer."
+  },
+  {
+    "prior_id": 7,
+    "severity": "Major",
+    "disposition": "PARTIAL",
+    "file_line": "reports/resource-cleanup/correction-01/live_harness_v2.py:80–82,244–262",
+    "trigger": "Ledger returns unexpected nonzero calls with otherwise known closure, or ledger read fails.",
+    "expected": "Record the actual debit or explicitly unknown count; reject a violated zero-model budget.",
+    "actual": "Normal zero counts are read from SQLite and settled correctly. For nonzero actual the code retains reservation but leaves known and PASS_FIXTURE_ONLY/observation status intact, so it can return zero. On a failed ledger read model_actions retains its initial zero even though the count is unknown. Sealed zero-cap DB prevents ordinary debit; these are reconciliation/error-handling paths.",
+    "evidence": "Both independently read DB rows show active=0 and calls=0; authority.settle checks row count and elapsed budget at tools/local_program_authority.py:244–261.",
+    "proposed_correction": "Initialize count as unknown, require actual==0 and successful settlement for success, and record any failed attempt to retain a reservation."
+  },
+  {
+    "prior_id": 8,
+    "severity": "Major",
+    "disposition": "PARTIAL",
+    "file_line": "lvw/backend/app/resource_cleanup.py:38–43,58–74,116–140",
+    "trigger": "Runtime observation fails or malformed inventory prevents later observations. Empty external service has no lease.",
+    "expected": "Return accurate runtime/telemetry observations with a specific reason for each missing value, and clearly refuse external service.",
+    "actual": "Responses now carry all fields. sample errors and deadline have codes. Broad catch maps transport/proof/inventory/status faults to RESOURCE_RELEASE_PENDING, then labels skipped runtime/after observations with the same code. In production readiness an HTTP error can become a successful runtime observation (1). Empty external inventory reaches verified noop before ownership check and final runtime showing external does not revise verdict.",
+    "evidence": "test_resource_cleanup.py:235,260; real-zero-model-01/cleanup-response.json shows populated observations for owned empty inventory. Fixture checks do not exercise empty external service.",
+    "proposed_correction": "Track the failed observation and distinguish skipped, unavailable and failed-with-cause. Check external ownership before classifying noop; retain valid empty owned noop."
+  },
+  {
+    "prior_id": 9,
+    "severity": "Minor",
+    "disposition": "RESOLVED",
+    "file_line": "lvw/frontend/src/App.tsx:119–142,264–271; api.ts:14–22",
+    "trigger": "A 409 cleanup failure is followed by a failed and then successful status refresh.",
+    "expected": "Keep original cleanup cause, show a separate refresh error and clear it on successful refresh.",
+    "actual": "Separate state and renderer preserve RESOURCE_BUSY. Non-envelope HTTP errors preserve status; plain 404 has ENDPOINT_NOT_FOUND fallback.",
+    "evidence": "ui-fixture-01 receipt and harness lines 199–211 assert both transitions; check-03 TAP includes HTTP404 case.",
+    "proposed_correction": "No correction required for the prior finding."
+  },
+  {
+    "prior_id": 10,
+    "severity": "Minor",
+    "disposition": "RESOLVED_FOR_CORRECTION",
+    "file_line": "reports/resource-cleanup/correction-01/root-ack.json:1; runs/*/authorization.json frozen_files",
+    "trigger": "Reconcile ACK and executed harness after candidate rebuild.",
+    "expected": "Match executed source and preserve historical discrepancy.",
+    "actual": "All 47 sealed entries match both source commits and all 22 entries in each live child match the candidate. Old validation-02 hash remains historical. Dist asset changes are confined to the candidate build output among executable source inputs compared here.",
+    "evidence": "audit.json, root_ack and live.*.frozen; controller intent matches both live requests.",
+    "proposed_correction": "No change to old records; retain separate source and distribution bindings."
+  },
+  {
+    "prior_id": 11,
+    "severity": "Major (coverage)",
+    "disposition": "RESOLVED",
+    "file_line": "lvw/tests/test_resource_cleanup.py:213–233; lvw/backend/app/main.py:49–58",
+    "trigger": "Loopback peer with malicious Host, or remote peer with loopback Host.",
+    "expected": "Reject before mutation.",
+    "actual": "In-process ASGITransport explicitly sets client and host for both production-guard cases. Each requires HTTP 403 ORIGIN_FORBIDDEN and zero stop calls. Header, Origin and extra input negatives also ran.",
+    "evidence": "Independent cpu/stdout.log and frozen tests named in request.json.",
+    "proposed_correction": "No correction required."
+  },
+  {
+    "prior_id": 12,
+    "severity": "Minor",
+    "disposition": "RESOLVED",
+    "file_line": "reports/resource-cleanup/correction-01/live_harness_v2.py:110–145,194–217",
+    "trigger": "Read an individual check reporting a simulated resource release.",
+    "expected": "Label simulated inventory/handle proof and scope the terminal verdict.",
+    "actual": "The simulated release check explicitly says fixture original-handle cleanup and receipt says PASS_FIXTURE_ONLY. Real report says zero-model observation and returns noop.",
+    "evidence": "Both archived receipts, API responses, screenshots and matching harness hash.",
+    "proposed_correction": "No correction required."
+  },
+  {
+    "prior_id": 13,
+    "severity": "Major",
+    "disposition": "RESOLVED_FOR_LOCK_WAIT",
+    "file_line": "lvw/backend/app/resource_cleanup.py:46–54,131–141; service.py:228–238",
+    "trigger": "Runtime lock already held on entry to cleanup.",
+    "expected": "Include waiting for this lock in the same total action timeout and release controller busy state.",
+    "actual": "43-second cooperative timeout encloses lock acquisition, stop, sampling and status. A held lock test with shortened timeout asserts unknown, reason and released busy flag.",
+    "evidence": "test_resource_cleanup.py:260–273 and independent cpu/receipt.json. The 90-second process controller is a separate bound.",
+    "proposed_correction": "No correction required for the prior lock-wait finding."
+  }
+]

@@ -29,6 +29,8 @@ class Provider:
     async def readiness(self):
         return dict(ready=self.online, model=self.model,
                     reason=None if self.online else "OLLAMA_UNAVAILABLE", loaded=bool(self.rows) if self.online else False)
+    async def listener_state(self):
+        return {"state": "responding" if self.online else "absent", "reason": "fixture"}
     async def _inventory(self):
         if not self.online: raise httpx.ConnectError("offline")
         return self.rows
@@ -93,7 +95,7 @@ def test_public_cleanup_stops_only_original_handle_and_preserves_history(setup):
 
 @pytest.mark.parametrize("rows", [None, {}, [None], [{}], [{"name": ""}],
     [model_row(name=" ")], [model_row(model="foreign")], [model_row(digest="?")],
-    [model_row(size_vram=-1)], [model_row(size_vram=True)], [model_row(), model_row()]])
+    [{k: v for k, v in model_row().items() if k != "model"}], [model_row(size_vram=-1)], [model_row(size_vram=True)], [model_row(), model_row()]])
 def test_ambiguous_inventory_never_mutates(setup, rows):
     provider, runtime, _, client = setup
     original = runtime.process
@@ -132,6 +134,7 @@ def test_missing_custody_does_not_authorize_stop(setup):
 def test_retained_lease_reconciled_only_after_final_observations(setup):
     provider, runtime, _, client = setup
     provider._lease = ("owned_job", {"gpu_used_mib": 400})
+    provider._lease_generation = runtime.current_generation()
     original_status = runtime.status
     async def fail(): raise httpx.ConnectError("status failure")
     runtime.status = fail
@@ -146,6 +149,7 @@ def test_retained_lease_reconciled_only_after_final_observations(setup):
 def test_replacement_listener_never_unloaded_and_lease_retained(setup):
     provider, runtime, _, client = setup
     provider._lease = ("owned_job", {"gpu_used_mib": 400})
+    provider._lease_generation = runtime.current_generation()
     original_wait = runtime.process.wait
     async def replace():
         value = await original_wait()
@@ -173,6 +177,7 @@ def test_unproven_native_exit_retains_recovery_record(setup):
     process = runtime.process
     process.write_exit = False
     provider._lease = ("owned_job", {"gpu_used_mib": 400})
+    provider._lease_generation = runtime.current_generation()
     assert post(client).json()["data"]["status"] == "unknown"
     assert runtime._native is not None and provider._lease is not None
     process.write_exit = True
@@ -205,7 +210,7 @@ def test_concurrent_cleanup_rejected_and_lock_recovers(setup):
             await service.runtime_control(runtime.cleanup_resources, release_remaining=False)
         assert error.value.code == "RESOURCE_BUSY"
         resume.set()
-        assert (await task)["status"] == "noop"
+        assert (await task)["status"] == "released"
         assert not service._controller_busy
     asyncio.run(scenario())
 
@@ -245,6 +250,7 @@ def test_telemetry_failure_never_stops_service_or_fabricates_values(setup, monke
 def test_resource_failure_after_stop_does_not_clear_lease(setup, monkeypatch):
     provider, runtime, _, client = setup
     provider._lease = ("owned_job", {"gpu_used_mib": 0})
+    provider._lease_generation = runtime.current_generation()
     call = 0
     async def snapshot():
         nonlocal call
@@ -266,7 +272,8 @@ def test_deadline_covers_lock_wait_and_reports_missing_observations(setup, monke
         try:
             result = await app.state.analysis.runtime_control(runtime.cleanup_resources, release_remaining=False)
             assert result["status"] == "unknown" and result["reason"] == "RESOURCE_CLEANUP_TIMEOUT"
-            assert result["before"]["error"] == result["after"]["error"] == result["runtime_error"]
+            assert result["before"]["error"] == "RESOURCE_CLEANUP_TIMEOUT"
+            assert result["after"]["error"] == result["runtime_error"] == "SKIPPED_AFTER_RESOURCE_CLEANUP_TIMEOUT"
             assert not app.state.analysis._controller_busy
         finally: runtime._lock.release()
     asyncio.run(scenario())
@@ -277,3 +284,143 @@ def test_new_start_refused_while_cleanup_unresolved(setup):
     runtime._cleanup_pending = {"pending": True}
     with pytest.raises(AppError) as error: asyncio.run(runtime.start())
     assert error.value.code == "RESOURCE_RELEASE_PENDING"
+
+
+@pytest.mark.parametrize('generation', [None, {'nonce': 'old', 'pid': 987, 'birth_ticks': 1}])
+def test_unbound_or_previous_generation_lease_cannot_stop_current_daemon(setup, generation):
+    provider, runtime, _, client = setup
+    lease = ('older_job', {'gpu_used_mib': 400})
+    provider._lease = lease
+    provider._lease_generation = generation
+    result = post(client).json()['data']
+    assert result['status'] == 'blocked' and result['reason'] == 'LEASE_GENERATION_UNBOUND'
+    assert provider._lease is lease and runtime.process.stop_calls == 0
+
+
+def test_empty_external_service_is_blocked_not_verified_noop(setup):
+    provider, runtime, _, client = setup
+    provider.rows = []
+    runtime.process = None
+    runtime._native = None
+    result = post(client).json()['data']
+    assert result['status'] == 'blocked' and not result['verified']
+    assert result['reason'] == 'RUNTIME_NOT_OWNED'
+
+
+@pytest.mark.parametrize('observation', ['responding', 'indeterminate'])
+def test_protocol_unavailable_does_not_prove_listener_absent(setup, observation):
+    provider, runtime, _, client = setup
+    provider._lease = ('owned_job', {'gpu_used_mib': 400})
+    provider._lease_generation = runtime.current_generation()
+    async def state(): return {'state': observation, 'reason': 'HTTP error or timeout fixture'}
+    provider.listener_state = state
+    result = post(client).json()['data']
+    # readiness says unavailable after native exit, but the dedicated observer contradicts it.
+    assert result['runtime']['ollama']['reachable'] is False
+    assert result['status'] == 'unknown' and not result['verified']
+    assert provider._lease is not None and runtime._cleanup_pending is not None
+    assert result['listener_observation']['state'] == observation
+
+
+@pytest.mark.parametrize('failure', ['refused', 'timeout', 'connected'])
+def test_production_listener_observer_distinguishes_errors(monkeypatch, failure):
+    from app.provider import OllamaProvider
+    calls = []
+    class Writer:
+        closed = False
+        def close(self): self.closed = True
+        async def wait_closed(self): pass
+    writer = Writer()
+    async def connect(host, port):
+        calls.append((host, port))
+        if failure == 'refused': raise ConnectionRefusedError()
+        if failure == 'timeout': raise TimeoutError()
+        return object(), writer
+    monkeypatch.setattr(asyncio, 'open_connection', connect)
+    provider = OllamaProvider('http://127.0.0.1:11434/api/chat', 'gemma4:26b', 5)
+    result = asyncio.run(provider.listener_state())
+    assert result['state'] == {'refused': 'absent', 'timeout': 'indeterminate', 'connected': 'responding'}[failure]
+    assert calls == [('127.0.0.1', 11434)]
+    if failure == 'connected': assert writer.closed
+
+
+def test_http500_on_real_provider_readiness_still_counts_as_listener(setup, monkeypatch):
+    from app.provider import OllamaProvider
+    provider, runtime, _, client = setup
+    provider._lease = ('owned_job', {'gpu_used_mib': 400})
+    provider._lease_generation = runtime.current_generation()
+    actual = OllamaProvider('http://127.0.0.1:11434/api/chat', 'gemma4:26b', 5)
+    client_type = httpx.AsyncClient
+    monkeypatch.setattr(httpx, 'AsyncClient', lambda **kw: client_type(transport=httpx.MockTransport(lambda _: httpx.Response(500)), **kw))
+    class Writer:
+        def close(self): pass
+        async def wait_closed(self): pass
+    async def connect(*_): return object(), Writer()
+    monkeypatch.setattr(asyncio, 'open_connection', connect)
+    provider.readiness = actual.readiness
+    provider.listener_state = actual.listener_state
+    result = post(client).json()['data']
+    assert result['status'] == 'unknown' and result['reason'] == 'REPLACEMENT_LISTENER_PRESENT'
+    assert runtime._cleanup_pending is not None and provider._lease is not None
+
+
+def test_pending_without_lease_blocks_public_job_and_readiness(setup, png_bytes):
+    provider, runtime, app, client = setup
+    runtime._cleanup_pending = {'unresolved': True}
+    media = client.post('/api/v1/media', headers={'Idempotency-Key': 'pending-upload'},
+                        files={'file': ('sample.png', png_bytes, 'image/png')}).json()['data']
+    result = client.post('/api/v1/jobs/analyze', headers={'Idempotency-Key': 'pending-analysis'},
+        json={'media_ref_id': media['id'], 'shot_id': None, 'mode': 'realistic', 'config_profile': 'local-default'})
+    assert result.status_code == 409 and result.json()['error']['code'] == 'RESOURCE_RELEASE_PENDING'
+    assert not app.state.analysis.jobs and provider._lease is None
+    status = client.get('/api/v1/runtime/status').json()['data']
+    assert not any(status['actions'].values()) and not status['ollama']['model_ready']
+    assert not client.get('/api/v1/readiness').json()['data']['ready']
+
+
+def test_retained_lease_blocks_every_lifecycle_before_operation(setup):
+    provider, runtime, app, _ = setup
+    provider._lease = ('old_job', {'gpu_used_mib': 400})
+    invoked = []
+    async def operation(): invoked.append('called')
+    async def scenario():
+        with pytest.raises(AppError) as error: await app.state.analysis.runtime_control(operation)
+        assert error.value.code == 'RESOURCE_RELEASE_PENDING'
+        for action in [runtime.start, runtime.reset, runtime.stop]:
+            with pytest.raises(AppError) as error: await action()
+            assert error.value.code == 'RESOURCE_RELEASE_PENDING'
+    asyncio.run(scenario())
+    assert not invoked and runtime.process.stop_calls == 0 and provider._lease is not None
+
+
+def test_real_provider_acquisition_seals_generation(setup):
+    from app.provider import OllamaProvider
+    _, runtime, _, _ = setup
+    provider = OllamaProvider('http://127.0.0.1:11434/api/chat', 'gemma4:26b', 5)
+    async def empty(): return []
+    provider._inventory = empty
+    provider._generation_getter = runtime.current_generation
+    expected = runtime.current_generation()
+    asyncio.run(provider.acquire('acquired_job'))
+    assert provider._lease_generation == expected and provider._lease[0] == 'acquired_job'
+
+
+def test_non_object_native_owner_proof_is_unknown(setup):
+    from app.native_runtime import proof
+    _, runtime, _, _ = setup
+    runtime._native['owner'].write_text('[]')
+    assert proof(runtime._native) == {}
+
+
+def test_already_queued_job_does_not_acquire_after_pending_cleanup(setup, png_bytes):
+    from app.models import AnalyzeRequest
+    provider, runtime, app, client = setup
+    media = client.post('/api/v1/media', headers={'Idempotency-Key': 'queued-upload'},
+        files={'file': ('sample.png', png_bytes, 'image/png')}).json()['data']
+    request = AnalyzeRequest(media_ref_id=media['id'], shot_id=None, mode='realistic', config_profile='local-default')
+    job = app.state.analysis.submit(request, 'queued-analysis')
+    runtime._cleanup_pending = {'unresolved': True}
+    asyncio.run(app.state.analysis.run(job.id, request))
+    terminal = app.state.analysis.get_job(job.id)
+    assert terminal.status == 'failed' and terminal.error_code == 'RESOURCE_RELEASE_PENDING'
+    assert terminal.result_ref is None and provider._lease is None and not app.state.analysis.runs

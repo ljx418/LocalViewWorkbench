@@ -24,6 +24,8 @@ class OllamaRuntime:
         self._native = None
         self._cleanup_pending = None
         self._cleanup_completed = None
+        self._native_history = []
+        self._active_job_getter = lambda: None
 
     def _validate_executable(self) -> Path:
         executable = self.executable
@@ -38,6 +40,16 @@ class OllamaRuntime:
     def _owned(self) -> bool:
         return self.process is not None and self.process.returncode is None
 
+    def current_generation(self) -> dict | None:
+        from .native_runtime import proof
+        value = proof(self._native)
+        if not self._owned() or not value or value.get("state") not in {"starting", "listening"}:
+            return None
+        return {key: value[key] for key in ("nonce", "pid", "birth_ticks")}
+
+    def _control_blocked(self) -> bool:
+        return self._cleanup_pending is not None or getattr(self.provider, "_lease", None) is not None
+
     async def status(self) -> dict:
         readiness = await self.provider.readiness()
         owned = self._owned()
@@ -45,7 +57,10 @@ class OllamaRuntime:
         native = proof(self._native)
         unresolved = bool(self._native) and native.get("state") != "exited" and not owned
         native_ready = not self._native or native.get("listener_owned") is True
-        if unresolved:
+        lease = getattr(self.provider, "_lease", None)
+        retained = lease is not None and (not isinstance(lease, tuple) or not lease or lease[0] != self._active_job_getter())
+        pending = self._cleanup_pending is not None or retained
+        if unresolved or pending:
             state = "error"
         elif readiness["ready"]:
             state = "ready" if owned and native_ready else "starting" if owned else "external"
@@ -64,17 +79,17 @@ class OllamaRuntime:
                 "state": state,
                 "reachable": readiness["reason"] != "OLLAMA_UNAVAILABLE",
                 "model": readiness["model"],
-                "model_ready": readiness["ready"],
+                "model_ready": readiness["ready"] and not pending,
                 "model_loaded": readiness.get("loaded", False),
                 "managed": owned,
                 "pid": native.get("pid", self.process.pid) if owned else None,
-                "reason": readiness["reason"],
-                "last_error": "RESOURCE_RELEASE_PENDING" if unresolved else self.last_error,
+                "reason": "RESOURCE_RELEASE_PENDING" if pending else readiness["reason"],
+                "last_error": "RESOURCE_RELEASE_PENDING" if unresolved or pending else self.last_error,
             },
             "actions": {
-                "can_start": readiness["reason"] == "OLLAMA_UNAVAILABLE" and not owned and not unresolved,
-                "can_reset": owned,
-                "can_stop": owned,
+                "can_start": readiness["reason"] == "OLLAMA_UNAVAILABLE" and not owned and not unresolved and not self._control_blocked(),
+                "can_reset": owned and not self._control_blocked(),
+                "can_stop": owned and not self._control_blocked(),
             },
         }
 
@@ -98,13 +113,14 @@ class OllamaRuntime:
         env["WSLENV"] = ":".join(entries + [name + "/w" for name in sorted(forwarded)])
         from .native_runtime import prepare
         self._native = prepare(log_root, executable)
+        self._native_history.append(self._native)
         return await asyncio.create_subprocess_exec(*self._native["argv"], stdin=asyncio.subprocess.DEVNULL,
             stdout=self._log, stderr=asyncio.subprocess.STDOUT, env=env)
 
 
     async def start(self) -> dict:
         async with self._lock:
-            if self._cleanup_pending is not None:
+            if self._control_blocked():
                 raise AppError("RESOURCE_RELEASE_PENDING", "请先完成资源清理终态核对", status_code=409)
             current = await self.status()
             if self._native and not self._owned():
@@ -165,7 +181,7 @@ class OllamaRuntime:
 
     async def stop(self) -> dict:
         async with self._lock:
-            if self._cleanup_pending is not None:
+            if self._control_blocked():
                 raise AppError("RESOURCE_RELEASE_PENDING", "请先完成资源清理终态核对", status_code=409)
             if not self._owned() and not self._native:
                 readiness = await self.provider.readiness()
@@ -184,7 +200,7 @@ class OllamaRuntime:
 
     async def reset(self) -> dict:
         async with self._lock:
-            if self._cleanup_pending is not None:
+            if self._control_blocked():
                 raise AppError("RESOURCE_RELEASE_PENDING", "请先完成资源清理终态核对", status_code=409)
             if not self._owned():
                 raise AppError("RUNTIME_NOT_OWNED", "Only an LVW-managed Ollama can be reset",

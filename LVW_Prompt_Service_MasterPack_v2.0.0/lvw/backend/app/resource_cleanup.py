@@ -25,7 +25,7 @@ async def inventory(provider) -> list:
     for row in rows:
         if (not isinstance(row, dict) or not isinstance(row.get("name"), str)
                 or not row["name"].strip() or row["name"] != row["name"].strip()
-                or row.get("model", row["name"]) != row["name"]
+                or row.get("model") != row["name"]
                 or row["name"] in names
                 or not isinstance(row.get("digest"), str)
                 or not re.fullmatch(r"[a-f0-9]{64}", row["digest"])
@@ -40,7 +40,18 @@ def new_result() -> dict:
             "actions": [], "before": {"values": None, "error": "NOT_OBSERVED"},
             "after": {"values": None, "error": "NOT_OBSERVED"}, "verified": False,
             "reason": "RESOURCE_RELEASE_PENDING", "runtime": None,
-            "runtime_error": "NOT_OBSERVED", "verification_scope": "original_service_exit_and_resource_bound"}
+            "runtime_error": "NOT_OBSERVED", "listener_observation": {"state": "not_observed", "reason": "NOT_OBSERVED"},
+            "verification_scope": "original_service_exit_and_resource_bound"}
+
+
+async def require_absent(provider, result):
+    observation = await provider.listener_state()
+    if not isinstance(observation, dict) or observation.get("state") not in {"absent", "responding", "indeterminate"}:
+        raise AppError("LISTENER_STATE_UNVERIFIED", "Listener probe malformed")
+    result["listener_observation"] = observation
+    if observation["state"] != "absent":
+        raise AppError("REPLACEMENT_LISTENER_PRESENT" if observation["state"] == "responding" else "LISTENER_STATE_UNVERIFIED",
+                       "Original endpoint absence not confirmed")
 
 
 async def cleanup(runtime) -> dict:
@@ -48,30 +59,41 @@ async def cleanup(runtime) -> dict:
     from .native_runtime import proof
     result = new_result()
     provider = runtime.provider
+    stage = "lock"
     try:
         async with asyncio.timeout(43):
             async with runtime._lock:
+                stage = "before"
                 result["before"] = await sample()
                 pending = runtime._cleanup_pending
                 lease = getattr(provider, "_lease", None)
                 completed = runtime._cleanup_completed
                 if completed is not None and lease is None and runtime._native is None and not runtime._owned():
                     if proof(completed["native"]) == completed["identity"]:
+                        stage = "runtime"
                         result["runtime"] = await runtime.status()
                         result["runtime_error"] = None
+                        stage = "listener"
+                        await require_absent(provider, result)
                         if not result["runtime"]["ollama"]["reachable"]:
                             result["after"] = await sample()
                             result.update(status="noop", verified=True, reason="NO_LVW_SERVICE_RUNNING")
                             return result
                 if pending is None:
+                    stage = "ownership"
+                    if not runtime._native or not runtime._owned():
+                        result.update(status="blocked", reason="RUNTIME_NOT_OWNED")
+                        stage = "runtime"
+                        result["runtime"] = await runtime.status()
+                        result["runtime_error"] = None
+                        stage = "after"
+                        result["after"] = await sample()
+                        return result
+                    stage = "inventory"
                     rows = await inventory(provider)
                     target = [row for row in rows if row["name"] == provider.model]
                     if any(row["name"] != provider.model for row in rows):
                         result.update(status="blocked", reason="EXTERNAL_MODEL_PRESENT")
-                    elif not target and lease is None:
-                        result.update(status="noop", verified=True, reason="NO_LVW_MODEL_LOADED")
-                    elif not runtime._native or not runtime._owned():
-                        result.update(status="blocked", reason="RUNTIME_NOT_OWNED")
                     else:
                         native = runtime._native
                         identity = proof(native)
@@ -79,6 +101,9 @@ async def cleanup(runtime) -> dict:
                         # a POST to whichever listener happens to be on the old port.
                         if not identity or identity.get("state") not in {"starting", "listening"}:
                             result.update(status="blocked", reason="NATIVE_CUSTODY_UNPROVEN")
+                        elif lease is not None and (runtime.current_generation() is None or
+                                getattr(provider, "_lease_generation", None) != runtime.current_generation()):
+                            result.update(status="blocked", reason="LEASE_GENERATION_UNBOUND")
                         elif result["before"]["values"] is not None:
                             before_used = result["before"]["values"]["gpu_used_mib"]
                             target_mib = (target[0]["size_vram"] + 1048575) // 1048576 if target else 0
@@ -89,14 +114,19 @@ async def cleanup(runtime) -> dict:
                                     raise ValueError("Lease baseline unavailable")
                                 bound = min(bound, baseline + 1024)
                             pending = {"native": native, "identity": identity, "lease": lease,
+                                       "lease_generation": getattr(provider, "_lease_generation", None),
                                        "gpu_max_mib": bound}
                             runtime._cleanup_pending = pending
                             result["actions"].append("stop_original_lvw_model_service")
+                            stage = "stop"
                             await runtime._stop_owned()
+                        else:
+                            raise AppError("RESOURCE_TELEMETRY_UNAVAILABLE", "Before sample unavailable")
                 if pending is not None:
                     if runtime._native is pending["native"]:
                         result["actions"].append("reconcile_original_lvw_model_service")
                         await runtime._stop_owned()
+                    stage = "native_exit"
                     identity = proof(pending["native"])
                     expected = pending["identity"]
                     exited = (identity.get("state") == "exited"
@@ -106,6 +136,7 @@ async def cleanup(runtime) -> dict:
                     if not exited or runtime._owned() or runtime._native is not None:
                         raise AppError("RESOURCE_RELEASE_PENDING", "Original native exit unproven")
                     for _ in range(3):
+                        stage = "after"
                         result["after"] = await sample()
                         values = result["after"]["values"]
                         if values is None or values["gpu_used_mib"] > pending["gpu_max_mib"]:
@@ -113,29 +144,42 @@ async def cleanup(runtime) -> dict:
                         await asyncio.sleep(0.25)
                 else:
                     result["after"] = await sample()
+                stage = "runtime"
                 result["runtime"] = await runtime.status()
                 result["runtime_error"] = None
                 if pending is not None:
+                    stage = "listener"
+                    await require_absent(provider, result)
                     # A replacement daemon is never stopped or sent an unload.
                     if result["runtime"]["ollama"]["reachable"]:
                         raise AppError("RESOURCE_RELEASE_PENDING", "Replacement listener present")
                     if getattr(provider, "_lease", None) is not pending["lease"]:
                         raise AppError("RESOURCE_RELEASE_PENDING", "Lease changed during cleanup")
+                    if getattr(provider, "_lease_generation", None) != pending["lease_generation"]:
+                        raise AppError("LEASE_GENERATION_UNBOUND", "Lease generation changed")
                     # No fallible observation follows this single reconciliation commit.
                     provider._lease = None
+                    provider._lease_generation = None
                     provider._sent = False
                     runtime._cleanup_completed = {"native": pending["native"], "identity": identity}
                     runtime._cleanup_pending = None
                     runtime.last_error = None
+                    result["runtime"]["ollama"].update(state="stopped", last_error=None, reason="OLLAMA_UNAVAILABLE")
+                    result["runtime"]["actions"].update(can_start=True, can_reset=False, can_stop=False)
                     result.update(status="released", verified=True, reason=None)
     except TimeoutError:
         result.update(status="unknown", verified=False, reason="RESOURCE_CLEANUP_TIMEOUT")
-    except Exception:
-        result.update(status="unknown", verified=False, reason="RESOURCE_RELEASE_PENDING")
+    except Exception as error:
+        causes = {"inventory": "MODEL_INVENTORY_UNVERIFIED", "runtime": "RUNTIME_STATUS_UNAVAILABLE",
+                  "listener": "LISTENER_STATE_UNVERIFIED", "native_exit": "NATIVE_EXIT_UNCONFIRMED",
+                  "stop": "NATIVE_STOP_UNCONFIRMED", "after": "RESOURCE_BOUND_UNCONFIRMED",
+                  "before": "RESOURCE_TELEMETRY_UNAVAILABLE", "ownership": "NATIVE_CUSTODY_UNPROVEN"}
+        code = error.code if isinstance(error, AppError) and error.code != "RESOURCE_RELEASE_PENDING" else causes.get(stage, "RESOURCE_RELEASE_PENDING")
+        result.update(status="unknown", verified=False, reason=code)
     if result["runtime"] is None:
-        result["runtime_error"] = result["reason"]
+        result["runtime_error"] = result["reason"] if stage == "runtime" else "SKIPPED_AFTER_" + result["reason"]
     if result["before"]["values"] is None and result["before"]["error"] == "NOT_OBSERVED":
         result["before"]["error"] = result["reason"]
     if result["after"]["values"] is None and result["after"]["error"] == "NOT_OBSERVED":
-        result["after"]["error"] = result["reason"]
+        result["after"]["error"] = "SKIPPED_AFTER_" + result["reason"]
     return result

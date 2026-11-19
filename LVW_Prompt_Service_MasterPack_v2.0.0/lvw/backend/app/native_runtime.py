@@ -26,6 +26,6 @@ def proof(value):
     if not value:return {}
     try:
         p=json.loads(value['owner'].read_text())
-        if p.get('nonce')==value['nonce'] and type(p.get('pid')) is int and p['pid']>0 and type(p.get('birth_ticks')) is int:return p
+        if isinstance(p,dict) and p.get('nonce')==value['nonce'] and type(p.get('pid')) is int and p['pid']>0 and type(p.get('birth_ticks')) is int:return p
     except (OSError,ValueError):pass
     return {}

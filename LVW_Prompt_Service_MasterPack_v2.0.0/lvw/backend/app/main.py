@@ -34,7 +34,10 @@ def create_app(settings: Settings | None = None, provider=None, runtime=None) ->
     provider = provider or OllamaProvider(settings.ollama_endpoint, settings.model,
                                           settings.request_timeout_seconds)
     runtime = runtime or OllamaRuntime(provider, settings.ollama_executable, settings.data_root)
-    service = AnalysisService(media, provider)
+    provider._generation_getter = getattr(runtime, "current_generation", lambda: None)
+    service = AnalysisService(media, provider, runtime=runtime)
+    provider._admission_guard = service.ensure_resource_admission
+    runtime._active_job_getter = lambda: service._active
     app = FastAPI(title="LVW Prompt Service", version="0.1.0", docs_url=None, redoc_url=None)
     app.add_middleware(RequestBodyLimit, upload_limit=MAX_UPLOAD_REQUEST_BYTES)
     app.state.media = media
@@ -89,7 +92,12 @@ def create_app(settings: Settings | None = None, provider=None, runtime=None) ->
 
     @app.get("/api/v1/readiness")
     async def readiness(request: Request):
-        return envelope(await provider.readiness(),
+        value = await provider.readiness()
+        try:
+            service.ensure_resource_admission()
+        except AppError:
+            value = {**value, "ready": False, "reason": "RESOURCE_RELEASE_PENDING"}
+        return envelope(value,
                         request.headers.get("X-Request-ID") or uuid.uuid4().hex)
 
     @app.get("/api/v1/runtime/status")
@@ -145,6 +153,7 @@ def create_app(settings: Settings | None = None, provider=None, runtime=None) ->
     @app.post("/api/v1/jobs/analyze", status_code=202)
     async def analyze(body: AnalyzeRequest, request: Request, background_tasks: BackgroundTasks,
                       idempotency_key: str = Header(min_length=1, max_length=128)):
+        service.ensure_resource_admission()
         ready = await provider.readiness()
         if not ready["ready"]:
             raise AppError("MODEL_UNAVAILABLE", "本地视觉模型尚未就绪", status_code=503,

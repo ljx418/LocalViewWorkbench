@@ -304,6 +304,30 @@ class OllamaProvider:
         self.ledger_path = ledger_path or (Path(configured) if configured else None)
         self._lease = None
         self._sent = False
+        self._lease_generation = None
+        self._generation_getter = lambda: None
+        self._admission_guard = lambda: None
+
+    async def listener_state(self) -> dict:
+        """A protocol error/timeout is never evidence that a listener is absent."""
+        endpoint = urlsplit(self.endpoint)
+        writer = None
+        try:
+            async with asyncio.timeout(1):
+                _, writer = await asyncio.open_connection(endpoint.hostname, endpoint.port or 80)
+        except ConnectionRefusedError:
+            return {"state": "absent", "reason": "CONNECTION_REFUSED"}
+        except (OSError, TimeoutError):
+            return {"state": "indeterminate", "reason": "LISTENER_PROBE_INDETERMINATE"}
+        finally:
+            if writer is not None:
+                writer.close()
+                try:
+                    async with asyncio.timeout(0.5):
+                        await writer.wait_closed()
+                except (OSError, TimeoutError):
+                    pass
+        return {"state": "responding", "reason": "CONNECTION_ESTABLISHED"}
 
     async def _inventory(self) -> list:
         async with httpx.AsyncClient(timeout=3, trust_env=False) as client:
@@ -315,6 +339,7 @@ class OllamaProvider:
         return value["models"]
 
     async def acquire(self, job_id: str):
+        self._admission_guard()
         if self._lease is not None:
             raise AppError("RESOURCE_RELEASE_PENDING", "上一任务资源释放未确认", status_code=503)
         try:
@@ -328,7 +353,9 @@ class OllamaProvider:
                 or baseline["available_ram_mib"] < 2048):
             raise AppError("RESOURCE_BUSY", "可用GPU/RAM容量不足，未启动本轮模型", status_code=503,
                            details=baseline)
+        generation = self._generation_getter()
         self._lease = (job_id, baseline)
+        self._lease_generation = generation
         self._sent = False
         self._record("lease_acquired", job_id, baseline=baseline)
 
@@ -363,6 +390,7 @@ class OllamaProvider:
                 stable = stable + 1 if not inventory and sample["gpu_used_mib"] <= baseline["gpu_used_mib"] + 1024 else 0
                 if stable >= 3:
                     self._lease = None
+                    self._lease_generation = None
                     self._sent = False
                     self._record("lease_released", job_id)
                     return True
