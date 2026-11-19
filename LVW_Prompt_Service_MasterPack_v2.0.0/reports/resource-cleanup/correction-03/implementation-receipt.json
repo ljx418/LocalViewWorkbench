@@ -1,0 +1,54 @@
+{
+  "status": "READY_FOR_INDEPENDENT_REVIEW_FULL_LOADED_NOT_EXECUTED",
+  "candidate_sha": "a066fe19c1700255cc0268aded3ee5948e90fcf2",
+  "prior_review": "../independent-review-03/review.md",
+  "root_ack": "root-ack.json",
+  "findings": {
+    "03-A": "IMPLEMENTED_PENDING_INDEPENDENT_RECHECK",
+    "03-B": "IMPLEMENTED_PENDING_INDEPENDENT_RECHECK",
+    "03-C": "IMPLEMENTED_PENDING_INDEPENDENT_RECHECK",
+    "03-D": "IMPLEMENTED_PENDING_INDEPENDENT_RECHECK",
+    "03-E": "IMPLEMENTED_PENDING_INDEPENDENT_RECHECK",
+    "03-F": "IMPLEMENTED_PENDING_INDEPENDENT_RECHECK",
+    "03-G": "IMPLEMENTED_PENDING_INDEPENDENT_RECHECK",
+    "03-H": "IMPLEMENTED_PENDING_INDEPENDENT_RECHECK"
+  },
+  "targeted": {
+    "pass": 88,
+    "evidence": "cpu/check-01",
+    "exit": 0,
+    "reaped": true
+  },
+  "backend": {
+    "pass": 242,
+    "evidence": "cpu/check-02",
+    "exit": 0,
+    "reaped": true
+  },
+  "frontend": {
+    "pass": 12,
+    "build": "PASS",
+    "reuse": "unchanged source/dist; correction01 check03/check04"
+  },
+  "ui_fixture": {
+    "assertions": 9,
+    "evidence": "runs/ui-fixture-01/receipt.json"
+  },
+  "real_empty_service": {
+    "assertions": 8,
+    "evidence": "runs/real-zero-model-01/receipt.json",
+    "operation_inventory_count": 0,
+    "verified_original_exit_and_port_refusal": true
+  },
+  "actual_model_actions": 0,
+  "latest_recorded_resources": {
+    "gpu_free_mib": 20694,
+    "old_admission_minimum_mib": 19047,
+    "note": "latest zero-model maintenance met admission; full loaded sequence is pending code qualification/run packet, not currently blamed on insufficient GPU"
+  },
+  "real_loaded_release_restart_image_inference": "NOT_EXECUTED_PENDING_CODE_QUALIFICATION_AND_SEALED_RUN",
+  "human_signoff": false,
+  "stage_pass": false,
+  "main_feature": "PAUSED, original persistence23bd8da untouched",
+  "cleanup": "own API/context/browser/driver/native exited; diagnostics retained; reservations settled; no foreign kill or recursive deletion"
+}
