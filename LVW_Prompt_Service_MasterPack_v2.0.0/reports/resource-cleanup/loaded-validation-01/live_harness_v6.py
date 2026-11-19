@@ -29,7 +29,7 @@ authority = ModuleType("lvw_cleanup_verified_authority")
 authority.__file__ = str(authority_path)
 exec(compile(authority_source, str(authority_path), "exec"), authority.__dict__)
 WRITE_ROOTS = ()
-CRITICAL_INPUTS = {'tools/local_program_authority.py', 'lvw/backend/app/native_runtime.py',
+CRITICAL_INPUTS = {'lvw/backend/app/native_job.py', 'tools/local_program_authority.py', 'lvw/backend/app/native_runtime.py',
     'lvw/backend/app/resources.py', 'lvw/backend/app/video_kernel.py',
     'LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/core.py',
     'LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_process.py',

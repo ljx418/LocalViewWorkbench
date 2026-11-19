@@ -87,6 +87,8 @@ def test_loaded_seal_before_start_and_second_generation(seal, monkeypatch, chang
         harness_sha256=H.authority.digest(Path(H.__file__)),
         samples=[{'path': 'reports/unified-media/dev-image.png', 'sha256': H.authority.digest(image)}],
         budget={'model_calls': 2, 'provider_calls': 2, 'api_starts': 1, 'ollama_starts': 2, 'headless_browser_starts': 1, 'full_checkpoints': 0})
+    helper = root / 'lvw/backend/app/native_job.py'; helper.parent.mkdir(parents=True, exist_ok=True); helper.write_text('synthetic kernel helper')
+    child['frozen_files'].append({'path': str(helper.relative_to(root)), 'sha256': H.authority.digest(helper)})
     row['cap'] = 2
     if change in {'second_start', 'wrong_count'}: row['calls'] = 1
     if change == 'wrong_cap': row['cap'] = 3
