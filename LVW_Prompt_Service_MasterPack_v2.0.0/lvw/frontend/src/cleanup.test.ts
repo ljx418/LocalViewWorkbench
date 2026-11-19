@@ -4,7 +4,7 @@ import { cleanupMessage, sampleMessage } from "./cleanup";
 import { cleanupResources } from "./api";
 import type { CleanupResult } from "./types";
 
-const base: CleanupResult = { operation_id: "cleanup_test", status: "unknown", verified: false, actions: [], before: null, after: null, reason: null, runtime: null, runtime_error: "NOT_OBSERVED", verification_scope: "original_service_exit_and_resource_bound" };
+const base: CleanupResult = { operation_id: "cleanup_test", status: "unknown", verified: false, actions: [], before: null, after: null, reason: null, runtime: null, runtime_error: "NOT_OBSERVED", inventory_observation: { state: "not_started", model_count: null }, listener_observation: { state: "not_observed", reason: "NOT_OBSERVED" }, verification_scope: "original_service_exit_and_resource_bound" };
 test("cleanup verdict requires proof; missing telemetry is never zero", () => {
   assert.match(cleanupMessage({ ...base, status: "released" }), /未能确认/);
   assert.match(cleanupMessage({ ...base, status: "released", verified: true }), /已确认/);

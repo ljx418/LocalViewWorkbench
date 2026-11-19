@@ -103,5 +103,13 @@ export interface CleanupResult {
   reason: string | null;
   runtime: RuntimeStatus | null;
   runtime_error: string | null;
+  inventory_observation: {
+    state: "not_started" | "in_progress" | "complete" | "interrupted" | "failed";
+    model_count: number | null;
+  };
+  listener_observation: {
+    state: "not_observed" | "in_progress" | "absent" | "responding" | "indeterminate" | "interrupted";
+    reason: string | null;
+  };
   verification_scope: "original_service_exit_and_resource_bound";
 }

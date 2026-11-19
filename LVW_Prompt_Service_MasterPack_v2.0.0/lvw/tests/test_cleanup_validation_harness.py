@@ -8,7 +8,7 @@ import asyncio
 import pytest
 
 PACK = Path(__file__).resolve().parents[2]
-SPEC = importlib.util.spec_from_file_location('cleanup_harness_v4_test', PACK / 'reports/resource-cleanup/correction-03/live_harness_v4.py')
+SPEC = importlib.util.spec_from_file_location('cleanup_harness_v5_test', PACK / 'reports/resource-cleanup/correction-04/live_harness_v5.py')
 HARNESS = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(HARNESS)
 
@@ -33,7 +33,7 @@ def seal(tmp_path, monkeypatch):
         tools[name] = {'path': str(path), 'sha256': HARNESS.authority.digest(path)}
     tool_file = out / 'bindings.json'; tool_file.write_text(json.dumps(tools))
     child_path = out / 'authorization.json'
-    child = {'kind': 'RESOURCE_CLEANUP_V4_CHILD/1', 'run_id': 'test', 'program': HARNESS.authority.COMPLETE_APPROVAL,
+    child = {'kind': 'RESOURCE_CLEANUP_V5_CHILD/1', 'run_id': 'test', 'program': HARNESS.authority.COMPLETE_APPROVAL,
         'program_sha256': HARNESS.authority.digest(grant), 'fixture': True,
         'expires_at': time.time() + 60, 'budget': {'model_calls': 0, 'provider_calls': 0},
         'frozen_files': [{'path': str(item.relative_to(root)), 'sha256': HARNESS.authority.digest(item)} for item in critical],
@@ -183,7 +183,7 @@ def test_native_nonce_mismatch_is_not_a_verified_exit(seal):
     native = {'nonce': 'known', 'owner': private / 'data/owner.json'}
     value = {'nonce': 'known', 'pid': 321, 'birth_ticks': 12345, 'state': 'exited', 'listener_owned': False}
     HARNESS.write(native['owner'], value)
-    expected = {**value, 'nonce': 'another_generation'}
+    expected = {**value, 'nonce': 'another_generation', 'state': 'listening', 'listener_owned': True}
     known, _ = HARNESS.native_terminal(SimpleNamespace(_native_history=[native], _native=None), native, expected, path.parent, [])
     assert not known
 
@@ -235,7 +235,7 @@ def test_authority_drift_refused_before_project_authority_executes(tmp_path, mon
     import sys
     monkeypatch.setattr(sys, 'path', list(sys.path))
     root = tmp_path / 'pack'
-    script = root / 'reports/resource-cleanup/correction-03/live_harness_v4.py'
+    script = root / 'reports/resource-cleanup/correction-04/live_harness_v5.py'
     script.parent.mkdir(parents=True)
     script.write_bytes(Path(HARNESS.__file__).read_bytes())
     helper = root / 'tools/local_program_authority.py'; helper.parent.mkdir()
@@ -246,3 +246,34 @@ def test_authority_drift_refused_before_project_authority_executes(tmp_path, mon
     with pytest.raises(ValueError, match='TRUSTED_AUTHORITY_DRIFT_BEFORE_IMPORT'):
         spec.loader.exec_module(module)
     assert not marker.exists()
+
+
+def test_verified_authority_executes_source_despite_importable_poison_cache(tmp_path, monkeypatch):
+    import sys
+    import py_compile
+    from types import ModuleType
+    monkeypatch.setattr(sys, 'path', list(sys.path))
+    root = tmp_path / 'pack'
+    script = root / 'reports/resource-cleanup/correction-04/live_harness_v5.py'
+    script.parent.mkdir(parents=True)
+    script.write_bytes(Path(HARNESS.__file__).read_bytes())
+    helper = root / 'tools/local_program_authority.py'; helper.parent.mkdir()
+    trusted_source = (PACK / 'tools/local_program_authority.py').read_bytes()
+    marker = root / 'poison-executed'
+    helper.write_text(f'from pathlib import Path\nPath({str(marker)!r}).touch()\nPOISON = True\n')
+    # Unchecked-hash caches are importable regardless of source timestamp/size.
+    cache = py_compile.compile(str(helper), doraise=True,
+        invalidation_mode=py_compile.PycInvalidationMode.UNCHECKED_HASH)
+    helper.write_bytes(trusted_source)
+    probe = importlib.util.spec_from_file_location('poison_cache_probe', helper)
+    loaded = importlib.util.module_from_spec(probe); probe.loader.exec_module(loaded)
+    assert loaded.POISON and marker.exists()  # Establish the actual hostile loader path.
+    marker.unlink()
+    poison = ModuleType('tools.local_program_authority'); poison.POISON = True
+    monkeypatch.setitem(sys.modules, 'tools.local_program_authority', poison)
+    spec = importlib.util.spec_from_file_location('sealed_authority_boot', script)
+    module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+    assert not marker.exists() and Path(cache).is_file()
+    assert not hasattr(module.authority, 'POISON')
+    assert module.authority.ROOT == root
+    assert module.authority.digest(helper) == module.AUTHORITY_SHA256

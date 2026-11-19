@@ -446,18 +446,39 @@ def test_release_resource_bound_exact_and_one_over(setup, monkeypatch, after_use
     assert (runtime._cleanup_pending is None) is accepted
 
 
-def test_generation_is_read_once_and_unbound_lease_cannot_match_none(setup):
+def test_unbound_lease_cannot_match_none(setup):
     provider, runtime, _, client = setup
     lease = ('unbound', {'gpu_used_mib': 400}); provider._lease = lease
     provider._lease_generation = None
-    real = runtime.current_generation(); calls = []
-    def flapping():
-        calls.append(1)
-        return real if len(calls) == 1 else None
-    runtime.current_generation = flapping
     result = post(client).json()['data']
     assert result['status'] == 'blocked' and result['reason'] == 'LEASE_GENERATION_UNBOUND'
-    assert calls == [1] and runtime.process.stop_calls == 0 and provider._lease is lease
+    assert runtime.process.stop_calls == 0 and provider._lease is lease
+
+
+def test_authorization_and_reconciliation_use_one_native_proof(setup, monkeypatch):
+    from app import native_runtime
+    provider, runtime, _, client = setup
+    provider._lease = ('bound', {'gpu_used_mib': 400})
+    provider._lease_generation = runtime.current_generation()
+    original_proof = native_runtime.proof
+    calls = []
+    def changing_proof(native):
+        value = original_proof(native)
+        calls.append(dict(value))
+        # A second pre-stop read would be a different authorization identity.
+        return value if len(calls) == 1 else {**value, 'pid': value['pid'] + 1}
+    monkeypatch.setattr(native_runtime, 'proof', changing_proof)
+    stop = runtime._stop_owned
+    async def check_then_stop():
+        assert len(calls) == 1
+        assert runtime._cleanup_pending['identity'] == calls[0]
+        assert runtime._cleanup_pending['lease_generation'] == provider._lease_generation
+        monkeypatch.setattr(native_runtime, 'proof', original_proof)
+        await stop()
+    monkeypatch.setattr(runtime, '_stop_owned', check_then_stop)
+    result = post(client).json()['data']
+    assert result['status'] == 'released' and result['verified']
+    assert len(calls) == 1 and provider._lease is None
 
 
 def test_inventory_observation_is_recorded_at_the_public_operation(setup):

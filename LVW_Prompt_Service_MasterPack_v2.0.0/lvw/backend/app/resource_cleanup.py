@@ -113,7 +113,8 @@ async def cleanup(runtime) -> dict:
                     else:
                         native = runtime._native
                         identity = proof(native)
-                        current_generation = runtime.current_generation() if lease is not None else None
+                        current_generation = ({key: identity.get(key) for key in ("nonce", "pid", "birth_ticks")}
+                                              if identity and runtime._owned() else None)
                         lease_generation = getattr(provider, "_lease_generation", None)
                         # This record identifies the original handle only. It never authorizes
                         # a POST to whichever listener happens to be on the old port.
