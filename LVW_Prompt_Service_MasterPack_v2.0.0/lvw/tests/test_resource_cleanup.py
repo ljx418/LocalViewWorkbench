@@ -243,7 +243,8 @@ def test_telemetry_failure_never_stops_service_or_fabricates_values(setup, monke
     monkeypatch.setattr(owner.resources, "snapshot", fail)
     result = post(client).json()["data"]
     assert result["status"] == "unknown" and not result["verified"]
-    assert result["before"] == result["after"] == {"values": None, "error": "RESOURCE_TELEMETRY_UNAVAILABLE"}
+    assert result["before"] == {"values": None, "error": "RESOURCE_TELEMETRY_UNAVAILABLE"}
+    assert result["after"] == {"values": None, "error": "SKIPPED_AFTER_RESOURCE_TELEMETRY_UNAVAILABLE"}
     assert runtime.process.stop_calls == 0
 
 

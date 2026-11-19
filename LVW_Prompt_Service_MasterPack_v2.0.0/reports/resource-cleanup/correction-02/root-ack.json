@@ -30,7 +30,7 @@
     "lvw/tests/test_provider.py": "c9df9ebe25bbade3dc0c56d984ef09b353c5b3d0e366b2738a9c78909fc7d829",
     "lvw/tests/test_r1a_live_harness_contract.py": "40bb21e01f814c4fdd81f87924e5e7a1db44c97f000cf764853f906bb4467b60",
     "lvw/tests/test_r1a_runtime_guard.py": "028a7c5e85050f67308cd8aeae775bfca2e220f9da400698ec590ffe06e51ed5",
-    "lvw/tests/test_resource_cleanup.py": "7377fdd657d782a42854bc1b73a865aefbc617709f3b8d7c865d908b42556a96",
+    "lvw/tests/test_resource_cleanup.py": "05ffe8d3d05e41efbd7fe537518113f2fe280881f1bf341ffd8fe5dde1cf9bd4",
     "lvw/tests/test_run_local.py": "74558ecbc4ca8018012f0db9ce94731fe3e041058e325d30da7ee54d121e7d37",
     "lvw/tests/test_runtime.py": "0e5a3557594ff148ce61fa594fd501065fd5684c8832c360c79d5b6860adef2f",
     "lvw/tests/test_unified_video.py": "93e5be7c702b07fa36564882b3e9f5fa7084908c7f2b0b5059472f6b9908f3c8",
@@ -94,5 +94,10 @@
   "controller": "reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/bounded_exec.py",
   "boundary": "audited CPU tests with in-process ASGI and mocked transports/telemetry/native identities; fresh data/temp roots; no live TCP/native/GPU/model; cooperative controller not OS sandbox",
   "live_requires_new_finite_child": true,
-  "real_loaded_release_restart_inference": "BLOCKED_NOT_CLAIMED"
+  "real_loaded_release_restart_inference": "BLOCKED_NOT_CLAIMED",
+  "oracle_correction": {
+    "initial_run": "cpu/check-01 preserved, one outdated after-sample assertion failed",
+    "reason": "C2 explicitly distinguishes failed BEFORE observation from skipped AFTER observation; preserve no-stop/no-fabrication assertions",
+    "production_code_unchanged": true
+  }
 }

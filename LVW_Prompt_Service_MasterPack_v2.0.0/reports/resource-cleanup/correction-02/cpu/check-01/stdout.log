@@ -1,0 +1,24 @@
+............................F........................................... [100%]
+=================================== FAILURES ===================================
+_______ test_telemetry_failure_never_stops_service_or_fabricates_values ________
+
+setup = (<test_resource_cleanup.Provider object at 0x72c9c0445ca0>, <app.runtime.OllamaRuntime object at 0x72c9c0445bb0>, <fastapi.applications.FastAPI object at 0x72c9c0450a70>, <starlette.testclient.TestClient object at 0x72c9c0451ee0>)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x72c9c0444fe0>
+
+    def test_telemetry_failure_never_stops_service_or_fabricates_values(setup, monkeypatch):
+        _, runtime, _, client = setup
+        async def fail(): raise AppError("RESOURCE_BUSY", "unavailable", status_code=503)
+        monkeypatch.setattr(owner.resources, "snapshot", fail)
+        result = post(client).json()["data"]
+        assert result["status"] == "unknown" and not result["verified"]
+>       assert result["before"] == result["after"] == {"values": None, "error": "RESOURCE_TELEMETRY_UNAVAILABLE"}
+E       AssertionError: assert {'error': 'RE...values': None} == {'error': 'SK...values': None}
+E         
+E         Omitting 1 identical items, use -vv to show
+E         Differing items:
+E         {'error': 'RESOURCE_TELEMETRY_UNAVAILABLE'} != {'error': 'SKIPPED_AFTER_RESOURCE_TELEMETRY_UNAVAILABLE'}
+E         Use -v to get more diff
+
+lvw/tests/test_resource_cleanup.py:246: AssertionError
+=========================== short test summary info ============================
+FAILED lvw/tests/test_resource_cleanup.py::test_telemetry_failure_never_stops_service_or_fabricates_values
