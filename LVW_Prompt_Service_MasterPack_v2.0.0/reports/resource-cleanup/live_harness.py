@@ -218,4 +218,4 @@ async def main(child_path: Path):
 
 
 if __name__ == "__main__":
-    raise SystemExit(asyncio.run(main(Path(sys.argv[1]).resolve())))
+    raise SystemExit("RETIRED_AFTER_INDEPENDENT_REVIEW: use correction-01/live_harness_v2.py; historical evidence is preserved")

@@ -22,6 +22,8 @@ class OllamaRuntime:
         self._spawn_override = spawn
         self._log = None
         self._native = None
+        self._cleanup_pending = None
+        self._cleanup_completed = None
 
     def _validate_executable(self) -> Path:
         executable = self.executable
@@ -102,6 +104,8 @@ class OllamaRuntime:
 
     async def start(self) -> dict:
         async with self._lock:
+            if self._cleanup_pending is not None:
+                raise AppError("RESOURCE_RELEASE_PENDING", "请先完成资源清理终态核对", status_code=409)
             current = await self.status()
             if self._native and not self._owned():
                 await self._stop_owned()
@@ -161,6 +165,8 @@ class OllamaRuntime:
 
     async def stop(self) -> dict:
         async with self._lock:
+            if self._cleanup_pending is not None:
+                raise AppError("RESOURCE_RELEASE_PENDING", "请先完成资源清理终态核对", status_code=409)
             if not self._owned() and not self._native:
                 readiness = await self.provider.readiness()
                 if readiness["ready"]:
@@ -178,6 +184,8 @@ class OllamaRuntime:
 
     async def reset(self) -> dict:
         async with self._lock:
+            if self._cleanup_pending is not None:
+                raise AppError("RESOURCE_RELEASE_PENDING", "请先完成资源清理终态核对", status_code=409)
             if not self._owned():
                 raise AppError("RUNTIME_NOT_OWNED", "Only an LVW-managed Ollama can be reset",
                                status_code=409)
@@ -187,8 +195,7 @@ class OllamaRuntime:
 
     async def cleanup_resources(self) -> dict:
         from .resource_cleanup import cleanup
-        async with self._lock:
-            return await cleanup(self)
+        return await cleanup(self)
 
     async def close(self) -> None:
         async with self._lock:

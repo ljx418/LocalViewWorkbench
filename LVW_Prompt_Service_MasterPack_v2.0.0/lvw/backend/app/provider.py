@@ -340,13 +340,6 @@ class OllamaProvider:
             self._record("lease_release_unproven", job_id)
             return False
 
-    async def unload_idle_model(self) -> None:
-        """Only called by the runtime cleanup owner after idle/custody checks."""
-        async with httpx.AsyncClient(timeout=8, trust_env=False) as client:
-            response = await client.post(self.endpoint.removesuffix("/api/chat") + "/api/generate",
-                                         json={"model": self.model, "keep_alive": 0})
-            response.raise_for_status()
-
     async def _release_bounded(self, job_id: str) -> bool:
         if self._lease is None or self._lease[0] != job_id:
             return False

@@ -12,11 +12,12 @@ export class ApiError extends Error {
 }
 
 async function read<T>(response: Response): Promise<T> {
-  const payload = await response.json();
+  const payload = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new ApiError(payload?.error?.code ?? "REQUEST_FAILED",
+    throw new ApiError(payload?.error?.code ?? (response.status === 404 ? "ENDPOINT_NOT_FOUND" : `HTTP_${response.status}`),
       payload?.error?.message ?? "请求失败", payload?.error?.retryable ?? false);
   }
+  if (!payload || typeof payload !== "object" || !("data" in payload)) throw new ApiError("INVALID_RESPONSE", "后端返回了无法读取的结果");
   return (payload as ApiEnvelope<T>).data;
 }
 

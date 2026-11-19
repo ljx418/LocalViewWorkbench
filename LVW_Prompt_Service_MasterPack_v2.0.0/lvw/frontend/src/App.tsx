@@ -59,6 +59,7 @@ export function App() {
   const [runtimeError, setRuntimeError] = useState<string>("");
   const [cleanupResult, setCleanupResult] = useState<CleanupResult | null>(null);
   const [cleanupError, setCleanupError] = useState("");
+  const [cleanupStatusError, setCleanupStatusError] = useState("");
   const runtimePending = useRef(false);
   const controller = useRef<AbortController | null>(null);
 
@@ -80,7 +81,7 @@ export function App() {
           setReadiness({ ready: false, model: "gemma4:26b",
             reason: "SERVICE_UNAVAILABLE", loaded: false });
           const value = caught as ApiError;
-          setRuntimeError(value.code === "REQUEST_FAILED"
+          setRuntimeError(value.code === "ENDPOINT_NOT_FOUND"
             ? "当前页面连接到了旧版 LVW 后端。请关闭旧启动窗口，再重新运行 START_LVW.cmd。"
             : "无法读取本地后端状态，页面会自动重试。");
         }
@@ -115,16 +116,30 @@ export function App() {
   async function cleanResources() {
     if (busy || runtimePending.current) return;
     runtimePending.current = true;
-    setRuntimeAction("cleanup"); setCleanupError(""); setCleanupResult(null);
-    try { setCleanupResult(await cleanupResources()); }
+    setRuntimeAction("cleanup"); setCleanupError(""); setCleanupStatusError(""); setCleanupResult(null);
+    try {
+      const result = await cleanupResources(); setCleanupResult(result);
+      if (result.runtime) applyRuntime(result.runtime);
+    }
     catch (caught) {
       const value = caught as ApiError;
-      setCleanupError(value.code === "REQUEST_FAILED"
+      setCleanupError(value.code === "ENDPOINT_NOT_FOUND"
         ? "当前后端尚不支持资源清理。请关闭旧启动窗口，再双击启动 LVW。"
         : `资源清理未完成：${value.message}${value.code ? `（${value.code}）` : ""}`);
     } finally { setRuntimeAction(""); runtimePending.current = false; }
     // Refresh is independent of the cleanup verdict; a status failure must not erase it.
-    try { setRuntime(await getRuntimeStatus()); } catch { /* periodic checks continue */ }
+    await recheckCleanupStatus();
+  }
+
+  function applyRuntime(next: RuntimeStatus) {
+    setRuntime(next);
+    setReadiness({ ready: next.ollama.model_ready, model: next.ollama.model,
+      reason: next.ollama.reason, loaded: next.ollama.model_loaded });
+  }
+
+  async function recheckCleanupStatus() {
+    try { applyRuntime(await getRuntimeStatus()); setCleanupStatusError(""); }
+    catch { setCleanupStatusError("服务状态检查失败，请确认启动窗口仍在运行。"); }
   }
 
   function choose(next: File | null) {
@@ -247,12 +262,13 @@ export function App() {
       </div>
       {runtimeError && <p className="runtime-error" role="alert">{runtimeError}</p>}
       <div className="cleanup-result" aria-live="polite" data-testid="cleanup-result">
-        <p>资源清理仅卸载可确认属于 LVW 的模型，不删除人工稿、媒体或模型文件。分析中请先取消并等待释放。</p>
+        <p>资源清理会关闭由本轮 LVW 启动的模型服务；下次分析前请重新启动。不删除人工稿、媒体或模型文件。分析中请先取消并等待释放。</p>
         {cleanupResult && <><p>{cleanupMessage(cleanupResult)}{cleanupResult.reason ? `（${cleanupResult.reason}）` : ""}</p>
           <p>清理前：{sampleMessage(cleanupResult.before)}</p><p>清理后：{sampleMessage(cleanupResult.after)}</p>
           <p>以上是整机观察值，其他程序仍可能占用 GPU 和内存。</p></>}
         {cleanupError && <p role="alert">{cleanupError}</p>}
-        {(cleanupResult || cleanupError) && <button type="button" disabled={Boolean(runtimeAction)} onClick={() => void getRuntimeStatus().then(setRuntime).catch(() => setCleanupError("服务状态检查失败，请确认启动窗口仍在运行。"))}>再次检查服务</button>}
+        {cleanupStatusError && <p role="alert">{cleanupStatusError}</p>}
+        {(cleanupResult || cleanupError) && <button type="button" disabled={Boolean(runtimeAction)} onClick={() => void recheckCleanupStatus()}>再次检查服务</button>}
       </div>
     </section>
 

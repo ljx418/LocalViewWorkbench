@@ -1,0 +1,402 @@
+{
+  "controls": {
+    "live-01/controller/receipt.json": {
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/resource-cleanup/live_harness.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/resource-cleanup/live-01/authorization.json"
+      ],
+      "pid": 58697,
+      "birth": "369453",
+      "returncode": 1,
+      "reaped": true,
+      "signals": [],
+      "timed_out": false,
+      "elapsed_seconds": 9.520078266999917,
+      "stdout": "{\"status\": \"FAIL_OR_BLOCKED\", \"checks\": 1, \"cleanup\": {\"api_task_finished\": true, \"browser_closed\": true, \"lease_cleared\": true, \"runtime_owned_process_remaining\": false}}\n",
+      "stderr": ""
+    },
+    "live-noop-02/controller/receipt.json": {
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/resource-cleanup/live_harness.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/resource-cleanup/live-noop-02/authorization.json"
+      ],
+      "pid": 60230,
+      "birth": "400587",
+      "returncode": 0,
+      "reaped": true,
+      "signals": [],
+      "timed_out": false,
+      "elapsed_seconds": 13.674484978000237,
+      "stdout": "{\"status\": \"PASS_REAL_LOCAL_NOOP_AND_SAFETY_ONLY\", \"checks\": 10, \"cleanup\": {\"api_task_finished\": true, \"browser_closed\": true, \"lease_cleared\": true, \"runtime_owned_process_remaining\": false, \"private_temp_removed\": true}}\n",
+      "stderr": ""
+    },
+    "ui-fixture-01/controller/receipt.json": {
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/resource-cleanup/live_harness.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/resource-cleanup/ui-fixture-01/authorization.json"
+      ],
+      "pid": 58413,
+      "birth": "364506",
+      "returncode": 0,
+      "reaped": true,
+      "signals": [],
+      "timed_out": false,
+      "elapsed_seconds": 3.88272480500018,
+      "stdout": "{\"status\": \"PASS_FIXTURE_ONLY\", \"checks\": 11, \"cleanup\": {\"api_task_finished\": true, \"browser_closed\": true, \"lease_cleared\": true, \"runtime_owned_process_remaining\": false}}\n",
+      "stderr": ""
+    },
+    "ui-fixture-02/controller/receipt.json": {
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/resource-cleanup/live_harness.py",
+        "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/reports/resource-cleanup/ui-fixture-02/authorization.json"
+      ],
+      "pid": 60231,
+      "birth": "400588",
+      "returncode": 0,
+      "reaped": true,
+      "signals": [],
+      "timed_out": false,
+      "elapsed_seconds": 6.355486973999632,
+      "stdout": "{\"status\": \"PASS_FIXTURE_ONLY\", \"checks\": 12, \"cleanup\": {\"api_task_finished\": true, \"browser_closed\": true, \"lease_cleared\": true, \"runtime_owned_process_remaining\": false, \"private_temp_removed\": true}}\n",
+      "stderr": ""
+    },
+    "validation-01/check-01/receipt.json": {
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "tests/test_resource_cleanup.py"
+      ],
+      "pid": 56518,
+      "birth": "335359",
+      "returncode": 0,
+      "reaped": true,
+      "signals": [],
+      "timed_out": false,
+      "elapsed_seconds": 6.337729185999706,
+      "stdout": "......................                                                   [100%]\n",
+      "stderr": ""
+    },
+    "validation-01/check-02/receipt.json": {
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider"
+      ],
+      "pid": 56695,
+      "birth": "338678",
+      "returncode": 2,
+      "reaped": true,
+      "signals": [],
+      "timed_out": false,
+      "elapsed_seconds": 1.6415623019997838,
+      "stdout": "\n==================================== ERRORS ====================================\n_______________ ERROR collecting tests/test_acceptance_recipe.py _______________\nImportError while importing test module '/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_acceptance_recipe.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/usr/lib/python3.12/importlib/__init__.py:90: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests/test_acceptance_recipe.py:8: in <module>\n    recipe_module = importlib.import_module('reports.unified-media.acceptance_recipe')\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/usr/lib/python3.12/importlib/__init__.py:90: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   ModuleNotFoundError: No module named 'reports'\n______________ ERROR collecting tests/test_checkpoint_oracles.py _______________\nImportError while importing test module '/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_checkpoint_oracles.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/usr/lib/python3.12/importlib/__init__.py:90: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests/test_checkpoint_oracles.py:9: in <module>\n    checks=importlib.import_module('reports.unified-media.checkpoint_checks')\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/usr/lib/python3.12/importlib/__init__.py:90: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   ModuleNotFoundError: No module named 'reports'\n___________ ERROR collecting tests/test_r1a_live_harness_contract.py ___________\nImportError while importing test module '/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_r1a_live_harness_contract.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/usr/lib/python3.12/importlib/__init__.py:90: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests/test_r1a_live_harness_contract.py:3: in <module>\n    from tools.r1a_offline_checkpoint import allowed_runtime_url, runtime_scan\nE   ModuleNotFoundError: No module named 'tools'\n_______________ ERROR collecting tests/test_r1a_runtime_guard.py _______________\nImportError while importing test module '/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_r1a_runtime_guard.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/usr/lib/python3.12/importlib/__init__.py:90: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests/test_r1a_runtime_guard.py:8: in <module>\n    from tools.r1a_runtime_guard import (\nE   ModuleNotFoundError: No module named 'tools'\n___________________ ERROR collecting tests/test_run_local.py ___________________\nImportError while importing test module '/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_run_local.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/usr/lib/python3.12/importlib/__init__.py:90: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests/test_run_local.py:7: in <module>\n    from lvw.run_local import configured_port\nE   ModuleNotFoundError: No module named 'lvw'\n=========================== short test summary info ============================\nERROR tests/test_acceptance_recipe.py\nERROR tests/test_checkpoint_oracles.py\nERROR tests/test_r1a_live_harness_contract.py\nERROR tests/test_r1a_runtime_guard.py\nERROR tests/test_run_local.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 5 errors during collection !!!!!!!!!!!!!!!!!!!!\n",
+      "stderr": ""
+    },
+    "validation-01/check-03/receipt.json": {
+      "argv": [
+        "/usr/bin/npm",
+        "test"
+      ],
+      "pid": 56693,
+      "birth": "338678",
+      "returncode": 0,
+      "reaped": true,
+      "signals": [],
+      "timed_out": false,
+      "elapsed_seconds": 0.8889465090001067,
+      "stdout": "\n> lvw-r1a-frontend@0.1.0 test\n> tsx --test src/*.test.ts\n\nTAP version 13\n# Subtest: readiness uses the public same-origin endpoint\nok 1 - readiness uses the public same-origin endpoint\n  ---\n  duration_ms: 13.006485\n  type: 'test'\n  ...\n# Subtest: runtime controls use only fixed actions and the local control header\nok 2 - runtime controls use only fixed actions and the local control header\n  ---\n  duration_ms: 0.342839\n  type: 'test'\n  ...\n# Subtest: analysis sends visual mode, bounded content profile, and custom guidance\nok 3 - analysis sends visual mode, bounded content profile, and custom guidance\n  ---\n  duration_ms: 0.549383\n  type: 'test'\n  ...\n# Subtest: cleanup verdict requires proof; missing telemetry is never zero\nok 4 - cleanup verdict requires proof; missing telemetry is never zero\n  ---\n  duration_ms: 0.472278\n  type: 'test'\n  ...\n# Subtest: cleanup uses fixed POST endpoint, control header, no arbitrary parameters\nok 5 - cleanup uses fixed POST endpoint, control header, no arbitrary parameters\n  ---\n  duration_ms: 11.12717\n  type: 'test'\n  ...\n# Subtest: adopt is explicit and creates a new draft\nok 6 - adopt is explicit and creates a new draft\n  ---\n  duration_ms: 0.559689\n  type: 'test'\n  ...\n# Subtest: manual export remains valid without a model run\nok 7 - manual export remains valid without a model run\n  ---\n  duration_ms: 0.202147\n  type: 'test'\n  ...\n# Subtest: tags are normalized only at export\nok 8 - tags are normalized only at export\n  ---\n  duration_ms: 0.537805\n  type: 'test'\n  ...\n# Subtest: analysis is gated by file, idle phase, and model readiness\nok 9 - analysis is gated by file, idle phase, and model readiness\n  ---\n  duration_ms: 0.067556\n  type: 'test'\n  ...\n# Subtest: video target compiles observed joint motion without another analysis\nok 10 - video target compiles observed joint motion without another analysis\n  ---\n  duration_ms: 0.123803\n  type: 'test'\n  ...\n# Subtest: cancel wait cannot start overlapping inference\nok 11 - cancel wait cannot start overlapping inference\n  ---\n  duration_ms: 0.041164\n  type: 'test'\n  ...\n1..11\n# tests 11\n# suites 0\n# pass 11\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 488.725544\n",
+      "stderr": ""
+    },
+    "validation-01/check-04/receipt.json": {
+      "argv": [
+        "/usr/bin/npm",
+        "run",
+        "build"
+      ],
+      "pid": 56694,
+      "birth": "338678",
+      "returncode": 0,
+      "reaped": true,
+      "signals": [],
+      "timed_out": false,
+      "elapsed_seconds": 1.710806390000016,
+      "stdout": "\n> lvw-r1a-frontend@0.1.0 build\n> tsc -b && vite build\n\nvite v8.3.5 building client environment for production...\ntransforming...\n✓ 19 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                   0.53 kB │ gzip:  0.36 kB\ndist/assets/index-CwySFDTd.css   10.50 kB │ gzip:  3.01 kB\ndist/assets/index-DauI5TCq.js   244.52 kB │ gzip: 77.21 kB\n\n✓ built in 345ms\n",
+      "stderr": ""
+    },
+    "validation-01/check-05/receipt.json": {
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider"
+      ],
+      "pid": 57089,
+      "birth": "342981",
+      "returncode": 1,
+      "reaped": true,
+      "signals": [],
+      "timed_out": false,
+      "elapsed_seconds": 26.053429317000337,
+      "stdout": "........................................................................ [ 40%]\n.......................F................................................ [ 81%]\n................................                                         [100%]\n=================================== FAILURES ===================================\n__________ test_wrapper_uses_direct_child_handle_without_stop_process __________\n\n    def test_wrapper_uses_direct_child_handle_without_stop_process():\n>       wrapper = Path(\"tools/r1a_ollama_wrapper.ps1\").read_text(encoding=\"utf-8\")\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\ntests/test_r1a_runtime_guard.py:94: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n/usr/lib/python3.12/pathlib.py:1029: in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = PosixPath('tools/r1a_ollama_wrapper.ps1'), mode = 'r', buffering = -1\nencoding = 'utf-8', errors = None, newline = None\n\n    def open(self, mode='r', buffering=-1, encoding=None,\n             errors=None, newline=None):\n        \"\"\"\n        Open the file pointed by this path and return a file object, as\n        the built-in open() function does.\n        \"\"\"\n        if \"b\" not in mode:\n            encoding = io.text_encoding(encoding)\n>       return io.open(self, mode, buffering, encoding, errors, newline)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       FileNotFoundError: [Errno 2] No such file or directory: 'tools/r1a_ollama_wrapper.ps1'\n\n/usr/lib/python3.12/pathlib.py:1015: FileNotFoundError\n=============================== warnings summary ===============================\ntests/test_provider.py::test_colour_registration_recovers_equal_luma_motion_and_static_negative\n  /mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py:437: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.\n    assert len(set(source.convert('L').getdata()))==1\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ============================\nFAILED tests/test_r1a_runtime_guard.py::test_wrapper_uses_direct_child_handle_without_stop_process\n",
+      "stderr": ""
+    },
+    "validation-01/check-06/receipt.json": {
+      "argv": [
+        "/usr/bin/python3",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "lvw/tests"
+      ],
+      "pid": 57541,
+      "birth": "347444",
+      "returncode": 0,
+      "reaped": true,
+      "signals": [],
+      "timed_out": false,
+      "elapsed_seconds": 21.611028010000155,
+      "stdout": "........................................................................ [ 40%]\n........................................................................ [ 81%]\n................................                                         [100%]\n=============================== warnings summary ===============================\ntests/test_provider.py::test_colour_registration_recovers_equal_luma_motion_and_static_negative\n  /mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_provider.py:437: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.\n    assert len(set(source.convert('L').getdata()))==1\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n",
+      "stderr": ""
+    },
+    "validation-02/check-01/receipt.json": {
+      "argv": [
+        "/usr/bin/npm",
+        "test"
+      ],
+      "pid": 59356,
+      "birth": "388340",
+      "returncode": 0,
+      "reaped": true,
+      "signals": [],
+      "timed_out": false,
+      "elapsed_seconds": 0.8100113840000631,
+      "stdout": "\n> lvw-r1a-frontend@0.1.0 test\n> tsx --test src/*.test.ts\n\nTAP version 13\n# Subtest: readiness uses the public same-origin endpoint\nok 1 - readiness uses the public same-origin endpoint\n  ---\n  duration_ms: 11.963351\n  type: 'test'\n  ...\n# Subtest: runtime controls use only fixed actions and the local control header\nok 2 - runtime controls use only fixed actions and the local control header\n  ---\n  duration_ms: 0.342718\n  type: 'test'\n  ...\n# Subtest: analysis sends visual mode, bounded content profile, and custom guidance\nok 3 - analysis sends visual mode, bounded content profile, and custom guidance\n  ---\n  duration_ms: 0.727948\n  type: 'test'\n  ...\n# Subtest: cleanup verdict requires proof; missing telemetry is never zero\nok 4 - cleanup verdict requires proof; missing telemetry is never zero\n  ---\n  duration_ms: 0.446113\n  type: 'test'\n  ...\n# Subtest: cleanup uses fixed POST endpoint, control header, no arbitrary parameters\nok 5 - cleanup uses fixed POST endpoint, control header, no arbitrary parameters\n  ---\n  duration_ms: 10.758107\n  type: 'test'\n  ...\n# Subtest: adopt is explicit and creates a new draft\nok 6 - adopt is explicit and creates a new draft\n  ---\n  duration_ms: 0.451037\n  type: 'test'\n  ...\n# Subtest: manual export remains valid without a model run\nok 7 - manual export remains valid without a model run\n  ---\n  duration_ms: 0.223438\n  type: 'test'\n  ...\n# Subtest: tags are normalized only at export\nok 8 - tags are normalized only at export\n  ---\n  duration_ms: 0.37443\n  type: 'test'\n  ...\n# Subtest: analysis is gated by file, idle phase, and model readiness\nok 9 - analysis is gated by file, idle phase, and model readiness\n  ---\n  duration_ms: 0.063581\n  type: 'test'\n  ...\n# Subtest: video target compiles observed joint motion without another analysis\nok 10 - video target compiles observed joint motion without another analysis\n  ---\n  duration_ms: 0.12152\n  type: 'test'\n  ...\n# Subtest: cancel wait cannot start overlapping inference\nok 11 - cancel wait cannot start overlapping inference\n  ---\n  duration_ms: 0.085302\n  type: 'test'\n  ...\n1..11\n# tests 11\n# suites 0\n# pass 11\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 439.893224\n",
+      "stderr": ""
+    },
+    "validation-02/check-02/receipt.json": {
+      "argv": [
+        "/usr/bin/npm",
+        "run",
+        "build"
+      ],
+      "pid": 59359,
+      "birth": "388340",
+      "returncode": 0,
+      "reaped": true,
+      "signals": [],
+      "timed_out": false,
+      "elapsed_seconds": 1.4647765469999285,
+      "stdout": "\n> lvw-r1a-frontend@0.1.0 build\n> tsc -b && vite build\n\nvite v8.3.5 building client environment for production...\ntransforming...\n✓ 19 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                   0.53 kB │ gzip:  0.36 kB\ndist/assets/index-CwySFDTd.css   10.50 kB │ gzip:  3.01 kB\ndist/assets/index-B_DEEeUY.js   244.64 kB │ gzip: 77.24 kB\n\n✓ built in 299ms\n",
+      "stderr": ""
+    }
+  },
+  "authorizations": {
+    "live-01": {
+      "candidate": "f36bbcc2f20d16bf90d93f6f805c53d8055f8ee4",
+      "budget": {
+        "api_starts": 1,
+        "ollama_starts": 1,
+        "headless_browser_starts": 1,
+        "model_calls": 2,
+        "provider_calls": 2,
+        "full_checkpoints": 0
+      },
+      "source_files": 21,
+      "all_frozen_items_match_declared_git_object": true,
+      "samples": [
+        {
+          "path": "reports/unified-media/dev-image.png",
+          "sha256": "b0303b157ecb6e9f07ae83c460813a743ad4f18e9be83b92abd6ecf4c919e817",
+          "matched": true
+        }
+      ],
+      "program_matches": true,
+      "case_labels": [
+        "installed real model ready"
+      ],
+      "case_true": 1,
+      "fixture": false,
+      "receipt_status": "FAIL_OR_BLOCKED",
+      "cleanup": {
+        "api_task_finished": true,
+        "browser_closed": true,
+        "lease_cleared": true,
+        "runtime_owned_process_remaining": false
+      },
+      "native_terminal": [
+        {
+          "nonce": "f59b10a143b540328169cf07ba10c7a1",
+          "state": "exited",
+          "pid": 25368,
+          "birth_ticks": 639306941360819738,
+          "listener_owned": false
+        }
+      ]
+    },
+    "live-noop-02": {
+      "candidate": "888d18da4b7b45fc942b925f26d75c7fc74ebe00",
+      "budget": {
+        "api_starts": 1,
+        "ollama_starts": 1,
+        "headless_browser_starts": 1,
+        "model_calls": 0,
+        "provider_calls": 0,
+        "full_checkpoints": 0
+      },
+      "source_files": 21,
+      "all_frozen_items_match_declared_git_object": true,
+      "samples": [],
+      "program_matches": true,
+      "case_labels": [
+        "installed real model ready",
+        "isolated API started",
+        "button disabled during cleanup",
+        "public cleanup verified verdict",
+        "manual draft preserved",
+        "lease actually cleared",
+        "real inventory target absent",
+        "repeat cleanup is noop",
+        "mobile control panel has no horizontal overflow",
+        "no JavaScript errors or external browser traffic"
+      ],
+      "case_true": 10,
+      "fixture": false,
+      "receipt_status": "PASS_REAL_LOCAL_NOOP_AND_SAFETY_ONLY",
+      "cleanup": {
+        "api_task_finished": true,
+        "browser_closed": true,
+        "lease_cleared": true,
+        "runtime_owned_process_remaining": false,
+        "private_temp_removed": true
+      },
+      "native_terminal": [
+        {
+          "nonce": "cf8debf62916480b9c0bf0b0243e9ae9",
+          "state": "exited",
+          "pid": 30336,
+          "birth_ticks": 639306944453548594,
+          "listener_owned": false
+        }
+      ]
+    },
+    "resource-diagnostic-01": {
+      "candidate": "f36bbcc2f20d16bf90d93f6f805c53d8055f8ee4",
+      "budget": {
+        "ollama_starts": 1,
+        "model_calls": 0,
+        "provider_calls": 0,
+        "full_checkpoints": 0
+      },
+      "source_files": 0,
+      "all_frozen_items_match_declared_git_object": true,
+      "samples": [],
+      "program_matches": true,
+      "case_labels": [],
+      "case_true": 0,
+      "fixture": null,
+      "receipt_status": null,
+      "cleanup": null,
+      "native_terminal": []
+    },
+    "ui-fixture-01": {
+      "candidate": "f36bbcc2f20d16bf90d93f6f805c53d8055f8ee4",
+      "budget": {
+        "api_starts": 1,
+        "headless_browser_starts": 1,
+        "model_calls": 0,
+        "provider_calls": 0,
+        "full_checkpoints": 0
+      },
+      "source_files": 21,
+      "all_frozen_items_match_declared_git_object": true,
+      "samples": [],
+      "program_matches": true,
+      "case_labels": [
+        "isolated API started",
+        "button disabled during cleanup",
+        "public cleanup actually released retained lease",
+        "manual draft preserved",
+        "lease actually cleared",
+        "real inventory target absent",
+        "repeat cleanup is noop",
+        "failure displayed and lease retained",
+        "external loaded model not touched",
+        "mobile control panel has no horizontal overflow",
+        "no JavaScript errors or external browser traffic"
+      ],
+      "case_true": 11,
+      "fixture": true,
+      "receipt_status": "PASS_FIXTURE_ONLY",
+      "cleanup": {
+        "api_task_finished": true,
+        "browser_closed": true,
+        "lease_cleared": true,
+        "runtime_owned_process_remaining": false
+      },
+      "native_terminal": []
+    },
+    "ui-fixture-02": {
+      "candidate": "888d18da4b7b45fc942b925f26d75c7fc74ebe00",
+      "budget": {
+        "api_starts": 1,
+        "ollama_starts": 0,
+        "headless_browser_starts": 1,
+        "model_calls": 0,
+        "provider_calls": 0,
+        "full_checkpoints": 0
+      },
+      "source_files": 21,
+      "all_frozen_items_match_declared_git_object": true,
+      "samples": [],
+      "program_matches": true,
+      "case_labels": [
+        "isolated API started",
+        "button disabled during cleanup",
+        "public cleanup verified verdict",
+        "manual draft preserved",
+        "lease actually cleared",
+        "real inventory target absent",
+        "repeat cleanup is noop",
+        "HTTP busy error visible without draft loss",
+        "failure displayed and lease retained",
+        "external loaded model not touched",
+        "mobile control panel has no horizontal overflow",
+        "no JavaScript errors or external browser traffic"
+      ],
+      "case_true": 12,
+      "fixture": true,
+      "receipt_status": "PASS_FIXTURE_ONLY",
+      "cleanup": {
+        "api_task_finished": true,
+        "browser_closed": true,
+        "lease_cleared": true,
+        "runtime_owned_process_remaining": false,
+        "private_temp_removed": true
+      },
+      "native_terminal": []
+    }
+  }
+}

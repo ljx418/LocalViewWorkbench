@@ -101,4 +101,7 @@ export interface CleanupResult {
   after: ResourceSample | null;
   verified: boolean;
   reason: string | null;
+  runtime: RuntimeStatus | null;
+  runtime_error: string | null;
+  verification_scope: "original_service_exit_and_resource_bound";
 }
