@@ -1,0 +1,70 @@
+{
+  "status": "READY_FOR_INDEPENDENT_REVIEW_FULL_MACHINE_BLOCKED",
+  "product_candidate_sha": "94f92bedb391f2cdcca869df10360e9b116a7c1a",
+  "cpu_source_candidate": "dc7e6d71",
+  "root_ack": "root-ack.json",
+  "decision": "decision.md",
+  "review01": "../independent-review-01/review.md",
+  "disposition": {
+    "1": "IMPLEMENTED_PENDING_INDEPENDENT_RECHECK",
+    "2": "IMPLEMENTED_PENDING_INDEPENDENT_RECHECK",
+    "3": "IMPLEMENTED_PENDING_INDEPENDENT_RECHECK",
+    "4": "IMPLEMENTED_PENDING_INDEPENDENT_RECHECK",
+    "5": "IMPLEMENTED_PENDING_INDEPENDENT_RECHECK",
+    "6": "IMPLEMENTED_PENDING_INDEPENDENT_RECHECK",
+    "7": "IMPLEMENTED_PENDING_INDEPENDENT_RECHECK",
+    "8": "IMPLEMENTED_PENDING_INDEPENDENT_RECHECK",
+    "9": "IMPLEMENTED_PENDING_INDEPENDENT_RECHECK",
+    "10": "IMPLEMENTED_PENDING_INDEPENDENT_RECHECK",
+    "11": "IMPLEMENTED_PENDING_INDEPENDENT_RECHECK",
+    "12": "IMPLEMENTED_PENDING_INDEPENDENT_RECHECK",
+    "13": "IMPLEMENTED_PENDING_INDEPENDENT_RECHECK"
+  },
+  "command_results": {
+    "targeted": {
+      "passed": 43,
+      "evidence": "cpu/check-01",
+      "exit": 0,
+      "reaped": true
+    },
+    "backend_subtree": {
+      "passed": 197,
+      "evidence": "cpu/check-02",
+      "exit": 0,
+      "reaped": true
+    },
+    "frontend": {
+      "passed": 12,
+      "evidence": "cpu/check-03",
+      "exit": 0,
+      "reaped": true
+    },
+    "typecheck_build": {
+      "evidence": "cpu/check-04",
+      "exit": 0,
+      "reaped": true
+    },
+    "ui_fixture": {
+      "assertions": 9,
+      "evidence": "runs/ui-fixture-01/receipt.json",
+      "scope": "fixture only"
+    },
+    "real_zero_model": {
+      "assertions": 7,
+      "evidence": "runs/real-zero-model-01/receipt.json",
+      "scope": "real no-op only, no loaded model release or image inference"
+    }
+  },
+  "actual_model_actions": 0,
+  "real_loaded_release_and_restart_and_image_analysis": "BLOCKED_NOT_EXECUTED",
+  "cleanup": "own browser/context/driver/API/native exited proved; no recursive deletion; private diagnostic files intentionally retained; no foreign process or model altered",
+  "stage_pass": false,
+  "human_signoff": false,
+  "main_persistence": "PAUSED unchanged candidate23bd8da",
+  "risks": [
+    "no full loaded-model release/reanalysis evidence",
+    "retained diagnostic roots, not declared deleted",
+    "native/external resource boundary intentionally restrictive"
+  ],
+  "next_step": "isolated review of all 13 corrections; keep full machine gate blocked independently of code disposition"
+}
