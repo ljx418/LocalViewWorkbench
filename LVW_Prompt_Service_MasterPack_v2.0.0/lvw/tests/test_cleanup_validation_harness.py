@@ -173,3 +173,14 @@ def test_safe_output_refuses_symlink_and_hardlink(seal):
     alias.unlink(); alias.hardlink_to(user_file)
     with pytest.raises(ValueError): HARNESS.write(alias, {'unsafe': True})
     assert user_file.read_text() == 'untouched'
+
+
+def test_native_nonce_mismatch_is_not_a_verified_exit(seal):
+    from types import SimpleNamespace
+    path, _, _, _, private = seal
+    native = {'nonce': 'known', 'owner': private / 'data/owner.json'}
+    value = {'nonce': 'known', 'pid': 321, 'birth_ticks': 12345, 'state': 'exited', 'listener_owned': False}
+    HARNESS.write(native['owner'], value)
+    expected = {**value, 'nonce': 'another_generation'}
+    known, _ = HARNESS.native_terminal(SimpleNamespace(_native_history=[native], _native=None), native, expected, path.parent, [])
+    assert not known

@@ -26,21 +26,25 @@ CRITICAL_INPUTS = {'tools/local_program_authority.py', 'lvw/backend/app/native_r
     'LVW_V0_RuntimePatch/custom_nodes/lvw_v0_bridge/video_decoder.py'}
 
 
-def write(path, value):
+def write_bytes(path, value):
     path = path.absolute()
     if not any(path.is_relative_to(root) for root in WRITE_ROOTS) or path.parent.resolve() != path.parent:
         raise ValueError('OUTPUT_PATH_UNBOUND')
     parent = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
     try:
         fd = os.open(path.name, os.O_WRONLY | os.O_CREAT | os.O_NOFOLLOW, 0o600, dir_fd=parent)
-        with os.fdopen(fd, 'w') as stream:
+        with os.fdopen(fd, 'wb') as stream:
             current = os.fstat(stream.fileno())
             if not stat_module.S_ISREG(current.st_mode) or current.st_nlink != 1:
                 raise ValueError('OUTPUT_FILE_ALIAS')
             stream.truncate(0)
-            stream.write(json.dumps(value, ensure_ascii=False, indent=2) + '\n')
+            stream.write(value)
     finally:
         os.close(parent)
+
+
+def write(path, value):
+    write_bytes(path, (json.dumps(value, ensure_ascii=False, indent=2) + '\n').encode())
 
 
 def actual_tools(child):
@@ -130,7 +134,7 @@ def native_terminal(runtime, native, identity, out, errors):
             return True, {'state': 'never_prepared', 'native_attempts': 0}
         value = proof(native)
         expected = identity or {key: value.get(key) for key in ('nonce', 'pid', 'birth_ticks')}
-        matched = bool(value and value.get('nonce') == native['nonce']
+        matched = bool(value and value.get('nonce') == native['nonce'] == expected.get('nonce')
             and value.get('state') == 'exited' and value.get('listener_owned') is False
             and value.get('pid') == expected.get('pid') and value.get('birth_ticks') == expected.get('birth_ticks'))
         write(out / 'native-final.json', {'proof': value, 'expected': expected,
@@ -311,10 +315,10 @@ async def run(child_path):
                 await page.get_by_role('button', name='再次检查服务').click()
                 await page.get_by_text('服务状态检查失败', exact=False).wait_for(state='hidden')
                 check('successful refresh clears only refresh error', 'RESOURCE_BUSY' in await page.get_by_test_id('cleanup-result').inner_text())
-            await page.screenshot(path=str(out / 'desktop.png'), full_page=True)
+            write_bytes(out / 'desktop.png', await page.screenshot(full_page=True))
             await page.set_viewport_size({'width': 390, 'height': 844})
             check('mobile layout contained', await page.evaluate('document.documentElement.scrollWidth <= innerWidth'))
-            await page.screenshot(path=str(out / 'mobile.png'), full_page=True)
+            write_bytes(out / 'mobile.png', await page.screenshot(full_page=True))
             check('no JS errors or outside browser requests', not js_errors and not external)
             result['status'] = 'PASS_FIXTURE_ONLY' if fixture else 'REAL_ZERO_MODEL_OBSERVATION_ONLY'
     except BaseException as error:

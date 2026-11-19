@@ -23,7 +23,7 @@
     "lvw/tests/test_acceptance_recipe.py": "9ad4fcd9183546e5e01fe4e0b4d4b880dd1b35c9c0e7f025daa8e530d212c778",
     "lvw/tests/test_api.py": "a76f4e98287283d72906a87eed8348c9d82db92e455f0a00e4474ddc57812447",
     "lvw/tests/test_checkpoint_oracles.py": "f89514288a3191c1febf7418c61efaa946fe9377b304d3470f8316d59524eeaf",
-    "lvw/tests/test_cleanup_validation_harness.py": "51d768f1895a592af5f56e86a9e1e38bd0463e95e823183514dec5020cdddd5c",
+    "lvw/tests/test_cleanup_validation_harness.py": "745c560e5458e03755287e0f3c6814360eb0828726c11ee8b728b60342ed5a2c",
     "lvw/tests/test_config.py": "ba420d8a5be19f2295c9d578a74a342f9cd55a12b21f517dba83d45b71fb8932",
     "lvw/tests/test_contract.py": "d69d75f88a79f03566b388a4b52a7383d5b60e4d02174989f426dfb2a9b48621",
     "lvw/tests/test_media_limits.py": "dd6533d02466f3e3f0263eb467cbe121b9a33338fb80b1c643a674b905c6b430",
@@ -36,7 +36,7 @@
     "lvw/tests/test_unified_video.py": "93e5be7c702b07fa36564882b3e9f5fa7084908c7f2b0b5059472f6b9908f3c8",
     "lvw/tests/test_video_appearance.py": "7b3556c4bcebf4eae4fee7e8fd068dd2b7db6237ffcf00eedca16ee9f7eaa3f5",
     "lvw/tests/test_video_temporal.py": "04cdc2db1421bf918c7f4427547287130a5186eb1813885a2b3d514c948b0fd1",
-    "reports/resource-cleanup/correction-02/live_harness_v3.py": "b8ae9254e9b446425f60c6c16fb536ee51dd074beaeb1b5f9d3c883f8a8f9774",
+    "reports/resource-cleanup/correction-02/live_harness_v3.py": "a97a2c2b2fef1247ba881477269a6700a3af8f66c7525eaa0e77ddbb5cb5ff9c",
     "reports/resource-cleanup/correction-02/decision.md": "0f421781f7bc4ff275b317f6583f26feea83fb7db1cf91a7388f91385783c5a8"
   },
   "commands": [
@@ -99,5 +99,17 @@
     "initial_run": "cpu/check-01 preserved, one outdated after-sample assertion failed",
     "reason": "C2 explicitly distinguishes failed BEFORE observation from skipped AFTER observation; preserve no-stop/no-fabrication assertions",
     "production_code_unchanged": true
+  },
+  "output_hardening": {
+    "reason": "PNG screenshots use the same no-follow relative writer as JSON; nonce is compared to both retained expected identity and native record",
+    "new_checks": [
+      "cpu/check-04 targeted",
+      "cpu/check-05 full subtree"
+    ],
+    "earlier_results_preserved": [
+      "cpu/check-01",
+      "cpu/check-02",
+      "cpu/check-03"
+    ]
   }
 }
