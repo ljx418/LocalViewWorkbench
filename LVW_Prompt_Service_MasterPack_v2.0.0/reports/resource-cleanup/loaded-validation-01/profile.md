@@ -1,0 +1,9 @@
+# Loaded cleanup profile 01
+
+Root accepts independent review05 closure of code findings04-1..4 for cfca7fe7. This qualifies resource-helper code only, not loaded acceptance. Review05 archived alongside previous failures.
+
+New v6 reuses verified v5 guards and explicit verified authority source execution. Production provider budget imports bind the exact same source module (not a mock). v5 remains historical zero-model/single-generation. New v6 exact budget: preload1 with num_ctx2048 and image1 via public UI; two own Ollama starts, API1, headless1; no full product checkpoint. Fixed nonprivate reports/unified-media/dev-image.png only; installed Gemma4 digest pinned. No download/cloud/paid/private media/visible browser/permanent config.
+
+Before every start and preload: candidate/harness/all source/sample/tool hashes and actual selected tools, private root ownership/fresh data, nonce claim, active ledger and exact debit count checked. API port sealed18898; Ollama11434 must be absent before start, refusal-only proof. All generations captured independently during listening, wrapper retained; final history fully reconciled, unknown retains full reservation. Preload requires exact resident inventory; public cleanup must release original service and resource bound, preserve draft. UI explicit start creates new generation. UI upload/analyze succeeds, draft remains untouched until explicit adoption/export. Model calls exactly2 to earn success.
+
+Continuous one-second GPU/RAM observations preserve23552/2048 limits; main235s plus bounded cleanup, controller290s and grant360s. Model workload is illustrative integration, not semantic quality acceptance. Cleanup closes only original owned handles/browser/API; retains private diagnostic data, no recursive deletion. Unknown process/resource/ledger/receipt prevents PASS and disables further child sends.
