@@ -518,3 +518,29 @@ def test_deadline_marks_started_observations_interrupted(setup, monkeypatch, int
     else:
         assert result[interrupted]['error'] == 'INTERRUPTED_BY_RESOURCE_CLEANUP_TIMEOUT'
     assert provider._lease is not None
+
+
+@pytest.mark.parametrize('job_owned,job_empty,accepted', [(True,True,True),(True,False,False),(True,None,False),(False,True,False),(None,True,False)])
+def test_native_job_exit_requires_explicit_ownership_and_empty_job(tmp_path, job_owned, job_empty, accepted):
+    from app.native_runtime import proof
+    native = dict(nonce='original', owner=tmp_path / 'job-owner.json', job_required=True)
+    native['owner'].write_text(json.dumps(dict(nonce='original', pid=321, birth_ticks=12345,
+        state='exited', listener_owned=False, job_owned=job_owned, job_empty=job_empty)))
+    assert bool(proof(native)) is accepted
+
+
+def test_runtime_retains_custody_when_daemon_exited_but_job_not_empty(setup):
+    provider, runtime, _, client = setup
+    native = runtime._native; native['job_required'] = True
+    native['owner'].write_text(json.dumps(dict(nonce=native['nonce'], pid=987, birth_ticks=12345,
+        state='listening', listener_owned=True, job_owned=True, job_empty=False)))
+    process = runtime.process
+    async def daemon_only_exit():
+        process.returncode = 0
+        native['owner'].write_text(json.dumps(dict(nonce=native['nonce'], pid=987, birth_ticks=12345,
+            state='exited', listener_owned=False, job_owned=True, job_empty=False)))
+        return 0
+    process.wait = daemon_only_exit
+    result = post(client).json()['data']
+    assert result['status'] == 'unknown' and not result['verified']
+    assert runtime._native is native and runtime._cleanup_pending is not None

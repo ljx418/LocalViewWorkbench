@@ -1,0 +1,84 @@
+{
+  "candidate_sha": "6bb27a6976b9eba332c13ebdf1603d730c42d2e5",
+  "status": "FAIL_OR_BLOCKED",
+  "checks": [
+    {
+      "name": "no external listener before start",
+      "passed": true
+    },
+    {
+      "name": "unchanged GPU and RAM admission",
+      "passed": true
+    },
+    {
+      "name": "generation-a independent live owner captured",
+      "passed": true
+    },
+    {
+      "name": "generation-a unique generation",
+      "passed": true
+    },
+    {
+      "name": "installed model digest matches seal",
+      "passed": true
+    },
+    {
+      "name": "own fresh service inventory empty",
+      "passed": true
+    },
+    {
+      "name": "target really resident before cleanup",
+      "passed": true
+    },
+    {
+      "name": "isolated public API started",
+      "passed": true
+    },
+    {
+      "name": "loaded public cleanup actually verified",
+      "passed": false
+    }
+  ],
+  "cleanup_errors": [],
+  "model_actions": 1,
+  "scope": "loaded model close, explicit restart, one real public image analysis",
+  "error_type": "AssertionError",
+  "error": "loaded public cleanup actually verified",
+  "final_listener": {
+    "state": "absent",
+    "reason": "CONNECTION_REFUSED"
+  },
+  "final_resource_samples": [
+    {
+      "gpu_used_mib": 21661,
+      "gpu_free_mib": 2478,
+      "gpu_total_mib": 24564,
+      "available_ram_mib": 11775
+    },
+    {
+      "gpu_used_mib": 21661,
+      "gpu_free_mib": 2478,
+      "gpu_total_mib": 24564,
+      "available_ram_mib": 11793
+    },
+    {
+      "gpu_used_mib": 21661,
+      "gpu_free_mib": 2478,
+      "gpu_total_mib": 24564,
+      "available_ram_mib": 11785
+    }
+  ],
+  "cleanup": {
+    "context_closed": true,
+    "browser_closed": true,
+    "driver_closed": true,
+    "api_closed": true,
+    "native_exited": true,
+    "native_generations": 1,
+    "resource_bound_confirmed": false,
+    "private_data_retained_for_diagnostics": true,
+    "recursive_deletion_performed": false
+  },
+  "authorization_terminal": "RESERVATION_RETAINED",
+  "known_terminal": false
+}
