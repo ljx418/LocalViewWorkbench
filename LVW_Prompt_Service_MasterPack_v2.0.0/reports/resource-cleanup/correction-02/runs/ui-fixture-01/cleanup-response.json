@@ -1,0 +1,59 @@
+{
+  "data": {
+    "operation_id": "cleanup_e2987a319f4d4a3da987d834f179d54e",
+    "status": "released",
+    "actions": [
+      "stop_original_lvw_model_service"
+    ],
+    "before": {
+      "values": {
+        "gpu_used_mib": 0,
+        "gpu_free_mib": 24564,
+        "gpu_total_mib": 24564,
+        "available_ram_mib": 8000
+      },
+      "error": null
+    },
+    "after": {
+      "values": {
+        "gpu_used_mib": 0,
+        "gpu_free_mib": 24564,
+        "gpu_total_mib": 24564,
+        "available_ram_mib": 8000
+      },
+      "error": null
+    },
+    "verified": true,
+    "reason": null,
+    "runtime": {
+      "protocol": "lvw.runtime/1",
+      "lvw": {
+        "state": "ready"
+      },
+      "ollama": {
+        "state": "stopped",
+        "reachable": false,
+        "model": "gemma4:26b",
+        "model_ready": false,
+        "model_loaded": false,
+        "managed": false,
+        "pid": null,
+        "reason": "OLLAMA_UNAVAILABLE",
+        "last_error": null
+      },
+      "actions": {
+        "can_start": true,
+        "can_reset": false,
+        "can_stop": false
+      }
+    },
+    "runtime_error": null,
+    "listener_observation": {
+      "state": "absent",
+      "reason": "fixture"
+    },
+    "verification_scope": "original_service_exit_and_resource_bound"
+  },
+  "request_id": "11866692feb84c069412e7a1c35ea90a",
+  "schema_version": "lvw.api/1"
+}

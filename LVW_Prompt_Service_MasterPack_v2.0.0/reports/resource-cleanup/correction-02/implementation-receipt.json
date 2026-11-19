@@ -1,0 +1,60 @@
+{
+  "status": "READY_FOR_INDEPENDENT_REVIEW_FULL_LOADED_MACHINE_GATE_BLOCKED",
+  "candidate_sha": "679803cf62770e8a4268992855311cfee833c3e2",
+  "live_product_harness_sha": "312e3a96214e1bf79cef977f195ed301ce80411f",
+  "same_production_and_harness_bytes": true,
+  "test_only_delta": "exact1024 / one-over1025 boundary tests added after live run; production unchanged",
+  "root_ack": "root-ack.json",
+  "prior_review": "../independent-review-02/review.md",
+  "finding_disposition": {
+    "1": "IMPLEMENTED_PENDING_RECHECK",
+    "2": "IMPLEMENTED_PENDING_RECHECK",
+    "3": "IMPLEMENTED_PENDING_RECHECK",
+    "4": "IMPLEMENTED_PENDING_RECHECK",
+    "5": "IMPLEMENTED_PENDING_RECHECK",
+    "6": "IMPLEMENTED_PENDING_RECHECK",
+    "7": "IMPLEMENTED_PENDING_RECHECK",
+    "8": "IMPLEMENTED_PENDING_RECHECK",
+    "9": "CLOSED_BY_REVIEW02_NOT_REOPENED",
+    "10": "CLOSED_BY_REVIEW02_NOT_REOPENED",
+    "11": "CLOSED_BY_REVIEW02_NOT_REOPENED",
+    "12": "CLOSED_BY_REVIEW02_NOT_REOPENED",
+    "13": "CLOSED_BY_REVIEW02_NOT_REOPENED"
+  },
+  "targeted": {
+    "pass": 75,
+    "evidence": "cpu/check-08",
+    "exit": 0,
+    "reaped": true
+  },
+  "backend": {
+    "pass": 229,
+    "evidence": "cpu/check-09",
+    "exit": 0,
+    "reaped": true
+  },
+  "frontend": {
+    "pass": 12,
+    "build": "PASS",
+    "reuse": "../correction-01/cpu/check-03 and check-04",
+    "byte_identity_manifest": "root-ack.json frontend_evidence_reuse"
+  },
+  "ui_fixture": {
+    "checks": 9,
+    "evidence": "runs/ui-fixture-01/receipt.json",
+    "scope": "fixture only"
+  },
+  "real_empty_service": {
+    "checks": 7,
+    "evidence": "runs/real-zero-model-01/receipt.json",
+    "result": "verified released: original service exit and TCP connection refused, zero models",
+    "native_proof": "runs/real-zero-model-01/native-final.json"
+  },
+  "actual_model_actions": 0,
+  "real_loaded_model_release_restart_image_inference": "BLOCKED_NOT_EXECUTED",
+  "stage_pass": false,
+  "human_signoff": false,
+  "cleanup": "original own API/browser/driver/native exits proved; diagnostic private roots retained; no recursive deletion or foreign process termination",
+  "main_feature": "PAUSED; persistence candidate23bd8da untouched",
+  "old_failure_preserved": "cpu/check-01 after-sample oracle mismatch; corrected explicit skipped/failed semantics; no safety assertion removed"
+}
