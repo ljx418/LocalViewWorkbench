@@ -87,3 +87,18 @@ export interface RuntimeStatus {
   };
   actions: { can_start: boolean; can_reset: boolean; can_stop: boolean };
 }
+
+export interface ResourceSample {
+  values: { gpu_used_mib: number; gpu_free_mib: number; gpu_total_mib: number; available_ram_mib: number } | null;
+  error: string | null;
+}
+
+export interface CleanupResult {
+  operation_id: string;
+  status: "released" | "noop" | "blocked" | "unknown";
+  actions: string[];
+  before: ResourceSample | null;
+  after: ResourceSample | null;
+  verified: boolean;
+  reason: string | null;
+}

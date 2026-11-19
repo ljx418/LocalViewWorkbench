@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { cancelJob, ApiError, controlOllama, getModelRun, getReadiness, getRuntimeStatus, startAnalysis, uploadMedia, waitForJob } from "./api";
+import { cancelJob, ApiError, cleanupResources, controlOllama, getModelRun, getReadiness, getRuntimeStatus, startAnalysis, uploadMedia, waitForJob } from "./api";
+import { cleanupMessage, sampleMessage } from "./cleanup";
 import { adopt, asJson, asText, canAnalyze, emptyDraft, hasContent, type Draft } from "./domain";
-import type { ContentProfile, Job, MediaRef, Mode, ModelRun, Readiness, RuntimeStatus } from "./types";
+import type { CleanupResult, ContentProfile, Job, MediaRef, Mode, ModelRun, Readiness, RuntimeStatus } from "./types";
 
 const modes: Array<{ value: Mode; label: string }> = [
   { value: "realistic", label: "写实" }, { value: "cinematic", label: "电影感" },
@@ -56,6 +57,9 @@ export function App() {
   const [runtime, setRuntime] = useState<RuntimeStatus | null>(null);
   const [runtimeAction, setRuntimeAction] = useState<string>("");
   const [runtimeError, setRuntimeError] = useState<string>("");
+  const [cleanupResult, setCleanupResult] = useState<CleanupResult | null>(null);
+  const [cleanupError, setCleanupError] = useState("");
+  const runtimePending = useRef(false);
   const controller = useRef<AbortController | null>(null);
 
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
@@ -94,6 +98,8 @@ export function App() {
   const draftHasContent = useMemo(() => hasContent(draft), [draft]);
 
   async function runRuntimeAction(action: "start" | "reset" | "stop") {
+    if (busy || runtimePending.current) return;
+    runtimePending.current = true;
     setRuntimeAction(action); setRuntimeError("");
     try {
       const next = await controlOllama(action);
@@ -103,7 +109,20 @@ export function App() {
     } catch (caught) {
       const value = caught as ApiError;
       setRuntimeError(`${value.message}${value.code ? `（${value.code}）` : ""}`);
-    } finally { setRuntimeAction(""); }
+    } finally { setRuntimeAction(""); runtimePending.current = false; }
+  }
+
+  async function cleanResources() {
+    if (busy || runtimePending.current) return;
+    runtimePending.current = true;
+    setRuntimeAction("cleanup"); setCleanupError(""); setCleanupResult(null);
+    try { setCleanupResult(await cleanupResources()); }
+    catch (caught) {
+      const value = caught as ApiError;
+      setCleanupError(`资源清理未完成：${value.message}${value.code ? `（${value.code}）` : ""}`);
+    } finally { setRuntimeAction(""); runtimePending.current = false; }
+    // Refresh is independent of the cleanup verdict; a status failure must not erase it.
+    try { setRuntime(await getRuntimeStatus()); } catch { /* periodic checks continue */ }
   }
 
   function choose(next: File | null) {
@@ -222,8 +241,17 @@ export function App() {
         <button data-testid="runtime-start" type="button" onClick={() => runRuntimeAction("start")} disabled={busy || !runtime?.actions.can_start || Boolean(runtimeAction)}>{runtimeAction === "start" ? "启动中…" : "启动模型服务"}</button>
         <button data-testid="runtime-reset" type="button" onClick={() => runRuntimeAction("reset")} disabled={busy || !runtime?.actions.can_reset || Boolean(runtimeAction)}>{runtimeAction === "reset" ? "重置中…" : "重置"}</button>
         <button data-testid="runtime-stop" type="button" onClick={() => runRuntimeAction("stop")} disabled={busy || !runtime?.actions.can_stop || Boolean(runtimeAction)}>{runtimeAction === "stop" ? "关闭中…" : "关闭"}</button>
+        <button data-testid="resource-cleanup" type="button" onClick={cleanResources} disabled={busy || !runtime || Boolean(runtimeAction)}>{runtimeAction === "cleanup" ? "清理中…" : "资源清理"}</button>
       </div>
       {runtimeError && <p className="runtime-error" role="alert">{runtimeError}</p>}
+      <div className="cleanup-result" aria-live="polite" data-testid="cleanup-result">
+        <p>资源清理仅卸载可确认属于 LVW 的模型，不删除人工稿、媒体或模型文件。分析中请先取消并等待释放。</p>
+        {cleanupResult && <><p>{cleanupMessage(cleanupResult)}{cleanupResult.reason ? `（${cleanupResult.reason}）` : ""}</p>
+          <p>清理前：{sampleMessage(cleanupResult.before)}</p><p>清理后：{sampleMessage(cleanupResult.after)}</p>
+          <p>以上是整机观察值，其他程序仍可能占用 GPU 和内存。</p></>}
+        {cleanupError && <p role="alert">{cleanupError}</p>}
+        {(cleanupResult || cleanupError) && <button type="button" disabled={Boolean(runtimeAction)} onClick={() => void getRuntimeStatus().then(setRuntime).catch(() => setCleanupError("服务状态检查失败，请确认启动窗口仍在运行。"))}>再次检查服务</button>}
+      </div>
     </section>
 
     <main className="workspace">

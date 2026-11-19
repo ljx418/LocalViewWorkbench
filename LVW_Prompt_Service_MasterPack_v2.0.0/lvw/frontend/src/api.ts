@@ -1,4 +1,4 @@
-import type { ApiEnvelope, ContentProfile, Job, MediaRef, ModelRun, Mode, Readiness, RuntimeStatus } from "./types";
+import type { ApiEnvelope, CleanupResult, ContentProfile, Job, MediaRef, ModelRun, Mode, Readiness, RuntimeStatus } from "./types";
 
 export class ApiError extends Error {
   code: string;
@@ -38,6 +38,12 @@ export async function getReadiness(signal?: AbortSignal): Promise<Readiness> {
 
 export async function getRuntimeStatus(signal?: AbortSignal): Promise<RuntimeStatus> {
   return read(await fetch("/api/v1/runtime/status", { signal }));
+}
+
+export async function cleanupResources(): Promise<CleanupResult> {
+  return read(await fetch("/api/v1/runtime/resources/cleanup", {
+    method: "POST", headers: { "X-LVW-Control": "local-ui" },
+  }));
 }
 
 export async function controlOllama(action: "start" | "reset" | "stop",

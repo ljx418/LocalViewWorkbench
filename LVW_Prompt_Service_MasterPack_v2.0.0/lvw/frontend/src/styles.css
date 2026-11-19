@@ -34,7 +34,9 @@ h1 { margin: 0; font: 520 clamp(18px, 2vw, 24px)/1.2 Bahnschrift, "Microsoft YaH
 .runtime-panel h2 { margin-bottom: 4px; font-size: 16px; }.runtime-panel p { margin-bottom: 0; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
 .runtime-panel dl { display: grid; grid-template-columns: repeat(5, minmax(78px, 1fr)); gap: 1px; margin: 0; background: var(--line); border: 1px solid var(--line); }
 .runtime-panel dl div { min-width: 0; padding: 8px 10px; background: white; }.runtime-panel dt { color: var(--muted); font-size: 10px; }.runtime-panel dd { margin: 3px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
-.runtime-actions { display: flex; gap: 7px; }.runtime-actions button { min-height: 38px; padding: 7px 11px; border: 1px solid #9bacb1; border-radius: 3px; background: white; color: var(--ink); }
+.runtime-actions { display: flex; flex-wrap: wrap; gap: 7px; }.runtime-actions button { min-height: 38px; padding: 7px 11px; border: 1px solid #9bacb1; border-radius: 3px; background: white; color: var(--ink); }
+.cleanup-result { grid-column: 1 / -1; padding: 8px 12px; border: 1px solid var(--line); background: white; }
+.cleanup-result p + p { margin-top: 6px; }
 .runtime-error { grid-column: 1 / -1; padding: 8px 10px; color: #9b3f25 !important; background: #fff2ed; border-left: 3px solid var(--orange); }
 .workspace { flex: 1; display: grid; grid-template-columns: minmax(340px, 42fr) minmax(560px, 58fr); }
 .light-table, .analysis { padding: clamp(22px, 3vw, 44px); min-width: 0; }

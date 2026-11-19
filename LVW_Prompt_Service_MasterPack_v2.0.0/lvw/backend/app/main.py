@@ -108,6 +108,14 @@ def create_app(settings: Settings | None = None, provider=None, runtime=None) ->
         return envelope(await service.runtime_control(runtime.start),
                         request.headers.get("X-Request-ID") or uuid.uuid4().hex)
 
+    @app.post("/api/v1/runtime/resources/cleanup")
+    async def runtime_cleanup(request: Request):
+        require_runtime_control(request)
+        if request.query_params or await request.body():
+            raise AppError("INVALID_REQUEST", "资源清理不接受路径、进程或模型参数", status_code=422)
+        return envelope(await service.runtime_control(runtime.cleanup_resources, release_remaining=False),
+                        request.headers.get("X-Request-ID") or uuid.uuid4().hex)
+
     @app.post("/api/v1/runtime/ollama/reset")
     async def runtime_reset(request: Request):
         require_runtime_control(request)

@@ -185,6 +185,11 @@ class OllamaRuntime:
             self.last_error = None
         return await self.start()
 
+    async def cleanup_resources(self) -> dict:
+        from .resource_cleanup import cleanup
+        async with self._lock:
+            return await cleanup(self)
+
     async def close(self) -> None:
         async with self._lock:
             await self._stop_owned()

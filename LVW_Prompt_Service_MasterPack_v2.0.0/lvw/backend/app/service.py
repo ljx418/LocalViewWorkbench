@@ -225,13 +225,13 @@ class AnalysisService:
         finally:
             self._tasks.discard(task)
 
-    async def runtime_control(self, operation):
+    async def runtime_control(self, operation, *, release_remaining=True):
         if self._active or any(x.status == "queued" for x in self.jobs.values()) or self._controller_busy:
             raise AppError("RESOURCE_BUSY", "请先取消分析并等待释放，再切换模型服务", status_code=409)
         self._controller_busy = True
         try:
             result = await operation()
-            if getattr(self.provider, "_lease", None) is not None:
+            if release_remaining and getattr(self.provider, "_lease", None) is not None:
                 await self.provider.release(self.provider._lease[0])
             return result
         finally:
