@@ -1,0 +1,67 @@
+
+==================================== ERRORS ====================================
+_______________ ERROR collecting tests/test_acceptance_recipe.py _______________
+ImportError while importing test module '/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_acceptance_recipe.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_acceptance_recipe.py:8: in <module>
+    recipe_module = importlib.import_module('reports.unified-media.acceptance_recipe')
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   ModuleNotFoundError: No module named 'reports'
+______________ ERROR collecting tests/test_checkpoint_oracles.py _______________
+ImportError while importing test module '/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_checkpoint_oracles.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_checkpoint_oracles.py:9: in <module>
+    checks=importlib.import_module('reports.unified-media.checkpoint_checks')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   ModuleNotFoundError: No module named 'reports'
+___________ ERROR collecting tests/test_r1a_live_harness_contract.py ___________
+ImportError while importing test module '/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_r1a_live_harness_contract.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_r1a_live_harness_contract.py:3: in <module>
+    from tools.r1a_offline_checkpoint import allowed_runtime_url, runtime_scan
+E   ModuleNotFoundError: No module named 'tools'
+_______________ ERROR collecting tests/test_r1a_runtime_guard.py _______________
+ImportError while importing test module '/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_r1a_runtime_guard.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_r1a_runtime_guard.py:8: in <module>
+    from tools.r1a_runtime_guard import (
+E   ModuleNotFoundError: No module named 'tools'
+___________________ ERROR collecting tests/test_run_local.py ___________________
+ImportError while importing test module '/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0/lvw/tests/test_run_local.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_run_local.py:7: in <module>
+    from lvw.run_local import configured_port
+E   ModuleNotFoundError: No module named 'lvw'
+=========================== short test summary info ============================
+ERROR tests/test_acceptance_recipe.py
+ERROR tests/test_checkpoint_oracles.py
+ERROR tests/test_r1a_live_harness_contract.py
+ERROR tests/test_r1a_runtime_guard.py
+ERROR tests/test_run_local.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 5 errors during collection !!!!!!!!!!!!!!!!!!!!
