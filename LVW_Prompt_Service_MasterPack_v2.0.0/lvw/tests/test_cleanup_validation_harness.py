@@ -8,7 +8,7 @@ import asyncio
 import pytest
 
 PACK = Path(__file__).resolve().parents[2]
-SPEC = importlib.util.spec_from_file_location('cleanup_harness_v3_test', PACK / 'reports/resource-cleanup/correction-02/live_harness_v3.py')
+SPEC = importlib.util.spec_from_file_location('cleanup_harness_v4_test', PACK / 'reports/resource-cleanup/correction-03/live_harness_v4.py')
 HARNESS = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(HARNESS)
 
@@ -19,7 +19,7 @@ def seal(tmp_path, monkeypatch):
     base = tmp_path / 'harness'; base.mkdir()
     out = base / 'runs/test'; out.mkdir(parents=True)
     grant = root / HARNESS.authority.COMPLETE_APPROVAL; grant.parent.mkdir(parents=True); grant.write_text('grant')
-    private = tmp_path / 'lvw-cleanup-v3-owned'; private.mkdir(mode=0o700)
+    private = tmp_path / 'lvw-cleanup-v4-owned'; private.mkdir(mode=0o700)
     marker = '{"run":"test"}'; (private / 'owner-marker.json').write_text(marker)
     stat = private.stat()
     frozen = root / 'source.py'; frozen.write_text('frozen source')
@@ -33,7 +33,7 @@ def seal(tmp_path, monkeypatch):
         tools[name] = {'path': str(path), 'sha256': HARNESS.authority.digest(path)}
     tool_file = out / 'bindings.json'; tool_file.write_text(json.dumps(tools))
     child_path = out / 'authorization.json'
-    child = {'kind': 'RESOURCE_CLEANUP_V3_CHILD/1', 'run_id': 'test', 'program': HARNESS.authority.COMPLETE_APPROVAL,
+    child = {'kind': 'RESOURCE_CLEANUP_V4_CHILD/1', 'run_id': 'test', 'program': HARNESS.authority.COMPLETE_APPROVAL,
         'program_sha256': HARNESS.authority.digest(grant), 'fixture': True,
         'expires_at': time.time() + 60, 'budget': {'model_calls': 0, 'provider_calls': 0},
         'frozen_files': [{'path': str(item.relative_to(root)), 'sha256': HARNESS.authority.digest(item)} for item in critical],
@@ -51,6 +51,8 @@ def seal(tmp_path, monkeypatch):
     monkeypatch.setattr(HARNESS.authority, 'approved', lambda _: {})
     monkeypatch.setattr(HARNESS, 'ledger_row', lambda _: row)
     monkeypatch.setenv('LVW_AUTHORIZATION_CHILD', str(child_path))
+    monkeypatch.setenv('LVW_DATA_ROOT', child['data_root'])
+    monkeypatch.setenv('TMPDIR', child['private_root'])
     return child_path, child, row, frozen, private
 
 
@@ -125,7 +127,7 @@ def test_success_requires_successful_exact_zero_settlement(seal, monkeypatch):
     assert result['model_actions'] == 0 and result['authorization_terminal']['settled']
 
 
-def test_start_failure_preserves_native_history_identity_and_proof(seal):
+def test_start_failure_without_earlier_identity_remains_unknown(seal):
     from types import SimpleNamespace
     path, _, _, _, private = seal
     native = {'nonce': 'known', 'owner': private / 'data/owner.json'}
@@ -134,9 +136,9 @@ def test_start_failure_preserves_native_history_identity_and_proof(seal):
     runtime = SimpleNamespace(_native_history=[native], _native=None)
     errors = []
     known, actual = HARNESS.native_terminal(runtime, None, {}, path.parent, errors)
-    assert known and actual == value and not errors
+    assert not known and actual == value and not errors
     proof = json.loads((path.parent / 'native-final.json').read_text())
-    assert proof['identity_retained_in_runtime_history'] and proof['matched']
+    assert not proof['matched'] and proof['reason'] == 'EARLIER_NATIVE_IDENTITY_MISSING'
 
 
 def test_bad_native_proof_archival_does_not_skip_terminal_receipt(seal, monkeypatch):
@@ -184,3 +186,63 @@ def test_native_nonce_mismatch_is_not_a_verified_exit(seal):
     expected = {**value, 'nonce': 'another_generation'}
     known, _ = HARNESS.native_terminal(SimpleNamespace(_native_history=[native], _native=None), native, expected, path.parent, [])
     assert not known
+
+
+@pytest.mark.parametrize('key', ['LVW_DATA_ROOT', 'TMPDIR'])
+def test_ambient_product_roots_must_match_before_import(seal, monkeypatch, key):
+    path, *_ = seal
+    monkeypatch.setenv(key, '/outside')
+    with pytest.raises(ValueError, match='AMBIENT_ROOT_MISMATCH'): HARNESS.validate(path)
+
+
+@pytest.mark.parametrize('fault', ['write', 'close', 'short_write'])
+def test_claim_creation_faults_retain_budget_and_write_terminal(seal, monkeypatch, fault):
+    import os
+    path, child, row, *_ = seal
+    monkeypatch.setattr(HARNESS.authority, 'close_retaining_reservation', lambda *_: row.update(active=2))
+    def write(fd, body):
+        if fault == 'write': raise OSError('claim failure')
+        return 0 if fault == 'short_write' else os.write(fd, body)
+    def close(fd):
+        os.close(fd)
+        if fault == 'close': raise OSError('close failure')
+    assert not HARNESS.create_claim(child, path.parent, write, close)
+    receipt = json.loads((path.parent / 'receipt.json').read_text())
+    assert receipt['status'] == 'FAIL_OR_BLOCKED' and not receipt['product_imported']
+    assert row['active'] == 2 and receipt['cleanup_errors']
+
+
+def test_fifo_output_is_rejected_without_waiting_for_reader(seal):
+    import os
+    path, *_ = seal
+    fifo = path.parent / 'receipt.json'; os.mkfifo(fifo)
+    start = time.monotonic()
+    with pytest.raises((OSError, ValueError)): HARNESS.write(fifo, {'bad': True})
+    assert time.monotonic() - start < 1
+
+
+def test_known_independent_start_identity_can_verify_terminal(seal):
+    from types import SimpleNamespace
+    path, _, _, _, private = seal
+    native = {'nonce': 'known', 'owner': private / 'data/owner.json'}
+    start = {'nonce': 'known', 'pid': 321, 'birth_ticks': 12345, 'state': 'listening', 'listener_owned': True}
+    HARNESS.write(native['owner'], {**start, 'state': 'exited', 'listener_owned': False})
+    known, _ = HARNESS.native_terminal(SimpleNamespace(_native_history=[native]), native, start, path.parent, [])
+    assert known
+
+
+def test_authority_drift_refused_before_project_authority_executes(tmp_path, monkeypatch):
+    import sys
+    monkeypatch.setattr(sys, 'path', list(sys.path))
+    root = tmp_path / 'pack'
+    script = root / 'reports/resource-cleanup/correction-03/live_harness_v4.py'
+    script.parent.mkdir(parents=True)
+    script.write_bytes(Path(HARNESS.__file__).read_bytes())
+    helper = root / 'tools/local_program_authority.py'; helper.parent.mkdir()
+    marker = root / 'authority-executed'
+    helper.write_text(f'from pathlib import Path\nPath({str(marker)!r}).touch()\n')
+    spec = importlib.util.spec_from_file_location('untrusted_authority_boot', script)
+    module = importlib.util.module_from_spec(spec)
+    with pytest.raises(ValueError, match='TRUSTED_AUTHORITY_DRIFT_BEFORE_IMPORT'):
+        spec.loader.exec_module(module)
+    assert not marker.exists()

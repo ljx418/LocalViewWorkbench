@@ -358,8 +358,4 @@ async def run(child_path):
 
 
 if __name__ == '__main__':
-    try:
-        raise SystemExit(asyncio.run(run(Path(sys.argv[1]).absolute())))
-    except (ValueError, FileExistsError) as error:
-        print('PRESTART_REFUSED:', type(error).__name__, str(error))
-        raise SystemExit(2)
+    raise SystemExit('RETIRED_AFTER_REVIEW03: use correction-03/live_harness_v4.py; preserve old evidence')

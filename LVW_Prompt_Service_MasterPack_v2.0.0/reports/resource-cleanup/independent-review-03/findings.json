@@ -1,0 +1,152 @@
+{
+  "outcome": "CHANGES_REQUIRED",
+  "prior_dispositions": [
+    {
+      "prior_id": 1,
+      "disposition": "CLOSED_FOR_LISTENER_CONFIRMATION",
+      "evidence": "provider.py:311\u2013330 and resource_cleanup.py:147\u2013165. Only TCP refusal yields absent. Successful connection survives HTTP 500/malformed JSON, TCP timeout is indeterminate. HTTP readiness is an additional veto."
+    },
+    {
+      "prior_id": 2,
+      "disposition": "PARTIAL",
+      "evidence": "Acquire saves the generation synchronously. Start/reset/stop guard leases and runtime_control no longer performs a release tail. Double generation read leaves 03-A."
+    },
+    {
+      "prior_id": 3,
+      "disposition": "CLOSED",
+      "evidence": "resource_cleanup.py:20\u201335 requires nonblank trimmed unique name, identical present model, lowercase 64-hex digest, nonnegative exact-int VRAM. Foreign rows block before stop."
+    },
+    {
+      "prior_id": 4,
+      "disposition": "CLOSED_FOR_JOB_ADMISSION",
+      "evidence": "main.py:37\u201340,93\u2013100,153\u2013164; service.py:33\u201342,100\u2013133; provider.py:341\u2013345; runtime.py:60\u201392. Pending blocks dequeue, retained foreign-job lease blocks acquire, and readiness/actions expose recovery. Active job can retain existing queue behavior. Lease-clear safety inherits 03-A."
+    },
+    {
+      "prior_id": 5,
+      "disposition": "PARTIAL",
+      "evidence": "Private/data device-inode-UID, mode, marker, absolute identity, initial emptiness, descendant symlink/file link counts, exclusive O_EXCL claim and the five requested executable comparisons are in place. Both JSON and PNG use the same relative leaf open, no-follow and pre-truncate single-link checks. The harness retains temporary roots. See 03-B/C/F."
+    },
+    {
+      "prior_id": 6,
+      "disposition": "PARTIAL",
+      "evidence": "Runtime stores prepared history before spawning. Missing or multiple generations and archive failure yield unknown; finalization ordinarily proceeds. See 03-D/E."
+    },
+    {
+      "prior_id": 7,
+      "disposition": "CLOSED_FOR_LEDGER_ERRORS",
+      "evidence": "v3:148\u2013171,346\u2013357 uses None for unreadable count, preserves unexpected actual count, requires zero and successful settlement, rechecks active=2 after retain, records retain errors, and returns nonzero on failure. Claim-init failure bypasses this function under 03-E."
+    },
+    {
+      "prior_id": 8,
+      "disposition": "PARTIAL",
+      "evidence": "External-empty and unowned service block. Previously proven exit and fresh absence permit repeat noop. Failed inventory/status and unavailable telemetry have specific causes; 03-H affects interrupted observation labels."
+    },
+    {
+      "prior_id": 9,
+      "disposition": "CLOSED",
+      "evidence": "App.tsx cleanup/recheck state plus archived fixture checks preserve RESOURCE_BUSY and clear the separate refresh error; twelve-test frontend run covers HTTP handling."
+    },
+    {
+      "prior_id": 10,
+      "disposition": "CLOSED_FOR_EXECUTED_SOURCE",
+      "evidence": "49 frozen entries per live child match both source candidates. Final evidence corrects the earlier CPU binding. Historic validation-02 discrepancy is retained."
+    },
+    {
+      "prior_id": 11,
+      "disposition": "CLOSED",
+      "evidence": "test_resource_cleanup.py:218\u2013239 uses ASGI production peer/Host and header/origin/query/body negatives and checks no stop."
+    },
+    {
+      "prior_id": 12,
+      "disposition": "CLOSED_FOR_FIXTURE_LABEL_WITH_NEW_REAL_ORACLE_GAP",
+      "evidence": "Fixture assertion explicitly identifies its simulated original handle; receipt reports fixture-only. Unknown fails both conditional branches of v3:301\u2013303. Real-mode classification has independent finding 03-G."
+    },
+    {
+      "prior_id": 13,
+      "disposition": "CLOSED_FOR_LOCK_WAIT",
+      "evidence": "resource_cleanup.py:63\u201366 enters 43-second cooperative deadline before acquiring the runtime lock. service.py:248\u2013249 restores controller state. Frozen held-lock test verifies this path."
+    }
+  ],
+  "findings": [
+    {
+      "id": "03-A",
+      "prior": 2,
+      "severity": "Major",
+      "file_line": "lvw/backend/app/resource_cleanup.py:98\u2013106,116\u2013122,156\u2013165",
+      "trigger": "A retained lease has no generation. The original process is running. The native owner record is readable at the first current_generation call and temporarily unreadable at the second.",
+      "expected": "Refuse an unbound lease before any stop. Compare one nonempty retained generation to one independently read current generation.",
+      "actual": "The first nonempty result clears the first OR condition. The second result and the stored lease generation can both be None, so the inequality is false. The branch authorizes the stop and can subsequently clear the unbound lease.",
+      "evidence": "runtime.py:43\u201348 reads the owner each time. native_runtime.py:15,20 rewrites the file while the process is running and :25\u201331 converts incomplete JSON to an empty proof. test_resource_cleanup.py:290\u2013298 exercises a stable current generation. Static finding."
+    },
+    {
+      "id": "03-B",
+      "prior": 5,
+      "severity": "Major",
+      "file_line": "reports/resource-cleanup/correction-02/live_harness_v3.py:69\u201379,103\u2013122,206",
+      "trigger": "The child file has valid sealed roots but the launch environment selects another LVW_DATA_ROOT or omits it.",
+      "expected": "Bind the effective product data root before importing any code that creates directories.",
+      "actual": "validate checks LVW_AUTHORIZATION_CHILD only. Import of app.main constructs default_app immediately. Settings.local resolves the ambient root, and create_app/MediaStore create directories there before the explicit child-root app is constructed.",
+      "evidence": "main.py:29\u201333,192\u2013197, config.py:19\u201323, media.py:24\u201330. Both recorded controller environments supplied the correct paths. Static alternate-launch defect."
+    },
+    {
+      "id": "03-C",
+      "prior": 5,
+      "severity": "Major",
+      "file_line": "reports/resource-cleanup/correction-02/live_harness_v3.py:18\u201326,73,86\u2013101",
+      "trigger": "A native helper selected by PATH changes bytes while the five listed tools retain their bindings, or project authority bytes drift before startup.",
+      "expected": "Identify all directly executed native helpers and check the mutable project authority before using it to authenticate the child.",
+      "actual": "native_runtime.windows invokes wslpath by name, before the native launch. The real binding admits exactly five keys and excludes that executable. The Python authority file is listed in both children, but the harness imports it at module load and calls approved before validating its digest with that same module.",
+      "evidence": "native_runtime.py:7,12\u201316,22 and child tool-bindings.json/frozen_files. The archived Python authority and all declared tool digests match. This describes a missing pre-use boundary, not observed drift."
+    },
+    {
+      "id": "03-D",
+      "prior": 6,
+      "severity": "Major",
+      "file_line": "reports/resource-cleanup/correction-02/live_harness_v3.py:129\u2013143,258\u2013260",
+      "trigger": "Startup fails after preparing a handle but before run captures native_identity, leaving a final record with the expected nonce and valid numeric fields.",
+      "expected": "Retain independently observed nonce, PID and birth, or report that only nonce ownership could be established and keep the reservation.",
+      "actual": "History retains paths and nonce. With no earlier identity, expected PID and birth are copied from the terminal proof and compared back to themselves. A single record therefore sets matched even if its PID/birth do not describe a previously observed process.",
+      "evidence": "runtime.py:114\u2013118, native_runtime.py:23 and test_cleanup_validation_harness.py:128\u2013140, which explicitly expects success from one terminal record. The archived real run has separate pre-stop identity."
+    },
+    {
+      "id": "03-E",
+      "prior": 6,
+      "severity": "Major",
+      "file_line": "reports/resource-cleanup/correction-02/live_harness_v3.py:180\u2013184,203,346\u2013355",
+      "trigger": "Claim file creation succeeds and writing the run ID or closing that descriptor raises.",
+      "expected": "Every successfully claimed run reaches budget finalization and a terminal receipt attempt, even when the claim record is incomplete.",
+      "actual": "The write and close precede the try/finally. A failure leaves an exclusive claim on disk, disables replay, bypasses budget retention and skips the inner receipt even if the receipt destination remains writable. The outer controller can report a failed child only.",
+      "evidence": "Static ordering. Proof-archive fault tests at test_cleanup_validation_harness.py:142\u2013157 exercise a later failure and manually write their receipt."
+    },
+    {
+      "id": "03-F",
+      "prior": 5,
+      "severity": "Major",
+      "file_line": "reports/resource-cleanup/correction-02/live_harness_v3.py:29\u201341,115\u2013121,316\u2013320,349\u2013355",
+      "trigger": "An evidence destination is an existing FIFO with no reader.",
+      "expected": "Reject nonregular output without blocking the event loop and terminal finalizer.",
+      "actual": "The relative open is write-only and blocking. File type and link count are checked only after open returns. Neither the coroutine deadline nor its finally can advance while this open is blocked. The outer controller can stop its direct child only.",
+      "evidence": "Source-level finding. Symlink and regular hardlink cases in test_cleanup_validation_harness.py:168\u2013175 are covered. No special file was created or used in this review."
+    },
+    {
+      "id": "03-G",
+      "prior": 12,
+      "severity": "Major (evidence)",
+      "file_line": "reports/resource-cleanup/correction-02/live_harness_v3.py:254\u2013261,299\u2013303,324",
+      "trigger": "An already-loaded configured model exists on the managed original service when clicked.",
+      "expected": "Classify zero-model service-closure evidence only when empty inventory is established at the operation, and keep a loaded or unknown case outside that classification.",
+      "actual": "The oracle checks verified released for any managed service. Initial status is archived without an unloaded assertion. The resulting status unconditionally labels managed success PASS_REAL_ZERO_MODEL_SERVICE_CLOSE_ONLY. Zero ledger calls measure this child\u2019s debits, not the server\u2019s pre-existing inventory.",
+      "evidence": "resource_cleanup.py:92\u2013110 accepts a target row as well as an empty inventory. The actual archived initial model_loaded=false, native access log and terminal evidence support the recorded empty-service case; the classifier itself cannot distinguish them."
+    },
+    {
+      "id": "03-H",
+      "prior": 8,
+      "severity": "Minor",
+      "file_line": "lvw/backend/app/resource_cleanup.py:47\u201353,138\u2013144,170\u2013184",
+      "trigger": "The total deadline interrupts a listener probe or first post-stop sample already in progress.",
+      "expected": "Distinguish an interrupted observation from one never attempted.",
+      "actual": "The listener result is assigned only after its await returns. Deadline during that await leaves NOT_OBSERVED. Interruption inside the first after sample can label it SKIPPED_AFTER_RESOURCE_CLEANUP_TIMEOUT. The overall verdict stays unknown and the pending record is preserved.",
+      "evidence": "Static control flow. The lock-wait timeout test covers a truly unstarted observation."
+    }
+  ]
+}

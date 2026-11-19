@@ -444,3 +444,52 @@ def test_release_resource_bound_exact_and_one_over(setup, monkeypatch, after_use
     assert result['status'] == ('released' if accepted else 'unknown')
     assert (provider._lease is None) is accepted
     assert (runtime._cleanup_pending is None) is accepted
+
+
+def test_generation_is_read_once_and_unbound_lease_cannot_match_none(setup):
+    provider, runtime, _, client = setup
+    lease = ('unbound', {'gpu_used_mib': 400}); provider._lease = lease
+    provider._lease_generation = None
+    real = runtime.current_generation(); calls = []
+    def flapping():
+        calls.append(1)
+        return real if len(calls) == 1 else None
+    runtime.current_generation = flapping
+    result = post(client).json()['data']
+    assert result['status'] == 'blocked' and result['reason'] == 'LEASE_GENERATION_UNBOUND'
+    assert calls == [1] and runtime.process.stop_calls == 0 and provider._lease is lease
+
+
+def test_inventory_observation_is_recorded_at_the_public_operation(setup):
+    provider, _, _, client = setup
+    provider.rows = []
+    result = post(client).json()['data']
+    assert result['status'] == 'released'
+    assert result['inventory_observation'] == {'state': 'complete', 'model_count': 0}
+
+
+@pytest.mark.parametrize('interrupted', ['before', 'after', 'listener'])
+def test_deadline_marks_started_observations_interrupted(setup, monkeypatch, interrupted):
+    provider, runtime, _, client = setup
+    provider._lease = ('owned', {'gpu_used_mib': 400})
+    provider._lease_generation = runtime.current_generation()
+    timeout = asyncio.timeout
+    monkeypatch.setattr(owner.asyncio, 'timeout', lambda _: timeout(0.05))
+    monkeypatch.setattr(owner, 'POLL_INTERVAL_SECONDS', 0)
+    count = 0
+    async def snapshot():
+        nonlocal count
+        count += 1
+        if interrupted == 'before' or interrupted == 'after' and count > 1:
+            await asyncio.Event().wait()
+        return dict(gpu_used_mib=400, gpu_free_mib=24000, gpu_total_mib=24400, available_ram_mib=8000)
+    async def listener(): await asyncio.Event().wait()
+    monkeypatch.setattr(owner.resources, 'snapshot', snapshot)
+    if interrupted == 'listener': provider.listener_state = listener
+    result = post(client).json()['data']
+    assert result['status'] == 'unknown' and result['reason'] == 'RESOURCE_CLEANUP_TIMEOUT'
+    if interrupted == 'listener':
+        assert result['listener_observation']['state'] == 'interrupted'
+    else:
+        assert result[interrupted]['error'] == 'INTERRUPTED_BY_RESOURCE_CLEANUP_TIMEOUT'
+    assert provider._lease is not None

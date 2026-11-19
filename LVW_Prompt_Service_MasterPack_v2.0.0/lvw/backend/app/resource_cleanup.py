@@ -7,6 +7,7 @@ import uuid
 
 from . import resources
 from .errors import AppError
+POLL_INTERVAL_SECONDS = 0.25
 
 
 async def sample() -> dict:
@@ -41,10 +42,18 @@ def new_result() -> dict:
             "after": {"values": None, "error": "NOT_OBSERVED"}, "verified": False,
             "reason": "RESOURCE_RELEASE_PENDING", "runtime": None,
             "runtime_error": "NOT_OBSERVED", "listener_observation": {"state": "not_observed", "reason": "NOT_OBSERVED"},
+            "inventory_observation": {"state": "not_started", "model_count": None},
             "verification_scope": "original_service_exit_and_resource_bound"}
 
 
+def valid_generation(value):
+    return (isinstance(value, dict) and isinstance(value.get("nonce"), str) and bool(value["nonce"])
+            and type(value.get("pid")) is int and value["pid"] > 0
+            and type(value.get("birth_ticks")) is int and value["birth_ticks"] > 0)
+
+
 async def require_absent(provider, result):
+    result["listener_observation"] = {"state": "in_progress", "reason": "PROBE_STARTED"}
     observation = await provider.listener_state()
     if not isinstance(observation, dict) or observation.get("state") not in {"absent", "responding", "indeterminate"}:
         raise AppError("LISTENER_STATE_UNVERIFIED", "Listener probe malformed")
@@ -64,6 +73,7 @@ async def cleanup(runtime) -> dict:
         async with asyncio.timeout(43):
             async with runtime._lock:
                 stage = "before"
+                result["before"] = {"values": None, "error": "IN_PROGRESS"}
                 result["before"] = await sample()
                 pending = runtime._cleanup_pending
                 lease = getattr(provider, "_lease", None)
@@ -71,11 +81,13 @@ async def cleanup(runtime) -> dict:
                 if completed is not None and lease is None and runtime._native is None and not runtime._owned():
                     if proof(completed["native"]) == completed["identity"]:
                         stage = "runtime"
+                        result["runtime_error"] = "IN_PROGRESS"
                         result["runtime"] = await runtime.status()
                         result["runtime_error"] = None
                         stage = "listener"
                         await require_absent(provider, result)
                         if not result["runtime"]["ollama"]["reachable"]:
+                            result["after"] = {"values": None, "error": "IN_PROGRESS"}
                             result["after"] = await sample()
                             result.update(status="noop", verified=True, reason="NO_LVW_SERVICE_RUNNING")
                             return result
@@ -84,25 +96,31 @@ async def cleanup(runtime) -> dict:
                     if not runtime._native or not runtime._owned():
                         result.update(status="blocked", reason="RUNTIME_NOT_OWNED")
                         stage = "runtime"
+                        result["runtime_error"] = "IN_PROGRESS"
                         result["runtime"] = await runtime.status()
                         result["runtime_error"] = None
                         stage = "after"
+                        result["after"] = {"values": None, "error": "IN_PROGRESS"}
                         result["after"] = await sample()
                         return result
                     stage = "inventory"
+                    result["inventory_observation"] = {"state": "in_progress", "model_count": None}
                     rows = await inventory(provider)
+                    result["inventory_observation"] = {"state": "complete", "model_count": len(rows)}
                     target = [row for row in rows if row["name"] == provider.model]
                     if any(row["name"] != provider.model for row in rows):
                         result.update(status="blocked", reason="EXTERNAL_MODEL_PRESENT")
                     else:
                         native = runtime._native
                         identity = proof(native)
+                        current_generation = runtime.current_generation() if lease is not None else None
+                        lease_generation = getattr(provider, "_lease_generation", None)
                         # This record identifies the original handle only. It never authorizes
                         # a POST to whichever listener happens to be on the old port.
                         if not identity or identity.get("state") not in {"starting", "listening"}:
                             result.update(status="blocked", reason="NATIVE_CUSTODY_UNPROVEN")
-                        elif lease is not None and (runtime.current_generation() is None or
-                                getattr(provider, "_lease_generation", None) != runtime.current_generation()):
+                        elif lease is not None and (not valid_generation(current_generation)
+                                or not valid_generation(lease_generation) or lease_generation != current_generation):
                             result.update(status="blocked", reason="LEASE_GENERATION_UNBOUND")
                         elif result["before"]["values"] is not None:
                             before_used = result["before"]["values"]["gpu_used_mib"]
@@ -114,7 +132,7 @@ async def cleanup(runtime) -> dict:
                                     raise ValueError("Lease baseline unavailable")
                                 bound = min(bound, baseline + 1024)
                             pending = {"native": native, "identity": identity, "lease": lease,
-                                       "lease_generation": getattr(provider, "_lease_generation", None),
+                                       "lease_generation": dict(lease_generation) if lease_generation is not None else None,
                                        "gpu_max_mib": bound}
                             runtime._cleanup_pending = pending
                             result["actions"].append("stop_original_lvw_model_service")
@@ -137,14 +155,17 @@ async def cleanup(runtime) -> dict:
                         raise AppError("RESOURCE_RELEASE_PENDING", "Original native exit unproven")
                     for _ in range(3):
                         stage = "after"
+                        result["after"] = {"values": None, "error": "IN_PROGRESS"}
                         result["after"] = await sample()
                         values = result["after"]["values"]
                         if values is None or values["gpu_used_mib"] > pending["gpu_max_mib"]:
                             raise AppError("RESOURCE_RELEASE_PENDING", "Resource bound unproven")
-                        await asyncio.sleep(0.25)
+                        await asyncio.sleep(POLL_INTERVAL_SECONDS)
                 else:
+                    result["after"] = {"values": None, "error": "IN_PROGRESS"}
                     result["after"] = await sample()
                 stage = "runtime"
+                result["runtime_error"] = "IN_PROGRESS"
                 result["runtime"] = await runtime.status()
                 result["runtime_error"] = None
                 if pending is not None:
@@ -176,7 +197,16 @@ async def cleanup(runtime) -> dict:
                   "before": "RESOURCE_TELEMETRY_UNAVAILABLE", "ownership": "NATIVE_CUSTODY_UNPROVEN"}
         code = error.code if isinstance(error, AppError) and error.code != "RESOURCE_RELEASE_PENDING" else causes.get(stage, "RESOURCE_RELEASE_PENDING")
         result.update(status="unknown", verified=False, reason=code)
-    if result["runtime"] is None:
+    for key in ("before", "after"):
+        if result[key]["error"] == "IN_PROGRESS":
+            result[key]["error"] = "INTERRUPTED_BY_" + result["reason"]
+    if result["listener_observation"]["state"] == "in_progress":
+        result["listener_observation"] = {"state": "interrupted", "reason": result["reason"]}
+    if result["inventory_observation"]["state"] == "in_progress":
+        result["inventory_observation"]["state"] = "interrupted" if result["reason"] == "RESOURCE_CLEANUP_TIMEOUT" else "failed"
+    if result["runtime_error"] == "IN_PROGRESS":
+        result["runtime_error"] = "INTERRUPTED_BY_" + result["reason"] if result["reason"] == "RESOURCE_CLEANUP_TIMEOUT" else result["reason"]
+    elif result["runtime"] is None:
         result["runtime_error"] = result["reason"] if stage == "runtime" else "SKIPPED_AFTER_" + result["reason"]
     if result["before"]["values"] is None and result["before"]["error"] == "NOT_OBSERVED":
         result["before"]["error"] = result["reason"]
