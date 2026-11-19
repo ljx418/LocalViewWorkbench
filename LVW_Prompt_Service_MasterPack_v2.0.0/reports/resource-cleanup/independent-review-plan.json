@@ -1,0 +1,23 @@
+{
+  "root_ack": true,
+  "candidate_sha": "888d18da4b7b45fc942b925f26d75c7fc74ebe00",
+  "source_root": "/mnt/c/workspace/videoworkline/localviewworkbench/LVW_Prompt_Service_MasterPack_v2.0.0",
+  "read_only_candidate": true,
+  "reviewer_must_recompute": true,
+  "allowed_command": [
+    "/usr/bin/python3",
+    "-B",
+    "-m",
+    "pytest",
+    "-q",
+    "-p",
+    "no:cacheprovider",
+    "lvw/tests/test_resource_cleanup.py"
+  ],
+  "cwd": "candidate pack root or isolated copied pack preserving relative layout",
+  "environment": "fresh owned LVW_DATA_ROOT/TMPDIR, PYTHONDONTWRITEBYTECODE=1, PYTEST_DISABLE_PLUGIN_AUTOLOAD=1, PYTHONPATH pack:backend",
+  "wall_seconds": 90,
+  "controller": "reports/workflow-rebaseline-2026-11-15/opt-b-14-trusted-stop-cancel/bounded_exec.py",
+  "scope": "CPU tests/in-process ASGI only; no production model/GPU/server/browser/native processes; controller ownership is cooperative single-child, not OS sandbox",
+  "output_scope": "independent reviewer own temp/report only; no candidate edits"
+}

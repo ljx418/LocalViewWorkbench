@@ -1,0 +1,51 @@
+{
+  "scope": "WP-R1-RESOURCE-CLEANUP-01",
+  "status": "READY_FOR_INDEPENDENT_REVIEW_REAL_RELEASE_BLOCKED",
+  "candidate_sha": "888d18da4b7b45fc942b925f26d75c7fc74ebe00",
+  "implementation_owner": "root Codex under explicit user takeover",
+  "contract_change": "compatible fixed POST /api/v1/runtime/resources/cleanup; original public Job and stage denominator unchanged",
+  "tests": {
+    "new_backend_targeted": 22,
+    "full_backend_subtree": 176,
+    "frontend_unit": 11,
+    "frontend_typecheck_and_build": "PASS",
+    "ui_fixture": 12,
+    "real_noop_ui": 10
+  },
+  "source_binding": "validation-01/source-seal.json plus validation-02/root-ack.json",
+  "checks": {
+    "RC01": "PASS_CPU_FIXTURE_ONLY_REAL_RELEASE_BLOCKED",
+    "RC02": "PASS_CPU_AND_REAL_NOOP",
+    "RC03": "PASS_CPU_AND_UI_FIXTURE",
+    "RC04": "PASS_CPU_AND_UI_FIXTURE",
+    "RC05": "PASS_CPU_AND_UI_FIXTURE",
+    "RC06": "PASS_CPU",
+    "RC07": "PASS_CPU_AND_UI_FIXTURE",
+    "RC08": "PASS_FIXTURE_AND_REAL_NOOP_UI",
+    "RC09": "PASS_CPU_REGRESSION_REAL_REANALYSIS_BLOCKED",
+    "RC10": "PASS",
+    "RC11": "BLOCKED_RESOURCE_ADMISSION_NO_REAL_MODEL_RELEASE_OR_REANALYSIS",
+    "RC12": "NOT_RUN"
+  },
+  "evidence": {
+    "full_backend": "validation-01/check-06",
+    "frontend": [
+      "validation-02/check-01",
+      "validation-02/check-02"
+    ],
+    "ui": "ui-fixture-02/receipt.json",
+    "real_noop": "live-noop-02/receipt.json",
+    "real_model_block": "live-01/receipt.json",
+    "resource_investigation": "resource-diagnostic-01/receipt.json"
+  },
+  "cleanup": "exact owned API/browser/runtime stopped; fresh UI/live temp roots removed after proof; diagnostic logs retained; no unknown process killed",
+  "actual_model_actions": 0,
+  "stage_pass": false,
+  "human_signoff": false,
+  "risks": [
+    "real loaded model release and subsequent image inference remain unverified under current resource admission",
+    "no claim to free foreign GPU allocations or all system RAM",
+    "the 19047MiB admission requirement was kept, not silently loosened"
+  ],
+  "next_owner": "isolated Codex reviewer; root implementer cannot independently sign own candidate"
+}

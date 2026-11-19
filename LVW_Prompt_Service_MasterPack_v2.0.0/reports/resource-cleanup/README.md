@@ -17,5 +17,8 @@
 - [首次页面夹具验证](ui-fixture-01/receipt.json)：真实页面/API/生产清理 owner，模型资源为夹具，不能证明真实卸载。
 - [真实装载验证受阻](live-01/receipt.json)：本机模型已装，但可用显存约17598MiB，未满足原19047MiB分析准入；零模型调用，原服务已完整关闭。不得将本轮计为真实释放或图片识别通过。
 - [有界归属核查](resource-diagnostic-01/receipt.json)：Ollama活动模型为空，GPU compute-app列表为空，未找到可确认为LVW拥有的占用；不推断为空闲整机、不误停未知程序。
+- [最终页面夹具验证12项](ui-fixture-02/receipt.json)：包含真实HTTP409提示、失败重试、归属拒绝和人工稿保留。
+- [真实Ollama空载页面验证10项](live-noop-02/receipt.json)：真实API、资源采样、页面按钮、重复清理、移动布局与关闭证明；只证明空载安全路径，不能替代已加载模型释放。
+- [页面截图](live-noop-02/cleanup-desktop.png)、[移动截图](live-noop-02/cleanup-mobile.png)、[实现状态与RC01–RC12覆盖](implementation-receipt.json)。
 
 这项增量的真实“已装载模型释放→再次图片识别”验证目前仍受资源准入阻塞。独立复核及后续真实空载页面验证另保存在同目录；只有对应实际收据才能提升状态。本记录不宣布完整V1或任何旧Stage PASS，不补签人工体验。
