@@ -97,11 +97,7 @@ class OllamaRuntime:
         if self._spawn_override:
             return await self._spawn_override()
         executable = self._validate_executable()
-        log_root = self.data_root / "runtime"
-        log_root.mkdir(parents=True, exist_ok=True)
-        log_path = log_root / "ollama.log"
-        self._log = open(log_path, "ab", buffering=0)
-        os.chmod(log_path, 0o600)
+        log_root = self.data_root / "runtime"  # hint only; native controls use an owner-private generation root.
         env = os.environ.copy()
         env.update({"OLLAMA_HOST": "http://127.0.0.1:11434", "OLLAMA_NO_CLOUD": "true",
                     "NO_PROXY": "127.0.0.1,localhost", "no_proxy": "127.0.0.1,localhost"})
@@ -115,7 +111,7 @@ class OllamaRuntime:
         self._native = prepare(log_root, executable)
         self._native_history.append(self._native)
         return await asyncio.create_subprocess_exec(*self._native["argv"], stdin=asyncio.subprocess.DEVNULL,
-            stdout=self._log, stderr=asyncio.subprocess.STDOUT, env=env)
+            stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.STDOUT, env=env)
 
 
     async def start(self) -> dict:
