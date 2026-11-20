@@ -255,6 +255,7 @@ def finish_receipt(child, result, known, errors, out):
     try:
         write(out / 'receipt.json', result)
     except BaseException as error:
+        result.update(status='FAIL_OR_BLOCKED', known_terminal=False, terminal_error='FINAL_RECEIPT_WRITE_FAILED')
         print(json.dumps({'status': 'TERMINAL_RECEIPT_WRITE_FAILED', 'error': type(error).__name__}))
         return False
     return known and result['status'] == 'PASS_REAL_LOADED_RESTART_IMAGE'

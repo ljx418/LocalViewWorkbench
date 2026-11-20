@@ -65,6 +65,7 @@ def test_final_receipt_failure_has_durable_evidence_but_cannot_pass(terminal, mo
     result = {'status': 'PASS_REAL_LOADED_RESTART_IMAGE'}
     assert not H.finish_receipt({'run_id': 'test'}, result, True, [], out)
     assert row['active'] == 0 and order == ['settle']
+    assert result['status'] == 'FAIL_OR_BLOCKED' and not result['known_terminal']
     assert (out / 'receipt.prepared.json').is_file() and not (out / 'receipt.json').exists()
 
 
