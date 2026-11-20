@@ -66,3 +66,7 @@
 ## 2026-11-15 当前执行增量
 
 按ADR-16/docs36在Implement内加入受控定向计划封存→真实定向反馈→实现收据→集中独审。辅助诊断按机器政策条件评估，不影响正式固定集合。当前已有产品与Git历史，以上“无首个commit/无产品实现”仅为初始历史记录；当前权威只读execution-control。
+
+## ADR-17效率增量（当前生效）
+
+执行[机器spec](delivery-efficiency.spec.json)与[docs37](../../docs/37_DELIVERY_EFFICIENCY_SPEC.md)：先冻结失败交接协议与Oracle，集中纠偏；实现恢复ClaudeCode，首次429立即停止；按影响复验；历史产物无损归档，未知材料先保留。正式出门门限不变。

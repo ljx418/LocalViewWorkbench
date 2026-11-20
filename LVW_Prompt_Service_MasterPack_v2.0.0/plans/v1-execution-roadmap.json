@@ -1,0 +1,156 @@
+{
+  "schema_version": "lvw.execution-roadmap/1",
+  "change_id": "CHANGE-V1-DELIVERY-EFFICIENCY-02",
+  "status": "ACTIVE_EXECUTION_OVERLAY_NOT_STAGE_PASS",
+  "extends": "plans/v1-revised-plan.json",
+  "workflow_spec": ".agent-governance/workflows/delivery-efficiency.spec.json",
+  "current_authority": "plans/execution-control.json",
+  "formal_stage_dag_unchanged": true,
+  "implementation_owner": "visible ClaudeCode",
+  "one_active_implementation_stage": true,
+  "order": [
+    {
+      "id": "RC-FINAL",
+      "maps_to": [
+        "R1 resource interruption"
+      ],
+      "goal": "close review07 three Major in one package",
+      "depends_on": [],
+      "state": "DESIGN_READY_PREFLIGHT_REQUIRED",
+      "baseline": "1f55a4687a392c002538e135863ad71ec87b3376",
+      "obligations": [
+        "07-1",
+        "07-2",
+        "07-3"
+      ],
+      "entry": [
+        "fresh scope/interface freeze",
+        "workspace and complete candidate membership",
+        "root ACK targeted plan"
+      ],
+      "exit": [
+        "all three findings independently closed",
+        "affected integration proved; actual runtime only where impact requires",
+        "resource-helper decision and usable UI entry"
+      ],
+      "packet": "plans/packets/rc-review07/contract.json"
+    },
+    {
+      "id": "R1-PERSIST",
+      "maps_to": [
+        "R1-A",
+        "R1-B"
+      ],
+      "goal": "verify and integrate existing23bd8da persistence/revisions candidate",
+      "depends_on": [
+        "RC-FINAL"
+      ],
+      "state": "SOURCE_EXISTS_NOT_VERIFIED",
+      "baseline": "23bd8da803903370be3b154a8cf21b9cc8f145a8",
+      "entry": [
+        "preserved WIP and contract/dependency audit",
+        "minimal SQLite/revision migration Gate0"
+      ],
+      "exit": [
+        "production persistence/revision contract and restart/failed-write negatives",
+        "no raw/manual overwrite",
+        "existing R1 formal obligations retained"
+      ]
+    },
+    {
+      "id": "M1-A",
+      "maps_to": [
+        "V1-M1/M1-A"
+      ],
+      "goal": "video boundaries, true PTS and visible timeline",
+      "depends_on": [
+        "R1-PERSIST"
+      ],
+      "state": "NOT_DELIVERED",
+      "entry": [
+        "necessary persistence verified",
+        "M1 packet Gate0 and formal dependencies"
+      ],
+      "exit": [
+        "public video path boundary/PTS evidence",
+        "review and applicable human threshold"
+      ]
+    },
+    {
+      "id": "M1-BC",
+      "maps_to": [
+        "V1-M1/M1-B",
+        "V1-M1/M1-C"
+      ],
+      "goal": "per-shot people/scene/actions, serial children, editable drafts and export",
+      "depends_on": [
+        "M1-A"
+      ],
+      "state": "NOT_DELIVERED",
+      "entry": [
+        "frozen child job/CAS and source evidence contracts"
+      ],
+      "exit": [
+        "fixed MS01-MS08 and all required M1 dependencies",
+        "draft protection and cancel/cleanup",
+        "independent and human acceptance as required"
+      ]
+    },
+    {
+      "id": "R2-V1-EXIT",
+      "maps_to": [
+        "R1-C",
+        "R1-D",
+        "R2-A",
+        "R2-B",
+        "R2-C",
+        "R2-D",
+        "retained V0-S3 obligations"
+      ],
+      "goal": "recovery, quality, CLI/portable package and full V1 exit",
+      "depends_on": [
+        "M1-BC"
+      ],
+      "state": "NOT_DELIVERED",
+      "entry": [
+        "actual shared interfaces and formal Stage dependencies"
+      ],
+      "exit": [
+        "all retained S3/R1/M1/R2 obligations",
+        "formal fixed189/29 where required",
+        "independent Fatal0/Major0 and actual human/release signatures"
+      ]
+    },
+    {
+      "id": "V2",
+      "maps_to": [
+        "R3",
+        "R4"
+      ],
+      "goal": "approved V2 library/naming and original asset/MCP/recovery obligations",
+      "depends_on": [
+        "R2-V1-EXIT"
+      ],
+      "state": "DESIGN_ONLY_BUSINESS_NOT_ACTIVE"
+    },
+    {
+      "id": "V3",
+      "maps_to": [
+        "R5a",
+        "R5b",
+        "R5c"
+      ],
+      "goal": "thin project integrations and cumulative acceptance",
+      "depends_on": [
+        "V2"
+      ],
+      "state": "NOT_ACTIVE"
+    }
+  ],
+  "rules": [
+    "order is development priority, not waiver of formal Stage entry/exit dependencies",
+    "early slice usable status does not increment formal Stage completion",
+    "no business reconstruction in housekeeping batch",
+    "reuse existing design; extend contracts only with explicit change control"
+  ]
+}

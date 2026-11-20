@@ -1,8 +1,8 @@
-# 验证记录口径
+# 证据与报告导航
 
-product-results.template.json中所有产品用例NOT_RUN；它不能作为发布证据。
-validation.json / HTML_SMOKE.json（生成后）只证明文档和演示页面检查。
-未运行目标Windows/ComfyUI/Gemma4/4090或真实Navia/Narralens/Comfy跨项目验收。
-原型截图是本包HTML实际渲染，不是产品截图。旧包报告未继承PASS。
-
-V0-S0 静态盘点见 `runtime-inventory.json`、`node-bindings.json`、`reuse-audit.md` 与 `v0-s0/evidence-sha256.json`。这些文件只证明只读盘点和源码审计，不证明服务可运行、模型可用、真实媒体通过或 Stage PASS。
+- 当前正式坐标：plans/execution-control.json；查看精简视图运行`python3 -B tools/show_execution_coordinate.py`。
+- 当前资源任务：resource-cleanup/independent-review-07/review.md、correction-05/result.md；三Major未关闭，真实成功观察不能代替最终接受。
+- 本轮流程/计划/整理：development-refresh-2026-11-20/；属于治理交付，不产生产品PASS。
+- 已签统一切片：unified-media/human-signoff-live15.json；不扩大其签署范围。
+- 历史S0/S1/S2/S3与各版本失败保留；重复过程树改存../archives，先验证/恢复再复现旧检查。
+- 不将当前工作区内残留的未跟踪材料当成可信正式收据，也不因它们未提交就删掉。

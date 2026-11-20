@@ -1,0 +1,61 @@
+{
+  "schema_version": "lvw.workpack/1",
+  "id": "RC-FINAL",
+  "stage_id": "R1",
+  "status": "DOC_READY_NOT_EXECUTED",
+  "base_candidate": "1f55a4687a392c002538e135863ad71ec87b3376",
+  "implementer": "visible ClaudeCode",
+  "reviewer": "isolated different session",
+  "scope": "review07 three findings only; no persistent-data/M1 implementation",
+  "allowed_paths": [
+    "lvw/backend/app/runtime.py",
+    "lvw/backend/app/native_runtime.py",
+    "lvw/backend/app/native_private.py",
+    "lvw/backend/app/resources.py",
+    "lvw/tests/test_cleanup_review07.py",
+    "reports/resource-cleanup/next-profile/",
+    "tools/execution/"
+  ],
+  "forbidden_changes": [
+    "PRD",
+    "public Job/schema",
+    "formal189/29",
+    "frozen old manifests",
+    "historical receipts",
+    "parent budget counters"
+  ],
+  "fault_matrix": [
+    {
+      "id": "07-1",
+      "owner": "monitor lifecycle",
+      "oracle": "stop requests no new sample; already dispatched observation drains to result or explicit unknown; late error/limit blocks archive PASS and settlement",
+      "negative": "hold sample in worker thread until teardown final probes are good; then return threshold violation/error, assert no result discarded and reservation retained"
+    },
+    {
+      "id": "07-2",
+      "owner": "native runtime control",
+      "oracle": "no Python control write into rejected/unverified root during startup failure, explicit close or timeout",
+      "negative": "writable pre-existing/bad-ACL/reparse generation root; force rejection; assert exact before/after files and hashes unchanged; original handles reconciled without unverified-path write"
+    },
+    {
+      "id": "07-3",
+      "owner": "candidate membership",
+      "oracle": "derive required source/dist/template/sample membership from named Git tree and compare complete sets before byte checks and reservation",
+      "negative": "delete tracked CSS or module before sealing and enumerate surviving working files; require fail before starts/model/budget reservation; also missing/extra/dirty sample cases"
+    }
+  ],
+  "execution": "freeze exact new candidate/tools/commands/node IDs/root ACK first; scoped deterministic tests then affected composition; preserve current valid evidence only with explicit impact proof; no new generic platform",
+  "stop": [
+    "first429",
+    "public contract change",
+    "unknown resources/privacy",
+    "approval rejection",
+    "same route without progress"
+  ],
+  "exit": [
+    "all07 findings independently closed",
+    "related user flow verified",
+    "no self Stage PASS"
+  ],
+  "next_owner": "Codex freezes interfaces and preflight; ClaudeCode implements; isolated review recomputes"
+}

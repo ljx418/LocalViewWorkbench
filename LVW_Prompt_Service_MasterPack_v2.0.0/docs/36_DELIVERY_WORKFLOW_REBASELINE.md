@@ -1,5 +1,8 @@
 # 36｜面向用户交付的流程与实施计划修订
 
+> 当前效率增量已由ADR-17批准，执行docs37/38；本章OPT-A等是原修订快照，实时状态读取execution-control。
+
+
 2026-11-15生效，CHANGE-V1-DELIVERY-FLOW-01 / [ADR-16](adr/ADR-16-DELIVERY-FLOW.md)。这是现有治理的增量，唯一坐标仍为execution-control；设计、实施、机器检查、独审、人工签署和发布分开。
 
 ## 执行闭环

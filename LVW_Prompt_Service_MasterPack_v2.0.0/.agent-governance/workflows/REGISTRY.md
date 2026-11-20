@@ -39,3 +39,5 @@
 未实现产品代码不存在可扫描的生产路由；因此 V0 产品工作流保持 `Draft`，不能标记 `Approved`。
 
 2026-11-15说明：末尾“未实现产品代码”是2026-10-27初始快照，不作为当前结论。实际早期产品已实现并有范围签署，正式阶段进度读取execution-control；本次只激活治理修订。
+
+当前Stage生命周期增量：[delivery-efficiency.spec.json](delivery-efficiency.spec.json)，ADR-17用户已批准；覆盖设计/实现/故障反馈/集中审查/按影响复验与证据整理。

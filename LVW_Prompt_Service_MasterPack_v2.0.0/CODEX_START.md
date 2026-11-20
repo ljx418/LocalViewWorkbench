@@ -1,41 +1,19 @@
-# 启动开发提示词｜全阶段有规格、分版本执行
+# Codex开发入口｜读取当前坐标，按冻结包推进
 
-## 直接粘贴
+## 下一goal
+
+直接使用[RC-FINAL接续提示词](plans/packets/rc-review07/next-goal.md)。它依据用户已批准的[流程spec](docs/37_DELIVERY_EFFICIENCY_SPEC.md)和[最新路线](docs/38_EXECUTION_PLAN_REFRESH.md)，不重做已签R1a或统一图视频切片。
 
 ```text
-请读取 LVW_Prompt_Service_MasterPack_v2.0.0，按 AGENTS.md 实施。
-TARGET_VERSION=V1；NEXT_DELIVERY_TARGET=V1-R1a（项目负责人已批准提前实施简易前端切片）。
-本包完整定义V0–V3，但不能跳过前序验收或把后续功能偷偷加入当前版本。
-
-先读.agent-governance/README.md、plans/execution-control.json和当前Stage Packet；校验Stage manifest、角色隔离、固定分母和授权状态。V0-Min 已在 V0-S1 通过并保持未发布；下一步必须先为 R0/R1a 建立并冻结新 Stage Packet。历史 live 授权均不得推断为 R1a 的 Ollama、真实图片或浏览器授权。
-
-先读README、docs/00、01、03、04、05、06、对应版本实现方案和plans/*.json；
-运行文档校验、只读盘点本机、备份将修改的工作流和配置。
-保留已验收 V0-Min 证据，不改写历史失败或补报 V0.1/V0.2 PASS。
-按批准顺序先执行 R0 与 R1a：使用最终 React+TypeScript+Vite/FastAPI 架构交付单图简易前端，不创建 V0-Min.1 或一次性 HTML 产品。
-R1a 后再执行 V0-S2/V0-S3，补齐视频、资源、安装回滚和完整质量。
-
-V1正式使用React+TypeScript+Vite、FastAPI、SQLite和Ollama；R1a只实现最终合同的必要子集，不得声明V1已通过；
-V2加入镜头资产/真实PTS/FTS5/MCP/恢复；V3实现三个对端的薄集成。
-各版本共用模型适配、模板、合同和测试资产，禁止重复造基础平台。
-全阶段禁止Gradio/NiceGUI。
-
-依据plans/tasks.json逐任务实现代码、测试、脚本、文档并修复失败。
-按plans/acceptance_cases.json执行本版本及累计回归；PASS必须有真实证据。
-资源、断网、质量、迁移和真实客户端/对端测试不能用Mock替代。
-缺前置标BLOCKED，继续不受阻断的任务，不伪造验收结果。
-通过当前里程碑后输出阶段审计包；达到TARGET_VERSION后停止扩展。
-只有对应release_gates全PASS才声明Vn_ACCEPTED。
+读取AGENTS、.agent-governance/README.md，运行python3 -B tools/show_execution_coordinate.py查看唯一execution-control的当前视图，再读docs37/38、当前packet和机器流程spec。
+Codex负责架构/接口/故障Oracle/门禁，可见ClaudeCode作为单一实现owner，隔离实例独审，受控执行器负责真实结果。先完成当前RC-FINAL三项纠偏，再验证已有R1持久化，满足相应Gate0和正式依赖后推进多镜头。不要根据历史文档中的NEXT_DELIVERY_TARGET重新启动R0/R1a。
+实现前冻结候选、完整Git输入集合、命令/测试节点、工具/样本/有限预算、停止与清理协议；先复现故障后修复，按影响复验并集中独审。普通本机范围由现有母授权派生有限子收据，不重复询问GPU或候选许可。
+首次ClaudeCode429立即停并交接，不自动换模型或由Codex接手。审批拒绝不绕过；历史失败和真实人签不改写；固定189/29、硬安全及正式Stage依赖不降低。到实际人工体验/发布门槛等待签署。
+每次结束报告完整V0–V3已完成/总数、当前坐标、十字段与证据；源码、机器验证、独审、人签分别陈述。Stage满足必要人签后普通Git同步。未审计源码不直接宣布已完成或未实现。
 ```
 
-## 必须形成的实施产物
+## 路线与历史
 
-V0：真实UI/API工作流、node-bindings、必要薄扩展、模板、增量安装/回滚、用例证据。V1：后端、React源码及dist、不可变修订、便携运行包、CLI、API和真实测试。V2：迁移DDL、镜头/配方/检索、MCP工具、恢复与备份。V3：对端能力握手、合同适配、工作流白名单、真实E2E和回滚包。
+V0-Min、R1a及统一图视频早期切片有各自签署，不等于完整V1。R1持久化→M1边界/时间轴→逐镜头观察/人工稿/导出→R2质量、恢复与打包的优先顺序见机器路线；原S3与正式退出义务保留。V2素材理解/命名和V3薄集成设计继续保留，业务尚未激活。
 
-## 报告格式
-
-每阶段交付`stage-report.json`：stage、git_commit、requirements、changes、commands、results、evidence_sha256、runtime_versions、known_issues、next_gate。用例记录输入样本哈希、参数、模型digest、耗时/资源与实际状态；产品原始输出不经人工修饰再评分。
-
-## 阶段阻断规则
-
-V0-S0只要求环境/节点基线，不把未实现的完整打包先当门禁。模型不可用仍可实现人工路径。V1/R0重复的是新服务兼容检查，不重跑无关盘点。V3对端没准备好只阻断相关集成验收，不能要求LVW接管对端系统以消除阻断。并行工作不得共享未冻结Schema或绕过单GPU限制。
+旧入口提示词仍可由Git历史复现，不再将其过期坐标作为执行指令。历史过程树按archives/README.md验证和恢复，不通过旧授权重跑历史PID/运行。

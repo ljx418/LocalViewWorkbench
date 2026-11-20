@@ -1,0 +1,55 @@
+{
+  "scope": "workflow/plan/archiving only; no product/model/GPU",
+  "results": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/verify_governance.py",
+        "--self-test"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/verify_delivery_workflow.py",
+        "--self-test"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/verify_delivery_efficiency.py",
+        "--self-test"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/build_full_spec.py",
+        "--check"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "tools/archive_history.py",
+        "verify"
+      ],
+      "exit_code": 0
+    },
+    {
+      "check": "actual archive restore roundtrip all members SHA256",
+      "members": 2591,
+      "exit_code": 0
+    }
+  ]
+}

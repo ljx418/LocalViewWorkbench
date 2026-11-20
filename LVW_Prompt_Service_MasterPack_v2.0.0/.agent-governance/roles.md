@@ -26,3 +26,7 @@ V0 期间的临时载体为：`codex_isolated_implementer` 代行主/补充实�
 ## 冲突升级
 
 公共合同、固定分母、所有权、安全边界、真实数据有效性或高风险授权有争议时，立即停止 Workpack，状态进入 `BLOCKED` 或 `WAIT_AUTH`，交由门禁负责人或人类处理。
+
+## ADR-17执行落实
+
+用户本轮批准效率改进；ClaudeCode额度恢复后恢复唯一实现owner，Codex负责接口/故障设计与集中裁决。临时资源任务的Codex接手历史保留；后续普通修正恢复可见ClaudeCode。独立实例及受控执行器不合并，细则见docs37。

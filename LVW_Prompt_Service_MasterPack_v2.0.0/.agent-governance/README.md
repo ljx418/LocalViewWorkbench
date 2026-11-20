@@ -61,3 +61,7 @@ python3 tools/verify_governance.py --self-test
 [ADR-16](../docs/adr/ADR-16-DELIVERY-FLOW.md)、[执行说明](../docs/36_DELIVERY_WORKFLOW_REBASELINE.md)和[机器政策](../plans/v1-delivery-workflow.json)接入本治理。历史冻结包保持，未来候选按新组件packet。状态/完成度仍由execution-control决定；政策结构通过不等于产品或流程效果已验收。
 
 交付流程增量检查：`python3 -B tools/verify_delivery_workflow.py --self-test`，只验证制度结构与反误降级资格负例，不是产品验收。
+
+## 已批准效率增量
+
+[流程spec](workflows/delivery-efficiency.spec.json)与[docs37](../docs/37_DELIVERY_EFFICIENCY_SPEC.md)固化ADR-17；执行路线见[docs38](../docs/38_EXECUTION_PLAN_REFRESH.md)。旧ADR-16硬约束及唯一坐标保留。

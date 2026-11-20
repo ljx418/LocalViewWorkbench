@@ -1,6 +1,6 @@
 # LVW Prompt Service｜V0–V3 全阶段统一开发基线
 
-**文档包 v2.0.0 · 执行计划修订 2026-11-05 · V0-Min 与 R1a 单图切片已签署；完整 V1 尚未完成。**
+**文档包 v2.0.0 · 执行计划修订 2026-11-20 · V0-Min 与 R1a 单图切片已签署；完整 V1 尚未完成。**
 
 [验收报告、原视频与11段留样](验收报告与盲测视频.html) · [人工验收与体验指南](人工验收指南.html) · [打开 HTML 总览](START_HERE.html) · [交互原型](prototype/index.html) · [完整规范](FULL_SPEC.md) · [Codex 启动](CODEX_START.md) · [需求追踪](plans/requirements.json)。
 
@@ -10,7 +10,7 @@
 
 产品规格仍由本README、`docs/`、`contracts/`和`plans/`定义；[Agent Governance](.agent-governance/README.md)在其上增加角色隔离、Stage Packet、Workpack、候选/证据绑定、预算等待和反假绿门禁。唯一当前坐标为[execution-control.json](plans/execution-control.json)。
 
-当前 Stage、门限、暂停原因和子阶段完成度只读取 [execution-control.json](plans/execution-control.json)，不在 README 保存第二份坐标。完整开发大纲、V0 十二项覆盖与下一个人工门限见 [执行总纲](docs/24_EXECUTION_MASTER_PLAN.md)；提速/门限调整见 [待批准提案](docs/25_PLAN_OPTIMIZATION_PROPOSAL.md)。
+当前 Stage、门限、暂停原因和子阶段完成度只读取 [execution-control.json](plans/execution-control.json)，不在 README 保存第二份坐标。完整开发大纲、V0 十二项覆盖与下一个人工门限见 [执行总纲](docs/24_EXECUTION_MASTER_PLAN.md)；已批准效率改进见 [流程spec](docs/37_DELIVERY_EFFICIENCY_SPEC.md)；[docs25](docs/25_PLAN_OPTIMIZATION_PROPOSAL.md)保留历史提案，本轮没有降低产品门限。
 
 历史签署：V0-Min 候选 `1d48142…` 与 R1a 单图切片 `df4943ce…` 已获人工验收。它们不批准 V0.1、V0.2、完整 V1 或生产发布；S0 和后续失败记录不因此改写。
 
@@ -68,3 +68,7 @@ V2-D0文档调整已完成，设计独审及聚焦复审F0/M0/m0，Codex已作[�
 ## 2026-11-15｜交付流程调整已批准
 
 [新流程与逐步实施](docs/36_DELIVERY_WORKFLOW_REBASELINE.md) · [ADR-16](docs/adr/ADR-16-DELIVERY-FLOW.md) · [机器政策](plans/v1-delivery-workflow.json) · [开发准入映射](plans/v1-workpack-development-map.json)。定向反馈前置、辅助诊断分层和证据差异复用生效；最小职责提取与垂直切片仍逐包冻结，正式Stage依赖/最终分母/安全门槛/人工签署保留。docs25的旧P项按其历史状态，不等于整体获批；本次批准范围以ADR-16为准。
+
+## 当前开发流程与接续
+
+[文档导航](docs/INDEX.md) · [已批准流程spec](docs/37_DELIVERY_EFFICIENCY_SPEC.md) · [最新实施计划](docs/38_EXECUTION_PLAN_REFRESH.md) · [机器路线](plans/v1-execution-roadmap.json) · [下一goal](plans/packets/rc-review07/next-goal.md)。ClaudeCode负责实现，Codex负责设计与门禁，隔离实例独审；资源清理三Major尚待关闭，已有真实成功不能代替正式接受。历史过程产物的整理说明见[归档索引](archives/README.md)。

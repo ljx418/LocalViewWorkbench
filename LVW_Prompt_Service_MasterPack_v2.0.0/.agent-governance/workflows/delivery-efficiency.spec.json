@@ -1,0 +1,106 @@
+{
+  "schema_version": "lvw.delivery-efficiency/1",
+  "change_id": "CHANGE-V1-DELIVERY-EFFICIENCY-02",
+  "status": "ACTIVE_APPROVED",
+  "approval": "reports/development-refresh-2026-11-20/approval.json",
+  "extends": "plans/v1-delivery-workflow.json",
+  "coordinate_authority": "plans/execution-control.json",
+  "roles": {
+    "architect_and_gate": "Codex",
+    "implementation": "visible ClaudeCode",
+    "independent_review": "isolated reviewer, never same implementation session",
+    "facts": "controlled executor",
+    "experience_and_release_signature": "human"
+  },
+  "limits": {
+    "one_product_stage": true,
+    "one_implementation_owner_per_workpack": true,
+    "agents_per_workspace": 1,
+    "agents_per_project": 3,
+    "next_stage_docs_only": 1
+  },
+  "review_loop": {
+    "before_code": [
+      "frozen owner/input/output/stop/failure contracts",
+      "obligation-production-path-oracle-negative-terminal-cleanup mapping",
+      "exact baseline, allowed paths, test plan, finite budget"
+    ],
+    "implement": [
+      "fault reproduction then correction",
+      "batch same-stage low-risk workpacks",
+      "targeted and contract-negative selfchecks",
+      "one consolidated defect packet per review"
+    ],
+    "checkpoint": "one concentrated Stage checkpoint; corrections use affected-path verification without shrinking formal denominators",
+    "escalation": "two review rounds without gate exit require scope/architecture/oracle retrospective before another repair packet; no automatic PASS or defect downgrade"
+  },
+  "ownership": {
+    "platform_adapter": "original native handle/Job/control primitives",
+    "runtime_owner": "admission, lifecycle and terminal state; no duplicate cleanup state machine in harness",
+    "evidence": "raw observations, durable receipts and budget finalization; independent oracle remains separate"
+  },
+  "runner_convergence": {
+    "only_repeated_blocks": [
+      "Git-defined complete candidate membership and hashes",
+      "monitor stop/drain",
+      "terminal receipts",
+      "budget settlement"
+    ],
+    "versioned": true,
+    "no_general_agent_platform": true,
+    "implement_only_in_scoped_future_packet": true
+  },
+  "impact_retest": {
+    "docs_only": [
+      "document/schema/plan consistency"
+    ],
+    "ui_only": [
+      "frontend types/tests/build",
+      "affected UI flow"
+    ],
+    "backend_or_native": [
+      "targeted negatives",
+      "affected composition/platform path"
+    ],
+    "model_behavior": [
+      "finite representative actual input",
+      "affected formal matrix"
+    ],
+    "evidence_or_runner": [
+      "fault/interrupt tests",
+      "candidate/ledger/evidence binding"
+    ],
+    "reuse_requires": [
+      "exact source and tool identity",
+      "explicit dependency impact proof",
+      "independent reviewer acceptance"
+    ],
+    "never": [
+      "cross-run fixed-set stitching",
+      "reduce189_or29",
+      "count_skip_as_pass",
+      "self_independent_approval"
+    ]
+  },
+  "evidence_hygiene": {
+    "canonical_logs_and_failures": "retain immutable bytes; archive with path/hash restore map",
+    "reconstructible_cache": "quarantine or remove only after inventory",
+    "unknown_untracked": "preserve, do not silently publish",
+    "frozen_specs": "retain or hash-preserving archive; no silent overwrite",
+    "new_reports": "no source extraction/pytest trees; keep source SHA and raw outputs"
+  },
+  "quota429": "STOP immediately; no retry/supplier switch/root takeover without explicit new user authority",
+  "metrics": [
+    "qualified workpack total cost if measurable",
+    "review rounds and new-Major source layer",
+    "waiting vs execution time",
+    "time to usable slice"
+  ],
+  "formal_pins": {
+    "component_nodes": 189,
+    "v1_cases": 29,
+    "stage_dag_unchanged": true,
+    "human_signatures_retained": true,
+    "budget_reset": false
+  }
+}
